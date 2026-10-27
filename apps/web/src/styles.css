@@ -1582,103 +1582,24 @@ svg.zones polygon {
   padding: calc(16px + var(--safe-top)) 16px 32px;
   gap: 20px;
 }
-/* Behind the lobby (lobby/Backdrop.tsx): the chosen world's bare ground drifting slowly past, close up, bases passing
-   under it, and a survey's readout over it. Fixed, under the lobby's content, and shaded so the form stays easy to
-   read. Its world's middle colour shows till the ground is drawn. */
+/* Behind the lobby (lobby/Backdrop.tsx): the chosen world's ground, its tiles laid edge to edge, drifting slowly
+   past, close up. Fixed, under the lobby's content, and shaded so the form stays easy to read. Its world's middle
+   colour shows till the tiles are drawn. */
 .lobby-backdrop {
   position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none;
-  --hud: rgb(var(--accent-rgb) / .7);
-  --hud-faint: rgb(var(--accent-rgb) / .09);
 }
-/* The ground, a tile larger than the screen each way, repeating, and moved by less than a tile and back
-   (lobby/Backdrop.tsx), so it seems to go on for ever. The survey's grid is drawn on it, a quarter tile square, so
-   it moves with the ground. */
-.survey-ground {
-  position: absolute; left: 0; top: 0;
-  width: calc(100% + var(--tile)); height: calc(100% + var(--tile));
-  background-size: var(--tile) var(--tile);
-  opacity: 0; transition: opacity 1.6s ease-out;
-  will-change: transform;
-}
-.survey-ground::after {
-  content: ''; position: absolute; inset: 0;
-  background:
-    linear-gradient(var(--hud-faint) 1px, transparent 1px) 0 0 / calc(var(--tile) / 4) calc(var(--tile) / 4),
-    linear-gradient(90deg, var(--hud-faint) 1px, transparent 1px) 0 0 / calc(var(--tile) / 4) calc(var(--tile) / 4);
-}
-.survey-ground.ready { opacity: 1; }
-/* A base: its building's place on the ground at 0, 0; its tile's standing art round it, with the shadow the
-   ground would have had under it, to the bottom right, away from the light. */
-.survey-base { position: absolute; left: 0; top: 0; width: 0; height: 0; will-change: transform; }
-.survey-base img {
-  position: absolute;
-  filter: drop-shadow(calc(var(--space) * .08) calc(var(--space) * .08) calc(var(--space) * .03) rgb(30 28 26 / .75));
-  animation: backdrop-in 1.2s ease-out both;
-}
-/* Brackets round a base, two spaces square, that show and name it once it's well on the screen. */
-.survey-lock {
-  --b: calc(var(--space) * .22);
-  position: absolute; left: calc(var(--space) * -1); top: calc(var(--space) * -1);
-  width: calc(var(--space) * 2); height: calc(var(--space) * 2);
-  background:
-    linear-gradient(var(--hud), var(--hud)) 0 0 / var(--b) 1.5px, linear-gradient(var(--hud), var(--hud)) 0 0 / 1.5px var(--b),
-    linear-gradient(var(--hud), var(--hud)) 100% 0 / var(--b) 1.5px, linear-gradient(var(--hud), var(--hud)) 100% 0 / 1.5px var(--b),
-    linear-gradient(var(--hud), var(--hud)) 0 100% / var(--b) 1.5px, linear-gradient(var(--hud), var(--hud)) 0 100% / 1.5px var(--b),
-    linear-gradient(var(--hud), var(--hud)) 100% 100% / var(--b) 1.5px, linear-gradient(var(--hud), var(--hud)) 100% 100% / 1.5px var(--b);
-  background-repeat: no-repeat;
-  opacity: 0; transition: opacity .5s ease-out;
-}
-.survey-base.locked .survey-lock { opacity: 1; }
-.survey-label {
-  position: absolute; left: 0; top: calc(100% + 6px);
-  font: 600 11px/1 var(--body); letter-spacing: .18em; text-transform: uppercase; white-space: nowrap;
-  color: var(--hud);
-  clip-path: inset(0 100% 0 0);
-  transition: clip-path .6s steps(12) .3s;
-}
-.survey-base.locked .survey-label { clip-path: inset(0); }
-/* While the ground is first drawn (lobby/Backdrop.tsx `SLOW_MS`): a small turning arc by the readout. */
-/* Faded in, so where the ground comes just after it, it doesn't flash. */
-.survey-acquiring { display: inline-flex; align-items: center; gap: 8px; animation: backdrop-in .6s ease-in both; }
-.survey-spinner {
-  width: 9px; height: 9px; border-radius: 50%;
-  border: 1.5px solid rgb(var(--accent-rgb) / .2); border-top-color: var(--hud);
-  animation: survey-spin .9s linear infinite;
-}
-@keyframes survey-spin { to { transform: rotate(1turn); } }
-/* A faint line sweeping down the screen. */
-.survey-scan {
-  position: absolute; left: 0; right: 0; top: 0; height: 120px;
-  background: linear-gradient(transparent, rgb(var(--accent-rgb) / .05) 85%, rgb(var(--accent-rgb) / .16));
-  animation: survey-scan 9s linear infinite;
-}
-@keyframes survey-scan { from { transform: translateY(-120px); } to { transform: translateY(100vh); } }
-/* The survey's frame: brackets in the screen's corners, inside the safe area, and its readout. */
-.survey-frame {
-  position: absolute; inset: calc(14px + var(--safe-top)) 14px calc(14px + env(safe-area-inset-bottom));
-  font: 600 10px/1 var(--body); letter-spacing: .2em; text-transform: uppercase; color: var(--hud);
-}
-.survey-corner { position: absolute; width: 22px; height: 22px; border: 0 solid var(--hud); }
-.survey-corner.tl { left: 0; top: 0; border-width: 1.5px 0 0 1.5px; }
-.survey-corner.tr { right: 0; top: 0; border-width: 1.5px 1.5px 0 0; }
-.survey-corner.bl { left: 0; bottom: 0; border-width: 0 0 1.5px 1.5px; }
-.survey-corner.br { right: 0; bottom: 0; border-width: 0 1.5px 1.5px 0; }
-.survey-text { position: absolute; white-space: pre; line-height: 1.6; font-variant-numeric: tabular-nums; }
-.survey-text.bottom-left { left: 32px; bottom: 6px; }
-.survey-text.bottom-right { right: 32px; bottom: 6px; }
+/* The ground, its own layer, moved by its transform alone; each tile fades in as it's drawn. */
+.lobby-ground { position: absolute; left: 0; top: 0; will-change: transform; }
+.lobby-ground svg { position: absolute; width: 1px; height: 1px; overflow: visible; }
+.lobby-ground image { animation: backdrop-in 1.2s ease-out both; }
 @keyframes backdrop-in { from { opacity: 0; } }
-/* Dimmed, and darker still towards the edges and behind the form in the middle, so the ground and its bases read
-   as scenery. */
+/* Dimmed, and darker still towards the edges and behind the form in the middle, so the map reads as scenery. */
 .backdrop-shade {
   position: absolute; inset: 0;
   background:
     linear-gradient(rgb(var(--shade) / .45), rgb(var(--shade) / .45)),
     radial-gradient(ellipse 60% 55% at 50% 45%, rgb(var(--shade) / .35), transparent),
     radial-gradient(ellipse 90% 80% at 50% 40%, transparent 45%, rgb(var(--shade) / .75));
-}
-@media (prefers-reduced-motion: reduce) {
-  .survey-scan { display: none; }
-  .survey-ground, .survey-lock, .survey-label { transition: none; }
 }
 
 .lobby-hero { text-align: center; }

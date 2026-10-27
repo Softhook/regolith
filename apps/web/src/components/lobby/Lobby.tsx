@@ -17,7 +17,6 @@ import { Field, MapPicker, SeatRow } from './NewGameFields';
 import { INTRO_RISE_MS, useIntro } from './useIntro';
 import { MODE_KEY, PLAYER_COUNTS, isFriendSeat, mapKey, storedAiLevel, storedMap, storedMode } from './choices';
 import { GAME_NAME } from '../../appId';
-import { useWarmMapImages } from '../../art/tileImages';
 
 export interface LobbyResult {
   players: PlayerConfig[];
@@ -64,7 +63,6 @@ export function Lobby({
   const choices = MAPS.filter((m) => m.players === count && RULESETS[mode].mapGroups.includes(m.group));
   // A remembered map the chosen rules don't use falls back to their default map (it stays remembered).
   const map = choices.find((m) => m.id === mapIds[count]) ?? defaultMapFor(RULESETS[mode], count)!;
-  useWarmMapImages(map);
 
   const chooseMode = (id: GameMode) => {
     setMode(id);

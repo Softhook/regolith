@@ -1,222 +1,154 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { buildBoard, type MapDef } from '@regolith/engine';
-import { GROUND_BASE, RASTER_AREA, REGOLITH_SURFACE, TILE, tileSpec, type World } from '@regolith/art';
+import { GROUND_BASE, RASTER_AREA, TILE, hash, type World } from '@regolith/art';
 import { decodedTileImage } from '../../art/tileImages';
-import { useSurfaceImage } from '../../art/surfaceImage';
-import { tileArt, type TileArt } from '../../art/boardTiles';
+import { tileArt } from '../../art/boardTiles';
+import { hexCorners } from '../board/geometry';
 import { PHONE, REDUCED_MOTION, useMediaQuery } from '../../game/useMediaQuery';
 
 /**
- * Behind the lobby: a close look at the chosen map's world, its bare ground (art `regolithSurfaceSvg`) drifting
- * slowly past as if from a low orbit, the map's bases passing under it now and then, and a survey's readout over
- * it: a grid on the ground, the position, a scan line, and brackets that lock on to each base once it's well on
- * the screen. Purely decoration: hidden from screen readers, and still under reduced motion.
+ * Behind the lobby: a close look at the chosen map's world, its ground drifting slowly past as if from a low
+ * orbit. The ground is the game's own tiles laid edge to edge, as hex tiles fit together: mostly its blank tiles,
+ * with the chosen map's tiles among them now and then. They're the images the game draws them from (tileImages),
+ * so what the lobby draws is ready, and stored, for the game; and each is drawn once, however often it shows.
+ * Purely decoration: hidden from screen readers, and still under reduced motion.
  *
- * Nothing stands on the ground at first: the first base comes in over an edge once the ground is drawn, and each
- * base's tile art is drawn only when it's on its way, so on a first visit the ground has the main thread to itself.
- *
- * Kept light for phones: the ground is one layer, a repeating background a tile larger than the screen that's
- * moved by less than a tile and back, and each base is one image; only transforms change from frame to frame.
+ * Kept light for phones: the ground is one layer, moved by its transform alone; only the tiles near the screen
+ * are on it, and they change only as a tile comes into view or goes.
  */
 
-/** How large one copy of the ground is drawn, px: a space comes out some 140 px across (100 on a phone). */
-const TILE_PX = 1330;
-const PHONE_TILE_PX = 960;
+/** How large a space is drawn, px: close up (smaller on a phone). */
+const CELL = 140;
+const PHONE_CELL = 100;
 /** How fast the ground drifts, px a second, and which way it seems to go (the camera goes the other way): up and to the left. */
 const SPEED = 16;
 const PHONE_SPEED = 11;
 const HEADING = (215 * Math.PI) / 180;
-/** How far the ground drifts between one base and the next, px: about a screen; and before the first, once the ground is drawn. */
-const BASE_GAP = 900;
-const FIRST_BASE = 160;
-/** Milliseconds before the survey says it's still drawing the ground: on a visit after the first it's there sooner. */
-const SLOW_MS = 400;
-/** A base is locked on while it's further inside the screen than this share of its width and height. */
-const LOCK = 0.1;
-/** Degrees of latitude and longitude a pixel of drift is, and where the survey starts on each world. */
-const DEGREES_PER_PX = 0.00004;
-const START: Record<World, [lat: number, lon: number]> = { mars: [-4.59, 137.44], phobos: [-12.2, 41.6], deimos: [8.4, 302.1] };
+/** The blank tiles (art `TILE_SET`), and how many of the tiles laid are the chosen map's instead. */
+const BLANKS = Array.from({ length: 10 }, (_, i) => ({ id: `blank-${String(i + 1).padStart(2, '0')}`, at: { x: 0, y: 0 } }));
+const MAP_SHARE = 1 / 12;
 
-interface Base {
-  key: number;
-  tile: TileArt;
-  /** Where its building stands on the ground, px. */
-  x: number;
-  y: number;
+/**
+ * Where the tiles go, in spaces: the middles of 7-hex flowers fitted together, two steps of the lattice they make
+ * (engine `drawing`: a column √3/2 of a space across, each a half space lower than the last).
+ */
+const STEP_A = { x: Math.sqrt(3), y: 2 };
+const STEP_B = { x: -Math.sqrt(3) / 2, y: 2.5 };
+const DET = STEP_A.x * STEP_B.y - STEP_B.x * STEP_A.y;
+/** How far a tile's art reaches from its middle, in spaces: its bleed past the flower, and some. */
+const REACH = 2;
+
+type TileRef = { id: string; at: { x: number; y: number } };
+
+/** The tiles in view of the screen moved by (ox, oy) px, by the lattice's steps: a range of each. */
+function inView(ox: number, oy: number, w: number, h: number, cell: number) {
+  const corners = [
+    [ox, oy],
+    [ox + w, oy],
+    [ox, oy + h],
+    [ox + w, oy + h],
+  ].map(([x, y]) => [x / cell, y / cell]);
+  // A point's place in steps: the lattice's inverse.
+  const steps = corners.map(([x, y]) => [(x * STEP_B.y - y * STEP_B.x) / DET, (STEP_A.x * y - STEP_A.y * x) / DET]);
+  const pad = REACH / 2;
+  const range = (k: 0 | 1) => [Math.floor(Math.min(...steps.map((s) => s[k])) - pad), Math.ceil(Math.max(...steps.map((s) => s[k])) + pad)];
+  const [[i0, i1], [j0, j1]] = [range(0), range(1)];
+  return { i0, i1, j0, j1 };
 }
 
-/** Each tile with a base, in turn, for the bases passing under. */
-const withBases = (tiles: TileArt[]) => tiles.filter((t) => tileSpec(t.id).number > 0);
-
-/** The ground's position as the survey shows it: degrees north or south, east. */
-function position(world: World, ox: number, oy: number) {
-  const [lat0, lon0] = START[world];
-  const lat = lat0 - oy * DEGREES_PER_PX;
-  const lon = (((lon0 + ox * DEGREES_PER_PX) % 360) + 360) % 360;
-  return `${Math.abs(lat).toFixed(4)}°${lat < 0 ? 'S' : 'N'}  ${lon.toFixed(4)}°E`;
-}
-
-function Survey({ map, tilePx, speed, still }: { map: MapDef; tilePx: number; speed: number; still: boolean }) {
+function Ground({ map, cell, speed, still }: { map: MapDef; cell: number; speed: number; still: boolean }) {
   const board = useMemo(() => buildBoard(map), [map]);
-  const tiles = useMemo(() => withBases(tileArt(board)), [board]);
   const world = board.world;
-  const ground = useSurfaceImage(world);
-  const ready = useRef(false);
-  ready.current = !!ground;
-  const [slow, setSlow] = useState(false);
-  useEffect(() => {
-    const t = setTimeout(() => setSlow(true), SLOW_MS);
-    return () => clearTimeout(t);
-  }, []);
-  /** Pixels per mm of tile art, at the ground's scale. */
-  const k = tilePx / REGOLITH_SURFACE.mm;
+  const mapTiles = useMemo(() => tileArt(board).filter((t) => !t.id.startsWith('blank')), [board]);
+  /** The tile laid at (i, j): the same each time it comes round. */
+  const tileAt = (i: number, j: number): TileRef => {
+    const h = hash(`${i},${j}`) >>> 0;
+    return mapTiles.length && (h % 1000) / 1000 < MAP_SHARE ? mapTiles[(h >>> 10) % mapTiles.length] : BLANKS[(h >>> 10) % BLANKS.length];
+  };
 
   const drift = useRef<HTMLDivElement>(null);
-  const readout = useRef<HTMLSpanElement>(null);
-  const logged = useRef<HTMLSpanElement>(null);
-  const els = useRef(new Map<string, HTMLDivElement>());
-  const [bases, setBases] = useState<Base[]>([]);
-  const current = useRef(bases);
-  current.current = bases;
-  // The map can change under the survey without its world changing: the next bases are the new map's.
-  const siteTiles = useRef(tiles);
-  siteTiles.current = tiles;
-
+  const [view, setView] = useState(() => inView(0, 0, innerWidth, innerHeight, cell));
+  const shown = useRef(view);
   useEffect(() => {
     const [vx, vy] = [speed * Math.cos(HEADING + Math.PI), speed * Math.sin(HEADING + Math.PI)];
-    // A base's image, px across, and how far past the screen's edge one comes in from.
-    const reach = (RASTER_AREA.ground.w * k) / 2;
     let [ox, oy] = [0, 0];
-    let next = 0;
-    let since = BASE_GAP - FIRST_BASE;
-    let count = 0;
-    const locked = new Set<number>();
     let last = performance.now();
-    let shown = 0;
     let frame = 0;
-
-    /** A base coming in over the edges the ground comes in from; and the next one's art drawn, ready for it. */
-    const arrive = () => {
-      const tiles = siteTiles.current;
-      if (!tiles.length) return;
-      const [W, H] = [innerWidth, innerHeight];
-      const [sx, sy] = Math.random() < (H * vx) / (H * vx + W * vy) ? [W + reach, H * Math.random()] : [W * Math.random(), H + reach];
-      const base = { key: next++, tile: tiles[count++ % tiles.length], x: sx + ox, y: sy + oy };
-      setBases((b) => [...b, base]);
-      decodedTileImage(tiles[count % tiles.length], world, 'standing').catch(() => {});
-    };
-
     const place = () => {
-      const [W, H] = [innerWidth, innerHeight];
-      if (drift.current) drift.current.style.transform = `translate3d(${-(ox % tilePx)}px, ${-(oy % tilePx)}px, 0)`;
-      const gone: number[] = [];
-      for (const b of current.current) {
-        const [art, lock] = [els.current.get(`art${b.key}`), els.current.get(`lock${b.key}`)];
-        const [sx, sy] = [b.x - ox, b.y - oy];
-        if (sx < -reach * 1.2 || sy < -reach * 1.2) gone.push(b.key);
-        if (!art || !lock) continue;
-        art.style.transform = lock.style.transform = `translate3d(${sx}px, ${sy}px, 0)`;
-        const near = sx > W * LOCK && sx < W * (1 - LOCK) && sy > H * LOCK && sy < H * (1 - LOCK);
-        lock.classList.toggle('locked', near);
-        if (near && !locked.has(b.key)) {
-          locked.add(b.key);
-          if (logged.current) logged.current.textContent = String(locked.size).padStart(3, '0');
-        }
-      }
-      if (gone.length) setBases((list) => list.filter((b) => !gone.includes(b.key)));
+      if (drift.current) drift.current.style.transform = `translate3d(${-ox}px, ${-oy}px, 0)`;
+      const next = inView(ox, oy, innerWidth, innerHeight, cell);
+      const v = shown.current;
+      if (v.i0 !== next.i0 || v.i1 !== next.i1 || v.j0 !== next.j0 || v.j1 !== next.j1) setView((shown.current = next));
     };
-
     const tick = (now: number) => {
       // Not catching up after the tab was away.
       const dt = Math.min(now - last, 100) / 1000;
       last = now;
       ox += vx * dt;
       oy += vy * dt;
-      // Counting towards the first base from when the ground is drawn.
-      if (ready.current) since += speed * dt;
-      if (since >= BASE_GAP) {
-        since = 0;
-        arrive();
-      }
       place();
-      if (now - shown > 200 && readout.current) {
-        shown = now;
-        readout.current.textContent = position(world, ox, oy);
-      }
       frame = requestAnimationFrame(tick);
     };
-
-    if (readout.current) readout.current.textContent = position(world, 0, 0);
-    // Under reduced motion, the ground stays put and no base comes.
+    place();
+    // Under reduced motion, the ground stays put.
     if (!still) frame = requestAnimationFrame(tick);
+    addEventListener('resize', place);
     return () => {
       cancelAnimationFrame(frame);
-      setBases([]);
+      removeEventListener('resize', place);
     };
-  }, [world, tilePx, speed, k, still]);
+  }, [cell, speed, still]);
 
-  const size = RASTER_AREA.ground.w * k;
-  const space = TILE.cell * k;
-  /** A base's element, under the shade (its art) or over it (its brackets): moved to where it is each frame. */
-  const keep = (key: string) => (el: HTMLDivElement | null) => {
-    if (el) els.current.set(key, el);
-    else els.current.delete(key);
-  };
+  const laid: { key: string; x: number; y: number; tile: TileRef }[] = [];
+  for (let i = view.i0; i <= view.i1; i++)
+    for (let j = view.j0; j <= view.j1; j++)
+      laid.push({ key: `${i},${j}`, x: (i * STEP_A.x + j * STEP_B.x) * cell, y: (i * STEP_A.y + j * STEP_B.y) * cell, tile: tileAt(i, j) });
+  // The middle of the screen's tiles asked for first, as they're drawn in turn: before each tile asks for its own
+  // (layout effects run before effects). Asked for here, not laid in this order: React would move the tiles
+  // already on the ground to reorder them, and moved, each would fade in again.
+  useLayoutEffect(() => {
+    const [mx, my] = [
+      ((view.i0 + view.i1) / 2) * STEP_A.x + ((view.j0 + view.j1) / 2) * STEP_B.x,
+      ((view.i0 + view.i1) / 2) * STEP_A.y + ((view.j0 + view.j1) / 2) * STEP_B.y,
+    ];
+    const away = (t: { x: number; y: number }) => Math.hypot(t.x / cell - mx, t.y / cell - my);
+    for (const t of [...laid].sort((a, b) => away(a) - away(b))) decodedTileImage(t.tile, world, 'ground').catch(() => {});
+  });
+
+  // A flower's hexes round its middle, a touch larger, so no hairline shows between them (as MapTiles clips them).
+  const flower = [
+    [0, 0],
+    [0, -1],
+    [0, 1],
+    [Math.sqrt(3) / 2, -0.5],
+    [Math.sqrt(3) / 2, 0.5],
+    [-Math.sqrt(3) / 2, -0.5],
+    [-Math.sqrt(3) / 2, 0.5],
+  ];
   return (
-    <>
-      <div
-        ref={drift}
-        className={`survey-ground${ground ? ' ready' : ''}`}
-        style={{ '--tile': `${tilePx}px`, backgroundImage: ground && `url(${ground})` } as CSSProperties}
-      />
-      {bases.map((b) => (
-        <div key={b.key} ref={keep(`art${b.key}`)} className="survey-base">
-          <SiteArt tile={b.tile} world={world} size={size} space={space} />
-        </div>
-      ))}
-      {/* Over the ground and what stands on it alike; the survey's marks stay crisp over it. */}
-      <div className="backdrop-shade" />
-      {bases.map((b) => (
-        <div key={b.key} ref={keep(`lock${b.key}`)} className="survey-base" style={{ '--space': `${space}px` } as CSSProperties}>
-          <span className="survey-lock">
-            <span className="survey-label">
-              Site {String(b.key + 1).padStart(2, '0')} · P{tileSpec(b.tile.id).number}
-            </span>
-          </span>
-        </div>
-      ))}
-      <div className="survey-scan" />
-      <div className="survey-frame">
-        <span className="survey-corner tl" />
-        <span className="survey-corner tr" />
-        <span className="survey-corner bl" />
-        <span className="survey-corner br" />
-        <span className="survey-text bottom-left">
-          Survey · {world}
-          {'\n'}
-          {ground || !slow ? (
-            <span ref={readout} />
-          ) : (
-            <span className="survey-acquiring">
-              <span className="survey-spinner" />
-              Acquiring surface
-            </span>
-          )}
-        </span>
-        <span className="survey-text bottom-right">
-          Sites <span ref={logged}>000</span>
-        </span>
-      </div>
-    </>
+    <div ref={drift} className="lobby-ground">
+      <svg>
+        <defs>
+          <clipPath id="lobby-flower">
+            {flower.map(([x, y]) => (
+              <polygon key={`${x},${y}`} points={hexCorners(x * cell, y * cell, cell * 1.01).join(' ')} />
+            ))}
+          </clipPath>
+        </defs>
+        {laid.map((t) => (
+          <Laid key={t.key} x={t.x} y={t.y} tile={t.tile} world={world} cell={cell} />
+        ))}
+      </svg>
+    </div>
   );
 }
 
-/** A base's tile art (what stands on it), drawn when the base is on its way, round its building's place. */
-function SiteArt({ tile, world, size, space }: { tile: TileArt; world: World; size: number; space: number }) {
+/** A tile on the ground, middle at (x, y): its ground image (art `RASTER_AREA`) once drawn, clipped to its hexes. */
+const Laid = memo(function Laid({ x, y, tile, world, cell }: { x: number; y: number; tile: TileRef; world: World; cell: number }) {
   const [url, setUrl] = useState<string>();
   useEffect(() => {
     let live = true;
-    decodedTileImage(tile, world, 'standing').then(
+    decodedTileImage(tile, world, 'ground').then(
       (u) => live && setUrl(u),
       (e: unknown) => console.error(e),
     );
@@ -224,24 +156,17 @@ function SiteArt({ tile, world, size, space }: { tile: TileArt; world: World; si
       live = false;
     };
   }, [tile, world]);
+  // A tile's artwork is a whole printed tile, 3 spaces wide, centred on its middle.
+  const px = (v: number) => (v * 3 * cell) / TILE.size;
+  const area = RASTER_AREA.ground;
   return (
     url && (
-      <img
-        src={url}
-        alt=""
-        style={
-          {
-            '--space': `${space}px`,
-            width: size,
-            height: size,
-            left: -size / 2 - tile.at.x * space,
-            top: -size / 2 - tile.at.y * space,
-          } as CSSProperties
-        }
-      />
+      <g transform={`translate(${x} ${y})`} clipPath="url(#lobby-flower)">
+        <image href={url} x={px(area.x - TILE.size / 2)} y={px(area.y - TILE.size / 2)} width={px(area.w)} height={px(area.h)} />
+      </g>
     )
   );
-}
+});
 
 export function LobbyBackdrop({ map }: { map: MapDef }) {
   const still = useMediaQuery(REDUCED_MOTION);
@@ -249,14 +174,15 @@ export function LobbyBackdrop({ map }: { map: MapDef }) {
   const world = useMemo(() => buildBoard(map).world, [map]);
   return (
     <div className="lobby-backdrop" style={{ background: GROUND_BASE[world] }} aria-hidden="true">
-      {/* Keyed by world: a new world's ground fades in with fresh bases. */}
-      <Survey
+      {/* Keyed by world: a new world's ground fades in. */}
+      <Ground
         key={`${world}:${phone}:${still}`}
         map={map}
-        tilePx={phone ? PHONE_TILE_PX : TILE_PX}
+        cell={phone ? PHONE_CELL : CELL}
         speed={phone ? PHONE_SPEED : SPEED}
         still={still}
       />
+      <div className="backdrop-shade" />
     </div>
   );
 }

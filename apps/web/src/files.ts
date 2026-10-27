@@ -27,7 +27,7 @@ async function loadSvg(svg: string): Promise<HTMLImageElement> {
 }
 
 /** Draws an SVG document to a `w` × `h` px transparent canvas. */
-export async function drawSvg(svg: string, w: number, h: number): Promise<HTMLCanvasElement> {
+async function drawSvg(svg: string, w: number, h: number): Promise<HTMLCanvasElement> {
   const img = await loadSvg(svg);
   const canvas = document.createElement('canvas');
   canvas.width = w;
@@ -87,32 +87,40 @@ export async function* drawBands(
 }
 
 /** A canvas encoded as `type` (browsers that can't encode it give PNG). */
-export const encode = (canvas: HTMLCanvasElement, type = 'image/png', quality?: number) =>
+const encode = (canvas: HTMLCanvasElement, type = 'image/png', quality?: number) =>
   new Promise<Blob>((resolve, reject) =>
     canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('drawing the SVG failed'))), type, quality),
   );
 
 /**
- * Draws an SVG document to a `w` × `h` px bitmap, encoded as `type`, and the same bitmap cut out by a
- * second, `mask` (kept where the mask is drawn): drawn once, for both.
+ * Draws an SVG document to a `w` × `h` px bitmap, and the same bitmap cut out by a second, `mask` (kept where
+ * the mask is drawn): drawn once, for both. The whole goes over an opaque `under` colour, as JPEG; the cut-out
+ * keeps its transparency, as PNG. WebP took four times as long to encode the one and three times the other,
+ * and dropped frames while it did.
  */
 export async function rasteriseWithCutout(
   svg: string,
   mask: string,
   w: number,
   h: number,
-  type = 'image/png',
+  under: string,
   quality?: number,
 ): Promise<[Blob, Blob]> {
   const [canvas, cutter] = await Promise.all([drawSvg(svg, w, h), loadSvg(mask)]);
+  const flat = document.createElement('canvas');
   try {
-    const whole = await encode(canvas, type, quality);
+    [flat.width, flat.height] = [w, h];
+    const f = flat.getContext('2d')!;
+    f.fillStyle = under;
+    f.fillRect(0, 0, w, h);
+    f.drawImage(canvas, 0, 0);
+    const whole = await encode(flat, 'image/jpeg', quality);
     const ctx = canvas.getContext('2d')!;
     ctx.globalCompositeOperation = 'destination-in';
     ctx.drawImage(cutter, 0, 0, w, h);
-    return [whole, await encode(canvas, type, quality)];
+    return [whole, await encode(canvas, 'image/png')];
   } finally {
-    canvas.width = canvas.height = 0;
+    canvas.width = canvas.height = flat.width = flat.height = 0;
   }
 }
 

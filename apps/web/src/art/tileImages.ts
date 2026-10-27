@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
-import { buildBoard, type MapDef } from '@regolith/engine';
+import { useEffect, useState } from 'react';
 import {
+  GROUND_BASE,
   RASTER_AREA,
   TILE,
   dataUrl,
@@ -15,8 +15,6 @@ import {
 import { rasteriseWithCutout } from '../files';
 import { COARSE } from '../game/useMediaQuery';
 import { idle, storeImage, storedImage } from './imageStore';
-import { tileArt } from './boardTiles';
-import { surfaceImage } from './surfaceImage';
 
 /**
  * Tile artwork as ready-drawn images: the raster layers of a tile on its world's ground (art `rasterLayerSvg`),
@@ -41,6 +39,11 @@ export const SHARP_CELL = (SIZE * TILE.cell) / TILE.size;
 const pixels = (layer: RasterLayer) => Math.round((SIZE * RASTER_AREA[layer].w) / TILE.size);
 
 const grounds = new Map<string, Promise<Record<RasterLayer, string>>>();
+/**
+ * Tiles are drawn one at a time, each when the page is idle: drawn together as a game opens, their filters took
+ * over 100 ms a frame, and drawn during a pinch or pan they'd drop its frames.
+ */
+let drawing: Promise<unknown> = Promise.resolve();
 const decoded = new Map<string, Promise<string>>();
 
 /** A tile to draw: its physical id, and where its planet sits, in spaces from its middle (the ground's building stands there). */
@@ -63,12 +66,18 @@ function groundImages(tile: TileRef, world: World): Promise<Record<RasterLayer, 
     const svg = rasterLayerSvg(tileSpec(tile.id), world, tile.at);
     const mask = standingMaskSvg(tileSpec(tile.id), tile.at);
     const size = pixels('ground');
-    const key = `${hash(svg + mask)}:${size}`;
+    const key = `${hash(svg + mask)}:${size}:jpeg`;
     const ids = [name, nameOf(tile, world, 'standing')];
     pair = (async () => {
       const [ground, standing] = await Promise.all(ids.map((id) => storedImage('tiles', id, key).catch(() => undefined)));
       if (ground && standing) return { ground: URL.createObjectURL(ground), standing: URL.createObjectURL(standing) };
-      const blobs = await rasteriseWithCutout(svg, mask, size, size, 'image/webp', 0.92);
+      // The ground over its world's colour, as the map draws it (MapTiles).
+      const drawn = drawing.then(async () => {
+        await idle();
+        return rasteriseWithCutout(svg, mask, size, size, GROUND_BASE[world], 0.92);
+      });
+      drawing = drawn.catch(() => {});
+      const blobs = await drawn;
       blobs.forEach((blob, i) => storeImage('tiles', ids[i], key, blob).catch(() => {}));
       return { ground: URL.createObjectURL(blobs[0]), standing: URL.createObjectURL(blobs[1]) };
     })()
@@ -101,31 +110,6 @@ export function decodedTileImage(tile: TileRef, world: World, layer: RasterLayer
     decoded.set(name, image);
   }
   return image;
-}
-
-/**
- * Prepares the chosen map's tiles in the background while the player is in the lobby. Each tile carries its
- * building where that map puts its planet, so they can't be drawn ahead of the map, and drawing them all as the
- * game opens would stall its opening roll. After the lobby's ground (`surfaceImage`); stops when the map changes.
- */
-export function useWarmMapImages(map: MapDef): void {
-  const board = useMemo(() => buildBoard(map), [map]);
-  useEffect(() => {
-    let live = true;
-    void (async () => {
-      // The lobby's ground first: it's what shows, and on a first visit drawing both at once slows it.
-      await surfaceImage(board.world).catch(() => {});
-      for (const t of tileArt(board))
-        for (const layer of ['ground', 'standing'] as const) {
-          await idle();
-          if (!live) return;
-          await decodedTileImage(t, board.world, layer).catch(() => {});
-        }
-    })();
-    return () => {
-      live = false;
-    };
-  }, [board]);
 }
 
 const NONE: Record<string, string> = {};
