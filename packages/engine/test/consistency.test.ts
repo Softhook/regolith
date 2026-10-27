@@ -200,7 +200,7 @@ describe('invariant checker', () => {
     const s = fresh();
     const [a, b] = s.dice.filter((d) => d.loc.zone === 'board');
     b.loc = { ...a.loc };
-    expect(checkInvariants(s).join()).toMatch(/two ships/);
+    expect(checkInvariants(s).join()).toMatch(/two mechs/);
   });
 
   it('notices a lost card', () => {

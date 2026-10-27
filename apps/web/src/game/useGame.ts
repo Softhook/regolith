@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { checkInvariants, RuleError, say, type Action, type GameState, type PlayerId } from '@regolith/engine';
+import { checkInvariants, RuleError, type Action, type GameState, type PlayerId } from '@regolith/engine';
 import { sfx } from '../sound';
 import { begin, current, play, restore, saved, takeBack, type Past } from './past';
 import { useErrorToast, useToasts } from './toasts';
@@ -46,7 +46,7 @@ export function useGame(initial: GameState): GameView {
         after = play(before, a);
       } catch (e) {
         if (e instanceof RuleError) {
-          showError(say(prev, e.message));
+          showError(e.message);
         } else {
           // An engine bug. Keep the game running and log what is needed to reproduce it.
           reportBug('apply threw', prev, a, e);

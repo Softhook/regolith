@@ -81,7 +81,7 @@ describe('card edge cases', () => {
     s = apply(s, { type: 'warpGate', cell });
     expect(s.pending[0]).toMatchObject({ kind: 'warpGate', placed: [cell] });
     const planet = s.board.planets[0];
-    expect(() => apply(s, { type: 'warpGate', cell: { r: planet.r, c: planet.c } })).toThrow(/not planets/);
+    expect(() => apply(s, { type: 'warpGate', cell: { r: planet.r, c: planet.c } })).toThrow(/not objectives/);
   });
 
   it('Change of Heart reshuffles the skill discards into an empty deck', () => {

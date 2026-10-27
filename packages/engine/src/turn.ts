@@ -132,7 +132,7 @@ function activateSkills(s: GameState, player: PlayerId, which: (sk: OwnedSkill) 
 const AUTO_RESOLVE: { [K in Pending['kind']]?: (s: GameState, head: PendingOf<K>) => boolean } = {
   placeShips(s, head) {
     if (scrapyard(s, head.player).length && startSlots(s, head.planet).length) return false;
-    log(s, `${name(s, head.player)} deploys around planet ${s.board.planets[head.planet].number}.`, head.player, 'startPlanet', [
+    log(s, `${name(s, head.player)} drops around objective ${s.board.planets[head.planet].number}.`, head.player, 'startPlanet', [
       head.planet,
     ]);
     s.pending.shift();

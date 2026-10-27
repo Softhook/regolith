@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react';
-import { canCurious, say, card, rulesOf, skillCard, type GameState, type SkillEffect } from '@regolith/engine';
+import { cardName, canCurious, card, rulesOf, skillCard, type GameState, type SkillEffect } from '@regolith/engine';
 import type { Controller } from '../game/controller';
 import { hintFor } from '../game/hints';
 import type { Dispatch } from '../game/useGame';
@@ -38,17 +38,17 @@ export function TurnPanel({ game, ctl, dispatch, undo }: { game: GameState; ctl:
               <ActionHex key={i} off={i >= t.actionsLeft} />
             ))}
             {t.freeDeploys > 0 && (
-              <Tip as="em" tip="Free deploy (Industrious)">
-                +1 deploy
+              <Tip as="em" tip={`Free drop (${cardName('industrious')})`}>
+                +1 drop
               </Tip>
             )}
             {canAct && t.actionsLeft === 0 && canCurious(game, t.player) && (
-              <Tip as="em" tip="Curious: peaceful Move or Research available">
+              <Tip as="em" tip={`${cardName('curious')}: peaceful Move or Research available`}>
                 +1 curious
               </Tip>
             )}
             {legal.can('playStoredTactic') && (
-              <Tip as="em" tip="Patient: you may play a stored tactic from your player card">
+              <Tip as="em" tip={`${cardName('patient')}: you may play a stored tactic from your player card`}>
                 +stored tactic
               </Tip>
             )}
@@ -83,7 +83,7 @@ export function TurnPanel({ game, ctl, dispatch, undo }: { game: GameState; ctl:
           <SkillButton
             game={game}
             effect="ambitious"
-            label="Ambitious +1"
+            label={`${cardName('ambitious')} +1`}
             disabled={!legal.can('ambitious')}
             onClick={() => dispatch({ type: 'ambitious' })}
           />
@@ -127,7 +127,7 @@ export function TurnPanel({ game, ctl, dispatch, undo }: { game: GameState; ctl:
       {head?.kind === 'placeExpansion' && ctl.human && (
         <div className="turn-actions">
           <button className="btn" onClick={() => dispatch({ type: 'placeExpansion', to: null })}>
-            {say(game, 'Send to scrapyard')}
+            {'Send to salvage yard'}
           </button>
         </div>
       )}
@@ -187,8 +187,8 @@ function SkillButton({
   if (!id) return null;
   const def = card(id);
   return (
-    <button className="btn" disabled={disabled} onClick={onClick} title={say(game, def.text)}>
-      {label ?? say(game, def.name)}
+    <button className="btn" disabled={disabled} onClick={onClick} title={def.text}>
+      {label ?? def.name}
     </button>
   );
 }

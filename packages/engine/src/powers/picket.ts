@@ -8,7 +8,7 @@ import { type Power } from '../ships';
 export const picket: Power = {
   ability: {
     name: 'Picket',
-    text: 'An enemy ship that moves into a space next to this ship (not diagonally) must stop there. It may still attack from there.',
+    text: 'An enemy mech that moves into a space next to this mech (not diagonally) must stop there. It may still attack from there.',
   },
   hooks: {
     // Not diagonally, as most ships can't attack diagonally from where they stop; Warp Gates don't count.

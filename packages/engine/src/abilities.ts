@@ -28,10 +28,10 @@ import { hasPower, hooksOf, rulesOf, shipOf } from './rules';
 import type { Cell, Die, GameState } from './types';
 
 function useAbility(s: GameState, d: Die, power: ShipPower) {
-  if (d.loc.zone !== 'board') fail('Only ships on the map can use abilities');
+  if (d.loc.zone !== 'board') fail('Only mechs on the map can use abilities');
   if (!hasPower(s, d, power)) {
     const ship = Object.values(rulesOf(s).ships).find((x) => x.power === power);
-    fail(ship ? `Only a ${ship.name} can do that` : 'No ship has that ability in this mode');
+    fail(ship ? `Only a ${ship.name} can do that` : 'No mech has that ability in this mode');
   }
   markAbility(s, d);
 }
@@ -65,7 +65,7 @@ export const abilityHandlers = {
   carry(s, a) {
     requireActionPhase(s);
     const d = ownShip(s, a.die, 'board');
-    if (!canMoveDie(s, d)) fail('This ship already moved this turn');
+    if (!canMoveDie(s, d)) fail('This mech already moved this turn');
     const fly = transport(s, d, a.passenger, a.to, a.drop);
     spendPeaceful(s); // a Transport is a move without an attack, so Curious can pay for it
     useAbility(s, d, 'transport');
@@ -78,7 +78,7 @@ export const abilityHandlers = {
     requireActionPhase(s);
     const d = ownShip(s, a.die, 'board');
     const o = ownShip(s, a.other, 'board');
-    if (o.id === d.id) fail('Choose another ship');
+    if (o.id === d.id) fail('Choose another mech');
     useAbility(s, d, 'warp');
     [d.loc, o.loc] = [o.loc, d.loc];
     note(s, `${name(s, d.owner)}'s ${shipName(s, d)} swaps places with their ${shipName(s, o)}.`, d.owner);
@@ -98,9 +98,9 @@ export const abilityHandlers = {
     requireActionPhase(s);
     const d = ownShip(s, a.die, 'board');
     const action = hooksOf(s, d)?.action;
-    if (!action) fail('This ship has no such power');
+    if (!action) fail('This mech has no such power');
     const choice = action.options(s, d).find((c) => c.target === a.target && (c.to && a.to ? same(c.to, a.to) : c.to === a.to));
-    if (!choice) fail('This ship can’t do that now');
+    if (!choice) fail('This mech can’t do that now');
     const logged = s.logCounter;
     const ship = shipOf(s, d.value);
     action.apply(s, d, choice);

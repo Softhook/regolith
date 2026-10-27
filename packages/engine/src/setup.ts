@@ -150,22 +150,22 @@ export const setupHandlers = {
     if (!s.pending.length) startDeployment(s);
   },
   placeStart(s, a) {
-    const head = headOf(s, 'placeStart', 'Not placing a starting planet');
+    const head = headOf(s, 'placeStart', 'Not placing a starting objective');
     const planet = s.board.planets[a.planet];
-    if (!planet?.start) fail('Choose a starting planet');
-    if (planet.cubes.length) fail('That starting planet is taken');
+    if (!planet?.start) fail('Choose a starting objective');
+    if (planet.cubes.length) fail('That starting objective is taken');
     placeCube(s, head.player, planet.id);
     s.players[head.player].home = planet.id;
-    log(s, `${name(s, head.player)} starts at planet ${planet.number}.`, head.player, undefined, [planet.id]);
+    log(s, `${name(s, head.player)} starts at objective ${planet.number}.`, head.player, undefined, [planet.id]);
     s.pending.shift();
     // Rulebook p.3: every player places a cube first, then ships are placed in player order.
     s.pending.push({ kind: 'placeShips', player: head.player, planet: planet.id });
   },
   placeShip(s, a) {
-    const head = headOf(s, 'placeShips', 'Not placing starting ships');
+    const head = headOf(s, 'placeShips', 'Not placing starting mechs');
     const d = die(s, a.die);
-    if (d.owner !== head.player || d.loc.zone !== 'scrapyard') fail('Choose one of your starting ships');
-    if (!startSlots(s, head.planet).some((p) => same(p, a.to))) fail('Place it in an empty orbital position of your starting planet');
+    if (d.owner !== head.player || d.loc.zone !== 'scrapyard') fail('Choose one of your starting mechs');
+    if (!startSlots(s, head.planet).some((p) => same(p, a.to))) fail('Place it in an empty perimeter space of your starting objective');
     d.loc = boardLoc(a.to);
     logTo(s, head.player, `${name(s, head.player)} places ${aShip(s, d)}`, a.to);
     // When the last ship is placed, settle() moves on (turn.ts AUTO_RESOLVE.placeShips).

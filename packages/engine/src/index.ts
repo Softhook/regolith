@@ -1,7 +1,6 @@
 export * from './types';
 export * from './data';
 export {
-  cardNamesOf,
   defaultMapFor,
   expansionCard,
   hasPower,
@@ -9,13 +8,11 @@ export {
   modeHasHook,
   playerCounts,
   rulesOf,
-  say,
   shipOf,
   type CardRules,
   type RuleSet,
 } from './rules';
 export { DEFAULT_MODE, MODES, RULESETS } from './rulesets';
-export { reword, type Words } from './words';
 export type { ActionOf } from './core';
 export type { Power, PowerChoice, ShipHooks } from './ships';
 export * from './board';

@@ -3,7 +3,7 @@
  * dominance / research / cube bookkeeping that many rules touch.
  */
 import { diagonals, orbitedPlanets, same } from './board';
-import { card, cardWithEffect } from './data';
+import { cardName, card, cardWithEffect } from './data';
 import type { SkillEffect } from './effects';
 import { die } from './lookups';
 import { actionsClosed, canCurious, canGainResearch, canUseAbility, infamyAt, usedThisTurn } from './queries';
@@ -80,7 +80,7 @@ export function logTo(s: GameState, player: PlayerId, text: string, to: Cell, af
   // Every planet it orbits, where orbits overlap; else every one it's diagonal to.
   const orbited = orbitedPlanets(s.board, to);
   const planets = orbited.length ? orbited : s.board.planets.filter((p) => diagonals(s.board, p).some((q) => same(q, to)));
-  const names = planets.map((p) => `planet ${p.number}`).join(' and ');
+  const names = planets.map((p) => `objective ${p.number}`).join(' and ');
   if (planets.length)
     note(
       s,
@@ -122,7 +122,7 @@ export function markSeen(s: GameState, d: Die) {
 /** Reconfigure: re-roll until the die shows a number it hasn't shown this turn (Community Edition). */
 export function rerollNew(s: GameState, d: Die) {
   const seen = (s.turn.seen[d.id] ??= [d.value]);
-  if (seen.length >= 6) fail('This ship has already shown every value this turn');
+  if (seen.length >= 6) fail('This mech has already shown every value this turn');
   do d.value = d6(s);
   while (seen.includes(d.value));
   seen.push(d.value);
@@ -179,7 +179,7 @@ export function requireActionPhase(s: GameState, closing = false): TurnState {
   if (s.pending.length) fail('Resolve the current decision first');
   if (s.turn.phase !== 'actions') fail('Not in the action phase');
   if (!closing && actionsClosed(s.turn)) {
-    fail(s.turn.curiousUsed ? 'No actions allowed after using Curious' : 'No actions allowed after playing a stored tactic');
+    fail(s.turn.curiousUsed ? `No actions allowed after using ${cardName('curious')}` : 'No actions allowed after playing a stored tactic');
   }
   return s.turn;
 }
@@ -200,8 +200,9 @@ export function spendPeaceful(s: GameState) {
 
 export function ownShip(s: GameState, id: string, zone?: Die['loc']['zone']): Die {
   const d = die(s, id);
-  if (d.owner !== s.turn.player) fail('Not your ship');
-  if (zone && d.loc.zone !== zone) fail(`Ship is not ${zone === 'board' ? 'on the map' : `in the ${zone}`}`);
+  if (d.owner !== s.turn.player) fail('Not your mech');
+  if (zone && d.loc.zone !== zone)
+    fail(`Mech is not ${zone === 'board' ? 'on the map' : zone === 'scrapyard' ? 'in the salvage yard' : `in the ${zone}`}`);
   return d;
 }
 
@@ -211,7 +212,7 @@ export function markMoved(s: GameState, d: Die) {
 
 /** Uses a die's ability for this turn, falling back to Cunning for a second use. */
 export function markAbility(s: GameState, d: Die) {
-  if (!canUseAbility(s, d)) fail('This ship already used its ability this turn');
+  if (!canUseAbility(s, d)) fail('This mech already used its ability this turn');
   if (s.turn.abilityUsed[d.id]) s.turn.oncePerTurn.push('cunning');
   s.turn.abilityUsed[d.id] = true;
 }

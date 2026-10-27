@@ -8,7 +8,6 @@ import cardsJson from './data/cards.json';
 import type { CardDef, GameMode } from './data';
 import { defineRuleSets, type RuleSet } from './rules';
 import { SHIPS } from './ships';
-import { REGOLITH_WORDS, reword } from './words';
 
 /**
  * Regolith's decks (data/regolith.yaml, built into data/cards.json): each card started as a Community card
@@ -23,7 +22,7 @@ export const REGOLITH_DECKS: { skills: CardDef[]; tactics: CardDef[]; expansion:
 export const REGOLITH_OVER_CONQUEST = false;
 
 /** The words Regolith describes itself with in the lobby, after what each mode adds. */
-const RULES_TEXT = `moves capped at 3, zones of control (a mech moving next to an enemy mech, not diagonally, stops there), a ranged Sniper, a Wisp that fires barriers and contested orbits (no conquering or deploying, except to your home planet, while an enemy mech is in orbit)${REGOLITH_OVER_CONQUEST ? ' and over-conquest, displacing an opponent cube' : ''}`;
+const RULES_TEXT = `moves capped at 3, zones of control (a mech moving next to an enemy mech, not diagonally, stops there), a ranged Sniper, a Wisp that fires barriers and contested perimeters (no claiming or dropping, except to your home objective, while an enemy mech is on the perimeter)${REGOLITH_OVER_CONQUEST ? ' and over-claiming, displacing an opponent cube' : ''}`;
 
 /**
  * Regolith (docs/regolith/REGOLITH.md): missiles, a starting skill drafted from its own decks (REGOLITH_DECKS) and
@@ -34,7 +33,7 @@ const REGOLITH: RuleSet = {
   id: 'regolith',
   name: 'Regolith',
   title: 'Regolith',
-  summary: reword(REGOLITH_WORDS, `Mechs fight over the ice of Mars and its moons, on hex maps, with their own deck, ${RULES_TEXT}.`),
+  summary: `Mechs fight over the ice of Mars and its moons, on hex maps, with their own deck, ${RULES_TEXT}.`,
   actionsPerTurn: 3,
   researchLimit: 6,
   cards: {
@@ -49,7 +48,6 @@ const REGOLITH: RuleSet = {
   mapGroups: ['hex', 'open', 'drift'],
   ships: SHIPS,
   overConquest: REGOLITH_OVER_CONQUEST,
-  words: REGOLITH_WORDS,
 };
 
 /**
@@ -61,7 +59,7 @@ const BASIC: RuleSet = {
   id: 'basic',
   name: 'Basic',
   title: 'Basic',
-  summary: reword(REGOLITH_WORDS, `Regolith without cards, for learning: ${RULES_TEXT}.`),
+  summary: `Regolith without cards, for learning: ${RULES_TEXT}.`,
   cards: null,
 };
 

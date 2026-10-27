@@ -119,16 +119,16 @@ describe('setup (p.3)', () => {
     s = apply(s, { type: 'placeStart', planet: 0 });
     expect(s.pending.map((p) => p.kind)).toEqual(['placeStart', 'placeShips']);
     expect(() => apply(s, { type: 'placeStart', planet: 0 })).toThrow(/taken/);
-    expect(() => apply(s, { type: 'placeStart', planet: 4 })).toThrow(/starting planet/);
+    expect(() => apply(s, { type: 'placeStart', planet: 4 })).toThrow(/starting objective/);
     s = apply(s, { type: 'placeStart', planet: 8 });
     expect(s.pending.map((p) => p.kind === 'placeShips' && p.player)).toEqual([first, other]);
 
     const [a, b, c] = s.dice.filter((d) => d.owner === first && d.loc.zone === 'scrapyard').map((d) => d.id);
     const reserveDie = s.dice.find((d) => d.owner === first && d.loc.zone === 'reserve')!.id;
     // Planet id0 is at (1,5): its orbital positions are (0,5), (0,6), (1,4), (1,6), (2,4) and (2,5).
-    expect(() => apply(s, { type: 'placeShip', die: a, to: { r: 3, c: 4 } })).toThrow(/orbital/); // another tile
-    expect(() => apply(s, { type: 'placeShip', die: a, to: { r: 12, c: 2 } })).toThrow(/orbital/); // opponent's planet
-    expect(() => apply(s, { type: 'placeShip', die: reserveDie, to: { r: 0, c: 5 } })).toThrow(/starting ships/);
+    expect(() => apply(s, { type: 'placeShip', die: a, to: { r: 3, c: 4 } })).toThrow(/perimeter space/); // another tile
+    expect(() => apply(s, { type: 'placeShip', die: a, to: { r: 12, c: 2 } })).toThrow(/perimeter space/); // opponent's planet
+    expect(() => apply(s, { type: 'placeShip', die: reserveDie, to: { r: 0, c: 5 } })).toThrow(/starting mechs/);
     s = apply(s, { type: 'placeShip', die: c, to: { r: 1, c: 4 } });
     s = apply(s, { type: 'placeShip', die: a, to: { r: 1, c: 6 } });
     expect(s.pending[0]).toMatchObject({ kind: 'placeShips', player: first });
@@ -199,7 +199,7 @@ describe('reconfigure (p.5, as the Community Edition plays it)', () => {
     expect(at(next, 'p0d1').value).not.toBe(before);
     expect(loc(next, 'p0d1')).toEqual({ zone: 'scrapyard' });
     expect(legalActions(s)).toContainEqual({ type: 'reconfigure', die: 'p0d1' });
-    expect(() => apply(s, { type: 'reconfigure', die: 'p0d3' })).toThrow(/cannot be reconfigured/);
+    expect(() => apply(s, { type: 'reconfigure', die: 'p0d3' })).toThrow(/cannot be refitted/);
   });
 
   it('does not give a ship that already moved a second move', () => {
@@ -214,8 +214,8 @@ describe('deploy (p.5)', () => {
   // Player 0's cube is on planet id2 (3,6), orbited by (2,6), (2,7), (3,5), (3,7), (4,5) and (4,6).
   it('moves a scrapyard ship to an empty orbital position of a planet with your cube', () => {
     let s = scenario({ p0d0: [2, 6, 3] });
-    expect(() => apply(s, { type: 'deploy', die: 'p0d1', to: { r: 2, c: 6 } })).toThrow(/orbit/); // occupied
-    expect(() => apply(s, { type: 'deploy', die: 'p0d1', to: { r: 1, c: 6 } })).toThrow(/orbit/); // planet without your cube
+    expect(() => apply(s, { type: 'deploy', die: 'p0d1', to: { r: 2, c: 6 } })).toThrow(/perimeter/); // occupied
+    expect(() => apply(s, { type: 'deploy', die: 'p0d1', to: { r: 1, c: 6 } })).toThrow(/perimeter/); // planet without your cube
     const value = at(s, 'p0d1').value;
     s = apply(s, { type: 'deploy', die: 'p0d1', to: { r: 4, c: 6 } });
     expect(at(s, 'p0d1')).toMatchObject({ value, loc: board(4, 6) });
@@ -232,7 +232,7 @@ describe('deploy (p.5)', () => {
 
   it('never deploys the expansion ships', () => {
     const s = scenario({});
-    expect(() => apply(s, { type: 'deploy', die: 'p0d3', to: { r: 4, c: 6 } })).toThrow(/not in the scrapyard/);
+    expect(() => apply(s, { type: 'deploy', die: 'p0d3', to: { r: 4, c: 6 } })).toThrow(/not in the salvage yard/);
   });
 });
 
@@ -375,7 +375,7 @@ describe('ship abilities (p.8)', () => {
 
   it('only ships on the map, on your own turn', () => {
     const s = scenario({ p1d0: [0, 5, 3], p1d1: [12, 2, 3] });
-    expect(() => apply(s, { type: 'swap', die: 'p1d0', other: 'p1d1' })).toThrow(/Not your ship/);
+    expect(() => apply(s, { type: 'swap', die: 'p1d0', other: 'p1d1' })).toThrow(/Not your mech/);
     const scrap = scenario({});
     at(scrap, 'p0d0').value = 4;
     expect(() => apply(scrap, { type: 'change', die: 'p0d0', value: 3 })).toThrow(/not on the map/);

@@ -53,7 +53,7 @@ describe('Curious (Prospectors; CE Option B)', () => {
 
     // Engine rejects free ship abilities after Curious
     s.dice.find((d) => d.id === `p${me}d0`)!.value = 4;
-    expect(() => apply(s, { type: 'change', die: `p${me}d0`, value: 3 })).toThrow('No actions allowed after using Curious');
+    expect(() => apply(s, { type: 'change', die: `p${me}d0`, value: 3 })).toThrow('No actions allowed after using Prospectors');
   });
 
   it('does not offer curious actions if the player attacked during their turn', () => {

@@ -208,8 +208,8 @@ describe('an off-centre planet on hexes', () => {
 
 describe('starting planets', () => {
   it('need room for the 3 starting ships in orbital spaces no other start shares', () => {
-    expect(() => buildBoard(map([['7nw*']]))).toThrow(/starting planet 7 has 2/);
-    expect(() => buildBoard(map([['7n*', '7nw*']]))).toThrow(/has 2 orbital spaces of its own/);
+    expect(() => buildBoard(map([['7nw*']]))).toThrow(/starting objective 7 has 2/);
+    expect(() => buildBoard(map([['7n*', '7nw*']]))).toThrow(/has 2 perimeter spaces of its own/);
     expect(() => buildBoard(map([['7n*', '7nw']]))).not.toThrow();
   });
 });
@@ -244,7 +244,7 @@ describe('playing with off-centre planets', () => {
     const s = scenario(base, { p0d0: [{ r: 6, c: 3 }, 1] });
     const after = apply(s, { type: 'move', die: 'p0d0', to: { r: 5, c: 3 } });
     const entry = after.log.at(-1)!;
-    expect(entry.text).toMatch(/next to planet 7 and planet 8/);
+    expect(entry.text).toMatch(/next to objective 7 and objective 8/);
     expect(entry.planets).toEqual([leaning.id, eight.id]);
   });
 

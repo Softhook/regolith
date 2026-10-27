@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { getPublicKey } from 'nostr-tools/pure';
-import { actor, apply, legalActions, RuleError, say, type Action, type GameState, type PlayerId } from '@regolith/engine';
+import { actor, apply, legalActions, RuleError, type Action, type GameState, type PlayerId } from '@regolith/engine';
 import { actBody, CHAINED, encodePost, type AskMode, type Body, type Post, type Replay, type Step } from '@regolith/online';
 import { aiLevelOf, combatResponse, think } from '../game/aiClient';
 import { useErrorToast, useToasts } from '../game/toasts';
@@ -69,7 +69,7 @@ export function useOnlineGame(secret: string): OnlineGame {
       try {
         apply(head, a);
       } catch (e) {
-        if (e instanceof RuleError) return fail(say(head, e.message));
+        if (e instanceof RuleError) return fail(e.message);
         console.error('[game] apply threw', { action: a, error: e, state: JSON.stringify(head) });
         return fail(`Engine error: ${(e as Error).message}`);
       }

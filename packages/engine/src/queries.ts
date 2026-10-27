@@ -14,7 +14,7 @@ import {
   straightLines,
   surrounding,
 } from './board';
-import { card, effectOf } from './data';
+import { cardName, card, effectOf } from './data';
 import { barrierAt, cellOf, die, dieAt, isEmptySpace, reserve, shipsOnBoard } from './lookups';
 import { hooksOf, modeHasHook, rulesOf } from './rules';
 import { activeSkills, anySkill, ruleOf, skillRules, type CombatPart, type SkillRule } from './skillRules';
@@ -286,7 +286,7 @@ export function attackLaunches(state: GameState, dieId: string, target: string, 
     const near: string[] = [];
     for (const p of g.ortho[i]) {
       const planet = cellAt(state.board, g.cells[p])?.planet;
-      if (planet !== undefined) near.push(`planet ${planet}`);
+      if (planet !== undefined) near.push(`objective ${planet}`);
     }
     for (const p of [...g.ortho[i], gate(i)]) {
       const ship = at[p];
@@ -674,8 +674,8 @@ export function conquerCheck(state: GameState, player: PlayerId, planetId: numbe
   const total = (ships: Die[]) => ships.reduce((a, d) => a + d.value, 0);
   // Contested orbit: named in every refusal, though the sum is checked first, so a blocked orbit still says how far it is from it.
   const blockers = orbitBlockers(state, player, planet);
-  const blockade = blockers.length ? `; enemy ships in orbit block it too (${blockers.map((d) => d.value).join(', ')})` : '';
-  if (!all.length) return fail(`No ships in orbit${blockade}`, all, 0);
+  const blockade = blockers.length ? `; enemy mechs on the perimeter block it too (${blockers.map((d) => d.value).join(', ')})` : '';
+  if (!all.length) return fail(`No mechs on the perimeter${blockade}`, all, 0);
 
   const p = state.players[player];
   const tolerance = Math.max(0, ...rules.map((r) => r.tolerance ?? 0));
@@ -688,10 +688,10 @@ export function conquerCheck(state: GameState, player: PlayerId, planetId: numbe
   const research = Math.min(...sums.map((s) => Math.max(0, Math.abs(s - target) - tolerance)));
   if (research <= spendable) {
     if (blockers.length)
-      return { ...fail(`Enemy ships in orbit block it (${blockers.map((d) => d.value).join(', ')})`, all, sum), blocked: true };
+      return { ...fail(`Enemy mechs on the perimeter block it (${blockers.map((d) => d.value).join(', ')})`, all, sum), blocked: true };
     return { ok: true, sum, target, ships: all, replace, ...(research && { research }) };
   }
-  return fail(`Orbit totals ${sum}, needs ${target}${blockade}`, all, sum);
+  return fail(`Perimeter totals ${sum}, needs ${target}${blockade}`, all, sum);
 }
 
 /** Any planet without your cube; if none has room, Quantum Entanglement allows your own planets. */
@@ -713,8 +713,8 @@ export interface CombatTotal {
 /** The value a side's combat roll is set to, overriding the dice: a missile, Plan Ahead or Rational (in that priority). */
 function rollOverride(state: GameState, combat: CombatPending, side: CombatRole): CombatPart | undefined {
   const s = combat[side];
-  if (s.missile) return { kind: 'roll', set: true, label: 'Missile', value: 1 };
-  if (state.players[s.player].planAhead > 0) return { kind: 'roll', set: true, label: 'Plan Ahead', value: 1 };
+  if (s.missile) return { kind: 'roll', set: true, label: 'Atomic', value: 1 };
+  if (state.players[s.player].planAhead > 0) return { kind: 'roll', set: true, label: cardName('plan-ahead'), value: 1 };
   const fixed = activeSkills(state, s.player)
     .filter((a) => a.rule.combat?.roll !== undefined)
     .pop();
@@ -731,8 +731,8 @@ export function combatTotal(state: GameState, combat: CombatPending, side: Comba
   const parts: CombatPart[] = [];
   const set = rollOverride(state, combat, side);
   const roll = set?.value ?? (s.dice.length > 1 ? Math.min(...s.dice) : s.dice[0]);
-  parts.push(set ?? { kind: 'roll', label: s.dice.length > 1 ? 'Brutal roll' : 'Roll', value: roll });
-  parts.push({ kind: 'ship', label: 'Ship', value: s.ship });
+  parts.push(set ?? { kind: 'roll', label: s.dice.length > 1 ? `${cardName('brutal')} roll` : 'Roll', value: roll });
+  parts.push({ kind: 'ship', label: 'Mech', value: s.ship });
   for (const { card: id, rule } of skills) {
     const value = rule.combat!.modifier?.({ state, combat, side }) ?? 0;
     if (value) parts.push({ kind: 'modifier', label: card(id).name, value });
@@ -763,11 +763,11 @@ export function missileOffered(state: GameState, combat: CombatPending, by: Play
 
 /** Why `by` is not offered a missile on `side`'s roll (see missileOffered), or null if they are. */
 export function missileRefusal(state: GameState, combat: CombatPending, by: PlayerId, side: CombatRole): string | null {
-  if (state.players[by].missiles <= 0) return 'No missiles left';
+  if (state.players[by].missiles <= 0) return 'No atomics left';
   if (combat[side].missile || combatTotal(state, combat, side).roll === 1) return 'That combat roll is already 1';
-  if (by !== combat.attacker.player && by !== combat.defender.player) return 'Only the attacker and defender may fire a missile';
+  if (by !== combat.attacker.player && by !== combat.defender.player) return 'Only the attacker and defender may fire an atomic';
   if (combat[side].player !== by || combatOutcome(state, combat).attackerWins === (side === 'attacker'))
-    return 'You may only fire a missile on your own roll, while losing';
+    return 'You may only fire an atomic on your own roll, while losing';
   return null;
 }
 

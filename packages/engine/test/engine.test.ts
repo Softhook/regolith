@@ -344,7 +344,7 @@ describe('Composed (Stand Down)', () => {
     s.players[me].skills = [{ id: 'r-composed', active: true }];
     s.players[me].dominance = 1;
     expect(legalActions(s).some((a) => a.type === 'composed')).toBe(false);
-    expect(() => apply(s, { type: 'composed' })).toThrow('No dominance to lose');
+    expect(() => apply(s, { type: 'composed' })).toThrow('No power to lose');
   });
 });
 

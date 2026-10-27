@@ -619,7 +619,7 @@ describe('contested orbit', () => {
     s.dice.find((d) => d.id === 'p0d1')!.value++;
     const check = conquerCheck(s, 0, planet);
     expect(check.blocked).toBeUndefined();
-    expect(check.reason).toMatch(/needs .*enemy ships in orbit block it too \(3\)/);
+    expect(check.reason).toMatch(/needs .*enemy mechs on the perimeter block it too \(3\)/);
   });
 
   it('on off-centre maps, an enemy on a space two orbits share blocks both planets', () => {
@@ -988,14 +988,14 @@ describe('Kinetic Shunt tactic card (Regolith)', () => {
     s = apply(s, { type: 'kineticShunt', die: 'p0d0', to: { r: 2, c: 6 } });
     expect(at(s, 'p0d0').loc).toEqual({ zone: 'board', r: 2, c: 6 });
     // In the engine's words: the UI shows it as an ice tunnel.
-    expect(s.log[s.log.length - 1].text).toMatch(/pushes their Tactician.*through a warp gate/);
+    expect(s.log[s.log.length - 1].text).toMatch(/pushes their Tactician.*through an ice tunnel/);
 
     // A straight push says nothing of the gates, even with a pair on the map.
     const straight = scenario({ p0d0: [7, 2, 3] });
     straight.gates = [gateA, gateB];
     straight.pending.unshift({ kind: 'kineticShunt', player: 0 });
     const pushed = apply(straight, { type: 'kineticShunt', die: 'p0d0', to: { r: 8, c: 2 } });
-    expect(pushed.log[pushed.log.length - 1].text).not.toMatch(/warp gate/);
+    expect(pushed.log[pushed.log.length - 1].text).not.toMatch(/ice tunnel/);
 
     // If Gate B is blocked by an enemy mech, pushing through the tunnel is blocked
     const blocked = scenario({ p0d0: [7, 2, 3], p1d0: [2, 5, 6] });

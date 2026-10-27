@@ -10,7 +10,7 @@
  */
 import { mkdirSync } from 'node:fs';
 import type { Page } from 'playwright';
-import { apply, legalActions, orbitals, RULESETS, say, type GameState } from '../packages/engine/src';
+import { apply, legalActions, orbitals, RULESETS, type GameState } from '../packages/engine/src';
 import { arrange, quickStart } from '../packages/engine/test/helpers';
 import { devServer, finish, launchChrome, playUrl, succeeds } from './mobile-common';
 
@@ -114,8 +114,7 @@ try {
     else {
       await page.screenshot({ path: `${OUT}/contested-orbit.png` });
       await hit.click();
-      // In the game's words: "Contested perimeter" in Regolith.
-      const words = say(s, 'Contested orbit');
+      const words = 'Contested perimeter';
       const info = page.locator('.info-pop', { hasText: words });
       if (!(await succeeds(info.waitFor({ timeout: 5000 })))) fail(`tapping a blocked planet shows no "${words}" info`);
       else if ((await cubesOn(page, planet.id)).length) fail('tapping a blocked planet conquered it');

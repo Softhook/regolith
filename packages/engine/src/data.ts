@@ -76,6 +76,9 @@ export function cardWithEffect(effect: string): CardDef | undefined {
   return byId.get(effect) ?? [...byId.values()].find((c) => c.effect === effect);
 }
 
+/** The name of the card with this effect, as printed (Profiteering's is Arms Deal). */
+export const cardName = (effect: string): string => cardWithEffect(effect)?.name ?? effect;
+
 /** Skills are permanent; everything else is one-shot. */
 export function cardKind(id: string): 'skill' | 'tactic' | 'expansion' {
   if (expansionIds.has(id)) return 'expansion';

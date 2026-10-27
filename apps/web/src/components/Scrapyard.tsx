@@ -1,4 +1,4 @@
-import { say, scrapyard, shipOf, type Die, type GameState, type PlayerState } from '@regolith/engine';
+import { scrapyard, shipOf, type Die, type GameState, type PlayerState } from '@regolith/engine';
 import type { Controller } from '../game/controller';
 import type { Dispatch } from '../game/useGame';
 import { Die3D } from './Die3D';
@@ -20,7 +20,7 @@ function canDeployFrom(game: GameState, p: PlayerState, ctl: Controller): boolea
 /** A ship's ability in this game's rules, as one line. */
 function abilityText(game: GameState, value: number): string {
   const { ability } = shipOf(game, value);
-  return say(game, `${ability.name}: ${ability.text}`);
+  return `${ability.name}: ${ability.text}`;
 }
 
 /**
@@ -48,7 +48,7 @@ export function Scrapyard({ game, p, ctl, dispatch }: { game: GameState; p: Play
   };
   return (
     <div className="scrapyard">
-      <span className="scrap-label">{say(game, 'Scrapyard')}</span>
+      <span className="scrap-label">{'Salvage yard'}</span>
       {scrap.map((d) => (
         <span key={d.id} className="scrap-die-wrap">
           <Tip
@@ -60,7 +60,7 @@ export function Scrapyard({ game, p, ctl, dispatch }: { game: GameState; p: Play
                   {shipOf(game, d.value).name} ({d.value})
                 </b>
                 <span>{abilityText(game, d.value)}</span>
-                <span className="muted">{say(game, 'Waiting in the scrapyard to be deployed.')}</span>
+                <span className="muted">{'Waiting in the salvage yard to be dropped.'}</span>
               </>
             }
           >

@@ -44,8 +44,8 @@ export function AidLab() {
         {detail ? <img className="lab-aid" src={detail} alt="Player aid" /> : <span className="lab-aid lab-aid-ph" />}
         <div className="lab-aid-side">
           <p className="lab-note">
-            One board per player · A6 landscape, 148 × 105 mm · pads for the 19 mm dominance and research dice ·{' '}
-            {part === 'Classic' ? 'Classic rules (no missiles; Reconfigure to any new value)' : 'Community Edition rules'}
+            One board per player · A6 landscape, 148 × 105 mm · pads for the 19 mm power and research dice ·{' '}
+            {part === 'Classic' ? 'Classic rules (no atomics; Refit to any new value)' : 'Community Edition rules'}
           </p>
           <PrintPanel
             piece={PIECES.aid}

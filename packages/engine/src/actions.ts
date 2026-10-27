@@ -40,7 +40,7 @@ export const actionHandlers = {
   move(s, a) {
     requireActionPhase(s);
     const d = ownShip(s, a.die, 'board');
-    if (!canMoveDie(s, d)) fail('This ship already moved this turn');
+    if (!canMoveDie(s, d)) fail('This mech already moved this turn');
     const opt = moveIndexes(s, d).moves.get(cellIndex(s.board, a.to));
     if (!opt) fail('Out of range');
     spendPeaceful(s);
@@ -52,7 +52,7 @@ export const actionHandlers = {
   attack(s, a) {
     requireActionPhase(s);
     const d = ownShip(s, a.die, 'board');
-    if (!canMoveDie(s, d)) fail('This ship already moved this turn');
+    if (!canMoveDie(s, d)) fail('This mech already moved this turn');
     const opts = moveOptions(s, d.id);
     if (!opts.attacks.has(a.target)) fail('Target out of range');
     // Only the spaces offered (attackLaunches): a space with the same outcome as a nearer one isn't.
@@ -66,20 +66,20 @@ export const actionHandlers = {
   deploy(s, a) {
     const t = requireActionPhase(s);
     const d = ownShip(s, a.die, 'scrapyard');
-    if (!deployTargets(s, t.player).some((p) => same(p, a.to))) fail('Deploy into orbit of a planet with your cube');
+    if (!deployTargets(s, t.player).some((p) => same(p, a.to))) fail('Drop onto the perimeter of an objective with your cube');
     if (t.freeDeploys > 0) t.freeDeploys--;
     else spend(s, 1);
     d.loc = boardLoc(a.to);
-    logTo(s, d.owner, `${name(s, d.owner)} deploys ${aShip(s, d)}`, a.to);
+    logTo(s, d.owner, `${name(s, d.owner)} drops ${aShip(s, d)}`, a.to);
   },
   reconfigure(s, a) {
     requireActionPhase(s);
     const d = ownShip(s, a.die);
-    if (!canReconfigure(s, d)) fail('This ship cannot be reconfigured');
+    if (!canReconfigure(s, d)) fail('This mech cannot be refitted');
     spend(s, 1);
     const was = shipName(s, d);
     rerollNew(s, d);
-    note(s, `${name(s, d.owner)} reconfigures their ${was} into ${aShip(s, d)}.`, d.owner);
+    note(s, `${name(s, d.owner)} refits their ${was} into ${aShip(s, d)}.`, d.owner);
   },
   research(s) {
     const t = requireActionPhase(s);
@@ -93,7 +93,7 @@ export const actionHandlers = {
   conquer(s, a) {
     const t = requireActionPhase(s);
     const check = conquerCheck(s, t.player, a.planet, a.replace !== undefined);
-    if (!check.ok) fail(check.reason ?? 'Cannot conquer');
+    if (!check.ok) fail(check.reason ?? 'Cannot claim');
     if (check.replace) {
       const owner = a.replace;
       if (owner === undefined || !check.replace.includes(owner)) fail('Choose which opponent cube to displace');
@@ -108,7 +108,7 @@ export const actionHandlers = {
     // Science: the research that moved the sum onto the target.
     if (check.research) s.players[t.player].research -= check.research;
     const spent = check.research ? `, spending ${check.research} research` : '';
-    log(s, `${name(s, t.player)} conquers planet ${s.board.planets[a.planet].number}${spent}.`, t.player, 'conquer', [a.planet]);
+    log(s, `${name(s, t.player)} claims objective ${s.board.planets[a.planet].number}${spent}.`, t.player, 'conquer', [a.planet]);
     tally(s, t.player, 'planetsTaken');
     placeCube(s, t.player, a.planet);
   },

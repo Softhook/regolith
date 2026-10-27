@@ -11,7 +11,7 @@ import { AI_LEVEL_KEY, isFriendSeat } from './choices';
 const MAP_GROUPS: { id: string; name: string }[] = [
   { id: 'hex', name: 'Hex tiles' },
   { id: 'open', name: 'Open ground' },
-  { id: 'drift', name: 'Off-centre planets' },
+  { id: 'drift', name: 'Off-centre objectives' },
 ];
 
 /** A tile of the preview: its number, a start's ring, or nothing for a gap. */
@@ -192,7 +192,7 @@ export function MapPicker({ map, choices, onChoose }: { map: MapDef; choices: Ma
         </div>
         <span className="muted">
           {map.cubes} cubes each ·{' '}
-          {map.stats.shared === null ? 'too few spaces for every cube' : `${map.stats.shared}/${map.stats.planets} planets shared`}
+          {map.stats.shared === null ? 'too few spaces for every cube' : `${map.stats.shared}/${map.stats.planets} objectives shared`}
           {map.layout.flat().includes('0') && ' · void'}
         </span>
       </div>

@@ -1,12 +1,11 @@
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
-import { actor, drawing, rulesOf, say, type GameState, type PlayerId } from '@regolith/engine';
+import { actor, drawing, rulesOf, type GameState, type PlayerId } from '@regolith/engine';
 import { useController } from '../game/controller';
 import { useUndoShortcut } from '../game/useGame';
 import { conquerOptions } from '../game/legal';
 import { lost, type GameView } from '../game/view';
 import { useReview, type Review } from '../game/review';
 import { logText } from '../game/logText';
-import { SayContext } from '../game/words';
 import { GAME_NAME } from '../appId';
 import { SHEET, useMediaQuery } from '../game/useMediaQuery';
 import { BottomSheet } from './BottomSheet';
@@ -90,7 +89,7 @@ export function Game({
   const log = <Log game={live} review={{ can, pick: lookBack, picked: review?.entry.id, move: review?.move }} />;
 
   return (
-    <SayContext.Provider value={(text) => say(game, text)}>
+    <>
       <div className={`app ${review ? 'reviewing' : ''}`}>
         <header className="topbar">
           <button type="button" className="brand" title="Back to the lobby" onClick={onLobby}>
@@ -185,7 +184,7 @@ export function Game({
         )}
         {overlay}
       </div>
-    </SayContext.Provider>
+    </>
   );
 }
 

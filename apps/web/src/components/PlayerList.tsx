@@ -1,5 +1,5 @@
 import { useState, type CSSProperties } from 'react';
-import { card, rulesOf, say, type GameState, type PlayerConfig, type PlayerState } from '@regolith/engine';
+import { cardName, card, rulesOf, type GameState, type PlayerConfig, type PlayerState } from '@regolith/engine';
 import { aiLevelInfo } from '../game/aiClient';
 import type { Controller } from '../game/controller';
 import type { Dispatch } from '../game/useGame';
@@ -106,16 +106,16 @@ function PlayerCard({
         </Tip>
       </div>
       <div className="player-tracks">
-        <Track label={say(game, 'Dominance')} value={p.dominance} tone="dom" spot="dominance" fx={effectAt(fx, 'dominance')} />
+        <Track label={'Power'} value={p.dominance} tone="dom" spot="dominance" fx={effectAt(fx, 'dominance')} />
         {rules.cards && <Track label="Research" value={p.research} tone="res" spot="research" fx={effectAt(fx, 'research')} />}
       </div>
       <div className="player-row">
-        <Tip className="stat" data-fx="missiles" tip={say(game, 'Missiles: in a battle you are losing, set your own combat roll to 1')}>
+        <Tip className="stat" data-fx="missiles" tip={'Atomics: in a battle you are losing, set your own combat roll to 1'}>
           <MissileIcon size={14} /> {p.missiles}
           <Flash e={effectAt(fx, 'missiles')} />
         </Tip>
         {p.planAhead > 0 && (
-          <Tip className="stat gold" data-fx="planAhead" tip="Plan Ahead: all your combat rolls are 1">
+          <Tip className="stat gold" data-fx="planAhead" tip={`${cardName('plan-ahead')}: all your combat rolls are 1`}>
             Plan Ahead
             <Flash e={effectAt(fx, 'planAhead')} />
           </Tip>
@@ -155,10 +155,10 @@ function PlayerCard({
                 data-fx={`skill:${s.id}`}
                 className={`skill-chip ${s.active ? '' : 'pending'} ${dim ? 'disabled-chip' : ''}`}
                 style={categoryStyle(def.category, true)}
-                title={`${say(game, `${def.name}: ${def.text}`)}${disabled ? `\n(Disabled by ${game.players[s.disabledUntil!].name} until their next turn)` : s.active ? '' : '\n(Takes effect from the next player’s turn)'}`}
+                title={`${`${def.name}: ${def.text}`}${disabled ? `\n(Disabled by ${game.players[s.disabledUntil!].name} until their next turn)` : s.active ? '' : '\n(Takes effect from the next player’s turn)'}`}
               >
                 <CategoryIcon category={def.category} size={11} />
-                {say(game, def.name)}
+                {def.name}
                 <Flash e={flash} />
               </button>
             );
@@ -174,10 +174,10 @@ function PlayerCard({
                 data-fx={`stored:${tId}`}
                 className={`skill-chip stored-tactic ${canPlay ? 'playable' : ''}`}
                 style={categoryStyle(def.category, true)}
-                title={`${say(game, `${def.name} (Stored Tactic): ${def.text}`)}${canPlay ? '\n(Click to view / play)' : ''}`}
+                title={`${`${def.name} (Stored Tactic): ${def.text}`}${canPlay ? '\n(Click to view / play)' : ''}`}
               >
                 <CategoryIcon category={def.category} size={11} />
-                {say(game, def.name)} [Tactic]
+                {def.name} [Tactic]
                 <Flash e={effectAt(fx, `stored:${tId}`)} />
               </button>
             );

@@ -1,8 +1,7 @@
 import { useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode, type RefObject } from 'react';
 import { CARD_CATEGORIES, ICONS, cardPalette, missile } from '@regolith/art';
-import { card, cardKind, type CardDef } from '@regolith/engine';
+import { cardName, card, cardKind } from '@regolith/engine';
 import { useCardImage } from '../art/useCardImages';
-import { useSay } from '../game/words';
 
 /** A card category's icon (the same drawing as on the printed cards). */
 export function CategoryIcon({ category, size = 14 }: { category: string; size?: number }) {
@@ -87,21 +86,12 @@ export interface CardViewProps {
   art?: boolean;
 }
 
-/** A card's name and text in the game's words. Card names are left as written. */
-const sayCard = (def: CardDef, say: (text: string) => string): CardDef => ({
-  ...def,
-  name: def.name,
-  subtitle: say(def.subtitle),
-  text: say(def.text),
-});
-
 export function CardView({ id, size = 'md', onClick, disabled, badge, inactive, className = '', index, art }: CardViewProps) {
-  const say = useSay();
-  const def = sayCard(card(id), say);
+  const def = card(id);
   const kind = cardKind(id);
-  const category = say(CARD_CATEGORIES[def.category]?.label ?? def.category);
+  const category = CARD_CATEGORIES[def.category]?.label ?? def.category;
   // One-shot cards name their deck too, where it isn't their category already (Expansion).
-  const kindLabel = kind === 'skill' ? undefined : kind === 'expansion' ? 'Expansion' : 'Tactic';
+  const kindLabel = kind === 'skill' ? undefined : kind === 'expansion' ? cardName('expansion') : 'Tactic';
   const clickable = !!onClick && !disabled;
   const name = def.name;
   const text = useRef<HTMLDivElement>(null);

@@ -1,7 +1,6 @@
 import { addCards, defaultMap, MAPS, type CardDef, type GameMode, type MapDef, type ShipDef, type ShipPower, type ShipTable } from './data';
 import type { ShipHooks } from './ships';
 import type { Die, GameState } from './types';
-import { reword, type Words } from './words';
 
 /**
  * Everything that differs between rule sets lives here. The engine and the UI ask the rule set
@@ -27,8 +26,6 @@ export interface RuleSet {
   ships: ShipTable;
   /** A fully occupied planet can still be conquered by an orbit summing to 12, displacing an opponent's cube (PROTOTYPING.md §6.10). */
   overConquest?: boolean;
-  /** The mode's own words for Quantum's, as the UI shows its text (words.ts); none: Quantum's. */
-  words?: Words;
 }
 
 export interface CardRules {
@@ -113,26 +110,6 @@ export function modeHasHook(state: GameState, hook: keyof ShipHooks): boolean {
     HOOKS.set(ships, hooks);
   }
   return hooks.has(hook);
-}
-
-const CARD_NAMES = new WeakMap<RuleSet, readonly string[]>();
-
-/** Every card name in this rule set, kept as written when rewording text for the UI. */
-export function cardNamesOf(rules: RuleSet): readonly string[] {
-  let names = CARD_NAMES.get(rules);
-  if (!names) {
-    const cards = rules.cards;
-    names = cards ? [...cards.skills.map((c) => c.name), ...cards.tactics.map((c) => c.name), cards.expansion.name] : [];
-    CARD_NAMES.set(rules, names);
-  }
-  return names;
-}
-
-/** `text` in this game's words (RuleSet.words), its players' and cards' names kept as they are. */
-export function say(state: GameState, text: string, keep: readonly string[] = []): string {
-  const rules = rulesOf(state);
-  const { words } = rules;
-  return words ? reword(words, text, [...state.players.map((p) => p.name), ...cardNamesOf(rules), ...keep]) : text;
 }
 
 /** The map a rule set starts on for a player count: the basic map, or its first map if it doesn't play that one. */

@@ -105,7 +105,7 @@ export function parseToken(token: string): TileToken {
   const m = /^(\d+)([nsew]{1,2})?(\*)?$/.exec(token);
   const number = Number(m?.[1]);
   if (!m || !(number === 0 || number in CAPACITY) || (m[2] && !(m[2] in SQUARE_OFFSETS))) throw new Error(`Bad tile token "${token}"`);
-  if (number === 0 && (m[2] || m[3])) throw new Error(`A void tile has no planet to place or start on: "${token}"`);
+  if (number === 0 && (m[2] || m[3])) throw new Error(`A void tile has no objective to place or start on: "${token}"`);
   return m[2] ? { number, start: !!m[3], dir: m[2] } : { number, start: !!m[3] };
 }
 
@@ -113,7 +113,7 @@ export function parseToken(token: string): TileToken {
 function planetOffset(t: TileToken, hex: boolean, mapId: string): Cell {
   if (!t.dir) return MIDDLE;
   const d = (hex ? HEX_OFFSETS : SQUARE_OFFSETS)[t.dir];
-  if (!d) throw new Error(`${mapId}: a hex tile's planet can't sit "${t.dir}" (n, ne, se, s, sw or nw)`);
+  if (!d) throw new Error(`${mapId}: a hex tile's objective can't sit "${t.dir}" (n, ne, se, s, sw or nw)`);
   return d;
 }
 
@@ -130,7 +130,9 @@ function checkStarts(board: Board) {
     const others = starts.filter((q) => q !== p).flatMap((q) => orbitals(board, q));
     const own = orbitals(board, p).filter((x) => !others.some((y) => same(x, y)));
     if (own.length < STARTING_SHIPS)
-      throw new Error(`${board.mapId}: starting planet ${p.number} has ${own.length} orbital spaces of its own, needs ${STARTING_SHIPS}`);
+      throw new Error(
+        `${board.mapId}: starting objective ${p.number} has ${own.length} perimeter spaces of its own, needs ${STARTING_SHIPS}`,
+      );
   }
 }
 

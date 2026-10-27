@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useRef, useState, type CSSProperties, type MouseEvent, type ReactNode } from 'react';
-import { cellAtPoint, die, dieAt, drawing, key, moveOptions, orbitals, same, say, shipOf, type GameState } from '@regolith/engine';
+import { cellAtPoint, die, dieAt, drawing, key, moveOptions, orbitals, same, shipOf, type GameState } from '@regolith/engine';
 import type { Controller } from '../game/controller';
 import { BoardArt, tileArtOf } from './board/BoardArt';
 import { ActionEffects } from './board/ActionEffects';
@@ -368,16 +368,15 @@ function Ships({
           onPointerDown={yours(d.owner) ? undefined : (e) => onPress(d.id, e.pointerType !== 'mouse')}
           onContextMenu={(e) => e.preventDefault()}
           aria-label={`${game.players[d.owner].name}'s ${name} (${d.value})${attack ? `, ${percent(attack.chance)} chance to win an attack` : ''}`}
-          title={say(
-            game,
+          title={
             attack
               ? [
                   `Attack ${who}: ${percent(attack.chance)} to win`,
                   ...attack.factors.attacker.map((f) => `You: ${f}`),
                   ...attack.factors.defender.map((f) => `Them: ${f}`),
                 ].join('\n')
-              : `${who}\n${ability.name}: ${ability.text}`,
-          )}
+              : `${who}\n${ability.name}: ${ability.text}`
+          }
         >
           <div className="ship-ring" />
           <Die3D
@@ -445,7 +444,7 @@ function ShipInfo({ game, id }: { game: GameState; id: string }) {
         <span className="info-swatch" /> {p.name}'s {name} <span className="muted">({d.value})</span>
       </div>
       <div>
-        <b>{say(game, ability.name)}:</b> {say(game, ability.text)}
+        <b>{ability.name}:</b> {ability.text}
       </div>
       {d.owner === game.turn.player && game.turn.abilityUsed[d.id] && <div className="muted">✦ Ability used this turn.</div>}
     </>
@@ -456,7 +455,7 @@ function ShipInfo({ game, id }: { game: GameState; id: string }) {
 function planetLabel(game: GameState, id: number): string {
   const p = game.board.planets.find((x) => x.id === id)!;
   const name = planetNames(game.board).get(id);
-  return name ? `${name} (${p.number})` : say(game, `Planet ${p.number}`);
+  return name ? `${name} (${p.number})` : `Objective ${p.number}`;
 }
 
 /** A planet's name, its free cube spaces, whose cubes are on it, and who its orbit blocks (contested orbit). */
@@ -465,7 +464,7 @@ function PlanetInfo({ game, id }: { game: GameState; id: number }) {
   const free = p.capacity - p.cubes.length;
   const homeOf = game.players.find((pl) => pl.home === id);
   const holders = [...new Set(orbitals(game.board, p).flatMap((c) => dieAt(game, c)?.owner ?? []))].map((o) => game.players[o].name);
-  const blocked = 'conquer it or deploy to it';
+  const blocked = 'claim it or drop to it';
   return (
     <>
       <div className="info-title">{planetLabel(game, id)}</div>
@@ -474,17 +473,14 @@ function PlanetInfo({ game, id }: { game: GameState; id: number }) {
       </div>
       {holders.length > 0 && (
         <div>
-          {say(
-            game,
-            holders.length === 1
-              ? `Contested orbit: while ${holders[0]}’s ships are in orbit, only ${holders[0]} can ${blocked}.`
-              : holders.length === 2
-                ? `Contested orbit: ${holders.join(' and ')} both have ships in orbit, so neither can ${blocked}.`
-                : `Contested orbit: ${holders.join(', ')} all have ships in orbit, so none of them can ${blocked}.`,
-          )}
+          {holders.length === 1
+            ? `Contested perimeter: while ${holders[0]}’s mechs are on the perimeter, only ${holders[0]} can ${blocked}.`
+            : holders.length === 2
+              ? `Contested perimeter: ${holders.join(' and ')} both have mechs on the perimeter, so neither can ${blocked}.`
+              : `Contested perimeter: ${holders.join(', ')} all have mechs on the perimeter, so none of them can ${blocked}.`}
         </div>
       )}
-      {holders.length > 0 && homeOf && <div>{say(game, `Home planet: ${homeOf.name} can always deploy here.`)}</div>}
+      {holders.length > 0 && homeOf && <div>{`Home objective: ${homeOf.name} can always drop here.`}</div>}
       {p.cubes.map((owner, i) => (
         <div key={i} className="info-title" style={{ '--pc': game.players[owner].color } as CSSProperties}>
           <span className="info-swatch" /> {game.players[owner].name}'s cube

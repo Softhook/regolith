@@ -166,8 +166,8 @@ export function TileLab() {
             ))}
           </select>
         </label>
-        <label title="Where each planet sits on its tile, as a map's layout token says (7ne)">
-          Planet
+        <label title="Where each objective sits on its tile, as a map's layout token says (7ne)">
+          Objective
           <select value={planetAt} onChange={(e) => setPlanetAt(e.target.value)}>
             {Object.keys(TILE_SPOTS[shape]).map((d) => (
               <option key={d} value={d}>
@@ -256,7 +256,7 @@ export function TileLab() {
               [
                 Object.keys(overrides).length > 0 && 'seeds or types changed here',
                 !markings && 'print markings off',
-                planetAt && 'planets moved off the middle',
+                planetAt && 'objectives moved off the middle',
               ]
                 .filter(Boolean)
                 .join(', ') || undefined

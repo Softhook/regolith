@@ -1,14 +1,12 @@
 import type { ReactNode } from 'react';
 import { card } from '@regolith/engine';
 import { useCardImage } from '../art/useCardImages';
-import { useSay } from '../game/words';
 import { Dialog } from './Dialog';
 
 /** A card as printed, with its illustration. */
 export function CardArt({ id, size, badge }: { id: string; size: 'md' | 'lg'; badge?: string }) {
   const src = useCardImage(id);
-  const say = useSay();
-  const def = { name: say(card(id).name), text: say(card(id).text) };
+  const def = { name: card(id).name, text: card(id).text };
   return (
     <div className={`card-art card-art-${size}`}>
       {src ? (

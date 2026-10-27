@@ -1,6 +1,6 @@
 import { useEffect, useState, type CSSProperties } from 'react';
 import { CARD_CATEGORIES } from '@regolith/art';
-import { say, shipOf, card, die, rulesOf, scrapyard, type Action, type ActionOf, type GameState } from '@regolith/engine';
+import { cardName, shipOf, card, die, rulesOf, scrapyard, type Action, type ActionOf, type GameState } from '@regolith/engine';
 import { SHORT, useMediaQuery } from '../game/useMediaQuery';
 import type { Dispatch } from '../game/useGame';
 import { CardView, CategoryIcon, categoryStyle } from './Card';
@@ -72,7 +72,12 @@ export function DecisionOverlay({ game, dispatch, human }: { game: GameState; di
     }
     case 'changeOfHeart':
       return (
-        <Modal title="Change of Heart" subtitle="Search the Skill deck and take any skill." pc={game.players[head.player].color} wide>
+        <Modal
+          title={cardName('change-of-heart')}
+          subtitle="Search the Skill deck and take any skill."
+          pc={game.players[head.player].color}
+          wide
+        >
           <SkillsByCategory ids={[...new Set(game.market.skillDeck)]} onPick={(id) => dispatch({ type: 'changeOfHeart', skill: id })} />
         </Modal>
       );
@@ -82,8 +87,8 @@ export function DecisionOverlay({ game, dispatch, human }: { game: GameState; di
       const def = die(game, head.defender);
       return (
         <Modal
-          title="Dangerous"
-          subtitle={`${game.players[att.owner].name}'s ${shipOf(game, att.value).name} attacks your ${shipOf(game, def.value).name}. Before the dice are rolled, you may destroy both ships (no dominance change).`}
+          title={cardName('dangerous')}
+          subtitle={`${game.players[att.owner].name}'s ${shipOf(game, att.value).name} attacks your ${shipOf(game, def.value).name}. Before the dice are rolled, you may destroy both mechs (no power change).`}
           pc={p.color}
         >
           <div className="modal-actions">
@@ -91,7 +96,7 @@ export function DecisionOverlay({ game, dispatch, human }: { game: GameState; di
               Fight
             </button>
             <button className="btn btn-primary" onClick={() => dispatch({ type: 'dangerous', destroy: true })}>
-              {say(game, 'Destroy both ships')}
+              {'Destroy both mechs'}
             </button>
           </div>
         </Modal>
@@ -101,10 +106,10 @@ export function DecisionOverlay({ game, dispatch, human }: { game: GameState; di
       const p = game.players[head.player];
       const d = die(game, head.die);
       const isCalculating = head.source === 'calculating';
-      const title = isCalculating ? 'Calculating' : 'Clever';
+      const title = isCalculating ? cardName('calculating') : cardName('clever');
       const subtitle = isCalculating
-        ? `${p.name}, choose this ship’s number (1–6) for the scrapyard.`
-        : `${p.name}, keep this ship’s number or change it by 1.`;
+        ? `${p.name}, choose this mech’s number (1–6) for the salvage yard.`
+        : `${p.name}, keep this mech’s number or change it by 1.`;
       return (
         <Modal title={title} subtitle={subtitle} pc={p.color}>
           <div className="fleet-roll clever-row">
@@ -115,7 +120,7 @@ export function DecisionOverlay({ game, dispatch, human }: { game: GameState; di
               </button>
             ))}
           </div>
-          {d.loc.zone === 'scrapyard' && <p className="modal-sub">{say(game, 'The ship goes to your scrapyard.')}</p>}
+          {d.loc.zone === 'scrapyard' && <p className="modal-sub">{'The mech goes to your salvage yard.'}</p>}
         </Modal>
       );
     }
@@ -123,7 +128,11 @@ export function DecisionOverlay({ game, dispatch, human }: { game: GameState; di
       const p = game.players[head.player];
       const victim = game.players[head.victim];
       return (
-        <Modal title="Prideful" subtitle={`${p.name}, you destroyed ${victim.name}’s ship. You may take Prideful from them.`} pc={p.color}>
+        <Modal
+          title={cardName('prideful')}
+          subtitle={`${p.name}, you destroyed ${victim.name}’s mech. You may take ${cardName('prideful')} from them.`}
+          pc={p.color}
+        >
           <div className="modal-actions">
             <button className="btn" onClick={() => dispatch({ type: 'prideful', take: false })}>
               Decline
@@ -140,8 +149,8 @@ export function DecisionOverlay({ game, dispatch, human }: { game: GameState; di
       const victim = game.players[head.victim];
       return (
         <Modal
-          title="Ruthless"
-          subtitle={`${p.name}, you destroyed an enemy ship. Choose one of ${victim.name}’s skills to disable until the start of your next turn.`}
+          title={cardName('ruthless')}
+          subtitle={`${p.name}, you destroyed an enemy mech. Choose one of ${victim.name}’s skills to disable until the start of your next turn.`}
           pc={p.color}
         >
           <div className="modal-actions">
@@ -214,7 +223,7 @@ function SetupRoll({ game, dispatch, player, rerolled }: { game: GameState; disp
   return (
     <Modal
       title="Roll your fleet"
-      subtitle={`${p.name}, these three dice are your starting ships. The lowest fleet total plays first.`}
+      subtitle={`${p.name}, these three dice are your starting mechs. The lowest fleet total plays first.`}
       pc={p.color}
     >
       <div className="fleet-roll">
@@ -267,8 +276,8 @@ export function ConquerChoice({
   };
   return (
     <Dialog
-      title={`Conquer planet ${planet.number}`}
-      subtitle={plain ? 'Take an empty place, or displace an opponent’s cube.' : 'The planet is full: choose whose cube to displace.'}
+      title={`Claim objective ${planet.number}`}
+      subtitle={plain ? 'Take an empty place, or displace an opponent’s cube.' : 'The objective is full: choose whose cube to displace.'}
       onClose={onClose}
     >
       <div className="modal-actions">
@@ -324,7 +333,7 @@ export function GameOver({
       >
         {!lost && <div className="gameover-burst" />}
         <small>{lost ? 'Defeat' : 'Victory'}</small>
-        <h2 id="gameover-title">{w.name} conquers the sector</h2>
+        <h2 id="gameover-title">{w.name} claims the sector</h2>
         <p className="modal-sub">
           All cubes placed after {game.turn.number} turn{game.turn.number === 1 ? '' : 's'}.
         </p>
@@ -358,12 +367,12 @@ function GameStats({ game }: { game: GameState }) {
       <thead>
         <tr>
           <th />
-          <th title={say(game, 'Cubes on planets')}>Cubes</th>
+          <th title={'Cubes on objectives'}>Cubes</th>
           {kept && (
             <>
-              <th title={say(game, 'Planets conquered')}>{say(game, 'Planets')}</th>
+              <th title={'Objectives claimed'}>{'Objectives'}</th>
               <th title="Battles won – lost">Battles</th>
-              <th title={say(game, 'Enemy ships destroyed – own ships lost')}>{say(game, 'Ships')}</th>
+              <th title={'Enemy mechs destroyed – own mechs lost'}>{'Mechs'}</th>
             </>
           )}
           {cards && <th title="Cards gained">Cards</th>}

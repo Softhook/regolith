@@ -15,7 +15,7 @@ import {
   type Handlers,
   type PendingOf,
 } from './core';
-import { card } from './data';
+import { cardName, card } from './data';
 import { boardLoc, cellOf, die, dieAt } from './lookups';
 import { combatDice, combatOutcome, infamyTargets, missileRefusal, skillLimit } from './queries';
 import { d6 } from './rng';
@@ -104,16 +104,16 @@ export const combatHandlers = {
     const side = head[a.side];
     pl.missiles--;
     side.missile = true;
-    log(s, `${pl.name} fires a missile: ${name(s, side.player)}'s combat roll becomes 1.`, a.by, 'missile');
+    log(s, `${pl.name} fires an atomic: ${name(s, side.player)}'s combat roll becomes 1.`, a.by, 'missile');
   },
   /** Dangerous: destroy both ships (no dominance change, no "when you destroy" effects), or fight. */
   dangerous(s, a) {
-    const head = headOf(s, 'dangerous', 'No Dangerous decision');
+    const head = headOf(s, 'dangerous', `No ${cardName('dangerous')} decision`);
     s.pending.shift();
     const att = die(s, head.attacker);
     const def = die(s, head.defender);
     if (!a.destroy) return rollCombat(s, att, def, head.from, head.ranged);
-    log(s, `${name(s, head.player)} is Dangerous: both ships are destroyed.`, head.player, 'shipDestroyed');
+    log(s, `${name(s, head.player)} is ${cardName('dangerous')}: both mechs are destroyed.`, head.player, 'shipDestroyed');
     // No "destroy" effects (destroyedEnemyShip), but the losses count.
     for (const d of [att, def]) {
       if (d.owner === head.player) continue;
@@ -137,10 +137,12 @@ export const combatHandlers = {
   },
   infamy(s, a) {
     const head = headOf(s, 'infamy', 'No Infamy to resolve');
-    if (!infamyTargets(s, head.player).some((p) => p.id === a.planet)) fail('Choose a planet without your cube');
+    if (!infamyTargets(s, head.player).some((p) => p.id === a.planet)) fail('Choose an objective without your cube');
     s.pending.shift();
     s.players[head.player].dominance = 1;
-    log(s, `${name(s, head.player)} seizes planet ${s.board.planets[a.planet].number} through Infamy.`, head.player, 'seize', [a.planet]);
+    log(s, `${name(s, head.player)} seizes objective ${s.board.planets[a.planet].number} through Infamy.`, head.player, 'seize', [
+      a.planet,
+    ]);
     tally(s, head.player, 'planetsTaken');
     placeCube(s, head.player, a.planet);
     if (s.phase !== 'play' || !rulesOf(s).cards) return;
@@ -158,10 +160,10 @@ export const combatHandlers = {
     }
   },
   prideful(s, a) {
-    const head = headOf(s, 'prideful', 'No Prideful decision');
+    const head = headOf(s, 'prideful', `No ${cardName('prideful')} decision`);
     s.pending.shift();
     if (!a.take) {
-      log(s, `${name(s, head.player)} declines to take Prideful.`, head.player);
+      log(s, `${name(s, head.player)} declines to take ${cardName('prideful')}.`, head.player);
       return;
     }
     const victimPl = s.players[head.victim];
@@ -171,7 +173,7 @@ export const combatHandlers = {
       // A stolen Prideful works at once, even if a Ruthless player had disabled it (OPEN-QUESTIONS #32).
       const [stolen] = victimPl.skills.splice(idx, 1);
       winnerPl.skills.push({ id: stolen.id, active: true });
-      log(s, `${winnerPl.name} takes Prideful from ${victimPl.name}!`, head.player, 'cardTaken');
+      log(s, `${winnerPl.name} takes ${cardName('prideful')} from ${victimPl.name}!`, head.player, 'cardTaken');
       s.log[s.log.length - 1].card = stolen.id;
       if (winnerPl.skills.length > skillLimit(s, head.player)) {
         s.pending.unshift({ kind: 'discardSkill', player: head.player, reason: 'limit', cannotDiscard: stolen.id });
@@ -180,7 +182,7 @@ export const combatHandlers = {
     }
   },
   ruthless(s, a) {
-    const head = headOf(s, 'ruthless', 'No Ruthless decision');
+    const head = headOf(s, 'ruthless', `No ${cardName('ruthless')} decision`);
     s.pending.shift();
     if (!a.skill) {
       log(s, `${name(s, head.player)} declines to disable a skill.`, head.player);
@@ -191,6 +193,6 @@ export const combatHandlers = {
     if (!sk) fail('Skill is not active or not owned by enemy');
     sk.active = false;
     sk.disabledUntil = head.player;
-    log(s, `${name(s, head.player)} disables ${victimPl.name}'s ${card(sk.id).name} (Ruthless).`, head.player);
+    log(s, `${name(s, head.player)} disables ${victimPl.name}'s ${card(sk.id).name} (${cardName('ruthless')}).`, head.player);
   },
 } satisfies Partial<Handlers>;

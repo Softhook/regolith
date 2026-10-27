@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type RefObject } from 'react';
-import { card, cardKind, effectOf, expansionCard, rulesOf, say, type DeckKind, type GameState } from '@regolith/engine';
+import { cardName, card, cardKind, effectOf, expansionCard, rulesOf, type DeckKind, type GameState } from '@regolith/engine';
 import type { Legal } from '../game/legal';
 import type { Dispatch } from '../game/useGame';
 import { FOLD_MARKET, useMediaQuery } from '../game/useMediaQuery';
@@ -139,7 +139,7 @@ export function Market({
   };
   const patientDialog = patientChoice && (
     <Dialog
-      title="Patient"
+      title={cardName('patient')}
       subtitle={`Do you want to play ${card(patientChoice.id).name} immediately, or store it to play at the end of a turn?`}
       onClose={() => setPatientChoice(null)}
     >
@@ -171,12 +171,12 @@ export function Market({
             key={`${id}#${index}`}
             className={`market-chip market-chip-${kind} ${canTake(deck, index) ? 'takeable' : ''}`}
             style={categoryStyle(def.category, kind === 'skill')}
-            title={say(game, `${def.name} — ${def.text}`)}
+            title={`${def.name} — ${def.text}`}
             data-card={id}
             data-index={index}
             onClick={() => setViewingCard(id)}
           >
-            {say(game, def.name)}
+            {def.name}
           </button>
         );
       })}
@@ -229,7 +229,7 @@ export function Market({
       {patientPick && (
         <button
           className="btn btn-ghost market-refresh"
-          title="Patient: you may take and store a face-up tactic"
+          title={`${cardName('patient')}: you may take and store a face-up tactic`}
           onClick={() => dispatch({ type: 'patientTactic' })}
         >
           Don't store a tactic
@@ -238,10 +238,10 @@ export function Market({
       {legal.can('profiteer') && (
         <button
           className="btn btn-ghost market-refresh"
-          title={say(game, 'Profiteering: a card earned by a Conquer action')}
+          title={`${cardName('profiteering')}: a card earned by a Claim action`}
           onClick={() => dispatch({ type: 'profiteer' })}
         >
-          {say(game, 'Take 1 missile instead of a card')}
+          {'Take 1 atomic instead of a card'}
         </button>
       )}
     </>

@@ -25,7 +25,7 @@ import {
   type Handlers,
   type PendingOf,
 } from './core';
-import { card, cardKind, effectOf } from './data';
+import { cardName, card, cardKind, effectOf } from './data';
 import type { TacticEffect } from './effects';
 import { barrierAt, boardLoc, die, reserve, shipsOnBoard } from './lookups';
 import {
@@ -101,7 +101,7 @@ const TACTIC_EFFECTS: Record<TacticEffect, TacticEffectFn> = {
   expansion: (s, p) => {
     const res = reserve(s, p);
     if (!res.length) {
-      log(s, `${s.players[p].name} has no reserve ships left.`, p);
+      log(s, `${s.players[p].name} has no reserve mechs left.`, p);
       return;
     }
     // Placed after the roll is final (a Clever choice comes first).
@@ -172,7 +172,7 @@ function takeOrStore(s: GameState, p: PlayerId, id: string, store: boolean | und
   const pl = s.players[p];
   tally(s, p, 'cardsTaken');
   (pl.storedTactics ??= []).push(id);
-  log(s, `${pl.name} stores ${card(id).name} (Patient).`, p, 'cardTaken');
+  log(s, `${pl.name} stores ${card(id).name} (${cardName('patient')}).`, p, 'cardTaken');
   s.log[s.log.length - 1].card = id;
 }
 
@@ -196,11 +196,12 @@ export const cardHandlers = {
   takeCard(s, a) {
     const head = headOf(s, 'takeCard', 'Not taking a card');
     const p = head.player;
-    if (a.store && (a.deck !== 'tactic' || !anySkill(s, p, (r) => r.storeTactics))) fail('Only a Tactic can be stored, with Patient');
+    if (a.store && (a.deck !== 'tactic' || !anySkill(s, p, (r) => r.storeTactics)))
+      fail(`Only a Tactic can be stored, with ${cardName('patient')}`);
     if (a.deck === 'expansion') {
-      if (a.index !== 0) fail('The Expansion pile has one face-up card');
+      if (a.index !== 0) fail(`The ${cardName('expansion')} pile has one face-up card`);
       const res = reserve(s, p);
-      if (s.market.expansions <= 0) fail('No Expansion cards left');
+      if (s.market.expansions <= 0) fail(`No ${cardName('expansion')} cards left`);
       if (!res.length) fail('Your reserve is empty');
       consumeCardPick(s);
       s.market.expansions--;
@@ -234,10 +235,10 @@ export const cardHandlers = {
   /** Profiteering: a pick earned by a Conquer action (not by Infamy; OPEN-QUESTIONS #64) becomes 1 missile. */
   profiteer(s) {
     const head = headOf(s, 'takeCard', 'Not taking a card');
-    if (!canProfiteer(s)) fail('No card for conquering to trade');
+    if (!canProfiteer(s)) fail('No card for claiming to trade');
     head.conquer!--;
     s.players[head.player].missiles++;
-    log(s, `${name(s, head.player)} takes a missile instead of a card (Profiteering).`, head.player);
+    log(s, `${name(s, head.player)} takes an atomic instead of a card (${cardName('profiteering')}).`, head.player);
     consumeCardPick(s);
   },
   discardSkill(s, a) {
@@ -258,23 +259,23 @@ export const cardHandlers = {
     if (pl.skills.length > skillLimit(s, head.player)) s.pending.unshift({ ...head, reason: 'limit' });
   },
   placeExpansion(s, a) {
-    const head = headOf(s, 'placeExpansion', 'No expansion ship to place');
+    const head = headOf(s, 'placeExpansion', 'No expansion mech to place');
     const d = die(s, head.die);
     if (a.to) {
-      if (!deployTargets(s, head.player).some((p) => same(p, a.to!))) fail('Place it in orbit of one of your planets');
+      if (!deployTargets(s, head.player).some((p) => same(p, a.to!))) fail('Place it on the perimeter of one of your objectives');
       d.loc = boardLoc(a.to);
       logTo(s, head.player, `${name(s, head.player)} places their new ${shipName(s, d)}`, a.to);
     } else {
       d.loc = { zone: 'scrapyard' };
-      note(s, `${name(s, head.player)} keeps their new ${shipName(s, d)} in the scrapyard.`, head.player);
+      note(s, `${name(s, head.player)} keeps their new ${shipName(s, d)} in the salvage yard.`, head.player);
     }
     s.turn.seen[d.id] = [d.value];
     s.pending.shift();
   },
   showOfForce(s, a) {
-    const head = headOf(s, 'showOfForce', 'No Show of Force to resolve');
+    const head = headOf(s, 'showOfForce', `No ${cardName('show-of-force')} to resolve`);
     const d = die(s, a.die);
-    if (d.loc.zone !== 'board') fail('Choose a ship on the map');
+    if (d.loc.zone !== 'board') fail('Choose a mech on the map');
     s.pending.shift();
     log(s, `${name(s, head.player)} destroys ${name(s, d.owner)}'s ${shipName(s, d)}.`, head.player, 'shipDestroyed');
     destroyShip(s, d);
@@ -283,22 +284,22 @@ export const cardHandlers = {
     else destroyedEnemyShip(s, head.player, 1, d.owner);
   },
   warpGate(s, a) {
-    const head = headOf(s, 'warpGate', 'No Warp Gate to place');
+    const head = headOf(s, 'warpGate', 'No Ice Tunnel to place');
     const cell = s.board.cells[a.cell.r]?.[a.cell.c];
-    if (!cell || cell.kind !== 'space') fail('Gates go on spaces, not planets');
+    if (!cell || cell.kind !== 'space') fail('Gates go on spaces, not objectives');
     if (barrierAt(s, a.cell)) fail('Gates don’t go on barriers');
     if (head.placed.some((p) => same(p, a.cell))) fail('Choose a different space');
     head.placed.push({ r: a.cell.r, c: a.cell.c });
     if (head.placed.length === 2) {
       s.gates = head.placed;
       s.pending.shift();
-      note(s, `${name(s, head.player)} opens a pair of warp gates.`, head.player);
+      note(s, `${name(s, head.player)} opens a pair of ice tunnels.`, head.player);
     }
   },
   placeBarrier(s, a) {
     const head = headOf(s, 'placeBarrier', 'No barrier to place');
     const cell = s.board.cells[a.cell.r]?.[a.cell.c];
-    if (!cell || cell.kind !== 'space') fail('Barriers go on spaces, not planets');
+    if (!cell || cell.kind !== 'space') fail('Barriers go on spaces, not objectives');
     if (!canHoldBarrier(s, a.cell)) fail('Barriers go on empty spaces');
     head.placed.push({ r: a.cell.r, c: a.cell.c });
     addBarrier(s, a.cell, head.player);
@@ -315,7 +316,7 @@ export const cardHandlers = {
     s.pending.shift();
     d.loc = boardLoc(a.to);
     const targetName = head.player === d.owner ? `their ${shipName(s, d)}` : `${name(s, d.owner)}'s ${shipName(s, d)}`;
-    logTo(s, head.player, `${name(s, head.player)} pushes ${targetName}${path.tunnel ? ' through a warp gate' : ''}`, a.to);
+    logTo(s, head.player, `${name(s, head.player)} pushes ${targetName}${path.tunnel ? ' through an ice tunnel' : ''}`, a.to);
   },
   /** Patient: "When you take this Skill, you may take and store a Tactic." */
   patientTactic(s, a) {
@@ -341,7 +342,7 @@ export const cardHandlers = {
   unveilReroll(s, a) {
     const head = headOf(s, 'unveil', 'Not unveiling');
     const d = die(s, a.die);
-    if (d.owner !== head.player || d.loc.zone !== 'scrapyard') fail('Choose one of your ships');
+    if (d.owner !== head.player || d.loc.zone !== 'scrapyard') fail('Choose one of your mechs');
     if (head.rerolled.includes(d.id)) fail('Already re-rolled');
     head.rerolled.push(d.id);
     const was = shipName(s, d);
@@ -351,10 +352,10 @@ export const cardHandlers = {
   unveilDeploy(s, a) {
     const head = headOf(s, 'unveil', 'Not unveiling');
     const d = die(s, a.die);
-    if (d.owner !== head.player || d.loc.zone !== 'scrapyard') fail('Choose a ship in your scrapyard');
-    if (!deployTargets(s, head.player).some((p) => same(p, a.to))) fail('Not a deploy space');
+    if (d.owner !== head.player || d.loc.zone !== 'scrapyard') fail('Choose a mech in your salvage yard');
+    if (!deployTargets(s, head.player).some((p) => same(p, a.to))) fail('Not a drop space');
     d.loc = boardLoc(a.to);
-    logTo(s, head.player, `${name(s, head.player)} deploys ${aShip(s, d)}`, a.to);
+    logTo(s, head.player, `${name(s, head.player)} drops ${aShip(s, d)}`, a.to);
   },
   unveilDone(s) {
     headOf(s, 'unveil', 'Not unveiling');

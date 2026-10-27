@@ -5,7 +5,7 @@ import { RuleError, type Barrier, type Cell, type Die, type DieLoc, type GameSta
 /** The die with this id. An unknown id is an illegal action (it can only come from outside). */
 export function die(state: GameState, id: string): Die {
   const d = state.dice.find((x) => x.id === id);
-  if (!d) throw new RuleError(`Unknown ship ${id}`);
+  if (!d) throw new RuleError(`Unknown mech ${id}`);
   return d;
 }
 

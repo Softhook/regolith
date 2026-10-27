@@ -22,7 +22,7 @@ import {
   shipName,
   type Handlers,
 } from './core';
-import { card } from './data';
+import { cardName, card } from './data';
 import { boardLoc, cellOf, die } from './lookups';
 import { canGainResearch, tacticalOptions } from './queries';
 import { hasPower } from './rules';
@@ -33,7 +33,7 @@ export const skillHandlers = {
   composed(s) {
     const t = requireActionPhase(s);
     requireSkill(s, t.player, 'composed');
-    if (s.players[t.player].dominance <= 1) fail('No dominance to lose');
+    if (s.players[t.player].dominance <= 1) fail('No power to lose');
     // Under Righteous both halves would do nothing (RULE-SUGGESTIONS #33).
     if (!canGainResearch(s, t.player)) fail('You cannot gain research');
     oncePerTurn(s, 'composed');
@@ -61,12 +61,12 @@ export const skillHandlers = {
     requireSkill(s, t.player, 'flexible');
     const d = ownShip(s, a.die, 'board');
     const v = d.value + a.delta;
-    if (v < 1 || v > 6) fail('Ship numbers range from 1 to 6');
+    if (v < 1 || v > 6) fail('Mech numbers range from 1 to 6');
     oncePerTurn(s, 'flexible');
     const was = shipName(s, d);
     d.value = v;
     markSeen(s, d);
-    note(s, `${name(s, d.owner)} adjusts their ${was} to ${aShip(s, d)} (Flexible).`, d.owner);
+    note(s, `${name(s, d.owner)} adjusts their ${was} to ${aShip(s, d)} (${cardName('flexible')}).`, d.owner);
   },
   tactical(s, a) {
     const t = requireActionPhase(s);
@@ -76,7 +76,7 @@ export const skillHandlers = {
     const use = () => oncePerTurn(s, 'tactical');
     if (a.passenger) {
       // Flagship Transport over the 1 space (forum consensus, BGG thread 1093051).
-      if (!hasPower(s, d, 'transport')) fail('Only a ship with Carry & Move can transport');
+      if (!hasPower(s, d, 'transport')) fail('Only a mech with Carry & Move can transport');
       if (!a.to || !a.drop) fail('Invalid carry');
       const fly = transport(s, d, a.passenger, a.to, a.drop, 1);
       use();
@@ -87,7 +87,7 @@ export const skillHandlers = {
         d.owner,
         `${name(s, d.owner)}'s ${shipName(s, d)} carries their ${shipName(s, die(s, a.passenger))} one space`,
         a.to,
-        ' (Tactical)',
+        ` (${cardName('tactical')})`,
       );
       return;
     }
@@ -105,20 +105,20 @@ export const skillHandlers = {
     use();
     if (opt.diagonal) markAbility(s, d);
     d.loc = boardLoc(opt.cell);
-    logTo(s, d.owner, `${name(s, d.owner)} moves their ${shipName(s, d)} one space`, opt.cell, ' (Tactical)');
+    logTo(s, d.owner, `${name(s, d.owner)} moves their ${shipName(s, d)} one space`, opt.cell, ` (${cardName('tactical')})`);
   },
   clever(s, a) {
-    const head = headOf(s, 'clever', 'No ship number to choose');
-    if (a.value < 1 || a.value > 6) fail('Ship numbers range from 1 to 6');
-    if (head.options && !head.options.includes(a.value)) fail('Clever changes the number by at most 1');
+    const head = headOf(s, 'clever', 'No mech number to choose');
+    if (a.value < 1 || a.value > 6) fail('Mech numbers range from 1 to 6');
+    if (head.options && !head.options.includes(a.value)) fail(`${cardName('clever')} changes the number by at most 1`);
     s.pending.shift();
     const d = die(s, head.die);
     d.value = a.value;
     markSeen(s, d);
-    const skill = head.source === 'calculating' ? 'Calculating' : 'Clever';
+    const skill = head.source === 'calculating' ? cardName('calculating') : cardName('clever');
     note(
       s,
-      `${name(s, head.player)} makes ${d.loc.zone === 'board' ? 'it' : 'their scrapped ship'} ${aShip(s, d)} (${skill}).`,
+      `${name(s, head.player)} makes ${d.loc.zone === 'board' ? 'it' : 'their scrapped mech'} ${aShip(s, d)} (${skill}).`,
       head.player,
     );
   },
@@ -127,7 +127,7 @@ export const skillHandlers = {
     requireSkill(s, t.player, 'resourceful');
     const d = ownShip(s, a.die, 'board');
     oncePerTurn(s, 'resourceful');
-    note(s, `${name(s, d.owner)} scraps their ${shipName(s, d)} for an extra action (Resourceful).`, d.owner);
+    note(s, `${name(s, d.owner)} scraps their ${shipName(s, d)} for an extra action (${cardName('resourceful')}).`, d.owner);
     destroyShip(s, d);
     t.actionsLeft++;
   },
