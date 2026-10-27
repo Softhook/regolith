@@ -20,15 +20,18 @@ takes between actions so that humans can follow along.
 
 ## Strength
 
-Self-play results, alternating seats, each pair of games on the same map seed (`npm run ai:match`):
+Self-play results, alternating seats, each pair of games on the same map seed (`npm run ai:match`), 2026-10-27,
+each match stopped once the sequential test decided it (SPRT, 10-point margin):
 
-| Match (games) | Basic | Original | Community |
-|---|---|---|---|
-| Cadet vs Captain | 5 – 35 (40) | | |
-| Captain vs Commodore | 9 – 31 (40) | | 9 – 26 (35) |
-| Commodore vs Admiral | 20 – 28 (48) | | |
-| Admiral vs Fleet Admiral | 82 – 118 (200) | | |
-| Cadet vs Commodore | | 1 – 29 (30) | 3 – 27 (30) |
+| Match (games) | Basic | Regolith |
+|---|---|---|
+| Captain vs Cadet | 95% | 19 – 1 (20) |
+| Commodore vs Captain | 70.5% | 49 – 23 (72) |
+| Admiral vs Commodore | 124 – 85 (228, 19 unfinished) | 131 – 91 (222) |
+| Fleet Admiral vs Admiral | 54 – 29 (92, 9 unfinished) | 34 – 16 (50) |
+
+Every level beats the one below on both modes. An unfinished game hit the step cap (3,000 actions) without a
+winner; only Basic had any. The rest of this section was measured on Quantum's modes, before the split:
 
 Fleet Admiral beat Admiral 118 – 82 over 200 games (59%, z = 2.55, p ≈ 0.01; 2026-10-09, before
 the reply-scoring fix below), at about twice Admiral's thinking time. Settings that spend more time
