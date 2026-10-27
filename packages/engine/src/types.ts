@@ -36,8 +36,6 @@ export interface Board {
   mapName: string;
   rows: number;
   cols: number;
-  /** Rows wrap left↔right (`cols`) and/or columns wrap top↔bottom (`rows`); absent on most maps. */
-  wrap?: { rows: boolean; cols: boolean };
   /** A hex board: cells are flat-topped hexes in axial coordinates (board.ts). Absent on square boards. */
   hex?: boolean;
   /** The world a hex board is on, which its artwork shows (MapDef.world). Absent on square boards. */

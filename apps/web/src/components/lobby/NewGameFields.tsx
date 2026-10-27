@@ -9,11 +9,6 @@ import { pick } from '../../random';
 import { AI_LEVEL_KEY, isFriendSeat } from './choices';
 
 const MAP_GROUPS: { id: string; name: string }[] = [
-  { id: 'basic', name: 'Basic' },
-  { id: 'advanced', name: 'Advanced' },
-  { id: 'addon', name: 'Add-on pack' },
-  { id: 'bga', name: 'Board Game Arena' },
-  { id: 'ce', name: 'Community Edition' },
   { id: 'hex', name: 'Hex tiles' },
   { id: 'open', name: 'Open ground' },
   { id: 'drift', name: 'Off-centre planets' },

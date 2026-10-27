@@ -4,19 +4,11 @@ import { PLANET_DIAMETER, TILE, lookWorld } from '@regolith/art';
 import { BarrierBubble } from './BarrierBubble';
 import { tileArt, type TileArt } from '../../art/boardTiles';
 import { GATE_COLOR } from '../../theme';
-import { placement, wrapMarks, type WrapMark } from './geometry';
+import { placement } from './geometry';
 import { PlanetMarkings } from './PlanetMarkings';
 import { MapTiles } from './MapTiles';
 import { numberCorner } from './layers';
 import { useMapLook } from '../../art/mapLook';
-
-/** Which way each board edge faces, for the wrap chevrons. */
-const WRAP_SIDE: Record<WrapMark['side'], { angle: number; r: number; c: number }> = {
-  right: { angle: 0, r: 0, c: 1 },
-  bottom: { angle: 90, r: 1, c: 0 },
-  left: { angle: 180, r: 0, c: -1 },
-  top: { angle: 270, r: -1, c: 0 },
-};
 
 // A map's tile art, worked out once: a map id always names the same layout.
 const tileArtByMap = new Map<string, TileArt[]>();
@@ -65,30 +57,6 @@ export const BoardArt = memo(function BoardArt({
         </defs>
 
         <MapTiles board={game.board} tiles={tiles} cell={cell} />
-
-        {/* Chevrons on edges that join the opposite edge, pointing off the board. */}
-        {wrapMarks(game.board).map((m) => {
-          const { angle, r, c } = WRAP_SIDE[m.side];
-          const x = mid(m).x + c * 0.42 * cell;
-          const y = mid(m).y + r * 0.42 * cell;
-          const s = cell * 0.09;
-          return (
-            <path
-              key={`w${m.side}${m.r},${m.c}`}
-              className="wrap-mark"
-              d={`M${-s} ${-s * 1.6} L${s} 0 L${-s} ${s * 1.6}`}
-              transform={`translate(${x} ${y}) rotate(${angle})`}
-              fill="none"
-              stroke="#7fb2ff"
-              strokeOpacity={0.7}
-              strokeWidth={Math.max(1.5, cell * 0.04)}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <title>This edge joins the opposite edge</title>
-            </path>
-          );
-        })}
 
         {gates.map((g, i) => (
           <g key={i} transform={`translate(${mid(g).x} ${mid(g).y})`} opacity={g.open ? 1 : 0.5}>

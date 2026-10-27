@@ -79,7 +79,7 @@ describe('hex maps', () => {
   });
 
   it('finds each tile’s middle: its planet', () => {
-    for (const m of [...HEX_MAPS, MAPS.find((x) => x.id === 'alpha-sector')!]) {
+    for (const m of HEX_MAPS) {
       const b = buildBoard(m);
       const centres = tileCentres(b);
       expect(centres.size).toBe(new Set(b.cells.flat().flatMap((x) => (x.kind === 'off' ? [] : [x.tile]))).size);
@@ -87,10 +87,8 @@ describe('hex maps', () => {
     }
   });
 
-  it('touches the 8 spaces around a square but only a hex’s 6 sides', () => {
-    const square = buildBoard(MAPS.find((x) => x.id === 'alpha-sector')!);
-    expect(surrounding(square, { r: 4, c: 4 })).toHaveLength(8);
-    expect(geometry(square).touching).toHaveLength(8);
+  it('touches only a hex’s 6 sides', () => {
+    expect(geometry(BASE.board).touching).toHaveLength(6);
     const p = orbitals(BASE.board, CENTRE)[0];
     expect(surrounding(BASE.board, p)).toEqual(adjacent(BASE.board, p));
   });
@@ -144,10 +142,6 @@ describe('hex maps', () => {
         }
       expect(seen.size, m.id).toBe(all.length);
     }
-  });
-
-  it('refuses a hex map that wraps', () => {
-    expect(() => buildBoard({ ...HEX_MAPS[0], wrap: 'both' })).toThrow(/can't wrap/);
   });
 
   it('moves a ship across hexes, up to its number', () => {

@@ -7,12 +7,12 @@ import { EffectBox, type MapEffect } from './EffectBox';
 /** The impact's flash outlasts the flight. */
 const SHOT_EFFECT_MS = SHOT.flight + SHOT.hit;
 
-/** A shot fired in the step from `before` to `game`: from the shooter to its target, the short way round on a wrapping map. */
+/** A shot fired in the step from `before` to `game`: from the shooter to its target, a straight line. */
 function shotsOf(before: GameState, game: GameState): MapEffect[] {
   const shot = shotOf(before, game);
   if (!shot) return [];
   const { from } = shot;
-  const d = delta(from, shot.at, game.board);
+  const d = delta(from, shot.at);
   return [{ id: `shot:${shot.id}`, at: from, to: { r: from.r + d.r, c: from.c + d.c }, color: game.players[shot.attacker.player].color }];
 }
 

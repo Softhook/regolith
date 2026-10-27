@@ -184,9 +184,7 @@ function buildSquareBoard(map: MapDef): Board {
     });
   });
 
-  const board: Board = { mapId: map.id, mapName: map.name, rows, cols, cells, planets };
-  if (map.wrap) board.wrap = { rows: map.wrap !== 'horizontal', cols: map.wrap !== 'vertical' };
-  return board;
+  return { mapId: map.id, mapName: map.name, rows, cols, cells, planets };
 }
 
 /** The planet of each hex tile in a layout (axial, before shifting onto the board), with its token. */
@@ -210,8 +208,6 @@ function hexTiles(map: MapDef): { r: number; c: number; token: string; tile: num
 }
 
 function buildHexBoard(map: MapDef): Board {
-  // Joined edges are worked out on the stored rows and columns, which on a hex board aren't the map's.
-  if (map.wrap) throw new Error(`${map.id}: a hex map can't wrap`);
   const tiles = hexTiles(map);
   const flower = [{ r: 0, c: 0 }, ...HEX_SIDES];
   const all = tiles.flatMap((t) => flower.map((d) => ({ r: t.r + d.r, c: t.c + d.c })));
@@ -307,15 +303,14 @@ export function spaces(board: Board): Cell[] {
   return out;
 }
 
-/** The shortest step from a to b along each axis, going across a joined edge when that is shorter. */
-export function delta(a: Cell, b: Cell, board: Board): Cell {
-  const short = (d: number, size: number, wraps = false) => (wraps && Math.abs(d) * 2 > size ? d - Math.sign(d) * size : d);
-  return { r: short(b.r - a.r, board.rows, board.wrap?.rows), c: short(b.c - a.c, board.cols, board.wrap?.cols) };
+/** The step from a to b along each axis. */
+export function delta(a: Cell, b: Cell): Cell {
+  return { r: b.r - a.r, c: b.c - a.c };
 }
 
-/** Steps between two cells: orthogonal (Manhattan) distance, across joined edges on a wrapping map; hexes apart on a hex board. */
+/** Steps between two cells: orthogonal (Manhattan) distance; hexes apart on a hex board. */
 export function distance(a: Cell, b: Cell, board: Board): number {
-  return geometry(board).steps(delta(a, b, board));
+  return geometry(board).steps(delta(a, b));
 }
 
 export function onBoard(board: Board, p: Cell): boolean {
@@ -323,10 +318,9 @@ export function onBoard(board: Board, p: Cell): boolean {
   return !!cell && cell.kind !== 'off';
 }
 
-/** The cells one step from p in each direction, carried across the board's joined edges. */
-export function offsets(board: Board, p: Cell, deltas: readonly Cell[]): Cell[] {
-  const join = (x: number, size: number, wraps = false) => (wraps ? (x + size) % size : x);
-  return deltas.map((d) => ({ r: join(p.r + d.r, board.rows, board.wrap?.rows), c: join(p.c + d.c, board.cols, board.wrap?.cols) }));
+/** The cells one step from p in each direction. */
+export function offsets(p: Cell, deltas: readonly Cell[]): Cell[] {
+  return deltas.map((d) => ({ r: p.r + d.r, c: p.c + d.c }));
 }
 
 /**
@@ -338,7 +332,7 @@ export function straightLines(board: Board, start: Cell): Cell[][] {
     const line: Cell[] = [];
     let at = start;
     for (let k = 0; k < board.rows + board.cols; k++) {
-      [at] = offsets(board, at, [dir]);
+      [at] = offsets(at, [dir]);
       if (!onBoard(board, at)) break;
       if (same(at, start) || line.some((p) => same(p, at))) break;
       line.push(at);
@@ -381,7 +375,7 @@ export function grid(board: Board): Grid {
   const near = (deltas: readonly Cell[]) =>
     cells.map((p) =>
       Object.freeze(
-        offsets(board, p, deltas)
+        offsets(p, deltas)
           .filter((q) => onBoard(board, q))
           .map((q) => cells[q.r * cols + q.c]),
       ),
@@ -417,7 +411,7 @@ function neighbours(board: Board, p: Cell, kind: 'sides' | 'diagonal' | 'touchin
   if (p.r < 0 || p.c < 0 || p.r >= board.rows || p.c >= board.cols) {
     const { sides, diagonals, touching } = geometry(board);
     const deltas = kind === 'sides' ? sides : kind === 'diagonal' ? [...sides, ...diagonals] : touching;
-    return offsets(board, p, deltas).filter((q) => onBoard(board, q));
+    return offsets(p, deltas).filter((q) => onBoard(board, q));
   }
   const g = grid(board);
   return (kind === 'sides' ? g.orthoCells : kind === 'diagonal' ? g.aroundCells : g.touchingCells)[p.r * board.cols + p.c];
@@ -459,7 +453,7 @@ export function otherGate(state: GameState, p: Cell): Cell | undefined {
 }
 
 export function isDiagonalStep(a: Cell, b: Cell, board: Board): boolean {
-  const d = delta(a, b, board);
+  const d = delta(a, b);
   return geometry(board).diagonals.some((x) => same(x, d));
 }
 
@@ -484,7 +478,7 @@ export function orbitedPlanets(board: Board, p: Cell): Planet[] {
 }
 
 export function diagonals(board: Board, planet: Planet): Cell[] {
-  return offsets(board, planet, geometry(board).diagonals).filter((q) => isSpace(board, q));
+  return offsets(planet, geometry(board).diagonals).filter((q) => isSpace(board, q));
 }
 
 const CENTRES = new WeakMap<BoardCell[][], ReadonlyMap<number, Cell>>();

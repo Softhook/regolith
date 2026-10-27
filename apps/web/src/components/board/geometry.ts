@@ -1,4 +1,4 @@
-import { adjacent, cellAt, cellOf, delta, drawing, geometry, onBoard, type Board, type Cell, type GameState } from '@regolith/engine';
+import { adjacent, cellAt, cellOf, delta, drawing, geometry, type Board, type Cell, type GameState } from '@regolith/engine';
 
 /** Where each ship on the map is drawn, by id, in cell units from the map's top left (engine drawing). */
 export type ShipSpots = Map<string, { r: number; c: number }>;
@@ -91,33 +91,11 @@ export function shipSpots(game: GameState): ShipSpots {
     if (!at) continue;
     let { r, c } = at;
     if (combat && !combat.ranged && combat.attacker.die === d.id) {
-      const d = delta(combat.from, combat.at, game.board);
+      const d = delta(combat.from, combat.at);
       r += d.r * 0.42;
       c += d.c * 0.42;
     }
     spots.set(d.id, drawn({ r, c }));
   }
   return spots;
-}
-
-export interface WrapMark {
-  r: number;
-  c: number;
-  /** The edge the mark sits on. */
-  side: 'top' | 'bottom' | 'left' | 'right';
-}
-
-/** Board-edge spaces that join the opposite edge on a wrapping map, one mark per joined pair end. */
-export function wrapMarks(board: Board): WrapMark[] {
-  const marks: WrapMark[] = [];
-  const { rows, cols, wrap } = board;
-  if (wrap?.cols)
-    for (let r = 0; r < rows; r++)
-      if (onBoard(board, { r, c: 0 }) && onBoard(board, { r, c: cols - 1 }))
-        marks.push({ r, c: 0, side: 'left' }, { r, c: cols - 1, side: 'right' });
-  if (wrap?.rows)
-    for (let c = 0; c < cols; c++)
-      if (onBoard(board, { r: 0, c }) && onBoard(board, { r: rows - 1, c }))
-        marks.push({ r: 0, c, side: 'top' }, { r: rows - 1, c, side: 'bottom' });
-  return marks;
 }

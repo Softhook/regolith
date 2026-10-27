@@ -29,8 +29,6 @@ export interface MapDef {
   group: string;
   cubes: number;
   stats: { slack: number; shared: number | null; planets: number };
-  /** Edges that join: leaving one edge of a row or column re-enters at its opposite edge. */
-  wrap?: 'horizontal' | 'vertical' | 'both';
   /** Hex tiles (7-hex flowers) instead of 3×3 squares: data/maps.yaml says how a hex layout reads. */
   grid?: 'hex';
   /** A hex map's world, Phobos, Deimos or Mars: every hex map in data/maps.yaml names one (Mars for a test's map that doesn't). */
@@ -38,12 +36,11 @@ export interface MapDef {
   layout: string[][];
 }
 
-// build-data.mjs checks `wrap` is one of the allowed values.
 export const MAPS: MapDef[] = mapsJson as MapDef[];
 
-/** The basic map for a player count. */
+/** The basic map for a player count: the first in data/maps.yaml, a basic map on hex tiles. */
 export function defaultMap(players: number): MapDef | undefined {
-  return MAPS.find((m) => m.players === players && m.group === 'basic') ?? MAPS.find((m) => m.players === players);
+  return MAPS.find((m) => m.players === players);
 }
 
 /** Every card of every deck, once the rule sets are defined (addCards). */

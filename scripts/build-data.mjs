@@ -26,12 +26,8 @@ for (const [deck, list] of Object.entries(cards)) {
 writeFileSync(new URL('packages/engine/src/regolith/cards.json', root), JSON.stringify(cards, null, 2) + '\n');
 
 const { maps } = parse(readFileSync(new URL('data/maps.yaml', root), 'utf8'));
-for (const m of maps)
-  if (m.wrap !== undefined && !['horizontal', 'vertical', 'both'].includes(m.wrap))
-    throw new Error(`data/maps.yaml: ${m.id} has wrap ${m.wrap}`);
 for (const m of maps) {
   if (m.grid !== undefined && m.grid !== 'hex') throw new Error(`data/maps.yaml: ${m.id} has grid ${m.grid}`);
-  if (m.grid && m.wrap) throw new Error(`data/maps.yaml: ${m.id}: hex maps don't wrap`);
   if ((m.grid || m.world !== undefined) && !(m.grid && ['phobos', 'deimos', 'mars'].includes(m.world)))
     throw new Error(`data/maps.yaml: ${m.id} has world ${m.world}: every hex map has one, Phobos, Deimos or Mars, and only they do`);
 }
@@ -42,7 +38,6 @@ const parsed = maps.map((m) => ({
   group: m.group,
   cubes: m.cubes,
   stats: m.stats,
-  ...(m.wrap && { wrap: m.wrap }),
   ...(m.grid && { grid: m.grid }),
   ...(m.world && { world: m.world }),
   layout: m.layout.map((row) => row.trim().split(/\s+/)),
