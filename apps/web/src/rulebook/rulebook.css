@@ -83,14 +83,17 @@ body.rb-standalone { margin: 0; padding: 24px 12px; background: #e8ebf3; }
 /* Diagrams show the board itself (game tile art), so their marks take the game's colours (styles.css :root) in both themes. */
 .mn-svg { display: block; width: 100%; height: auto; margin: 0 auto; overflow: visible; }
 .mn-orbit { fill: color-mix(in srgb, var(--gold) 14%, transparent); stroke: var(--gold); stroke-width: 1.6; }
+.mn-zone { fill: color-mix(in srgb, var(--bad) 14%, transparent); stroke: var(--bad); stroke-width: 1.3; stroke-dasharray: 3 2; }
 .mn-planet-num { font-family: Inter, 'Helvetica Neue', Arial, sans-serif; }
-.mn-ghost rect { fill: color-mix(in srgb, var(--text) 6%, transparent); stroke: var(--text); stroke-width: 1.3; stroke-dasharray: 3 3; }
-.mn-ghost circle { fill: var(--text); opacity: .55; }
+.mn-ghost { filter: drop-shadow(0 0 1.5px rgba(0, 0, 0, .9)); }
+.mn-ghost rect { fill: rgba(0, 0, 0, .35); stroke: #fff; stroke-width: 1.5; stroke-dasharray: 3 3; }
+.mn-ghost circle { fill: #fff; opacity: .8; }
 .mn-dim { opacity: .4; }
-.mn-path { fill: none; stroke: var(--text); stroke-width: 2; stroke-dasharray: 4 3; stroke-linecap: round; stroke-linejoin: round; }
-.mn-arrowhead { fill: var(--text); }
+.mn-path { fill: none; stroke: #fff; filter: drop-shadow(0 0 1.5px rgba(0, 0, 0, .9)); stroke-width: 2.2; stroke-dasharray: 4 3; stroke-linecap: round; stroke-linejoin: round; }
+.mn-path.mn-shot { stroke-dasharray: none; stroke-width: 1.6; }
+.mn-arrowhead { fill: #fff; }
 .mn-burst { fill: var(--gold); stroke: var(--bad); stroke-width: 1; }
-.mn-dot { fill: var(--text); opacity: .7; }
+.mn-dot { fill: #fff; stroke: rgba(0, 0, 0, .75); stroke-width: 1.2; }
 .mn-mark circle { stroke: var(--bg); stroke-width: 1.4; }
 .mn-mark path { fill: none; stroke: var(--bg); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .mn-ok circle { fill: var(--good); } .mn-no circle { fill: var(--bad); }

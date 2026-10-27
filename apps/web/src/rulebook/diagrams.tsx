@@ -1,40 +1,46 @@
 import { createContext, useContext, useId, type ReactNode } from 'react';
 import {
-  PLANET_DIAMETER,
-  PLANET_FAMILY,
   TILE,
   cardBackSvg,
   dataUrl,
-  document,
   icon,
   numberPlacement,
-  planet,
   PLAYER_HUES,
-  rng,
   shipDie,
   tileSpec,
   tileSvg,
   type CardDeck,
+  type World,
 } from '@regolith/art';
-import { PlanetMarkings, PlanetNumber } from '../components/board/PlanetMarkings';
+import { BarrierBubble } from '../components/board/BarrierBubble';
+import { PlanetMarkings } from '../components/board/PlanetMarkings';
 import { PIPS } from '../components/Die3D';
 import { COMBAT_DICE, PIP, PLAYER_COLORS } from '../theme';
 
 /**
- * Building blocks for the manual's diagrams, drawn with the game's own artwork: real map tiles and
- * planets (packages/art), dice, cubes and planet numbers styled as on the board (BoardArt, Die3D), so
- * a picture in the manual looks like the screen. Everything is inline SVG or data URLs, so it prints
- * and survives the downloaded HTML.
+ * Building blocks for the manual's diagrams, drawn with the game's own artwork: real hex tiles on a world's
+ * ground (packages/art), dice, cubes, barriers and objective numbers styled as on the board (BoardArt, Die3D),
+ * so a picture in the manual looks like the screen. Everything is inline SVG or data URLs, so it prints and
+ * survives the downloaded HTML.
+ *
+ * Spaces are the engine's: flat-topped hexes in axial coordinates, `[r, c]` with `c` the column and `r` the
+ * axial row (engine board.ts), each column half a hex lower than the one before.
  */
 
-/** One space, in SVG units. */
+/** One space, flat side to flat side, in SVG units. */
 const S = 40;
+/** How far a column is from the next, in SVG units. */
+const COLUMN = (S * Math.sqrt(3)) / 2;
+/** Half a hex's width, corner to corner. */
+const HALF_WIDTH = S / Math.sqrt(3);
 /** SVG units per printed millimetre: the tile art and board overlays use the printed geometry. */
 const MM = S / TILE.cell;
+/** The manual's ground: Mars. */
+const WORLD: World = 'mars';
 
 export type At = readonly [r: number, c: number];
 export type Who = 'you' | 'foe';
-/** Ship colours, plus the attack (black) and defence (white) combat dice. */
+/** Mech colours, plus the attack (black) and defence (white) combat dice. */
 export type DieKind = Who | 'atk' | 'def';
 
 /** The game's own colours (theme.ts): the first two player colours and the combat dice. */
@@ -45,7 +51,34 @@ const COLOURS: Record<DieKind, { face: string; pip: string }> = {
   def: { face: COMBAT_DICE.defender.color, pip: COMBAT_DICE.defender.pip },
 };
 
-const mid = (n: number) => n * S + S / 2;
+/** A space's middle, in SVG units. */
+const centre = ([r, c]: At) => ({ x: c * COLUMN, y: (r + c / 2) * S });
+
+/** The six steps out of a hex's sides, as the engine has them (board.ts `HEX_SIDES`). */
+const SIDES: At[] = [
+  [-1, 0],
+  [1, 0],
+  [0, -1],
+  [0, 1],
+  [-1, 1],
+  [1, -1],
+];
+
+const same = (a: At, b: At) => a[0] === b[0] && a[1] === b[1];
+const has = (list: readonly At[], p: At) => list.some((q) => same(q, p));
+
+/** The six spaces next to one: an objective's perimeter, or a mech's zone of control. */
+export const around = ([r, c]: At): At[] => SIDES.map(([dr, dc]) => [r + dr, c + dc]);
+
+/** A hex tile's seven spaces, its middle `at` first. */
+export const flower = (at: At): At[] => [at, ...around(at)];
+
+/** The corners of a flat-topped hex `size` tall centred on (x, y), as SVG points. */
+const hexPoints = (x: number, y: number, size: number) =>
+  Array.from({ length: 6 }, (_, i) => {
+    const a = (Math.PI / 3) * i;
+    return `${(x + (size / Math.sqrt(3)) * Math.cos(a)).toFixed(2)},${(y + (size / Math.sqrt(3)) * Math.sin(a)).toFixed(2)}`;
+  }).join(' ');
 
 const urls = new Map<string, string>();
 const cached = (key: string, make: () => string) => {
@@ -54,28 +87,9 @@ const cached = (key: string, make: () => string) => {
   return url;
 };
 
-/** A map tile's artwork (starfield, planet, space pads), as on the board. */
-const tileUrl = (id: string) => cached(`tile:${id}`, () => dataUrl(tileSvg(tileSpec(id), { rounded: true, markings: 'spaces' })));
-
-/** A lone planet of a number, with its halo, centred in a square `box` mm wide. */
-const planetUrl = (n: number, box: number) =>
-  cached(`planet:${n}:${box}`, () =>
-    dataUrl(
-      document(
-        planet({
-          rng: rng(`manual-planet-${n}`),
-          id: `mp${n}`,
-          cx: 0,
-          cy: 0,
-          r: PLANET_DIAMETER[n] / 2,
-          number: n,
-          type: PLANET_FAMILY[n].types[0],
-        }),
-        { x: -box / 2, y: -box / 2, w: box, h: box },
-        false,
-      ),
-    ),
-  );
+/** A hex tile's artwork (its ground, the objective's building, the spaces' outlines), cut to its flower, as on the board. */
+const tileUrl = (id: string) =>
+  cached(`tile:${id}`, () => dataUrl(tileSvg(tileSpec(id), { look: WORLD, rounded: true, markings: 'spaces' })));
 
 export const cardBackUrl = (deck: CardDeck) => cached(`back:${deck}`, () => dataUrl(cardBackSvg(deck)));
 
@@ -103,29 +117,30 @@ function useSvgId() {
   return `mn${useId().replace(/:/g, '')}`;
 }
 
-/** A diagram's canvas: `cols` × `rows` spaces plus a margin, scaled to fit its column. */
+/** A diagram's canvas: just big enough for the spaces in `cells` plus a margin, scaled to fit its column. */
 export function Diagram({
-  rows,
-  cols,
+  cells,
   label,
   left = 0,
   scale = 1.3,
   children,
 }: {
-  rows: number;
-  cols: number;
+  cells: readonly At[];
   label: string;
-  /** Extra room (SVG units) left of the grid. */
+  /** Extra room (SVG units) left of the spaces. */
   left?: number;
   scale?: number;
   children: ReactNode;
 }) {
   const id = useSvgId();
   const pad = 4;
-  const w = cols * S + 2 * pad + left;
-  const h = rows * S + 2 * pad;
+  const mids = cells.map(centre);
+  const x0 = Math.min(...mids.map((p) => p.x)) - HALF_WIDTH - pad - left;
+  const y0 = Math.min(...mids.map((p) => p.y)) - S / 2 - pad;
+  const w = Math.max(...mids.map((p) => p.x)) + HALF_WIDTH + pad - x0;
+  const h = Math.max(...mids.map((p) => p.y)) + S / 2 + pad - y0;
   return (
-    <svg className="mn-svg" viewBox={`${-pad - left} ${-pad} ${w} ${h}`} style={{ maxWidth: w * scale }} role="img" aria-label={label}>
+    <svg className="mn-svg" viewBox={`${x0} ${y0} ${w} ${h}`} style={{ maxWidth: w * scale }} role="img" aria-label={label}>
       <DieDefs id={id} />
       <Defs.Provider value={id}>{children}</Defs.Provider>
     </svg>
@@ -134,62 +149,78 @@ export function Diagram({
 
 // ------------------------------------------------------------------ the map
 
-/** A 3 × 3 map tile (`p8-01`…) with its top-left space at `at`. */
-export function Tile({ id, at = [0, 0] }: { id: string; at?: At }) {
-  return <image href={tileUrl(id)} x={at[1] * S} y={at[0] * S} width={3 * S} height={3 * S} />;
+/** A hex tile (`p8-01`…, `void`, `blank-01`) with its middle space at `at`. */
+export function Tile({ id, at }: { id: string; at: At }) {
+  const { x, y } = centre(at);
+  return <image href={tileUrl(id)} x={x - 1.5 * S} y={y - 1.5 * S} width={3 * S} height={3 * S} />;
 }
 
-/** Glowing outlines on the given spaces (a planet's orbit). */
-export function Glow({ cells }: { cells: At[] }) {
-  const p = TILE.pad * MM;
+/** Glowing outlines on the given spaces (an objective's perimeter). */
+export function Glow({ cells, tone = 'orbit' }: { cells: readonly At[]; tone?: 'orbit' | 'zone' }) {
   return (
     <g>
-      {cells.map(([r, c]) => (
-        <rect key={`${r},${c}`} className="mn-orbit" x={mid(c) - p / 2} y={mid(r) - p / 2} width={p} height={p} rx={4 * MM} />
-      ))}
+      {cells.map((p) => {
+        const { x, y } = centre(p);
+        return <polygon key={p.join()} className={`mn-${tone}`} points={hexPoints(x, y, S * 0.84)} />;
+      })}
     </g>
   );
 }
 
-/** A planet's live markings, as the board draws them over the tile: its number and cube spaces. */
+/** An objective's live markings, as the board draws them over the tile: its number and cube spaces. */
 export function PlanetMarks({ at, n, cubes = [] }: { at: At; n: number; cubes?: Who[] }) {
-  return <Marks cx={mid(at[1])} cy={mid(at[0])} n={n} cubes={cubes} mm={MM} />;
+  const { x, y } = centre(at);
+  return <Marks cx={x} cy={y} n={n} cubes={cubes} mm={MM} />;
 }
 
 function Marks({ cx, cy, n, cubes, mm }: { cx: number; cy: number; n: number; cubes: Who[]; mm: number }) {
   return (
-    <PlanetMarkings cx={cx} cy={cy} mm={mm} n={n} capacity={n - 6} cubes={cubes.map((w) => COLOURS[w].face)} numberClass="mn-planet-num" />
+    <PlanetMarkings
+      cx={cx}
+      cy={cy}
+      mm={mm}
+      n={n}
+      capacity={n - 6}
+      cubes={cubes.map((w) => COLOURS[w].face)}
+      shape="hex"
+      numberClass="mn-planet-num"
+    />
   );
 }
 
 /**
- * A planet on its own, from the real artwork. With `slots` it carries its cube spaces and its number
- * placed as on the tile; as a small symbol in text the number is enlarged so it stays readable.
+ * An objective on its own: the middle space of its tile, with its building, and its number and cube spaces
+ * as on the board.
  */
-export function PlanetIcon({ n, size = 34, slots, cubes = [] }: { n: number; size?: number; slots?: boolean; cubes?: Who[] }) {
-  const d = PLANET_DIAMETER[n];
-  const place = numberPlacement(n);
-  const half = slots ? Math.max(d * 0.62, place.x + place.halfW + 1.5, place.y + place.halfH * 2 + 0.5) : d * 0.62;
-  const box = 2 * half;
-  const px = (size / d) * box;
-  const font = d * 0.52;
+export function PlanetIcon({ n, size = 34, cubes = [] }: { n: number; size?: number; cubes?: Who[] }) {
+  const id = useSvgId();
+  const place = numberPlacement(n, 'hex');
+  // Room for the number past the hex, at the vertex below right.
+  const right = Math.max(HALF_WIDTH, (place.x + place.halfW) * MM + 1);
+  const bottom = Math.max(S / 2, (place.y + place.halfH * 2) * MM + 1);
+  const [w, h] = [HALF_WIDTH + right, S / 2 + bottom];
   return (
     <svg
       className="mn-planet-icon"
-      width={px}
-      height={px}
-      viewBox={`${-half} ${-half} ${box} ${box}`}
+      width={(size * w) / S}
+      height={(size * h) / S}
+      viewBox={`${-HALF_WIDTH} ${-S / 2} ${w} ${h}`}
       role="img"
-      aria-label={`planet ${n}`}
+      aria-label={`objective ${n}`}
     >
-      <image href={planetUrl(n, box)} x={-half} y={-half} width={box} height={box} />
-      {slots ? (
-        <Marks cx={0} cy={0} n={n} cubes={cubes} mm={1} />
-      ) : (
-        <PlanetNumber n={n} x={d * 0.3} y={d * 0.3 + font * 0.36} size={font} className="mn-planet-num" />
-      )}
+      <clipPath id={`${id}-hex`}>
+        <polygon points={hexPoints(0, 0, S)} />
+      </clipPath>
+      <image href={tileUrl(`p${n}-01`)} x={-1.5 * S} y={-1.5 * S} width={3 * S} height={3 * S} clipPath={`url(#${id}-hex)`} />
+      <Marks cx={0} cy={0} n={n} cubes={cubes} mm={MM} />
     </svg>
   );
+}
+
+/** A barrier on a space, as the Wisp fires it (the board's BarrierBubble). */
+export function Barrier({ at }: { at: At }) {
+  const { x, y } = centre(at);
+  return <BarrierBubble r={at[0]} c={at[1]} x={x} y={y} cell={S} mm={MM} cast={false} world={WORLD} />;
 }
 
 // ------------------------------------------------------------------ dice and cubes
@@ -202,7 +233,7 @@ export function DieFace({
   x,
   y,
   v,
-  size = S * 0.66,
+  size = S * 0.6,
   kind = 'you',
   ghost,
   dim,
@@ -233,7 +264,7 @@ export function DieFace({
       </g>
     );
   if (shipIllustration && (kind === 'you' || kind === 'foe')) {
-    // Ships are drawn as on the player aid: the starship as a hologram on its die face, in the player's colour.
+    // Mechs are drawn as on the player aid: the mech on its die face, in the player's colour.
     const ship = shipDie(id, v, x, y, size, PLAYER_HUES[kind === 'you' ? 0 : 1]);
     return <g className={cls} dangerouslySetInnerHTML={{ __html: `<defs>${ship.defs}</defs>${ship.body}` }} />;
   }
@@ -251,9 +282,10 @@ export function DieFace({
   );
 }
 
-/** A ship on a space. */
+/** A mech on a space. */
 export function Ship({ at, v, who = 'you', ghost, dim }: { at: At; v: number; who?: Who; ghost?: boolean; dim?: boolean }) {
-  return <DieFace x={mid(at[1])} y={mid(at[0])} v={v} kind={who} ghost={ghost} dim={dim} />;
+  const { x, y } = centre(at);
+  return <DieFace x={x} y={y} v={v} kind={who} ghost={ghost} dim={dim} />;
 }
 
 /** A die as a stand-alone inline icon (for text, tables and the combat sum). */
@@ -269,7 +301,7 @@ export function DieIcon({
   shipIllustration?: boolean;
 }) {
   const id = useSvgId();
-  const label = kind === 'atk' ? `attack die ${v}` : kind === 'def' ? `defence die ${v}` : `ship ${v}`;
+  const label = kind === 'atk' ? `attack die ${v}` : kind === 'def' ? `defence die ${v}` : `mech ${v}`;
   return (
     <svg className="mn-die-icon" width={size} height={size} viewBox="0 0 40 40" aria-label={label} role="img">
       <DieDefs id={id} />
@@ -315,10 +347,16 @@ function ArrowHead({ id }: { id: string }) {
   );
 }
 
-/** A dashed route through space centres. `attack` stops it part-way into the last space, with a burst. */
-export function Path({ cells, attack }: { cells: At[]; attack?: boolean }) {
+/**
+ * A dashed route through space middles. `attack` stops it part-way into the last space, with a burst; `shot`
+ * draws it as a line of fire, straight and solid.
+ */
+export function Path({ cells, attack, shot }: { cells: readonly At[]; attack?: boolean; shot?: boolean }) {
   const id = useSvgId();
-  const pts = cells.map(([r, c]) => [mid(c), mid(r)]);
+  const pts = cells.map((p) => {
+    const { x, y } = centre(p);
+    return [x, y];
+  });
   if (attack && pts.length > 1) {
     const [x0, y0] = pts[pts.length - 2];
     const [x1, y1] = pts[pts.length - 1];
@@ -328,12 +366,16 @@ export function Path({ cells, attack }: { cells: At[]; attack?: boolean }) {
   const [ax, ay] = pts[0];
   const [bx, by] = pts[1];
   const len = Math.hypot(bx - ax, by - ay);
-  pts[0] = [ax + ((bx - ax) / len) * S * 0.36, ay + ((by - ay) / len) * S * 0.36];
+  pts[0] = [ax + ((bx - ax) / len) * S * 0.34, ay + ((by - ay) / len) * S * 0.34];
   const [ex, ey] = pts[pts.length - 1];
   return (
     <g>
       <ArrowHead id={id} />
-      <polyline className="mn-path" points={pts.map((p) => p.join(',')).join(' ')} markerEnd={attack ? undefined : `url(#${id})`} />
+      <polyline
+        className={shot ? 'mn-path mn-shot' : 'mn-path'}
+        points={pts.map((p) => p.join(',')).join(' ')}
+        markerEnd={attack ? undefined : `url(#${id})`}
+      />
       {attack && <Burst x={ex} y={ey} />}
     </g>
   );
@@ -364,10 +406,11 @@ function Burst({ x, y }: { x: number; y: number }) {
   return <polygon className="mn-burst" points={pts.join(' ')} />;
 }
 
-/** A ✓ or ✗ badge at the top-right corner of a space. */
+/** A ✓ or ✗ badge at the top right of a space. */
 export function Mark({ at, ok }: { at: At; ok: boolean }) {
-  const x = at[1] * S + S - 7;
-  const y = at[0] * S + 7;
+  const { x: cx, y: cy } = centre(at);
+  const x = cx + S * 0.3;
+  const y = cy - S * 0.3;
   return (
     <g className={ok ? 'mn-mark mn-ok' : 'mn-mark mn-no'}>
       <circle cx={x} cy={y} r={6.5} />
@@ -376,50 +419,55 @@ export function Mark({ at, ok }: { at: At; ok: boolean }) {
   );
 }
 
-/** A small caption inside a diagram. */
-export function Note({ x, y, children }: { x: number; y: number; children: ReactNode }) {
+/** A small caption inside a diagram, on a space or at (x, y). */
+export function Note({ at, x, y, children }: { at?: At; x?: number; y?: number; children: ReactNode }) {
+  const p = at ? centre(at) : { x: x!, y: y! };
   return (
-    <text className="mn-note" x={x} y={y} textAnchor="middle">
+    <text className="mn-note" x={p.x} y={p.y} textAnchor="middle">
       {children}
     </text>
   );
 }
 
 /** A dot on each space in `cells`. */
-export function Dots({ cells }: { cells: At[] }) {
+export function Dots({ cells }: { cells: readonly At[] }) {
   return (
     <g>
-      {cells.map(([r, c]) => (
-        <circle key={`${r},${c}`} className="mn-dot" cx={mid(c)} cy={mid(r)} r={3.2} />
-      ))}
+      {cells.map((p) => {
+        const { x, y } = centre(p);
+        return <circle key={p.join()} className="mn-dot" cx={x} cy={y} r={3.2} />;
+      })}
     </g>
   );
 }
 
-/** Spaces a ship can reach in up to `steps` orthogonal steps, not through `blocked` spaces. */
-export function reachable(rows: number, cols: number, from: At, steps: number, blocked: At[]): At[] {
-  const key = (r: number, c: number) => r * cols + c;
-  const block = new Set(blocked.map(([r, c]) => key(r, c)));
-  const dist = new Map<number, number>([[key(from[0], from[1]), 0]]);
-  const queue: At[] = [from];
+/**
+ * The spaces a mech can reach in up to `steps` steps, each out of a side, staying on `spaces` and not
+ * entering `blocked` ones (objectives, mechs, barriers). A space in `stops` (an enemy's zone of control) can
+ * be entered but not left.
+ */
+export function reachable(spaces: readonly At[], from: At, steps: number, blocked: readonly At[], stops: readonly At[] = []): At[] {
   const out: At[] = [];
-  while (queue.length) {
-    const [r, c] = queue.shift()!;
-    const d = dist.get(key(r, c))!;
-    if (d === steps) continue;
-    for (const [dr, dc] of [
-      [1, 0],
-      [-1, 0],
-      [0, 1],
-      [0, -1],
-    ]) {
-      const nr = r + dr;
-      const nc = c + dc;
-      if (nr < 0 || nc < 0 || nr >= rows || nc >= cols || block.has(key(nr, nc)) || dist.has(key(nr, nc))) continue;
-      dist.set(key(nr, nc), d + 1);
-      out.push([nr, nc]);
-      queue.push([nr, nc]);
-    }
+  let edge: At[] = [from];
+  const seen: At[] = [from];
+  for (let d = 0; d < steps; d++) {
+    const next: At[] = [];
+    for (const p of edge)
+      for (const q of around(p)) {
+        if (!has(spaces, q) || has(blocked, q) || has(seen, q)) continue;
+        seen.push(q);
+        out.push(q);
+        if (!has(stops, q)) next.push(q);
+      }
+    edge = next;
   }
+  return out;
+}
+
+/** The spaces in a straight line out of a side of `from`, nearest first, while they're in `spaces`. */
+export function line(spaces: readonly At[], from: At, side: number): At[] {
+  const [dr, dc] = SIDES[side];
+  const out: At[] = [];
+  for (let p: At = [from[0] + dr, from[1] + dc]; has(spaces, p); p = [p[0] + dr, p[1] + dc]) out.push(p);
   return out;
 }

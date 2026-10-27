@@ -1,10 +1,12 @@
 import type { CSSProperties, MouseEvent, ReactNode } from 'react';
 import type { CardDeck } from '@regolith/art';
 import { MODES, RULESETS } from '@regolith/engine';
+import { GAME_NAME } from '../appId';
 import { ActionHex, MissileIcon } from '../components/Card';
 import { PLAYER_COLORS } from '../theme';
 import {
   Arrow,
+  Barrier,
   CubeIcon,
   Diagram,
   DieFace,
@@ -19,7 +21,10 @@ import {
   PlanetMarks,
   Ship,
   Tile,
+  around,
   cardBackUrl,
+  flower,
+  line,
   reachable,
   type At,
 } from './diagrams';
@@ -27,39 +32,30 @@ import {
 /**
  * The player's manual: the same text and diagrams in the in-game "How to play" dialog (dark) and on
  * the printable #rulebook page (paper), so the two can never drift apart. docs/RULES.md is the
- * developer reference behind it. Rule-set differences come from RULESETS.
+ * developer reference behind it. The mechs' abilities and the rule sets' differences come from RULESETS.
  */
 
-const SHIP_TEXT: Record<number, string> = {
-  1: 'Attack an enemy ship next to it without using its move. It can attack twice in one turn this way.',
-  2: 'As part of a move, pick up one of your ships from a surrounding space, travel, then set it down in any space around you. The flagship can’t attack on that move.',
-  3: 'Swap places with any of your other ships on the map.',
-  4: 'Turn the die to 3 or 5.',
-  5: 'May move and attack diagonally as part of its move.',
-  6: 'Re-roll itself to a new number, without spending an action.',
-};
+const REGOLITH = RULESETS.regolith;
+const SHIPS = REGOLITH.ships;
+/** How far a mech's number takes it: never more than 3 spaces. */
+const MOVE_CAP = 3;
 
-const CARD_TYPES: [deck: CardDeck, name: string, classicName: string | undefined, text: string][] = [
+const CARD_TYPES: [deck: CardDeck, name: string, text: string][] = [
   [
     'skill',
-    'Skills',
-    'Command',
+    REGOLITH.cards!.terms.skillDeck,
     'Keep it in front of you. It works from the next player’s turn. You can hold 3; take a fourth and you must discard one.',
   ],
-  ['tactic', 'Tactics', 'Gambit', 'Happens the moment you take it, then goes to the discard pile.'],
-  [
-    'expansion',
-    'Expansion',
-    undefined,
-    'Roll one of your 2 reserve dice and add it to your fleet: in orbit of a planet with your cube, or in your scrapyard.',
-  ],
+  ['tactic', REGOLITH.cards!.terms.tacticDeck, 'Happens the moment you take it, then goes to the discard pile.'],
+  ['expansion', REGOLITH.cards!.expansion.name, REGOLITH.cards!.expansion.text],
 ];
 
 const SECTIONS: [id: string, title: string][] = [
   ['mn-goal', 'Goal'],
-  ['mn-ships', 'Ships'],
+  ['mn-ships', 'Mechs'],
   ['mn-map', 'Map'],
   ['mn-turn', 'Your turn'],
+  ['mn-hold', 'Holding ground'],
   ['mn-combat', 'Combat'],
   ['mn-cards', 'Cards'],
   ['mn-modes', 'Rule sets'],
@@ -75,7 +71,7 @@ const jump = (e: MouseEvent<HTMLAnchorElement>) => {
 const Tag = ({ children }: { children: ReactNode }) => <span className="mn-tag">{children}</span>;
 
 function Cost({ n }: { n: number }) {
-  const label = `${n} action${n > 1 ? 's' : ''}`;
+  const label = n ? `${n} action${n > 1 ? 's' : ''}` : 'no action';
   return (
     <span className="mn-cost" aria-label={label}>
       {Array.from({ length: n }, (_, i) => (
@@ -114,7 +110,7 @@ function Action({
   );
 }
 
-/** A 1–6 track coloured like the player panel's (Dominance red, Research violet), with a reward at 6. */
+/** A 1–6 track coloured like the player panel's (Power red, Research violet), with a reward at 6. */
 function Track({ at, next, end, tone }: { at: number; next?: boolean; end: ReactNode; tone: 'dom' | 'res' }) {
   return (
     <div className={`mn-track mn-track-${tone}`}>
@@ -128,14 +124,7 @@ function Track({ at, next, end, tone }: { at: number; next?: boolean; end: React
   );
 }
 
-const ORBIT: At[] = [
-  [0, 1],
-  [1, 0],
-  [1, 2],
-  [2, 1],
-];
-
-/** One side of the combat example: ship + die = total. */
+/** One side of the combat example: mech + die = total. */
 function Side({
   role,
   ship,
@@ -155,7 +144,7 @@ function Side({
       <div className="mn-eq">
         <span className="mn-eq-part">
           {ship}
-          <i>ship</i>
+          <i>mech</i>
         </span>
         <b>+</b>
         <span className="mn-eq-part">
@@ -171,134 +160,215 @@ function Side({
 
 // ------------------------------------------------------------------ diagrams
 
-function MoveFigure() {
-  const blocked: At[] = [
-    [1, 1],
-    [1, 4],
-    [2, 2],
-  ];
-  const reach = reachable(3, 6, [1, 2], 3, blocked).filter(([r, c]) => !(r === 2 && c === 4));
+/*
+ * The diagrams' tiles, by the place of their middle space: one tile at [0, 0], and the tiles that meet it
+ * to the right (a little higher) and below right, as tiles meet on a map.
+ */
+const HERE: At = [0, 0];
+const RIGHT: At = [-2, 3];
+const BELOW: At = [1, 2];
+
+const not = (cells: readonly At[], drop: readonly At[]) => cells.filter((p) => !drop.some((q) => q[0] === p[0] && q[1] === p[1]));
+
+function PerimeterFigure() {
   return (
-    <Diagram rows={3} cols={6} label="A 3 can reach every dotted space; the space behind the 8 is out of reach.">
-      <Tile id="p9-01" />
-      <Tile id="p8-01" at={[0, 3]} />
-      <PlanetMarks at={[1, 1]} n={9} />
-      <PlanetMarks at={[1, 4]} n={8} />
-      <Dots cells={reach} />
-      <Ship at={[2, 2]} v={5} />
-      <Path
-        cells={[
-          [1, 2],
-          [1, 3],
-          [2, 3],
-          [2, 4],
-        ]}
-      />
-      <Ship at={[2, 4]} v={3} ghost />
-      <Ship at={[1, 2]} v={3} />
-      <Mark at={[1, 5]} ok={false} />
+    <Diagram cells={flower(HERE)} scale={1.45} label="The six spaces around an objective are its perimeter.">
+      <Tile id="p8-01" at={HERE} />
+      <Glow cells={around(HERE)} />
+      <PlanetMarks at={HERE} n={8} />
+    </Diagram>
+  );
+}
+
+function MoveFigure() {
+  const spaces = [...flower(HERE), ...flower(RIGHT)];
+  const from: At = [1, -1];
+  const friend: At = [-1, 1];
+  const reach = reachable(spaces, from, MOVE_CAP, [HERE, RIGHT, friend]);
+  const route: At[] = [from, [1, 0], [0, 1], [0, 2]];
+  return (
+    <Diagram cells={spaces} label="A 5 moves at most 3 spaces: the dots show where it can go, around the objectives and your 2.">
+      <Tile id="p9-01" at={HERE} />
+      <Tile id="p8-01" at={RIGHT} />
+      <PlanetMarks at={HERE} n={9} />
+      <PlanetMarks at={RIGHT} n={8} />
+      <Dots cells={not(reach, [route[route.length - 1]])} />
+      <Ship at={friend} v={2} />
+      <Path cells={route} />
+      <Ship at={route[route.length - 1]} v={5} ghost />
+      <Ship at={from} v={5} />
+    </Diagram>
+  );
+}
+
+function ZoneFigure() {
+  const spaces = [...flower(HERE), ...flower(RIGHT)];
+  const foe: At = [-1, 2];
+  const zone = around(foe).filter((p) => spaces.some((q) => q[0] === p[0] && q[1] === p[1]) && !(p[0] === RIGHT[0] && p[1] === RIGHT[1]));
+  const route: At[] = [
+    [1, -1],
+    [1, 0],
+    [0, 1],
+  ];
+  return (
+    <Diagram
+      cells={spaces}
+      label="The enemy 4's zone of control is the spaces around it. Your 3 moves into it and must stop there, with a step left."
+    >
+      <Tile id="p7-01" at={HERE} />
+      <Tile id="p8-01" at={RIGHT} />
+      <PlanetMarks at={HERE} n={7} />
+      <PlanetMarks at={RIGHT} n={8} />
+      <Glow cells={zone} tone="zone" />
+      <Ship at={foe} v={4} who="foe" />
+      <Path cells={route} />
+      <Ship at={route[route.length - 1]} v={3} ghost />
+      <Ship at={route[0]} v={3} />
+      <Mark at={[-1, 1]} ok={false} />
     </Diagram>
   );
 }
 
 function AttackFigure() {
+  const route: At[] = [
+    [0, -1],
+    [-1, 0],
+    [-1, 1],
+    [0, 1],
+  ];
   return (
-    <Diagram rows={3} cols={3} label="A 3 moves two spaces and makes its third step into an enemy ship.">
-      <Tile id="p7-01" />
-      <PlanetMarks at={[1, 1]} n={7} />
+    <Diagram cells={flower(HERE)} label="A 3 moves two spaces and makes its third step into an enemy mech.">
+      <Tile id="p7-01" at={HERE} />
+      <PlanetMarks at={HERE} n={7} />
       <Ship at={[0, 1]} v={5} who="foe" />
-      <Path
-        cells={[
-          [2, 0],
-          [1, 0],
-          [0, 0],
-          [0, 1],
-        ]}
-        attack
-      />
-      <Ship at={[2, 0]} v={3} />
+      <Path cells={route} attack />
+      <Ship at={route[0]} v={3} />
     </Diagram>
   );
 }
 
-function ConquerTile({ after }: { after?: boolean }) {
+function ShootFigure() {
+  const spaces = [...flower(HERE), ...flower(RIGHT)];
+  const sniper: At = [-1, 0];
+  // Out of its lower right side: two clear spaces, then the enemy.
+  const fire = line(spaces, sniper, 3).slice(0, 3);
   return (
     <Diagram
-      rows={3}
-      cols={3}
-      scale={1.45}
+      cells={spaces}
+      label="Your Sniper shoots the first mech in a clear straight line. The objective blocks the line to the other enemy."
+    >
+      <Tile id="p9-02" at={HERE} />
+      <Tile id="blank-01" at={RIGHT} />
+      <PlanetMarks at={HERE} n={9} />
+      <Ship at={[1, 0]} v={2} who="foe" />
+      <Ship at={fire[2]} v={3} who="foe" />
+      <Path cells={[sniper, ...fire]} attack shot />
+      <Ship at={sniper} v={5} />
+    </Diagram>
+  );
+}
+
+function BarrierFigure() {
+  const spaces = [...flower(HERE), ...flower(RIGHT)];
+  const wisp: At = [-1, 3];
+  // Out of its upper left side, onto the objective's perimeter.
+  const fire = line(spaces, wisp, 2).slice(0, 2);
+  return (
+    <Diagram cells={spaces} label="Your Wisp fires a barrier down a clear straight line, onto a space of the 9's perimeter.">
+      <Tile id="p9-02" at={HERE} />
+      <Tile id="blank-02" at={RIGHT} />
+      <PlanetMarks at={HERE} n={9} />
+      <Path cells={[wisp, ...fire]} shot />
+      <Barrier at={fire[1]} />
+      <Ship at={wisp} v={6} />
+    </Diagram>
+  );
+}
+
+function ClaimTile({ after }: { after?: boolean }) {
+  const spaces = [...flower(HERE), ...flower(BELOW)];
+  return (
+    <Diagram
+      cells={spaces}
+      scale={1.2}
       label={
-        after ? 'After: your cube sits on the planet.' : 'Before: your 6 and 3 orbit a 9; an enemy 4 orbits too; your 2 sits on a corner.'
+        after
+          ? 'After: your cube sits on the objective.'
+          : 'Before: your 6 and 3 are on the perimeter of a 9; your 2 and an enemy 4 are off it.'
       }
     >
-      <Tile id="p9-01" />
-      {!after && <Glow cells={ORBIT} />}
-      <PlanetMarks at={[1, 1]} n={9} cubes={after ? ['you'] : []} />
-      <Ship at={[0, 1]} v={6} />
-      <Ship at={[1, 2]} v={3} />
-      <Ship at={[2, 1]} v={4} who="foe" dim={!after} />
-      <Ship at={[0, 0]} v={2} dim={!after} />
+      <Tile id="p9-01" at={HERE} />
+      <Tile id="blank-01" at={BELOW} />
+      {!after && <Glow cells={around(HERE)} />}
+      <PlanetMarks at={HERE} n={9} cubes={after ? ['you'] : []} />
+      <Ship at={[-1, 0]} v={6} />
+      <Ship at={[0, 1]} v={3} />
+      <Ship at={[1, 1]} v={4} who="foe" dim={!after} />
+      <Ship at={[0, 2]} v={2} dim={!after} />
       {!after && (
         <>
+          <Mark at={[-1, 0]} ok />
           <Mark at={[0, 1]} ok />
-          <Mark at={[1, 2]} ok />
-          <Mark at={[2, 1]} ok={false} />
-          <Mark at={[0, 0]} ok={false} />
+          <Mark at={[1, 1]} ok={false} />
+          <Mark at={[0, 2]} ok={false} />
         </>
       )}
     </Diagram>
   );
 }
 
-function ConquerFigure() {
+function ClaimFigure() {
   return (
     <div className="mn-conquer">
       <figure>
-        <ConquerTile />
+        <ClaimTile />
         <figcaption>Before</figcaption>
       </figure>
       <div className="mn-sum">
         <div className="mn-eq">
           <DieIcon v={6} size={34} /> <b>+</b> <DieIcon v={3} size={34} /> <b>=</b> <PlanetIcon n={9} size={30} />
         </div>
-        <div className="mn-eq-result mn-ok">exactly 9: conquered</div>
+        <div className="mn-eq-result mn-ok">exactly 9: claimed</div>
         <div className="mn-eq-arrow">⟶</div>
       </div>
       <figure>
-        <ConquerTile after />
-        <figcaption>After: your cube is on the planet</figcaption>
+        <ClaimTile after />
+        <figcaption>After: your cube is on the objective</figcaption>
       </figure>
     </div>
   );
 }
 
-function DeployFigure() {
+function ContestedFigure() {
   return (
-    <Diagram rows={3} cols={3} left={84} label="A ship moves from your scrapyard to an empty orbit space of a planet holding your cube.">
-      <rect className="mn-yard" x={-80} y={26} width={62} height={68} rx={8} />
-      <Note x={-49} y={37}>
-        SCRAPYARD
-      </Note>
-      <DieFace x={-49} y={66} v={4} />
-      <Tile id="p8-02" />
-      <PlanetMarks at={[1, 1]} n={8} cubes={['you']} />
-      <Ship at={[1, 0]} v={4} ghost />
-      <Arrow x1={-30} y1={56} x2={4} y2={58} curve={16} />
+    <Diagram cells={flower(HERE)} scale={1.45} label="Your 5 and 3 make 8, but the enemy 6 on the perimeter blocks the claim.">
+      <Tile id="p8-01" at={HERE} />
+      <Glow cells={around(HERE)} />
+      <PlanetMarks at={HERE} n={8} />
+      <Ship at={[-1, 0]} v={5} />
+      <Ship at={[1, 0]} v={3} />
+      <Ship at={[0, -1]} v={6} who="foe" />
+      <Mark at={[0, -1]} ok={false} />
     </Diagram>
   );
 }
 
-function OrbitFigure() {
+function DropFigure() {
   return (
-    <Diagram rows={3} cols={3} scale={1.35} label="The four spaces touching a planet's sides are its orbit; the corners are not.">
-      <Tile id="p8-01" />
-      <Glow cells={ORBIT} />
-      <PlanetMarks at={[1, 1]} n={8} />
-      {ORBIT.map(([r, c]) => (
-        <Note key={`${r}${c}`} x={c * 40 + 20} y={r * 40 + 20}>
-          orbit
-        </Note>
-      ))}
+    <Diagram
+      cells={flower(HERE)}
+      left={78}
+      label="A mech goes from your salvage yard onto an empty perimeter space of an objective holding your cube."
+    >
+      <rect className="mn-yard" x={-128} y={-34} width={62} height={68} rx={8} />
+      <Note x={-97} y={-25}>
+        SALVAGE
+      </Note>
+      <DieFace x={-97} y={6} v={4} />
+      <Tile id="p8-02" at={HERE} />
+      <PlanetMarks at={HERE} n={8} cubes={['you']} />
+      <Ship at={[0, -1]} v={4} ghost />
+      <Arrow x1={-78} y1={-4} x2={-46} y2={-16} curve={14} />
     </Diagram>
   );
 }
@@ -308,7 +378,7 @@ function PlanetSizes() {
     <div className="mn-sizes" role="img" aria-label="A 7 holds 1 cube, an 8 holds 2, a 9 holds 3 and a 10 holds 4.">
       {[7, 8, 9, 10].map((n) => (
         <div key={n}>
-          <PlanetIcon n={n} size={n * 7.2 - 16} slots cubes={n === 9 ? ['foe'] : []} />
+          <PlanetIcon n={n} size={56} cubes={n === 9 ? ['foe'] : []} />
           <small>holds {n - 6}</small>
         </div>
       ))}
@@ -323,8 +393,8 @@ export function Manual({ dark }: { dark?: boolean }) {
     <article className={dark ? 'mn mn-dark' : 'mn'} style={{ '--mn-you': PLAYER_COLORS[0], '--mn-foe': PLAYER_COLORS[1] } as CSSProperties}>
       <header className="mn-cover">
         <p className="mn-kicker">How to play</p>
-        <h1>CUBIC</h1>
-        <p className="mn-tagline">Every die is a starship · 2–4 players · about 60 minutes</p>
+        <h1>{GAME_NAME.toUpperCase()}</h1>
+        <p className="mn-tagline">Mechs fight for the ice of Mars · 2–4 players · about 60 minutes</p>
       </header>
 
       <nav className="mn-toc" aria-label="Sections">
@@ -345,18 +415,18 @@ export function Manual({ dark }: { dark?: boolean }) {
             ))}
           </div>
           <p className="mn-lead">
-            Be the first to place <b>all your cubes</b> on planets.
+            Be the first to place <b>all your cubes</b> on objectives.
           </p>
           <p className="mn-hero-sub">Most maps give each player 5. You win the moment your last one lands.</p>
         </div>
         <div className="mn-two">
           <div className="mn-route">
-            <h3>Conquer a planet</h3>
+            <h3>Claim an objective</h3>
             <div className="mn-route-fig">
               <DieIcon v={5} /> <b>+</b> <DieIcon v={3} /> <b>=</b> <PlanetIcon n={8} size={28} />
             </div>
             <p>
-              Park ships around a planet so their numbers add up <b>exactly</b> to the planet’s number.{' '}
+              Stand mechs around an objective so their numbers add up <b>exactly</b> to its number.{' '}
               <a href="#mn-conquer" onClick={jump}>
                 How →
               </a>
@@ -368,7 +438,7 @@ export function Manual({ dark }: { dark?: boolean }) {
               <Track at={5} next tone="dom" end={<CubeIcon size={18} />} />
             </div>
             <p>
-              Every fight you win raises your Dominance. At 6, place a cube on any planet.{' '}
+              Every fight you win raises your Power. At 6, place a cube on any objective.{' '}
               <a href="#mn-combat" onClick={jump}>
                 How →
               </a>
@@ -377,12 +447,12 @@ export function Manual({ dark }: { dark?: boolean }) {
         </div>
       </section>
 
-      {/* ---------------------------------------------------------------- ships */}
+      {/* ---------------------------------------------------------------- mechs */}
       <section id="mn-ships">
-        <h2>Your ships</h2>
+        <h2>Your mechs</h2>
         <p>
-          Each die is a ship, and its number tells you two things: <b>how far it moves</b> and <b>how strong it is in a fight</b>.{' '}
-          <b>Lower numbers win fights.</b>
+          Each die is a mech, and its number tells you two things: <b>how far it moves</b> and <b>how strong it is in a fight</b>.{' '}
+          <b>Lower numbers win fights.</b> No mech moves more than {MOVE_CAP} spaces.
         </p>
         <div className="mn-scale">
           <div className="mn-scale-bar mn-strong">◀ stronger in a fight</div>
@@ -390,23 +460,38 @@ export function Manual({ dark }: { dark?: boolean }) {
             {[1, 2, 3, 4, 5, 6].map((v) => (
               <div key={v}>
                 <DieIcon v={v} size={34} />
-                <small>moves {v}</small>
+                <small>moves {Math.min(v, MOVE_CAP)}</small>
               </div>
             ))}
           </div>
           <div className="mn-scale-bar mn-fast">faster ▶</div>
         </div>
-        <p>Each ship also has a special ability, usable once per turn on your turn:</p>
+        <p>Each mech also has an ability of its own, used on your turn, once per turn:</p>
         <div className="mn-ships">
           {[1, 2, 3, 4, 5, 6].map((v) => (
             <div key={v} className="mn-ship">
               <DieIcon v={v} size={64} shipIllustration />
               <div>
-                <b>{RULESETS.regolith.ships[v].name}</b> <span className="mn-ability">{RULESETS.regolith.ships[v].ability.name}</span>
-                <p>{SHIP_TEXT[v]}</p>
+                <b>{SHIPS[v].name}</b> <span className="mn-ability">{SHIPS[v].ability.name}</span>
+                <p>{SHIPS[v].ability.text}</p>
               </div>
             </div>
           ))}
+        </div>
+        <div className="mn-two mn-map">
+          <figure>
+            <ShootFigure />
+            <figcaption>
+              <b>{SHIPS[5].ability.name}.</b> The {SHIPS[5].name} hits the first mech down a clear line. The objective blocks the line to
+              the other.
+            </figcaption>
+          </figure>
+          <figure>
+            <BarrierFigure />
+            <figcaption>
+              <b>{SHIPS[6].ability.name}.</b> The {SHIPS[6].name}’s barrier stays for good, and here holds a space of the 9’s perimeter.
+            </figcaption>
+          </figure>
         </div>
       </section>
 
@@ -415,24 +500,28 @@ export function Manual({ dark }: { dark?: boolean }) {
         <h2>The map</h2>
         <div className="mn-two mn-map">
           <figure>
-            <OrbitFigure />
+            <PerimeterFigure />
             <figcaption>
-              <b>Orbit</b> means the four spaces touching a planet’s sides. Only ships there count when you conquer it. Corners don’t count.
+              The six spaces around an objective are its <b>perimeter</b>. Only mechs there count when you claim it.
             </figcaption>
           </figure>
           <figure>
             <PlanetSizes />
             <figcaption>
-              <b>Bigger planets hold more cubes</b>, one per player. You can never have two cubes on the same planet.
+              <b>Bigger objectives hold more cubes</b>, one per player. You can never have two cubes on the same objective.
             </figcaption>
           </figure>
         </div>
         <ul className="mn-facts">
           <li>
-            <b>Planets and ships block movement.</b> Nothing moves through them.
+            <b>Objectives, mechs and barriers block movement.</b> Nothing moves through them.
           </li>
           <li>
-            <b>The void tile</b> has no planet. At the start of your turn, gain 1 Research for each of your ships on it.
+            <b>Habitat 7, Refinery 8, Ice Mine 9, Reactor 10.</b> The bigger the site, the harder it is to claim.
+          </li>
+          <li>
+            <b>The Sinkhole</b> has no objective. <Tag>{REGOLITH.name}</Tag> At the start of your turn, gain 1 Research for each of your
+            mechs on it.
           </li>
         </ul>
       </section>
@@ -454,7 +543,7 @@ export function Manual({ dark }: { dark?: boolean }) {
             <div>
               <b>Take the cards you earned</b>
               <small>
-                One per planet conquered, plus Research.{' '}
+                One per objective claimed, plus Research.{' '}
                 <a href="#mn-cards" onClick={jump}>
                   Cards →
                 </a>
@@ -463,23 +552,23 @@ export function Manual({ dark }: { dark?: boolean }) {
           </div>
         </div>
         <p className="mn-center">
-          <b>Each ship moves only once per turn.</b> Ship abilities and cards can still be used after your last action.
+          <b>Each mech moves only once per turn.</b> Abilities and cards can still be used after your last action.
         </p>
 
         <div className="mn-actions">
-          <Action name="Move" cost={1} figure={<MoveFigure />}>
+          <Action name="Move" cost={1} wide figure={<MoveFigure />}>
             <p>
-              Move a ship <b>up to its number</b> of spaces, one straight step at a time. Turning is fine. Diagonals, planets and other
-              ships are not.
+              Move a mech <b>up to its number</b> of spaces, <b>at most {MOVE_CAP}</b>, one step at a time out of a side of its space.
+              Turning is fine. Objectives, mechs and barriers are not.
             </p>
             <p className="mn-legend">
-              The dots show where this 3 can go. Planets and ships are in the way, so the space behind the 8 is out of reach.
+              The dots show where this 5 can go: no more than 3 spaces, and around the objectives and your 2, which are in the way.
             </p>
           </Action>
 
           <Action name="Attack" cost={1} figure={<AttackFigure />}>
             <p>
-              An attack is a move whose <b>last step goes into an enemy ship</b>. The ship still needs the movement to get there. Then roll
+              An attack is a move whose <b>last step goes into an enemy mech</b>. The mech still needs the movement to get there. Then roll
               for{' '}
               <a href="#mn-combat" onClick={jump}>
                 combat
@@ -488,15 +577,15 @@ export function Manual({ dark }: { dark?: boolean }) {
             </p>
           </Action>
 
-          <Action name="Deploy" cost={1} figure={<DeployFigure />}>
+          <Action name="Drop" cost={1} figure={<DropFigure />}>
             <p>
-              Bring a destroyed ship back. Take it from your scrapyard, <b>keeping its number</b>, and put it in an empty orbit space of a
-              planet that holds <b>your cube</b>.
+              Bring a destroyed mech back. Take it from your salvage yard, <b>keeping its number</b>, and put it on an empty perimeter space
+              of an objective that holds <b>your cube</b>.
             </p>
           </Action>
 
           <Action
-            name="Reconfigure"
+            name="Refit"
             cost={1}
             figure={
               <div className="mn-reroll">
@@ -507,13 +596,12 @@ export function Manual({ dark }: { dark?: boolean }) {
             }
           >
             <p>
-              Re-roll one of your ships, on the map or in your scrapyard, until it shows a <b>different number</b>. A new number means a new
-              ship type, and it can change a planet’s sum.
+              Re-roll one of your mechs, on the map or in your salvage yard, until it shows a number it <b>hasn’t shown yet this turn</b>. A
+              new number means a new mech, and it can change an objective’s sum.
             </p>
-            <p className="mn-legend">Community rules: it must show a number it hasn’t shown yet this turn.</p>
           </Action>
 
-          <Action name="Research" cost={1} figure={<Track at={4} next tone="res" end="card" />}>
+          <Action name="Research" cost={1} tag={REGOLITH.name} figure={<Track at={4} next tone="res" end="card" />}>
             <p>
               Move your Research up 1. When it reaches <b>6</b>, take a card at the end of your turn, and it drops back to 1.
             </p>
@@ -521,26 +609,54 @@ export function Manual({ dark }: { dark?: boolean }) {
 
           <div id="mn-conquer" className="mn-action mn-wide mn-key">
             <header>
-              <h3>Conquer</h3>
+              <h3>Claim</h3>
               <Tag>the key move</Tag>
               <Cost n={2} />
             </header>
-            <ConquerFigure />
+            <ClaimFigure />
             <div className="mn-rules">
               <p>
-                Add up <b>your ships in the planet’s orbit</b>. If they make <b>exactly</b> the planet’s number, place one of your cubes on
+                Add up <b>your mechs on the objective’s perimeter</b>. If they make <b>exactly</b> its number, place one of your cubes on
                 it.
               </p>
               <ul className="mn-checks">
                 <li className="ok">
-                  <b>All</b> your ships in orbit count. You can’t leave one out, so a ship in the wrong place has to move away first.
+                  <b>All</b> your mechs on the perimeter count. You can’t leave one out, so a mech in the wrong place has to move away
+                  first.
                 </li>
-                <li className="no">Enemy ships don’t count, and they don’t stop you.</li>
-                <li className="no">Ships on the corners aren’t in orbit.</li>
-                <li className="ok">The planet needs a free cube space and none of your cubes yet.</li>
+                <li className="no">
+                  No enemy mech may be on the perimeter.{' '}
+                  <a href="#mn-hold" onClick={jump}>
+                    Contested →
+                  </a>
+                </li>
+                <li className="no">Mechs off the perimeter don’t count, yours or theirs.</li>
+                <li className="ok">The objective needs a free cube space and none of your cubes yet.</li>
               </ul>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* ---------------------------------------------------------------- holding ground */}
+      <section id="mn-hold">
+        <h2>Holding ground</h2>
+        <p>Mechs are slow and heavy. Ground is held by standing on it, not by racing across it.</p>
+        <div className="mn-two mn-map">
+          <figure>
+            <ZoneFigure />
+            <figcaption>
+              <b>Zones of control.</b> A mech that moves onto a space next to an enemy mech must stop there, here short of the ✗. It may
+              still attack from there, and one that starts its move there may leave. Your own mechs never stop you.
+            </figcaption>
+          </figure>
+          <figure>
+            <ContestedFigure />
+            <figcaption>
+              <b>Contested perimeters.</b> While an enemy mech is on an objective’s perimeter, nobody else can claim it or drop a mech onto
+              its perimeter, except onto the perimeter of your own home objective. Infamy ignores it.
+            </figcaption>
+          </figure>
         </div>
       </section>
 
@@ -548,7 +664,7 @@ export function Manual({ dark }: { dark?: boolean }) {
       <section id="mn-combat">
         <h2>Combat</h2>
         <p>
-          Both players roll a die and <b>add their ship’s number</b>. The <b>lower total wins</b>. Ties go to the attacker.
+          Both players roll a die and <b>add their mech’s number</b>. The <b>lower total wins</b>. Ties go to the attacker.
         </p>
         <div className="mn-fight">
           <Side role="Attacker" ship={<DieIcon v={2} size={36} />} die={<DieIcon v={3} kind="atk" size={36} />} total={5} win />
@@ -562,12 +678,12 @@ export function Manual({ dark }: { dark?: boolean }) {
             <h3>Attacker wins</h3>
             <ul>
               <li>
-                The defending ship is <b>destroyed</b>. Its owner re-rolls it and puts it in their scrapyard.
+                The defending mech is <b>destroyed</b>. Its owner re-rolls it and puts it in their salvage yard.
               </li>
               <li>
-                Attacker <b>+1 Dominance</b>, defender <b>−1</b>.
+                Attacker <b>+1 Power</b>, defender <b>−1</b>.
               </li>
-              <li>The attacker moves into the space or stays where it was.</li>
+              <li>The attacker moves into the space or stays where it was. A {SHIPS[5].name} that shot always stays.</li>
             </ul>
           </div>
           <div className="mn-outcome">
@@ -586,20 +702,18 @@ export function Manual({ dark }: { dark?: boolean }) {
             <h3>Infamy</h3>
             <Track at={6} tone="dom" end={<CubeIcon size={18} />} />
             <p>
-              When your Dominance reaches 6, place a cube right away on any planet with room and none of your cubes. Then reset to 1. If
-              there’s nowhere to place it, Dominance stays at 6.
+              When your Power reaches 6, place a cube right away on any objective with room and none of your cubes, contested or not. Then
+              reset to 1. If there’s nowhere to place it, Power stays at 6.
             </p>
           </div>
           <div className="mn-box">
-            <h3>
-              Missiles <Tag>Community</Tag>
-            </h3>
+            <h3>Atomics</h3>
             <p className="mn-missile">
               <MissileIcon size={28} /> <span>→</span> <DieIcon v={1} kind="atk" size={28} /> <span>or</span>{' '}
               <DieIcon v={1} kind="def" size={28} />
             </p>
             <p>
-              In a battle you are losing, spend a missile to turn <b>your own</b> combat roll into a 1. Only the attacker and defender may
+              In a battle you are losing, spend an atomic to turn <b>your own</b> combat roll into a 1. Only the attacker and defender may
               fire. Everyone starts with one.
             </p>
           </div>
@@ -608,14 +722,16 @@ export function Manual({ dark }: { dark?: boolean }) {
 
       {/* ---------------------------------------------------------------- cards */}
       <section id="mn-cards">
-        <h2>Cards</h2>
+        <h2>
+          Cards <Tag>{REGOLITH.name}</Tag>
+        </h2>
         <div className="mn-two">
           <div className="mn-earn">
             <span className="mn-earn-icon">
               <PlanetIcon n={7} size={30} />
             </span>
             <p>
-              <b>1 card for each planet</b> you conquered this turn, Infamy included.
+              <b>1 card for each objective</b> you claimed this turn, Infamy included.
             </p>
           </div>
           <div className="mn-earn">
@@ -632,11 +748,11 @@ export function Manual({ dark }: { dark?: boolean }) {
           card farthest from the deck is always the oldest.
         </p>
         <div className="mn-cardtypes">
-          {CARD_TYPES.map(([deck, name, classic, text]) => (
+          {CARD_TYPES.map(([deck, name, text]) => (
             <div key={deck} className="mn-ctype">
               <img className="mn-minicard" src={cardBackUrl(deck)} alt={`${name} card back`} />
               <div>
-                <b>{name}</b> {classic && <small>Classic: {classic}</small>}
+                <b>{name}</b>
                 <p>{text}</p>
               </div>
             </div>
@@ -644,11 +760,7 @@ export function Manual({ dark }: { dark?: boolean }) {
         </div>
         <ul className="mn-facts">
           <li>
-            <b>Peek</b> <Tag>Community</Tag> If you take the oldest card in a row, you may first look at the top of that deck and take that
-            card instead.
-          </li>
-          <li>
-            <b>Refresh</b> <Tag>Classic</Tag> Instead of taking a card, you may discard all six face-up cards and deal six new ones.
+            <b>Peek.</b> If you take the oldest card in a row, you may first look at the top of that deck and take that card instead.
           </li>
           <li>Every card explains itself. When a deck runs out, shuffle its discards into a new deck.</li>
         </ul>
@@ -658,8 +770,8 @@ export function Manual({ dark }: { dark?: boolean }) {
       <section id="mn-modes">
         <h2>Rule sets</h2>
         <p>
-          New to the game? <b>Start with Basic.</b> It has no cards, so you can learn ships, combat and conquering first. This manual
-          describes all three rule sets; tags like <Tag>Community</Tag> mark rules that only one of them uses.
+          New to the game? <b>Start with Basic.</b> It is {GAME_NAME} without cards, so you can learn mechs, combat and claiming first.
+          Rules tagged <Tag>{REGOLITH.name}</Tag> are only in the full game.
         </p>
         <RuleSetTable />
       </section>
@@ -670,20 +782,21 @@ export function Manual({ dark }: { dark?: boolean }) {
         <p className="mn-legend">The app sets everything up for you. To play at a table:</p>
         <ol className="mn-setup">
           <li>
-            Lay out the map tiles as the chosen map shows. Shuffle each card deck and deal 3 cards face up beside it. <Tag>Community</Tag>{' '}
-            Lay out players + 1 Expansion cards as a face-up pile.
+            Lay out the map tiles as the chosen map shows. <Tag>{REGOLITH.name}</Tag> Shuffle each card deck and deal 3 cards face up beside
+            it. Lay out players + 1 {REGOLITH.cards!.expansion.name} cards as a face-up pile.
           </li>
           <li>
-            Each player takes 7 dice, their cubes, a player board and, <Tag>Community</Tag>, 1 missile. Put a die on 1 on your Dominance and
-            Research tracks, and 2 dice aside as your reserve.
+            Each player takes 7 dice, their cubes, a player board and 1 atomic. Put a die on 1 on your Power and Research tracks, and 2 dice
+            aside as your reserve.
           </li>
           <li>
-            <Tag>Community</Tag> Each player draws 2 Skills, keeps 1 and puts the other on the bottom of the deck.
+            <Tag>{REGOLITH.name}</Tag> Each player draws 2 {REGOLITH.cards!.terms.skillDeck}, keeps 1 and puts the other on the bottom of
+            the deck.
           </li>
-          <li>Roll your last 3 dice: these are your starting ships. You may re-roll all 3 once.</li>
+          <li>Roll your last 3 dice: these are your starting mechs. You may re-roll all 3 once.</li>
           <li>
-            Lowest total goes first; roll off any tie. In turn order, each player places a cube on a starting planet marked on the map, then
-            their 3 ships in its orbit.
+            Lowest total goes first; roll off any tie. In turn order, each player places a cube on a starting objective marked on the map,
+            their home objective, then their 3 mechs on its perimeter.
           </li>
         </ol>
       </section>
@@ -693,25 +806,22 @@ export function Manual({ dark }: { dark?: boolean }) {
         <h2>Good to know</h2>
         <ul>
           <li>
-            <b>One ability per die per turn</b>, even if the die changes type. Abilities only work on the map, on your turn.
+            <b>One ability per die per turn</b>, even if the die changes mech. Abilities only work on the map, on your turn.
           </li>
           <li>
-            <b>Quantum Entanglement.</b> Once every planet with room already has one of your cubes, you may conquer a planet you’re already
-            on. The sum needed rises by 3 for each of your cubes there. Infamy can also place a cube there.
+            <b>Back to your own.</b> Once every objective with room already has one of your cubes, you may claim one you’re already on. The
+            sum needed rises by 3 for each of your cubes there. Infamy can also place a cube there.
           </li>
           <li>
-            <b>Cards earned on someone else’s turn</b>, such as through Infamy, are taken after the active player’s. A bonus turn from
-            Momentum is played at once, and any cards still owed are taken at the end of it.
-          </li>
-          <li>
-            <b>Classic:</b> an Expansion can’t be taken once both your reserve dice are in play.
+            <b>Cards earned on someone else’s turn</b>, such as through Infamy, are taken after the active player’s. A bonus turn from a
+            card is played at once, and any cards still owed are taken at the end of it.
           </li>
         </ul>
       </section>
 
       <footer className="mn-credits">
-        Regolith by Christian Nold is a non-commercial game inspired by <i>Quantum</i> by Eric Zimmerman (FunForge, 2013) and its fan-made
-        Community Edition. Quantum is a trademark of its owners; this manual is an independent text.
+        {GAME_NAME} by Christian Nold is a non-commercial game inspired by <i>Quantum</i> by Eric Zimmerman (FunForge, 2013) and its
+        fan-made Community Edition. Quantum is a trademark of its owners; this manual is an independent text.
       </footer>
     </article>
   );
@@ -727,7 +837,11 @@ function RuleSetTable() {
     [
       'Cards',
       (m) =>
-        m.cards ? `${m.cards.terms.skillDeck} & ${m.cards.terms.tacticDeck}${m.cards.expansionPile ? ' + Expansion pile' : ''}` : <No />,
+        m.cards ? (
+          `${m.cards.terms.skillDeck} & ${m.cards.terms.tacticDeck}${m.cards.expansionPile ? ` + ${m.cards.expansion.name} pile` : ''}`
+        ) : (
+          <No />
+        ),
     ],
     ['Research action', (m) => (m.cards ? <Yes /> : <No />)],
     ['Starting card', (m) => (m.cards?.startingSkillDraft ? 'Keep 1 of 2' : <No />)],
@@ -740,10 +854,7 @@ function RuleSetTable() {
           <tr>
             <th />
             {modes.map((m) => (
-              <th key={m.id}>
-                {m.name}
-                <small>{m.summary}</small>
-              </th>
+              <th key={m.id}>{m.name}</th>
             ))}
           </tr>
         </thead>
