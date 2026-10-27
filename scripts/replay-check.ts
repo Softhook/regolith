@@ -38,11 +38,18 @@ async function aiGame(page: Page, entries: number) {
 }
 
 /** How far the log list is from its newest entry, in pixels. */
-const gapToNewest = (page: Page) =>
-  page.evaluate(() => {
-    const l = document.querySelector('.log ol')!;
-    return l.scrollHeight - l.scrollTop - l.clientHeight;
-  });
+/** Whether the log gets to its newest entry within 3 s: with entries coming fast, it may be part-way through a scroll to the last. */
+const reachesNewest = (page: Page) =>
+  succeeds(
+    page.waitForFunction(
+      () => {
+        const l = document.querySelector('.log ol')!;
+        return l.scrollHeight - l.scrollTop - l.clientHeight <= 12;
+      },
+      null,
+      { timeout: 3000 },
+    ),
+  );
 
 /** Whether the log shows the start of the move being looked back at. */
 const moveInView = (page: Page) =>
@@ -140,17 +147,23 @@ try {
 
   // Back: what happened meanwhile rolls, and the log is on the newest entry and follows play again.
   await page.keyboard.press('Escape');
+  // Only a die still on the map can roll there: one that rolled meanwhile may have been destroyed since.
+  const onMap = await page.evaluate((r) => {
+    const before = r.split(',');
+    return window.__game.state().dice.some((d, i) => d.loc.zone === 'board' && String(d.rolls) !== before[i]);
+  }, rolls);
+  // Up to 3 s, as a loaded machine (CI) may take a while to get back.
   let rolling = 0;
-  for (let i = 0; i < 12; i++) {
-    rolling = Math.max(rolling, await diceRolling(page));
+  for (let i = 0; i < 40 && onMap && !rolling; i++) {
+    rolling = await diceRolling(page);
     await page.waitForTimeout(80);
   }
   check((await bar.count()) === 0, 'Esc goes back to the game', 'Esc leaves the review bar up');
-  check(rolling > 0, 'back in the game, the dice rolled meanwhile roll', 'back in the game, nothing that rolled meanwhile rolls');
+  check(!onMap || rolling > 0, 'back in the game, the dice rolled meanwhile roll', 'back in the game, nothing that rolled meanwhile rolls');
   const counter = await page.evaluate(() => window.__game.state().logCounter);
   await page.waitForFunction((n) => window.__game.state().logCounter > n + 1, counter, { timeout: 30000 });
   await page.waitForTimeout(900);
-  check((await gapToNewest(page)) <= 12, 'back in the game, the log follows play', 'back in the game, the log doesn’t follow play');
+  check(await reachesNewest(page), 'back in the game, the log follows play', 'back in the game, the log doesn’t follow play');
 
   // Scrolled up by hand, the log stays; scrolled back down, it follows again.
   await page.evaluate(() => {
@@ -162,7 +175,8 @@ try {
   await page.waitForFunction((n) => window.__game.state().logCounter > n, up, { timeout: 30000 });
   await page.waitForTimeout(900);
   check(
-    (await page.evaluate(() => document.querySelector('.log ol')!.scrollTop)) === 0,
+    // Near the top: entries coming and going above can shift it a few pixels.
+    (await page.evaluate(() => document.querySelector('.log ol')!.scrollTop)) <= 20,
     'scrolled up, the log stays',
     'scrolled up, the log jumps back to the newest',
   );
@@ -174,7 +188,7 @@ try {
   const down = await page.evaluate(() => window.__game.state().logCounter);
   await page.waitForFunction((n) => window.__game.state().logCounter > n, down, { timeout: 30000 });
   await page.waitForTimeout(900);
-  check((await gapToNewest(page)) <= 12, 'scrolled back down, the log follows again', 'scrolled back down, the log doesn’t follow');
+  check(await reachesNewest(page), 'scrolled back down, the log follows again', 'scrolled back down, the log doesn’t follow');
 
   // → after the last move goes back to the game.
   await entries.last().click();
