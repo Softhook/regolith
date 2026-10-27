@@ -12,7 +12,7 @@ export const SCALE = TILE.cell / SPACE;
 /** The tile's trim, 96 mm, in board units. */
 export const SIZE = TILE.size / SCALE;
 /** How far past the area shown the ground is drawn, in board units: past the furthest shadow (9) and warp (13). */
-const MARGIN = 20;
+export const MARGIN = 20;
 /**
  * The pixel the ground's light is made for, in board units (its `kernelUnitLength`). Chrome lights a pixel
  * at a time whatever it's told, from heights in 256 steps: much finer, as in print, each step catches the

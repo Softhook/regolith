@@ -63,6 +63,11 @@ const FINE: Record<World, number> = { phobos: 1, deimos: 0.85, mars: 1 };
  */
 const relief = (scale: number) => n((scale * 0.28) / LIT);
 
+/** A noise over the square `period` across from the origin, stitched so its edges meet, and tiled over the filter. */
+const repeating = (freq: number, octaves: number, seed: number, result: string, period: number, kind = 'fractalNoise') =>
+  `<feTurbulence type="${kind}" baseFrequency="${freq}" numOctaves="${octaves}" seed="${seed}" stitchTiles="stitch" ` +
+  `x="0" y="0" width="${n(period)}" height="${n(period)}" result="${result}-tile"/><feTile in="${result}-tile" result="${result}"/>`;
+
 /**
  * Shadow (`SHD`) where the height map `height` stands higher towards the light (top left), `d` away, by more
  * than `-k`, for each `[d, k]` step: hard-edged, a steep ramp from lit to shadow softened by `blur`.
@@ -81,9 +86,15 @@ const shadow = (height: string, steps: [d: number, k: number][], blur: number, c
   `<feFlood flood-color="${colour}" flood-opacity="${opacity}"/>` +
   '<feComposite in2="shB" operator="in" result="SHD"/>';
 
-/** The light: the height map gains fine noise where it isn't smooth, is lit from the top left, shadowed, tinted for its world and grained. Over `area`, in board units. */
-export function ground(r: Rng, area: Box, world: World): string {
+/**
+ * The light: the height map gains fine noise where it isn't smooth, is lit from the top left, shadowed, tinted for
+ * its world and grained. Over `area`, in board units. Given a `period`, each noise repeats every `period` across and
+ * down, stitched at its edges, so a height map that repeats so too comes out lit the same in each repeat.
+ */
+export function ground(r: Rng, area: Box, world: World, period?: number): string {
   const s = () => r.noiseSeed();
+  const noise = (freq: number, octaves: number, seed: number, result: string, kind?: string) =>
+    period ? repeating(freq, octaves, seed, result, period, kind) : turbulence(freq, octaves, seed, result, kind);
   const fine = FINE[world];
   const light = '<feDistantLight azimuth="225" elevation="22"/>';
   return (
@@ -92,9 +103,9 @@ export function ground(r: Rng, area: Box, world: World): string {
     '<feColorMatrix in="SourceGraphic" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 1 0 0 0" result="SMOOTH"/>' +
     '<feColorMatrix in="SourceGraphic" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 1 0 0" result="ALB"/>' +
     // One broad noise, four ways: its red and green warp the fine noise, its blue mottles the brightness, its alpha lays the dust and rock patches.
-    turbulence(0.01, 3, s(), 'broad') +
-    turbulence(0.03, 7, s(), 'nz') +
-    turbulence(0.018, 3, s(), 'rg', 'turbulence') +
+    noise(0.01, 3, s(), 'broad') +
+    noise(0.03, 7, s(), 'nz') +
+    noise(0.018, 3, s(), 'rg', 'turbulence') +
     // The warp is in 256 steps too: each step shifts the noise by a third of a pixel, a seam the light
     // shows as fingerprint lines along the broad noise's contours. Half a pixel's blur closes the seams.
     '<feDisplacementMap in="nz" in2="broad" scale="26" xChannelSelector="R" yChannelSelector="G" result="nzs"/>' +
@@ -139,7 +150,7 @@ export function ground(r: Rng, area: Box, world: World): string {
     '<feComposite in="spec" in2="SMOOTH" operator="in" result="specM"/>' +
     '<feComposite in="lit" in2="specM" operator="arithmetic" k2="1" k3="0.7" result="lit2"/>' +
     RAMPS[world] +
-    turbulence(1.4, 1, s(), 'grain') +
+    noise(1.4, 1, s(), 'grain') +
     '<feComposite in="ramp" in2="grain" operator="arithmetic" k2="1" k3="0.09" k4="-0.045"/>' +
     '</filter>'
   );

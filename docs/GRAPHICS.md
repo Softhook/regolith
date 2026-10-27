@@ -100,6 +100,14 @@ it shows that ground.
   across (576 px on touch screens) and keeps them in IndexedDB ([`tileImages.ts`](../apps/web/src/art/tileImages.ts)).
   The lobby draws the chosen map's tiles in the background, behind its backdrop, so the game opens without a
   wait. Each stored image carries a hash of its SVG, so changing the artwork redraws only what changed.
+- **The lobby's ground.** Behind the lobby, the chosen world's bare ground drifts past close up, with the
+  map's bases passing under it and a survey's marks over it ([`Backdrop.tsx`](../apps/web/src/components/lobby/Backdrop.tsx)).
+  The ground is one square that repeats edge to edge (`regolithSurfaceSvg`): the same terrain as the tiles,
+  strewn over the square and drawn again a square away on each side, and its light's noise stitched to the
+  square and tiled. Chrome weathers each crater by where it is on the page, so a copy across an edge differs
+  a little; the square is drawn a little past its right and bottom edges, and that is faded in over its left
+  and top ([`surfaceImage.ts`](../apps/web/src/art/surfaceImage.ts)). Drawn once per world, about 2,700 px
+  square, and kept in IndexedDB as the tiles are.
 - **Every physical tile is unique.** Each has a fixed id (`p7-01` … `p10-05`, `void` … `void-3`,
   `blank-01` … `blank-10`) and its seed. The game assigns a map's objectives to tile ids (`assignTiles`), so
   the tile on screen is the one on the table.

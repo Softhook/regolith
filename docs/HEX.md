@@ -262,8 +262,7 @@ The number goes in the planet's corner nearest its tile's middle, as its printed
 meets the map's edge or a neighbour; on hexes, at the vertex three hexes share. The flavour label shows
 only where the spaces up and left of the planet are its own tile's and the number isn't there. The Art
 Lab shows and exports every tile as a hex tile, die-cut along its flower ([GRAPHICS.md](GRAPHICS.md) §3), and
-with its planet on any space. The lobby's backdrop stands each planet up whole
-as a sphere.
+with its planet on any space.
 
 ### Drift maps
 

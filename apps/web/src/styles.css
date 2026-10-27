@@ -1582,121 +1582,104 @@ svg.zones polygon {
   padding: calc(16px + var(--safe-top)) 16px 32px;
   gap: 20px;
 }
-/* Behind the lobby (lobby/Backdrop.tsx): the chosen map on a tilted plane that turns once every few minutes, with
-   fleets gliding over it. Fixed, under the lobby's content, and shaded so the form stays easy to read. */
+/* Behind the lobby (lobby/Backdrop.tsx): the chosen world's bare ground drifting slowly past, close up, bases passing
+   under it, and a survey's readout over it. Fixed, under the lobby's content, and shaded so the form stays easy to
+   read. Its world's middle colour shows till the ground is drawn. */
 .lobby-backdrop {
   position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none;
-  perspective: 1400px;
+  --hud: rgb(var(--accent-rgb) / .7);
+  --hud-faint: rgb(var(--accent-rgb) / .09);
 }
-/* One 3D space from here down to the dice, so they stand up on the board as cubes: nothing in the chain may take
-   opacity or a filter, which would flatten it (the map canvas fades itself instead). */
-.backdrop-spin {
-  position: absolute; left: 50%; top: 46%;
-  transform-style: preserve-3d;
-  transform: translate(-50%, -50%) rotateX(54deg);
-}
-/* The map turns on itself; an explosion's flash turns back as much (.backdrop-blast), starting in the same frame,
-   so it keeps facing the camera. */
-.backdrop-plane {
-  --half: calc(var(--cell) * .28);
-  position: relative; transform-style: preserve-3d;
-  animation: backdrop-turn 360s linear infinite;
-  width: calc(var(--cols) * var(--cell)); height: calc(var(--rows) * var(--cell));
-}
-.backdrop-map {
-  position: absolute; inset: 0; width: 100%; height: 100%;
-  opacity: .9;
-  animation: backdrop-in 1.4s ease-out both;
-}
-@keyframes backdrop-in { from { opacity: 0; } }
-@keyframes backdrop-turn { to { transform: rotateZ(360deg); } }
-@keyframes backdrop-face {
-  from { transform: var(--up) rotateZ(0deg) rotateX(-54deg); }
-  to { transform: var(--up) rotateZ(-360deg) rotateX(-54deg); }
-}
-/* An explosion's shock waves lie on the board; its flash and sparks stand up at die height, larger, facing the
-   camera (.backdrop-blast). The sparks are sized by --cell. */
-.backdrop-plane .explosion { z-index: auto; }
-.backdrop-plane > .explosion > :not(.boom-wave) { display: none; }
-/* Raised by more than its half-size × sin 54° (.53 of a cell), so tilted to the camera it clears the board. */
-.backdrop-blast {
-  --up: translateZ(calc(var(--cell) * .58));
-  position: absolute;
-  left: calc((var(--c) - .15) * var(--cell)); top: calc((var(--r) - .15) * var(--cell));
-  width: calc(1.3 * var(--cell)); height: calc(1.3 * var(--cell));
-  transform: var(--up) rotateZ(0deg) rotateX(-54deg);
-  animation: backdrop-face 360s linear infinite;
-}
-.backdrop-blast .boom-wave { display: none; }
-.backdrop-die {
+/* The ground, a tile larger than the screen each way, repeating, and moved by less than a tile and back
+   (lobby/Backdrop.tsx), so it seems to go on for ever. The survey's grid is drawn on it, a quarter tile square, so
+   it moves with the ground. */
+.survey-ground {
   position: absolute; left: 0; top: 0;
-  width: calc(var(--half) * 2); height: calc(var(--half) * 2);
-  transform-style: preserve-3d;
-  transform: translate(calc((var(--c) + .22) * var(--cell)), calc((var(--r) + .22) * var(--cell)));
-  /* A space at a time (lobby/Backdrop.tsx sets the easing for each, so a move flows from start to end). */
-  transition: transform var(--glide) var(--ease, ease-in-out);
+  width: calc(100% + var(--tile)); height: calc(100% + var(--tile));
+  background-size: var(--tile) var(--tile);
+  opacity: 0; transition: opacity 1.6s ease-out;
+  will-change: transform;
 }
-/* The cube rests on the board (a pixel above it, so its bottom face doesn't fight the map for depth), and
-   arrives by dropping in while it tumbles to its value. */
-.backdrop-cube, .backdrop-cube-spin { position: absolute; inset: 0; transform-style: preserve-3d; }
-.backdrop-cube {
-  transform: translateZ(calc(var(--half) + 1px));
-  animation: backdrop-drop 1s cubic-bezier(.3, .7, .4, 1) var(--delay) both;
-}
-@keyframes backdrop-drop {
-  from { transform: translateZ(calc(var(--half) * 5)); }
-  45% { transform: translateZ(calc(var(--half) * 2.4)); }
-}
-.backdrop-cube-spin { animation: backdrop-tumble 1s cubic-bezier(.15, .6, .3, 1) var(--delay) both; }
-@keyframes backdrop-tumble { from { transform: rotateX(var(--tx)) rotateY(var(--ty)); } }
-.backdrop-face {
-  position: absolute; inset: 0;
-  display: grid; grid-template: repeat(3, 1fr) / repeat(3, 1fr);
-  /* Rounded less than Die3D's 16%: where two faces' rounded corners meet, they leave a notch in the outline seen
-     edge-on, and at 6% it's under a pixel or so. (Bevels filling it, a pixel inside the faces along each edge,
-     crossed each other and the core, and Safari on iPad drew them through the faces in flickering patches.) */
-  padding: 12%; border-radius: 6%;
-  /* Lit as Die3D's faces are: a highlight top left, shade towards the bottom edge, a thin bright rim. */
+.survey-ground::after {
+  content: ''; position: absolute; inset: 0;
   background:
-    radial-gradient(circle at 28% 22%, color-mix(in srgb, var(--die-color) 55%, white) 0%, transparent 55%),
-    linear-gradient(145deg, var(--die-color), color-mix(in srgb, var(--die-color) 62%, black));
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, .18),
-    inset 0 calc(var(--half) * -.12) calc(var(--half) * .24) rgba(0, 0, 0, .28);
-  backface-visibility: hidden;
+    linear-gradient(var(--hud-faint) 1px, transparent 1px) 0 0 / calc(var(--tile) / 4) calc(var(--tile) / 4),
+    linear-gradient(90deg, var(--hud-faint) 1px, transparent 1px) 0 0 / calc(var(--tile) / 4) calc(var(--tile) / 4);
 }
-/* The sides turned a hair past 90deg: Safari (17 on, with its "CSS 3D Transform Interoperability") drops an
-   element whose own transform turns it exactly edge-on, as if it couldn't be seen, even inside a 3D context that
-   turns it back to face the camera; so whole side faces went missing (WebKit bugs 265309, 264343). */
-.backdrop-face.top    { transform: translateZ(var(--half)); }
-.backdrop-face.north  { transform: rotateX(90.01deg) translateZ(var(--half)); }
-.backdrop-face.south  { transform: rotateX(-90.01deg) translateZ(var(--half)); }
-.backdrop-face.east   { transform: rotateY(90.01deg) translateZ(var(--half)); }
-.backdrop-face.west   { transform: rotateY(-90.01deg) translateZ(var(--half)); }
-/* The tip of each top corner, where three rounded corners meet, would show the map:
-   a plane under the top face fills it. The camera always looks down on the dice, so the top corners are the
-   only ones that need it (the bottom ones sit on the board). Well under it: a pixel or so
-   below (.95), Safari on iPad drew it through the top face in patches that flickered as the map turned. */
-.backdrop-core {
-  position: absolute; inset: calc(var(--half) * .05);
-  background: color-mix(in srgb, var(--die-color) 70%, black);
-  transform: translateZ(calc(var(--half) * .7));
+.survey-ground.ready { opacity: 1; }
+/* A base: its building's place on the ground at 0, 0; its tile's standing art round it, with the shadow the
+   ground would have had under it, to the bottom right, away from the light. */
+.survey-base { position: absolute; left: 0; top: 0; width: 0; height: 0; will-change: transform; }
+.survey-base img {
+  position: absolute;
+  filter: drop-shadow(calc(var(--space) * .08) calc(var(--space) * .08) calc(var(--space) * .03) rgb(30 28 26 / .75));
+  animation: backdrop-in 1.2s ease-out both;
 }
-/* The face on the board also casts the die's light around it, in its player's colour: no extra layer for it. */
-.backdrop-face.bottom {
-  transform: rotateX(180deg) translateZ(var(--half));
-  backface-visibility: visible;
-  box-shadow: 0 0 calc(var(--cell) * .28) calc(var(--cell) * .1) color-mix(in srgb, var(--die-color) 55%, transparent);
+/* Brackets round a base, two spaces square, that show and name it once it's well on the screen. */
+.survey-lock {
+  --b: calc(var(--space) * .22);
+  position: absolute; left: calc(var(--space) * -1); top: calc(var(--space) * -1);
+  width: calc(var(--space) * 2); height: calc(var(--space) * 2);
+  background:
+    linear-gradient(var(--hud), var(--hud)) 0 0 / var(--b) 1.5px, linear-gradient(var(--hud), var(--hud)) 0 0 / 1.5px var(--b),
+    linear-gradient(var(--hud), var(--hud)) 100% 0 / var(--b) 1.5px, linear-gradient(var(--hud), var(--hud)) 100% 0 / 1.5px var(--b),
+    linear-gradient(var(--hud), var(--hud)) 0 100% / var(--b) 1.5px, linear-gradient(var(--hud), var(--hud)) 0 100% / 1.5px var(--b),
+    linear-gradient(var(--hud), var(--hud)) 100% 100% / var(--b) 1.5px, linear-gradient(var(--hud), var(--hud)) 100% 100% / 1.5px var(--b);
+  background-repeat: no-repeat;
+  opacity: 0; transition: opacity .5s ease-out;
 }
-/* Darker towards the edges and behind the form in the middle, so the map reads as scenery. */
+.survey-base.locked .survey-lock { opacity: 1; }
+.survey-label {
+  position: absolute; left: 0; top: calc(100% + 6px);
+  font: 600 11px/1 var(--body); letter-spacing: .18em; text-transform: uppercase; white-space: nowrap;
+  color: var(--hud);
+  clip-path: inset(0 100% 0 0);
+  transition: clip-path .6s steps(12) .3s;
+}
+.survey-base.locked .survey-label { clip-path: inset(0); }
+/* While the ground is first drawn (lobby/Backdrop.tsx `SLOW_MS`): a small turning arc by the readout. */
+/* Faded in, so where the ground comes just after it, it doesn't flash. */
+.survey-acquiring { display: inline-flex; align-items: center; gap: 8px; animation: backdrop-in .6s ease-in both; }
+.survey-spinner {
+  width: 9px; height: 9px; border-radius: 50%;
+  border: 1.5px solid rgb(var(--accent-rgb) / .2); border-top-color: var(--hud);
+  animation: survey-spin .9s linear infinite;
+}
+@keyframes survey-spin { to { transform: rotate(1turn); } }
+/* A faint line sweeping down the screen. */
+.survey-scan {
+  position: absolute; left: 0; right: 0; top: 0; height: 120px;
+  background: linear-gradient(transparent, rgb(var(--accent-rgb) / .05) 85%, rgb(var(--accent-rgb) / .16));
+  animation: survey-scan 9s linear infinite;
+}
+@keyframes survey-scan { from { transform: translateY(-120px); } to { transform: translateY(100vh); } }
+/* The survey's frame: brackets in the screen's corners, inside the safe area, and its readout. */
+.survey-frame {
+  position: absolute; inset: calc(14px + var(--safe-top)) 14px calc(14px + env(safe-area-inset-bottom));
+  font: 600 10px/1 var(--body); letter-spacing: .2em; text-transform: uppercase; color: var(--hud);
+}
+.survey-corner { position: absolute; width: 22px; height: 22px; border: 0 solid var(--hud); }
+.survey-corner.tl { left: 0; top: 0; border-width: 1.5px 0 0 1.5px; }
+.survey-corner.tr { right: 0; top: 0; border-width: 1.5px 1.5px 0 0; }
+.survey-corner.bl { left: 0; bottom: 0; border-width: 0 0 1.5px 1.5px; }
+.survey-corner.br { right: 0; bottom: 0; border-width: 0 1.5px 1.5px 0; }
+.survey-text { position: absolute; white-space: pre; line-height: 1.6; font-variant-numeric: tabular-nums; }
+.survey-text.bottom-left { left: 32px; bottom: 6px; }
+.survey-text.bottom-right { right: 32px; bottom: 6px; }
+@keyframes backdrop-in { from { opacity: 0; } }
+/* Dimmed, and darker still towards the edges and behind the form in the middle, so the ground and its bases read
+   as scenery. */
 .backdrop-shade {
   position: absolute; inset: 0;
   background:
+    linear-gradient(rgb(var(--shade) / .45), rgb(var(--shade) / .45)),
     radial-gradient(ellipse 60% 55% at 50% 45%, rgb(var(--shade) / .35), transparent),
     radial-gradient(ellipse 90% 80% at 50% 40%, transparent 45%, rgb(var(--shade) / .75));
 }
-.lobby-backdrop.still .backdrop-plane { animation: none; transform: rotateZ(-18deg); }
-.lobby-backdrop.still .backdrop-map, .lobby-backdrop.still .backdrop-cube, .lobby-backdrop.still .backdrop-cube-spin { animation: none; }
+@media (prefers-reduced-motion: reduce) {
+  .survey-scan { display: none; }
+  .survey-ground, .survey-lock, .survey-label { transition: none; }
+}
 
 .lobby-hero { text-align: center; }
 /* The full screen button, top right; it comes in with the rest after the opening. */

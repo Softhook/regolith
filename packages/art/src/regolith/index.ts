@@ -3,10 +3,10 @@ import { blur, document, n, region, type Fragment } from '../svg';
 import { BLED, type Spot } from '../tile/geometry';
 import type { World } from '../tile/look';
 import type { TileSpec } from '../tile/set';
-import { SPACE, SCALE, SIZE, LIT, DRAWN } from './core';
+import { SPACE, SCALE, SIZE, LIT, DRAWN, MARGIN } from './core';
 import { ground, built, cast, dust, SHADOW } from './light';
 export { GROUND_BASE } from './light';
-import { GRADIENTS, CRATERS, BURIED, RIDGE, DUNES, terrain, weathering } from './terrain';
+import { GRADIENTS, CRATERS, BURIED, RIDGE, DUNES, LEVEL, features, terrain, weathering, type Strew } from './terrain';
 import { BUILDING_GRADIENTS } from './parts';
 import { base } from './base';
 import { inked } from './inks';
@@ -153,4 +153,48 @@ export function regolithMaskSvg(spec: TileSpec, at: Spot = { x: 0, y: 0 }): stri
   // Only the defs its shapes use: their gradients, and a blur.
   const defs = WHITE + BUILDING_GRADIENTS + blur('rg-soft1', 1);
   return document(standing ? { defs, body: silhouette(standing.heights) } : { defs: '', body: '' }, BLED, true);
+}
+
+/** The lobby's surface (`regolithSurfaceSvg`), across and down, in board units. */
+const SURFACE = 640;
+/** How far past the square the surface is drawn, right and down, as a share of it: what's blended over its other edges. */
+const OVERLAP = 0.08;
+
+/**
+ * The lobby's surface: `mm` across and down, drawn to `px` (a pixel the size its light is made for, `LIT`); and
+ * `overlap`, the share of that drawn again past its right and bottom edges, to blend over its left and top.
+ */
+export const REGOLITH_SURFACE = { mm: SURFACE * SCALE, px: Math.round(SURFACE / LIT), overlap: OVERLAP };
+/** Tiles' worth of terrain on the surface: as many to the area as on a tile's hex flower, seven spaces. */
+const SURFACE_TILES = Math.round(SURFACE ** 2 / (7 * (Math.sqrt(3) / 2) * SPACE ** 2));
+
+/**
+ * Bare ground on `world` with no tiles, for the lobby: a square for the page to lay edge to edge, and past it the
+ * square's start again (`REGOLITH_SURFACE`). Its terrain is strewn over the square and drawn again a square away
+ * on every side, so what runs off one edge comes back in at the other, and its light's noise repeats so too
+ * (light `ground`). That doesn't quite meet: Chrome weathers each crater by where it is, so a copy is a little
+ * different; the page blends the overlap in. From 0, 0, in mm.
+ */
+export function regolithSurfaceSvg(world: World, seed = 1): string {
+  const r = rng(seed).fork(`surface:${world}`);
+  const square: Strew = (q) => ({ x: q.range(0, SURFACE), y: q.range(0, SURFACE) });
+  const strewn = Array.from({ length: SURFACE_TILES }, (_, i) => features(r.fork(`terrain${i}`), world, square, SURFACE)).join('');
+  const copies = [-1, 0, 1]
+    .flatMap((i) => [-1, 0, 1].map((j) => `<g transform="translate(${i * SURFACE},${j * SURFACE})">${strewn}</g>`))
+    .join('');
+  const drawn = SURFACE * (1 + OVERLAP);
+  const area = { x: -MARGIN, y: -MARGIN, w: drawn + 2 * MARGIN, h: drawn + 2 * MARGIN };
+  const defs =
+    GRADIENTS +
+    (world === 'mars' ? DUNES : '') +
+    blur('rg-soft1', 1) +
+    blur('rg-soft3', 3) +
+    blur('rg-soft6', 6) +
+    weathering(r) +
+    ground(r.fork('ground'), area, world, SURFACE) +
+    CRATERS +
+    (world === 'deimos' ? BURIED : '') +
+    RIDGE;
+  const mm = drawn * SCALE;
+  return document({ defs, body: inMm(`<g filter="url(#rg-ground)">${LEVEL(area)}${copies}</g>`) }, { x: 0, y: 0, w: mm, h: mm }, true);
 }

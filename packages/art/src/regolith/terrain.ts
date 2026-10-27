@@ -1,7 +1,11 @@
 import type { Rng } from '../rng';
-import { n, region, turbulence } from '../svg';
+import { n, region, turbulence, type Box } from '../svg';
 import type { World } from '../tile/look';
+import type { Spot } from '../tile/geometry';
 import { DRAWN, SIZE, anywhere, radial, stops } from './core';
+
+/** Where a feature `reach` across goes: on a tile's hex flower (`anywhere`), or anywhere on the lobby's surface. */
+export type Strew = (r: Rng, reach: number) => Spot;
 
 /**
  * The Regolith ground's terrain, as a height map: craters of every age, pits, boulders, ridges, on Mars dunes
@@ -92,11 +96,11 @@ export const BURIED = `<g id="rg-cr-b">${crater('rg-wx-o', false, 'rg-bowlOld', 
 const CRATER_REACH = { o: 38, m: 38, y: 42, big: 52, b: 38 };
 
 /** Copies of a crater, each placed, turned and stretched a little (as the mood board's are). */
-function craters(r: Rng, kind: keyof typeof CRATER_REACH, count: number, min: number, max: number): string {
+function craters(r: Rng, at: Strew, kind: keyof typeof CRATER_REACH, count: number, min: number, max: number): string {
   let out = '';
   for (let i = 0; i < count; i++) {
     const s = r.range(min, max);
-    const { x, y } = anywhere(r, CRATER_REACH[kind] * s);
+    const { x, y } = at(r, CRATER_REACH[kind] * s);
     out += `<use href="#rg-cr-${kind}" transform="translate(${n(x)},${n(y)}) rotate(${r.int(0, 359)}) scale(${n(s)},${n(s * r.range(0.9, 1))})"/>`;
   }
   return out;
@@ -106,12 +110,12 @@ function craters(r: Rng, kind: keyof typeof CRATER_REACH, count: number, min: nu
  * Pits too small to weather apart, `count` of each size from `min` to `max` (skewed small): all their bowls
  * in one group and rims in another, so each is weathered in one go.
  */
-function pits(r: Rng, sizes: [count: number, min: number, max: number][]): string {
+function pits(r: Rng, at: Strew, sizes: [count: number, min: number, max: number][]): string {
   const list = sizes.flatMap(([count, min, max]) =>
     Array.from({ length: count }, () => {
       const size = min + (max - min) * r.next() ** 2;
       // The rim is 1.45 times the bowl, and weathered a little further.
-      return { ...anywhere(r, size * 1.45 + 1), r: size };
+      return { ...at(r, size * 1.45 + 1), r: size };
     }),
   );
   const group = (attrs: string, k: number) =>
@@ -123,10 +127,10 @@ function pits(r: Rng, sizes: [count: number, min: number, max: number][]): strin
 }
 
 /** Boulders strewn in a few clusters. */
-function boulders(r: Rng, clusters: number, each: number): string {
+function boulders(r: Rng, at: Strew, clusters: number, each: number): string {
   let out = '';
   for (let c = 0; c < clusters; c++) {
-    const { x, y } = anywhere(r, 18);
+    const { x, y } = at(r, 18);
     for (let i = 0; i < each; i++) {
       const a = r.range(0, 2 * Math.PI);
       const d = 14 * Math.sqrt(r.next());
@@ -153,20 +157,20 @@ export const DUNES =
   '<mask id="rg-duneMask"><ellipse rx="62" ry="38" fill="url(#rg-duneFade)"/></mask>';
 
 /** Now and then a field of dunes, waved about, faded out at its edges. */
-function dunes(r: Rng): string {
+function dunes(r: Rng, at: Strew): string {
   if (!r.chance(0.6)) return '';
-  const { x, y } = anywhere(r, 30);
+  const { x, y } = at(r, 30);
   return (
     `<g transform="translate(${n(x)},${n(y)}) rotate(${r.int(0, 179)})" mask="url(#rg-duneMask)">` +
     `<rect x="-70" y="-45" width="140" height="90" fill="url(#rg-dunes)" filter="url(#rg-wx-d)"/></g>`
   );
 }
 
-/** Dust devils' tracks: long wandering dark streaks where they swept the bright dust off (darker only: blue is brightness). */
-function tracks(r: Rng): string {
+/** Dust devils' tracks, starting anywhere on a square `span` across: long wandering dark streaks where they swept the bright dust off (darker only: blue is brightness). */
+function tracks(r: Rng, span: number): string {
   let out = '';
   for (let i = r.int(1, 4); i > 0; i--) {
-    let { x, y } = { x: r.range(0, SIZE), y: r.range(0, SIZE) };
+    let { x, y } = { x: r.range(0, span), y: r.range(0, span) };
     let a = r.range(0, 2 * Math.PI);
     let d = `M${n(x)},${n(y)}`;
     for (let s = 0; s < 8; s++) {
@@ -181,10 +185,10 @@ function tracks(r: Rng): string {
 }
 
 /** Bright streaks where dust slid down a slope, each a fan of a few tapering ones (lighter only: blue is brightness). */
-function streaks(r: Rng): string {
+function streaks(r: Rng, at: Strew): string {
   let out = '';
   for (let i = r.int(2, 4); i > 0; i--) {
-    const { x, y } = anywhere(r, 30);
+    const { x, y } = at(r, 30);
     const a = r.range(0, 2 * Math.PI);
     for (let j = r.int(3, 6); j > 0; j--) {
       const b = a + r.range(-0.35, 0.35);
@@ -209,26 +213,25 @@ export const weathering = (r: Rng) =>
  * Deimos's terrain: smoother than Phobos's, its dust deep enough to bury most craters, leaving a fresh one now
  * and then, fewer pits, a low ridge at most, boulders, and bright streaks down the slopes.
  */
-function deimos(r: Rng): string {
+function deimos(r: Rng, at: Strew): string {
   return (
-    `<rect ${region(DRAWN)} fill="rgb(128,0,128)"/>` +
-    ridges(r, 1) +
-    craters(r, 'b', r.int(2, 4), 0.6, 1.6) +
-    craters(r, 'o', r.int(0, 1), 0.4, 0.9) +
-    craters(r, 'y', r.int(0, 1), 0.24, 0.45) +
-    streaks(r.fork('streaks')) +
-    pits(r.fork('pits'), [
+    ridges(r, at, 1) +
+    craters(r, at, 'b', r.int(2, 4), 0.6, 1.6) +
+    craters(r, at, 'o', r.int(0, 1), 0.4, 0.9) +
+    craters(r, at, 'y', r.int(0, 1), 0.24, 0.45) +
+    streaks(r.fork('streaks'), at) +
+    pits(r.fork('pits'), at, [
       [22, 0.45, 1],
       [6, 1.2, 4],
     ]) +
-    boulders(r.fork('boulders'), r.int(1, 2), 10)
+    boulders(r.fork('boulders'), at, r.int(1, 2), 10)
   );
 }
 
 /** Up to `max` low ridges. */
-const ridges = (r: Rng, max: number) =>
+const ridges = (r: Rng, at: Strew, max: number) =>
   Array.from({ length: r.int(0, max) }, () => {
-    const { x, y } = anywhere(r, 34);
+    const { x, y } = at(r, 34);
     return `<use href="#rg-ridge" transform="translate(${n(x)},${n(y)}) rotate(${r.int(-40, 40)})"/>`;
   }).join('');
 
@@ -236,22 +239,27 @@ const ridges = (r: Rng, max: number) =>
  * A tile's terrain on `world` as a height map over all that's drawn (`DRAWN`): level ground, on Mars dunes
  * and dust devils' tracks, a ridge or two, craters of every age, pits and boulders; Deimos's its own.
  */
-export function terrain(r: Rng, world: World): string {
-  if (world === 'deimos') return deimos(r);
+export const terrain = (r: Rng, world: World): string => LEVEL(DRAWN) + features(r, world, anywhere);
+
+/** Level ground over `area`, for features to stand on and carve. */
+export const LEVEL = (area: Box) => `<rect ${region(area)} fill="rgb(128,0,128)"/>`;
+
+/** A tile's worth of the terrain's features on `world`, each where `at` puts it; dust devils' tracks start anywhere on a square `span` across. */
+export function features(r: Rng, world: World, at: Strew, span = SIZE): string {
+  if (world === 'deimos') return deimos(r, at);
   const mars = world === 'mars';
   return (
-    `<rect ${region(DRAWN)} fill="rgb(128,0,128)"/>` +
-    (mars ? dunes(r.fork('dunes')) + tracks(r.fork('tracks')) : '') +
-    ridges(r, 2) +
-    craters(r, 'o', r.int(1, 2), 0.6, 1.4) +
-    (r.chance(0.25) ? craters(r, 'big', 1, 0.8, 1.05) : '') +
-    craters(r, 'm', r.int(1, 2), 0.32, 0.8) +
-    craters(r, 'y', r.int(1, 2), 0.24, 0.6) +
+    (mars ? dunes(r.fork('dunes'), at) + tracks(r.fork('tracks'), span) : '') +
+    ridges(r, at, 2) +
+    craters(r, at, 'o', r.int(1, 2), 0.6, 1.4) +
+    (r.chance(0.25) ? craters(r, at, 'big', 1, 0.8, 1.05) : '') +
+    craters(r, at, 'm', r.int(1, 2), 0.32, 0.8) +
+    craters(r, at, 'y', r.int(1, 2), 0.24, 0.6) +
     // As many on the flower as there were when they were strewn past the tile's square too.
-    pits(r.fork('pits'), [
+    pits(r.fork('pits'), at, [
       [55, 0.45, 1.12],
       [21, 1.2, 5.6],
     ]) +
-    boulders(r.fork('boulders'), 1, 15)
+    boulders(r.fork('boulders'), at, 1, 15)
   );
 }

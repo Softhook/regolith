@@ -17,7 +17,7 @@ export {
   type PlanetType,
 } from './tokens';
 export { ICONS, icon } from './icons';
-export { GROUND_BASE, REGOLITH_GROUND_PX, REGOLITH_SHADOW } from './regolith';
+export { GROUND_BASE, REGOLITH_GROUND_PX, REGOLITH_SHADOW, REGOLITH_SURFACE, regolithSurfaceSvg } from './regolith';
 export {
   BLED,
   HEX_TILE_CUT,

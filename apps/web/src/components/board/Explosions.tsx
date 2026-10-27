@@ -13,7 +13,7 @@ interface Explosion {
   color: string;
 }
 
-export const EXPLOSION_MS = 1100;
+const EXPLOSION_MS = 1100;
 const SPARKS = 10;
 
 /** Ships knocked off the map by a battle or a card blow up where they stood. None under reduced motion. */
@@ -38,7 +38,7 @@ function useExplosions(game: GameState): Explosion[] {
 }
 
 /** One ship blowing up: a flash, two shock waves and sparks, filling the box `style` places (a space's size). */
-export function Boom({ color, style }: { color: string; style: CSSProperties }) {
+function Boom({ color, style }: { color: string; style: CSSProperties }) {
   return (
     <div className="explosion" style={{ ...style, '--pc': color } as CSSProperties} aria-hidden>
       <span className="boom-flash" />

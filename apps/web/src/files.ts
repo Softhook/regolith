@@ -27,7 +27,7 @@ async function loadSvg(svg: string): Promise<HTMLImageElement> {
 }
 
 /** Draws an SVG document to a `w` × `h` px transparent canvas. */
-async function drawSvg(svg: string, w: number, h: number): Promise<HTMLCanvasElement> {
+export async function drawSvg(svg: string, w: number, h: number): Promise<HTMLCanvasElement> {
   const img = await loadSvg(svg);
   const canvas = document.createElement('canvas');
   canvas.width = w;
@@ -87,7 +87,7 @@ export async function* drawBands(
 }
 
 /** A canvas encoded as `type` (browsers that can't encode it give PNG). */
-const encode = (canvas: HTMLCanvasElement, type = 'image/png', quality?: number) =>
+export const encode = (canvas: HTMLCanvasElement, type = 'image/png', quality?: number) =>
   new Promise<Blob>((resolve, reject) =>
     canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('drawing the SVG failed'))), type, quality),
   );

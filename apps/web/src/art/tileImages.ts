@@ -16,6 +16,7 @@ import { rasteriseWithCutout } from '../files';
 import { COARSE } from '../game/useMediaQuery';
 import { idle, storeImage, storedImage } from './imageStore';
 import { tileArt } from './boardTiles';
+import { surfaceImage } from './surfaceImage';
 
 /**
  * Tile artwork as ready-drawn images: the raster layers of a tile on its world's ground (art `rasterLayerSvg`),
@@ -105,13 +106,15 @@ export function decodedTileImage(tile: TileRef, world: World, layer: RasterLayer
 /**
  * Prepares the chosen map's tiles in the background while the player is in the lobby. Each tile carries its
  * building where that map puts its planet, so they can't be drawn ahead of the map, and drawing them all as the
- * game opens would stall its opening roll. Stops when the map changes.
+ * game opens would stall its opening roll. After the lobby's ground (`surfaceImage`); stops when the map changes.
  */
 export function useWarmMapImages(map: MapDef): void {
   const board = useMemo(() => buildBoard(map), [map]);
   useEffect(() => {
     let live = true;
     void (async () => {
+      // The lobby's ground first: it's what shows, and on a first visit drawing both at once slows it.
+      await surfaceImage(board.world).catch(() => {});
       for (const t of tileArt(board))
         for (const layer of ['ground', 'standing'] as const) {
           await idle();
