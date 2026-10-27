@@ -2202,6 +2202,10 @@ body:has(.sheet-layout) { overflow: hidden; }
   .card-choice:not(.wrap) .qcard-lg .qcard-name { font-size: clamp(13px, 9cqi, 19px); margin-top: clamp(6px, 5cqi, 12px); }
   .card-choice:not(.wrap) .qcard-lg .qcard-sub { font-size: clamp(10px, 6cqi, 12.5px); }
   .card-choice:not(.wrap) .qcard-lg .qcard-text { font-size: clamp(10.5px, 6.4cqi, 13.5px); margin-top: clamp(6px, 6cqi, 14px); }
+  /* A row of cards to pick from (a discard): two to a row, so four fit on a small phone without scrolling. */
+  .card-choice.wrap > .qcard-md { flex: 0 1 calc(50% - 5px); width: auto; height: auto; aspect-ratio: 156 / 206; min-width: 0; container-type: inline-size; }
+  .card-choice.wrap > .qcard-md .qcard-name { font-size: clamp(12px, 9cqi, 17px); }
+  .card-choice.wrap > .qcard-md .qcard-text { font-size: clamp(10px, 6.4cqi, 13px); }
 
   /* Battle on phones: attacker and defender stay side by side (stacked, the battle was twice the
      screen's height), with smaller dice (CombatOverlay) and less space around everything. */
