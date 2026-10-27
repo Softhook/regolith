@@ -91,7 +91,7 @@ Regolith has to be copied out before Cubic deletes it:
 One commit, no rule changes:
 
 - `APP_ID = 'regolith'`, `NAMESPACE = 'regolith'`, `DEFAULT_MODE = 'regolith'`, `GAME_NAME = 'Regolith'`.
-- Packages `@regolith/*` → `@regolith/*` (every `package.json`, every import), root package `name`.
+- Packages `@quantum/*` → `@regolith/*` (every `package.json`, every import), root package `name`.
   The browser scripts' dev hooks are `window.__game` and `window.__gameOnline` in both apps, so they stay.
 - [index.html](../../apps/web/index.html) `<title>`, [manifest.webmanifest](../../apps/web/public/manifest.webmanifest)
   name, colours (the ground palette, not `#050813`), icons and favicon from the mood board, the lobby's credit
@@ -189,7 +189,7 @@ Start with the mode and data, then follow the type errors and knip's unused-expo
 
 One commit, no rule changes:
 
-- Packages `@regolith/*` → `@cubic/*`, root package `"name": "quantum"` → `"cubic"`.
+- Packages `@quantum/*` → `@cubic/*`, root package `"name": "quantum"` → `"cubic"`.
 - `APP_ID = 'cubic'` (storage keys `cubic.*`, IndexedDB `cubic-art`). Saved games under `quantum.*` are dropped:
   there are no users.
 - The README stops saying "working title". The lobby and manual already say Cubic.
@@ -207,3 +207,11 @@ One commit, no rule changes:
 
 - The Card Picks page and the mood board canvas sync with the Regolith repo, not Cubic.
 - This file moves to the Regolith repo as its history. Cubic keeps only the README's pointer.
+
+## Done (2026-10-27)
+
+The split is finished. Regolith is pushed to its own repository and deploys to
+[softhook.github.io/regolith](https://softhook.github.io/regolith/). Cubic went through Phase 4 (the mode and
+rules, the art, hex, the docs) and Phase 5 (the rename), with its golden games for Basic, Classic and
+Community unchanged throughout. This file stays here as the split's history; Cubic keeps only a pointer to
+this repository in its README and ARCHITECTURE.md.
