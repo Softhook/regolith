@@ -1710,7 +1710,8 @@ svg.zones polygon {
   line-height: 1.25;
   letter-spacing: .22em;
   text-transform: uppercase;
-  background: linear-gradient(90deg, #8fd3ff, #b98cff 60%, #ff8ad8);
+  /* Flat paper, clipped to the text so the opening's blur keyframes still apply to it. */
+  background: var(--text);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -1822,15 +1823,15 @@ svg.zones polygon {
 .muted { color: var(--muted); }
 .small { font-size: 12px; }
 .mini-map { display: block; position: relative; flex-shrink: 0; }
-.mini-tile { width: var(--tile, 26px); height: var(--tile, 26px); border-radius: 6px; display: grid; place-items: center; font-size: 12px; font-weight: 700; background: #18223f; border: 1px solid var(--line); }
-.mini-tile.n7 { color: #7ef0d0; } .mini-tile.n8 { color: #7fb2ff; } .mini-tile.n9 { color: #c59bff; } .mini-tile.n10 { color: #ffb27a; }
+.mini-tile { width: var(--tile, 26px); height: var(--tile, 26px); border-radius: 6px; display: grid; place-items: center; font-size: 12px; font-weight: 700; color: var(--text); background: #2e2b28; border: 1px solid var(--line); }
 .mini-tile.gap { background: transparent; border-color: transparent; }
-.mini-tile.n0 { background: repeating-linear-gradient(45deg, #18223f 0 3px, #0d1428 3px 6px); }
-.mini-tile.blank { background: #111a33; }
+/* A Sinkhole, tinted towards ice as on the map setup sheets (art mapSheet.ts). */
+.mini-tile.n0 { background: #2c3538; }
+.mini-tile.blank { background: var(--bg-2); }
 .mini-tile.start { box-shadow: inset 0 0 0 1.5px rgba(255,255,255,.7); }
-/* A map's preview: a hex for each tile, placed, sized and clipped by NewGameFields' MiniMap. A start shows as a brighter hex (no inset ring on a clip). */
+/* A map's preview: a hex for each tile, placed, sized and clipped by NewGameFields' MiniMap. A start shows as a paper hex (no inset ring on a clip). */
 .mini-map .mini-tile { position: absolute; border: 0; border-radius: 0; }
-.mini-map .mini-tile.start { background: #33416e; box-shadow: none; }
+.mini-map .mini-tile.start { background: var(--text); color: var(--on-accent); box-shadow: none; }
 .credits { color: var(--muted); font-size: 12px; text-align: center; max-width: 480px; }
 .version { display: flex; flex-wrap: wrap; gap: 4px 12px; justify-content: center; margin: -8px 0 0; color: var(--muted); font-size: 11.5px; font-variant-numeric: tabular-nums; }
 .version button { color: var(--accent); background: none; border: 0; padding: 0; font: inherit; cursor: pointer; }
