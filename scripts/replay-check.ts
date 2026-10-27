@@ -83,7 +83,7 @@ try {
     localStorage.setItem(logOpen, '1');
   }, appKey('logOpen'));
   await page.reload();
-  await page.getByRole('button', { name: 'Launch fleet' }).click();
+  await page.getByRole('button', { name: 'Deploy your mechs' }).click();
   await page.waitForFunction(() => '__game' in window);
   check(
     (await page.locator('.log li').first().locator('button').count()) === 1,
