@@ -6,9 +6,9 @@ import { castOf, landing, repeatsLastTurn } from '../src/game/cast';
 
 /** Player `me` has taken a card after conquering and will take the first Tactic: `card`. */
 function taking(card: string, skills: string[] = []): GameState {
-  let s = quickStart(2, 42, 'community');
+  let s = quickStart(2, 42);
   const me = s.turn.player;
-  s = arrange(s, { [`p${me}d0`]: [0, 0, 6], [`p${1 - me}d0`]: [0, 1, 3] });
+  s = arrange(s, { [`p${me}d0`]: [0, 5, 6], [`p${1 - me}d0`]: [0, 6, 3] });
   s.players[me].skills = skills.map((id) => ({ id, active: true }));
   s.market.tacticRow[0] = card;
   s.pending.unshift({ kind: 'takeCard', player: me, count: 1 });
@@ -17,29 +17,29 @@ function taking(card: string, skills: string[] = []): GameState {
 
 describe('castOf', () => {
   it('is the Tactic played in the step', () => {
-    const s = taking('aggression');
+    const s = taking('r-aggression');
     const after = apply(s, { type: 'takeCard', deck: 'tactic', index: 0 });
-    expect(castOf(s, after)?.card).toBe('aggression');
+    expect(castOf(s, after)?.card).toBe('r-aggression');
   });
 
   it('is the Tactic whose target the step chooses, before a skill its blow sets off', () => {
-    const s = apply(taking('show-of-force', ['plundering']), { type: 'takeCard', deck: 'tactic', index: 0 });
+    const s = apply(taking('r-show-of-force', ['r-plundering']), { type: 'takeCard', deck: 'tactic', index: 0 });
     const me = s.turn.player;
     const after = apply(s, { type: 'showOfForce', die: `p${1 - me}d0` });
     // Plundering fired too, on an entry of its own.
-    expect(after.log.some((e) => e.card === 'plundering' && e.gains)).toBe(true);
-    expect(castOf(s, after)?.card).toBe('show-of-force');
+    expect(after.log.some((e) => e.card === 'r-plundering' && e.gains)).toBe(true);
+    expect(castOf(s, after)?.card).toBe('r-show-of-force');
   });
 
   it('is nothing for a card taken, or for placing a CE Expansion ship after an earlier Tactic', () => {
-    const s = quickStart(2, 42, 'community');
+    const s = quickStart(2, 42);
     s.pending.unshift({ kind: 'takeCard', player: s.turn.player, count: 1 });
-    s.market.skillRow[0] = 'agile';
+    s.market.skillRow[0] = 'r-agile';
     const after = apply(s, { type: 'takeCard', deck: 'skill', index: 0 });
     expect(castOf(s, after)).toBeUndefined();
 
     // Play a Tactic first, then take an Expansion from the CE pile and place its ship.
-    let g = taking('aggression');
+    let g = taking('r-aggression');
     g.pending[0] = { kind: 'takeCard', player: g.turn.player, count: 2 };
     g = apply(g, { type: 'takeCard', deck: 'tactic', index: 0 });
     g = apply(g, { type: 'takeCard', deck: 'expansion', index: 0 });
@@ -48,7 +48,7 @@ describe('castOf', () => {
   });
 
   it('still counts a Tactic as landing while Clever or Calculating is resolved first', () => {
-    const s = apply(taking('unveil-the-fleet', ['calculating']), { type: 'takeCard', deck: 'tactic', index: 0 });
+    const s = apply(taking('r-unveil-the-fleet', ['r-calculating']), { type: 'takeCard', deck: 'tactic', index: 0 });
     expect(s.pending[0]?.kind).toBe('clever');
     expect(landing(s)).toBe(true);
   });
@@ -75,8 +75,8 @@ describe('repeatsLastTurn', () => {
   });
 
   it('is always news for a bonus that is not a turn’s start (Plundering)', () => {
-    const plunder = bonus(0, 'plundering');
-    const log = [heading(0), bonus(0, 'plundering'), heading(1), heading(0), other(0), plunder];
+    const plunder = bonus(0, 'r-plundering');
+    const log = [heading(0), bonus(0, 'r-plundering'), heading(1), heading(0), other(0), plunder];
     expect(repeatsLastTurn(log, plunder)).toBe(false);
   });
 });

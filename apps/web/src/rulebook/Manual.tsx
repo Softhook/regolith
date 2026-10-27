@@ -720,9 +720,9 @@ export function Manual({ dark }: { dark?: boolean }) {
 const Yes = () => <span className="mn-yes">✓</span>;
 const No = () => <span className="mn-none">—</span>;
 
-/** What changes between rule sets, read from RULESETS so it can't disagree with the engine. Experimental modes (Regolith) are left out. */
+/** What changes between rule sets, read from RULESETS so it can't disagree with the engine. */
 function RuleSetTable() {
-  const modes = MODES.filter((m) => !m.experimental);
+  const modes = MODES;
   const rows: [string, (m: (typeof MODES)[number]) => ReactNode][] = [
     [
       'Cards',

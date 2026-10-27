@@ -5,7 +5,7 @@
  *
  *   npm run mobile:play                          # every device × game below
  *   npm run mobile:play -- --device moto-g55     # one device
- *   npm run mobile:play -- --game classic-3p     # one game
+ *   npm run mobile:play -- --game regolith-3p    # one game
  *   npm run mobile:play -- --url https://…/      # a running dev server
  *
  * The human seat (Commander) plays a random but purposeful game: it takes every decision put to it
@@ -26,8 +26,8 @@ import { PHONES, arg, devServer, finish, launchChrome, playUrl } from './mobile-
 
 const GAMES: Record<string, { play: string; players: number; map?: string }> = {
   'basic-2p': { play: 'basic', players: 2 },
-  'classic-3p': { play: 'original', players: 3 },
-  'community-4p': { play: 'community', players: 4, map: 'tesseract' },
+  'regolith-3p': { play: 'regolith', players: 3 },
+  'regolith-4p': { play: 'regolith', players: 4, map: 'tesseract-hex' },
 };
 
 /** Turns after which a game counts as not finishing (Basic ends well before this). */

@@ -2,82 +2,28 @@
 
 exports[`golden master > basic, 2 players, seed 11 1`] = `
 {
-  "actions": "373eff2b4baea279",
-  "state": "268ee9f0b54b9f72",
-  "steps": 101,
+  "actions": "f11efa1923cbabb1",
+  "state": "879a8fe6eba6959c",
+  "steps": 74,
   "winner": 0,
 }
 `;
 
 exports[`golden master > basic, 3 players, seed 12 1`] = `
 {
-  "actions": "43d53e9f619b76ba",
-  "state": "f6e680aaee7d2bbd",
-  "steps": 195,
+  "actions": "1fc7f3dde374dbbc",
+  "state": "58e1009fb0642dd9",
+  "steps": 123,
   "winner": 2,
 }
 `;
 
 exports[`golden master > basic, 4 players, seed 13 1`] = `
 {
-  "actions": "ea1ac822f6103889",
-  "state": "793e7c15a8089c2e",
-  "steps": 329,
-  "winner": 2,
-}
-`;
-
-exports[`golden master > community, 2 players, seed 11 1`] = `
-{
-  "actions": "1f970e606db55945",
-  "state": "96fcafcaa143dc09",
-  "steps": 102,
-  "winner": 0,
-}
-`;
-
-exports[`golden master > community, 3 players, seed 12 1`] = `
-{
-  "actions": "b99f00bcacc2cf7d",
-  "state": "51cfa06f97e182f2",
-  "steps": 158,
-  "winner": 2,
-}
-`;
-
-exports[`golden master > community, 4 players, seed 13 1`] = `
-{
-  "actions": "8448a534d0d9687a",
-  "state": "d933490a4035caf7",
-  "steps": 393,
-  "winner": 2,
-}
-`;
-
-exports[`golden master > original, 2 players, seed 11 1`] = `
-{
-  "actions": "54222b172019a996",
-  "state": "d74d5a8fb631deff",
-  "steps": 76,
-  "winner": 1,
-}
-`;
-
-exports[`golden master > original, 3 players, seed 12 1`] = `
-{
-  "actions": "c6d0babffcd28268",
-  "state": "1125675d60a47d7e",
-  "steps": 216,
-  "winner": 2,
-}
-`;
-
-exports[`golden master > original, 4 players, seed 13 1`] = `
-{
-  "actions": "bd2faf46fcefd51b",
-  "state": "09f49d56e93478c3",
-  "steps": 312,
-  "winner": 2,
+  "actions": "b8efb49915969590",
+  "state": "bd0a52012cdeed16",
+  "steps": 347,
+  "winner": 3,
 }
 `;
 

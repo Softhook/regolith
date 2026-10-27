@@ -95,18 +95,24 @@ describe('a battle the engine crashes on', () => {
     const errors = vi.spyOn(console, 'error').mockImplementation(() => {});
     const { t, g } = game([seat('Alice'), seat('Bot', true)]);
     let tip = g.id;
-    // Basic has no missiles or cards, so a battle resolves as soon as it is declared.
+    // From the first attack on, battles fail: the timeline resolves one by itself once every seat it waits for has passed.
     for (let i = 0; i < 2000 && !t.replay()!.crash; i++) {
       const s = t.replay()!.steps.at(-1)!.state;
       if (s.phase === 'over') break;
+      const combat = t.replay()!.combat;
+      if (combat) {
+        for (const w of combat.waitingOn) t.add(post('alice', { t: 'pass', seat: w, stage: combat.stage }));
+        continue;
+      }
       const attack = legalActions(s).find((a) => a.type === 'attack');
-      engine.failBattles = !!attack;
+      engine.failBattles ||= !!attack;
       const p = post('alice', { t: 'act', seat: actor(s), action: attack ?? chooseAction(s, { level: 1, samples: 1 })! }, tip);
       t.add(p);
       tip = t.replay()!.tip;
     }
     expect(t.replay()!.crash).toEqual({ seat: null });
-    expect(t.replay()!.combat?.waitingOn).toEqual([]);
+    const combat = t.replay()!.combat!;
+    expect(combat.waitingOn.every((w) => combat.passed.includes(w))).toBe(true);
     expect(errors).toHaveBeenCalledWith('[game] a battle failed to resolve', expect.objectContaining({ error: expect.any(TypeError) }));
   });
 });

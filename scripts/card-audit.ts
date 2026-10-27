@@ -21,7 +21,7 @@ import {
   modeCards,
   type AuditResult,
 } from '../packages/engine/test/audit';
-import { effectOf, type GameMode } from '../packages/engine/src';
+import { effectOf, MODES, type GameMode } from '../packages/engine/src';
 
 const args = process.argv.slice(2);
 const deep = args.includes('--deep');
@@ -48,7 +48,7 @@ for (const g of games) {
   }
 }
 
-for (const mode of ['community', 'original'] as const) {
+for (const { id: mode } of MODES.filter((m) => m.cards)) {
   const mine = results.filter((r) => r.name.startsWith(mode));
   if (!mine.length) continue;
   console.log(`\n=== ${mode}: card coverage over ${mine.length} games ===`);

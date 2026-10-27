@@ -107,7 +107,7 @@ async function main() {
   const page = await browser.newPage({ viewport: { width: 1400, height: 900 } });
   const cdp = await page.context().newCDPSession(page);
   page.on('pageerror', (e) => console.log('page error:', e.message));
-  await page.goto(playUrl(server.base, { play: 'community', players: 4, map: 'tesseract', scene: 'turn' }));
+  await page.goto(playUrl(server.base, { play: 'regolith', players: 4, map: 'tesseract-hex', scene: 'turn' }));
   await page.waitForSelector('.market-card');
   await page.waitForTimeout(3000); // the tiles drawn, the dev server's modules loaded
   await cdp.send('Emulation.setCPUThrottlingRate', { rate: THROTTLE });

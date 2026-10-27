@@ -18,12 +18,6 @@ import { shoot } from './powers/shoot';
 import { REGOLITH_WORDS } from './words';
 
 /**
- * Whether Regolith plays with cards (Skills, Tactics, research). Flip it to try the mode without them, and
- * refresh the golden games after (`npx vitest run golden -u`).
- */
-export const REGOLITH_CARDS = true;
-
-/**
  * Regolith's own decks (data/regolith.yaml, built into cards.json): each card started as a Community card
  * (`from`) and plays by its rules (`effect`) until it is reworked. Ingenious isn't among them: hexes have no corners.
  */
@@ -76,41 +70,55 @@ const REGOLITH_SHIPS: ShipTable = Object.fromEntries(
   Object.entries(SHIPS).map(([v, ship]) => [v, { ...ship, hooks: { ...ship.hooks, ...picket.hooks } }]),
 );
 
+/** The words Regolith describes itself with in the lobby, after what each mode adds. */
+const RULES_TEXT = `moves capped at 3, zones of control (a mech moving next to an enemy mech, not diagonally, stops there), a ranged Sniper, a Wisp that fires barriers and contested orbits (no conquering${REGOLITH_CONTESTED_DEPLOY ? ` or deploying${REGOLITH_HOME_SHIPYARD ? ', except to your home planet,' : ''}` : ''} while an enemy mech is in orbit)${REGOLITH_OVER_CONQUEST ? ' and over-conquest, displacing an opponent cube' : ''}`;
+
 /**
- * Regolith (docs/regolith/REGOLITH.md) is built on `base` (Community Edition, see rulesets.ts): its
- * missiles and card market are kept, dealing its own decks (REGOLITH_DECKS) as REGOLITH_CARDS says. It plays the hex maps only, the hex, open-ground and
- * off-centre (drift) ones, on Phobos's, Deimos's and Mars's ground.
+ * Regolith (docs/regolith/REGOLITH.md): missiles, a starting skill drafted from its own decks (REGOLITH_DECKS) and
+ * a card market with peeking. It plays the hex maps only, the hex, open-ground and off-centre (drift) ones, on
+ * Phobos's, Deimos's and Mars's ground.
  */
-export function regolithMode(base: RuleSet): RuleSet {
-  return {
-    ...base,
-    id: 'regolith',
-    name: 'Regolith',
-    title: 'Regolith',
-    summary: reword(
-      REGOLITH_WORDS,
-      `Mechs fight over the ice of Mars and its moons, on hex maps. Community Edition${REGOLITH_CARDS ? ' with its own deck,' : ' without cards,'} with moves capped at 3, zones of control (a mech moving next to an enemy mech, not diagonally, stops there), a ranged Sniper, a Wisp that fires barriers and contested orbits (no conquering${REGOLITH_CONTESTED_DEPLOY ? ` or deploying${REGOLITH_HOME_SHIPYARD ? ', except to your home planet,' : ''}` : ''} while an enemy mech is in orbit)${REGOLITH_OVER_CONQUEST ? ' and over-conquest, displacing an opponent cube' : ''}.`,
-    ),
-    cards:
-      REGOLITH_CARDS && base.cards
-        ? {
-            ...base.cards,
-            skills: REGOLITH_DECKS.skills,
-            tactics: REGOLITH_DECKS.tactics,
-            expansion: REGOLITH_DECKS.expansion[0],
-            // Printed in screenprint (docs/regolith/REGOLITH.md §5).
-            look: 'screenprint',
-          }
-        : null,
-    mapGroups: ['hex', 'open', 'drift'],
-    ships: REGOLITH_SHIPS,
-    maxMovement: MAX_MOVEMENT,
-    overConquest: REGOLITH_OVER_CONQUEST,
-    contestedOrbit: true,
-    contestedDeploy: REGOLITH_CONTESTED_DEPLOY,
-    homeShipyard: REGOLITH_HOME_SHIPYARD,
-    experimental: true,
-    look: 'ground',
-    words: REGOLITH_WORDS,
-  };
-}
+export const REGOLITH: RuleSet = {
+  id: 'regolith',
+  name: 'Regolith',
+  title: 'Regolith',
+  summary: reword(REGOLITH_WORDS, `Mechs fight over the ice of Mars and its moons, on hex maps, with their own deck, ${RULES_TEXT}.`),
+  actionsPerTurn: 3,
+  researchLimit: 6,
+  cards: {
+    skills: REGOLITH_DECKS.skills,
+    tactics: REGOLITH_DECKS.tactics,
+    expansion: REGOLITH_DECKS.expansion[0],
+    startingSkillDraft: true,
+    peek: true,
+    expansionPile: true,
+    refresh: false,
+    // Printed in screenprint (docs/regolith/REGOLITH.md §5).
+    look: 'screenprint',
+    terms: { skill: 'skill', skills: 'skills', skillDeck: 'Skills', tacticDeck: 'Tactics' },
+  },
+  startingMissiles: 1,
+  reconfigure: 'unseen',
+  mapGroups: ['hex', 'open', 'drift'],
+  ships: REGOLITH_SHIPS,
+  maxMovement: MAX_MOVEMENT,
+  overConquest: REGOLITH_OVER_CONQUEST,
+  contestedOrbit: true,
+  contestedDeploy: REGOLITH_CONTESTED_DEPLOY,
+  homeShipyard: REGOLITH_HOME_SHIPYARD,
+  look: 'ground',
+  words: REGOLITH_WORDS,
+};
+
+/**
+ * Basic: Regolith without cards, for learning. The same mechs, powers, missiles, zones of control, contested
+ * orbits and maps, with no research, market or starting skill, so what a player learns carries over unchanged.
+ */
+export const BASIC: RuleSet = {
+  ...REGOLITH,
+  id: 'basic',
+  name: 'Basic',
+  title: 'Basic',
+  summary: reword(REGOLITH_WORDS, `Regolith without cards, for learning: ${RULES_TEXT}.`),
+  cards: null,
+};

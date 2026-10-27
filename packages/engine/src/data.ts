@@ -25,7 +25,7 @@ export interface CardDef {
   art?: { title: string; brief: string };
 }
 
-export type GameMode = 'basic' | 'original' | 'community' | 'regolith';
+export type GameMode = 'basic' | 'regolith';
 
 export interface MapDef {
   id: string;

@@ -47,8 +47,8 @@ describe('highlightsFor', () => {
   });
 
   it('lights a selected ship’s moves and attacks', () => {
-    // A Scout (6) next to an enemy Destroyer (3), far from the planets' orbits.
-    const s = myTurn(arrange(quickStart(2, 1, 'basic'), { p0d0: [0, 0, 6], p1d0: [0, 1, 3] }));
+    // A Tactician (3) next to an enemy Tactician.
+    const s = myTurn(arrange(quickStart(2, 1, 'basic'), { p0d0: [7, 2, 3], p1d0: [7, 3, 3] }));
     const h = lit(s, { kind: 'ship', die: 'p0d0' });
     expect(h.dice.get('p1d0')).toBe('attack');
     expect([...h.cells.keys()].sort()).toEqual(
@@ -61,13 +61,13 @@ describe('highlightsFor', () => {
   });
 
   it('lights nothing for a human outside a decision or the action phase', () => {
-    const s = myTurn(arrange(quickStart(2, 1, 'basic'), { p0d0: [0, 0, 6] }));
+    const s = myTurn(arrange(quickStart(2, 1, 'basic'), { p0d0: [7, 2, 3] }));
     const h = lit(s, { kind: 'ship', die: 'p0d0' }, false);
     expect(h.cells.size + h.dice.size + h.planets.size).toBe(0);
   });
 
   it('lights deploy spaces for a ship in the scrapyard', () => {
-    const s = myTurn(arrange(quickStart(2, 1, 'basic'), { p0d0: [0, 0, 6] }));
+    const s = myTurn(arrange(quickStart(2, 1, 'basic'), { p0d0: [7, 2, 3] }));
     const scrap = s.dice.find((d) => d.owner === 0 && d.loc.zone === 'scrapyard')!;
     expect(cellKeys(s, { kind: 'scrap', die: scrap.id })).toEqual(
       legalFor(s)

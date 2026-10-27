@@ -32,8 +32,6 @@ import {
   infamyTargets,
   isEmptySpace,
   legalActions,
-  ORIGINAL_COMMAND,
-  ORIGINAL_GAMBIT,
   relocationOptions,
   reserve,
   RuleError,
@@ -41,9 +39,7 @@ import {
   same,
   shipsOnBoard,
   shuntTargets,
-  SKILLS,
   spaces,
-  TACTICS,
   type Action,
   type CardDef,
   type GameMode,
@@ -145,14 +141,13 @@ export const CHECKED_EFFECTS = new Set([
 
 /** Every card of a card mode. */
 export function modeCards(mode: GameMode): CardDef[] {
-  if (mode === 'original') return [...ORIGINAL_COMMAND, ...ORIGINAL_GAMBIT];
   const cards = RULESETS[mode].cards;
-  return cards ? [...cards.skills, ...cards.tactics, cards.expansion ?? EXPANSION] : [...SKILLS, ...TACTICS, EXPANSION];
+  return cards ? [...cards.skills, ...cards.tactics, cards.expansion ?? EXPANSION] : [];
 }
 
 /** The skills a game deals from, in a fixed order. */
 function dealable(mode: GameMode): string[] {
-  return (mode === 'original' ? ORIGINAL_COMMAND : SKILLS).map((c) => c.id);
+  return (RULESETS[mode].cards?.skills ?? []).map((c) => c.id);
 }
 
 /**
@@ -162,23 +157,16 @@ function dealable(mode: GameMode): string[] {
  * bigger games use level 1.
  */
 export const AUDIT_GAMES: (AuditGame & { quick?: boolean; deep?: boolean })[] = [
-  { mode: 'community', mapId: 'alpha-sector', players: 2, levels: [1, 1], seed: 101, deal: 0, quick: true },
-  { mode: 'community', mapId: 'space-time-continuum', players: 3, levels: [1, 1, 1], seed: 102, deal: 6, quick: true },
-  { mode: 'community', mapId: 'bifurcation', players: 4, levels: [1, 1, 1, 1], seed: 103, deal: 15 },
-  { mode: 'community', mapId: 'null-hypothesis', players: 2, levels: [3, 2], seed: 104, deal: 27 },
-  { mode: 'community', mapId: 'precis', players: 2, levels: [2, 1], seed: 105, deal: 33, quick: true },
-  { mode: 'original', mapId: 'blocus', players: 2, levels: [1, 1], seed: 201, deal: 0, quick: true },
-  { mode: 'original', mapId: 'critical-density', players: 3, levels: [1, 1, 1], seed: 202, deal: 6, quick: true },
-  { mode: 'original', mapId: 'eden', players: 4, levels: [1, 1, 1, 1], seed: 203, deal: 15, quick: true },
-  { mode: 'original', mapId: 'axiomatic', players: 2, levels: [3, 2], seed: 204, deal: 27 },
+  { mode: 'regolith', mapId: 'alpha-hex', players: 2, levels: [1, 1], seed: 101, deal: 0, quick: true },
+  { mode: 'regolith', mapId: 'beta-hex', players: 3, levels: [1, 1, 1], seed: 102, deal: 6, quick: true },
+  { mode: 'regolith', mapId: 'gamma-hex', players: 4, levels: [1, 1, 1, 1], seed: 103, deal: 15, quick: true },
+  { mode: 'regolith', mapId: 'circular-logic-hex', players: 2, levels: [3, 2], seed: 104, deal: 27 },
+  { mode: 'regolith', mapId: 'terra-minor-hex', players: 2, levels: [2, 1], seed: 105, deal: 28, quick: true },
   // Deep: level 4, other maps and other deals.
-  { mode: 'community', mapId: 'interpolation', players: 2, levels: [4, 3], seed: 111, deal: 3, deep: true },
-  { mode: 'community', mapId: 'aperture', players: 3, levels: [1, 1, 1], seed: 112, deal: 12, deep: true },
-  { mode: 'community', mapId: 'eden', players: 4, levels: [1, 2, 1, 1], seed: 113, deal: 21, deep: true },
-  { mode: 'community', mapId: 'rupture', players: 2, levels: [2, 2], seed: 114, deal: 30, deep: true },
-  { mode: 'original', mapId: 'alpha-sector', players: 2, levels: [4, 3], seed: 211, deal: 18, deep: true },
-  { mode: 'original', mapId: 'invaders', players: 3, levels: [1, 1, 1], seed: 212, deal: 12, deep: true },
-  { mode: 'original', mapId: 'gamma-sector', players: 4, levels: [1, 2, 1, 1], seed: 213, deal: 21, deep: true },
+  { mode: 'regolith', mapId: 'valles-marineris', players: 2, levels: [4, 3], seed: 111, deal: 3, deep: true },
+  { mode: 'regolith', mapId: 'stickney-crater', players: 3, levels: [1, 1, 1], seed: 112, deal: 12, deep: true },
+  { mode: 'regolith', mapId: 'utopia-planitia', players: 4, levels: [1, 2, 1, 1], seed: 113, deal: 21, deep: true },
+  { mode: 'regolith', mapId: 'twin-drift', players: 2, levels: [2, 2], seed: 114, deal: 30, deep: true },
 ];
 
 export const gameName = (g: AuditGame) => `${g.mode} ${g.players}p ${g.mapId ?? 'default map'} L${g.levels.join('/')}`;
@@ -325,8 +313,7 @@ function destroyed(c: Step, w: PlayerId, v: PlayerId, inCombat: boolean) {
 export function cardTaken(before: GameState, action: Action, after: GameState): { id: string; p: PlayerId; played: boolean } | undefined {
   const head = before.pending[0];
   if (action.type === 'takeCard' && head?.kind === 'takeCard') {
-    if (action.deck === 'expansion')
-      return { id: before.mode === 'original' ? 'o-expansion' : expansionCard(before).id, p: head.player, played: true };
+    if (action.deck === 'expansion') return { id: expansionCard(before).id, p: head.player, played: true };
     // Taking the oldest card may only open a peek at the deck; the card is taken by the peekChoice.
     if (after.pending[0]?.kind === 'peek' && after.pending[0].player === head.player) return;
     const row = action.deck === 'skill' ? before.market.skillRow : before.market.tacticRow;

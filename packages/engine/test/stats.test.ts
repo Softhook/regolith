@@ -1,6 +1,6 @@
 /** The players' game stats (PlayerState.stats): each event counted once, for the right players, and the totals agreeing. */
 import { describe, expect, it } from 'vitest';
-import { apply, type GameState, type PlayerStats } from '../src';
+import { apply, MODES, type GameState, type PlayerStats } from '../src';
 import { setSkills, toRow } from './audit';
 import { arrange, playAiGame, quickStart } from './helpers';
 
@@ -19,7 +19,7 @@ function gained(before: GameState, after: GameState) {
 
 /** Player 0's ship p0d0 attacks player 1's p1d0 with fixed combat rolls (the lower total wins); `foe`: player 1's skills. */
 function battle(attackerWins: boolean, foe: string[] = []) {
-  const before = arrange(quickStart(2, 5, 'community'), { p0d0: [2, 2, 3], p1d0: [2, 3, 3] });
+  const before = arrange(quickStart(2, 5), { p0d0: [7, 2, 3], p1d0: [7, 3, 3] });
   before.turn.player = 0;
   setSkills(before, 1, foe);
   let s = apply(before, { type: 'attack', die: 'p0d0', target: 'p1d0' });
@@ -51,7 +51,7 @@ describe('game stats', () => {
   });
 
   it('count a Stubborn defender destroying the attacker', () => {
-    const { before, s } = battle(false, ['stubborn']);
+    const { before, s } = battle(false, ['r-stubborn']);
     expect(gained(before, s)).toEqual([
       { battlesLost: 1, shipsLost: 1 },
       { battlesWon: 1, shipsDestroyed: 1 },
@@ -59,7 +59,7 @@ describe('game stats', () => {
   });
 
   it('count Dangerous destroying both ships as no battle: only the enemy ship', () => {
-    const { before } = battle(true, ['dangerous']);
+    const { before } = battle(true, ['r-dangerous']);
     let s = apply(before, { type: 'attack', die: 'p0d0', target: 'p1d0' });
     expect(s.pending[0]?.kind).toBe('dangerous');
     s = apply(s, { type: 'dangerous', destroy: true });
@@ -67,7 +67,7 @@ describe('game stats', () => {
   });
 
   it('count a ship destroyed by Show of Force, but not your own', () => {
-    const before = arrange(quickStart(2, 5, 'community'), { p0d0: [2, 2, 3], p1d0: [2, 4, 3] });
+    const before = arrange(quickStart(2, 5), { p0d0: [7, 2, 3], p1d0: [7, 4, 3] });
     before.pending.unshift({ kind: 'showOfForce', player: 0 });
     const s = apply(before, { type: 'showOfForce', die: 'p1d0' });
     expect(gained(before, s)).toEqual([{ shipsDestroyed: 1 }, { shipsLost: 1 }]);
@@ -79,7 +79,7 @@ describe('game stats', () => {
     const base = quickStart(2, 1, 'basic');
     expect(base.players.map((p) => p.stats!.planetsTaken)).toEqual([0, 0]);
     // Planet 4 (an 8) between a 6 and a 2 (basic.test.ts's scenario).
-    const before = arrange(base, { p0d0: [3, 4, 6], p0d1: [5, 4, 2] });
+    const before = arrange(base, { p0d0: [5, 4, 6], p0d1: [7, 4, 2] });
     for (const p of before.board.planets) p.cubes = p.cubes.filter((o) => o !== 0 || p.id === 2);
     before.players[0].cubesLeft = 4;
     before.turn = { ...before.turn, player: 0, phase: 'actions', actionsLeft: 3 };
@@ -92,11 +92,11 @@ describe('game stats', () => {
   });
 
   it('count every card gained: taken, stored with Patient, an Expansion, or drawn by Change of Heart', () => {
-    let s = quickStart(2, 611, 'community');
+    let s = quickStart(2, 611);
     const p = s.turn.player;
     const taken = () => s.players[p].stats!.cardsTaken;
-    s.players[p].skills = [{ id: 'patient', active: true }];
-    toRow(s, 'tactic', 'aggression');
+    s.players[p].skills = [{ id: 'r-patient', active: true }];
+    toRow(s, 'tactic', 'r-aggression');
     s.pending.unshift({ kind: 'takeCard', player: p, count: 1 });
     s = apply(s, { type: 'takeCard', deck: 'tactic', index: 0, store: true });
     expect(taken()).toBe(1);
@@ -115,7 +115,7 @@ describe('game stats', () => {
     expect(taken()).toBe(4);
   });
 
-  for (const mode of ['basic', 'original', 'community'] as const)
+  for (const { id: mode } of MODES)
     it(`add up over a whole ${mode} game`, () => {
       const { state } = playAiGame({ mode, players: 3, seed: 21, aiSeed: 21 * 7919 });
       const stats = state.players.map((p) => p.stats);

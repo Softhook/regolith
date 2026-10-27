@@ -37,7 +37,7 @@ const { a, b, games, mode, players, jobs, margin, seed } = args({
   a: '1',
   b: '3',
   games: '400',
-  mode: 'basic',
+  mode: 'regolith',
   players: '2',
   jobs: defaultJobs,
   margin: '10',

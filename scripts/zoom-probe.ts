@@ -211,7 +211,7 @@ async function phone(page: Page, cdp: CDPSession) {
 async function main() {
   const server = await devServer(5192);
   const browser = await launchChrome();
-  const url = playUrl(server.base, { play: 'community', players: 4, map: 'tesseract', scene: 'turn' });
+  const url = playUrl(server.base, { play: 'regolith', players: 4, map: 'tesseract-hex', scene: 'turn' });
   for (const [name, options] of [
     ['desktop 1400×900', { viewport: { width: 1400, height: 900 } }],
     ['Moto G55', MOTO_G55],

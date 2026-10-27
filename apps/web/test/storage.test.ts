@@ -1,6 +1,6 @@
 /** Online games share storage with the game on this device; finished ones make way for it. */
 import { beforeEach, describe, expect, it } from 'vitest';
-import { createGame, defaultMap } from '@regolith/engine';
+import { createGame } from '@regolith/engine';
 import { forget, remember, stored } from '../src/storage';
 import { loadSavedGame } from '../src/game/savedGame';
 import { forgetFinishedGames, onlineGames } from '../src/online/games';
@@ -118,7 +118,7 @@ describe('online games in storage', () => {
     const { event } = encodePost(
       gameKeys(game),
       generateSecretKey(),
-      { t: 'create', protocol: PROTOCOL, config: { players, mapId: defaultMap(2)!.id, mode: 'community', seed: 1 }, creator: 0, open: [] },
+      { t: 'create', protocol: PROTOCOL, config: { players, mapId: 'alpha-hex', mode: 'regolith', seed: 1 }, creator: 0, open: [] },
       null,
     );
 

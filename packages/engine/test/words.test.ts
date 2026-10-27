@@ -5,9 +5,9 @@ import { quickStart } from './helpers';
 describe("a mode's words", () => {
   const words = RULESETS.regolith.words;
 
-  it('reads as Quantum in the official modes', () => {
-    for (const mode of ['basic', 'original', 'community'] as const) expect(RULESETS[mode].words).toBeUndefined();
-    expect(say(quickStart(2, 1, 'community'), 'Deploy a ship in orbit of a planet.')).toBe('Deploy a ship in orbit of a planet.');
+  it('are the same in Basic, Regolith without its cards', () => {
+    expect(RULESETS.basic.words).toBe(words);
+    expect(say(quickStart(2, 1, 'basic'), 'Deploy a ship in orbit of a planet.')).toBe('Drop a mech on the perimeter of an objective.');
   });
 
   it("says Regolith's words, in the case and with the article they were written with", () => {
@@ -41,7 +41,8 @@ describe("a mode's words", () => {
     expect(say(s, 'Player 1 plays Orbital Cannon.')).toBe('Player 1 plays Orbital Cannon.');
   });
 
-  it('describes Regolith in its own words in the lobby', () => {
-    expect(RULESETS.regolith.summary).not.toMatch(/\b(ships?|planets?|orbits?|conquer\w*|deploy\w*)\b/i);
+  it('describes both modes in their own words in the lobby', () => {
+    for (const { summary } of [RULESETS.basic, RULESETS.regolith])
+      expect(summary).not.toMatch(/\b(ships?|planets?|orbits?|conquer\w*|deploy\w*)\b/i);
   });
 });

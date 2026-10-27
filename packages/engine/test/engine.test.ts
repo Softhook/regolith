@@ -9,14 +9,17 @@ import {
   legalActions,
   isUndoable,
   moveOptions,
-  type Action,
-  type GameMode,
   type GameState,
-  ORIGINAL_COMMAND,
-  ORIGINAL_GAMBIT,
   type CombatPending,
 } from '../src';
 import { arrange, players, quickStart } from './helpers';
+
+/*
+ * Regolith on Alpha Sector (hex), the 2-player map, in axial cells (docs/HEX.md): a space's sides are a row
+ * or column away, or (-1, +1) and (+1, -1). The top start planet, a 7, is at (1,5), with the spaces (0,5) and
+ * (0,6) above it; the middle 8 is at (6,4), orbited by (5,4), (5,5), (6,3), (6,5), (7,3) and (7,4); row 7 runs
+ * clear from (7,2) to (7,6), and the far corner is (12,2) beside (12,3).
+ */
 
 describe('setup', () => {
   it('ends with every player on a starting planet with 3 ships', () => {
@@ -49,24 +52,16 @@ describe('setup', () => {
 });
 
 describe('movement', () => {
-  it('moves orthogonally up to the ship value, blocked by planets and ships', () => {
-    // Alpha sector: planet tiles centred at (1,1),(1,4)... ship at (0,0)
-    const s = arrange(quickStart(), { p0d0: [0, 0, 2], p0d1: [0, 2, 3] });
+  it('moves across sides up to the ship value, blocked by planets and ships', () => {
+    // From (0,5), past the start planet at (1,5), with an own ship on (0,6).
+    const s = arrange(quickStart(), { p0d0: [0, 5, 2], p0d1: [0, 6, 3] });
     const opts = moveOptions(s, 'p0d0');
     const keys = [...opts.moves.keys()].sort();
-    expect(keys).toEqual(['0,1', '1,0', '2,0'].sort());
-  });
-
-  it('lets an interceptor move diagonally using its ability', () => {
-    // Orthogonal paths are preferred; only diagonal-only destinations use the ability.
-    const s = arrange(quickStart(), { p0d0: [0, 0, 5] });
-    expect(moveOptions(s, 'p0d0').moves.get('2,2')?.diagonal).toBe(false);
-    const s2 = arrange(quickStart(), { p0d0: [2, 2, 5], p1d0: [2, 3, 6], p1d1: [3, 2, 6] });
-    expect(moveOptions(s2, 'p0d0').moves.get('3,3')?.diagonal).toBe(true);
+    expect(keys).toEqual(['1,4', '2,4'].sort());
   });
 
   it('finds attacks on adjacent enemies within range', () => {
-    const s = arrange(quickStart(), { p0d0: [0, 0, 1], p1d0: [0, 1, 6] });
+    const s = arrange(quickStart(), { p0d0: [0, 5, 1], p1d0: [0, 6, 6] });
     expect(moveOptions(s, 'p0d0').attacks.has('p1d0')).toBe(true);
   });
 });
@@ -74,10 +69,10 @@ describe('movement', () => {
 describe('conquer', () => {
   it('needs orbital ships summing exactly to the planet number', () => {
     let s = quickStart();
-    const centre = s.board.planets.find((p) => p.number === 8)!; // (4,4)
-    s = arrange(s, { p0d0: [3, 4, 3], p0d1: [5, 4, 5] });
+    const centre = s.board.planets.find((p) => p.number === 8)!; // (6,4)
+    s = arrange(s, { p0d0: [5, 4, 3], p0d1: [7, 4, 5] });
     expect(conquerCheck(s, 0, centre.id).ok).toBe(true);
-    s = arrange(s, { p0d0: [3, 4, 3], p0d1: [5, 4, 4] });
+    s = arrange(s, { p0d0: [5, 4, 3], p0d1: [7, 4, 4] });
     expect(conquerCheck(s, 0, centre.id).ok).toBe(false);
   });
 
@@ -85,7 +80,7 @@ describe('conquer', () => {
     let s = quickStart();
     s.turn.player = 0;
     const centre = s.board.planets.find((p) => p.number === 8)!;
-    s = arrange(s, { p0d0: [3, 4, 3], p0d1: [5, 4, 5] });
+    s = arrange(s, { p0d0: [5, 4, 3], p0d1: [7, 4, 5] });
     s = apply(s, { type: 'conquer', planet: centre.id });
     expect(s.board.planets[centre.id].cubes).toContain(0);
     expect(s.turn.actionsLeft).toBe(1);
@@ -97,7 +92,7 @@ describe('combat', () => {
   it('attacker wins ties, gains dominance, defender goes to the scrapyard', () => {
     let s = quickStart();
     s.turn.player = 0;
-    s = arrange(s, { p0d0: [0, 0, 2], p1d0: [0, 1, 2] });
+    s = arrange(s, { p0d0: [0, 5, 2], p1d0: [0, 6, 2] });
     s = apply(s, { type: 'attack', die: 'p0d0', target: 'p1d0' });
     const combat = s.pending[0];
     expect(combat.kind).toBe('combat');
@@ -109,13 +104,13 @@ describe('combat', () => {
     expect(s.players[0].dominance).toBe(2);
     expect(s.pending[0].kind).toBe('advance');
     s = apply(s, { type: 'advance', move: true });
-    expect(s.dice.find((d) => d.id === 'p0d0')!.loc).toEqual({ zone: 'board', r: 0, c: 1 });
+    expect(s.dice.find((d) => d.id === 'p0d0')!.loc).toEqual({ zone: 'board', r: 0, c: 6 });
   });
 
   it('a missile sets a combat roll to 1', () => {
     let s = quickStart();
     s.turn.player = 0;
-    s = arrange(s, { p0d0: [0, 0, 6], p1d0: [0, 1, 1] });
+    s = arrange(s, { p0d0: [0, 5, 6], p1d0: [0, 6, 1] });
     s = apply(s, { type: 'attack', die: 'p0d0', target: 'p1d0' });
     if (s.pending[0].kind !== 'combat') throw new Error();
     s.pending[0].attacker.dice = [6];
@@ -123,7 +118,7 @@ describe('combat', () => {
     s = apply(s, { type: 'missile', by: 0, side: 'attacker' }); // 1+6=7 vs 1+1=2: still loses
     expect(s.players[0].missiles).toBe(0);
     s = apply(s, { type: 'resolveCombat' });
-    expect(s.dice.find((d) => d.id === 'p0d0')!.loc).toEqual({ zone: 'board', r: 0, c: 0 });
+    expect(s.dice.find((d) => d.id === 'p0d0')!.loc).toEqual({ zone: 'board', r: 0, c: 5 });
   });
 });
 
@@ -131,7 +126,8 @@ describe('missiles', () => {
   function battle(defender: { skills?: string[]; planAhead?: number }, rolls: [number, number], playerCount = 2) {
     let s = quickStart(playerCount);
     s.turn.player = 1;
-    s = arrange(s, { p1d0: [0, 0, 2], p0d0: [0, 1, 5] });
+    // (4,4) and (4,5) are spaces on the 2- and 3-player hex maps both.
+    s = arrange(s, { p1d0: [4, 4, 2], p0d0: [4, 5, 5] });
     s.players[0].skills = (defender.skills ?? []).map((id) => ({ id, active: true }));
     s.players[0].planAhead = defender.planAhead ?? 0;
     s = apply(s, { type: 'attack', die: 'p1d0', target: 'p0d0' });
@@ -148,7 +144,7 @@ describe('missiles', () => {
   };
 
   it('sets the roll to 1 before modifiers (the logged 3 vs 5 battle)', () => {
-    const s = battle({ skills: ['ferocious'] }, [1, 4]);
+    const s = battle({ skills: ['r-ferocious'] }, [1, 4]);
     expect(totals(s)).toEqual([3, 8]);
     const fired = apply(s, { type: 'missile', by: 0, side: 'defender' });
     expect(totals(fired)).toEqual([3, 5]);
@@ -179,7 +175,7 @@ describe('missiles', () => {
   });
 
   it('overrides Rational', () => {
-    const s = battle({ skills: ['rational'] }, [1, 6]);
+    const s = battle({ skills: ['r-rational'] }, [1, 6]);
     expect(totals(s)).toEqual([3, 8]);
     expect(totals(apply(s, { type: 'missile', by: 0, side: 'defender' }))).toEqual([3, 6]);
   });
@@ -201,232 +197,64 @@ describe('plan ahead', () => {
 });
 
 describe('modes', () => {
-  it('basic: no cards, no missiles, no research', () => {
+  it('basic: no cards or research, and the missiles, mechs and maps of Regolith', () => {
     const s = quickStart(2, 3, 'basic');
     expect(s.market.skillRow).toHaveLength(0);
     expect(s.market.tacticRow).toHaveLength(0);
     expect(s.market.expansions).toBe(0);
-    expect(s.players.every((p) => p.missiles === 0 && p.skills.length === 0)).toBe(true);
+    expect(s.players.every((p) => p.missiles === 1 && p.skills.length === 0)).toBe(true);
     expect(() => apply(s, { type: 'research' })).toThrow(/no research/);
     expect(legalActions(s).some((a) => a.type === 'research')).toBe(false);
-  });
-
-  it('original: Command/Gambit decks, no starting skill, no missiles, Expansion in the Gambit deck', () => {
-    const s = quickStart(2, 3, 'original');
-    const command = new Set(ORIGINAL_COMMAND.map((c) => c.id));
-    const gambit = new Set(ORIGINAL_GAMBIT.map((c) => c.id));
-    expect([...s.market.skillDeck, ...s.market.skillRow].every((id) => command.has(id))).toBe(true);
-    expect([...s.market.tacticDeck, ...s.market.tacticRow].every((id) => gambit.has(id))).toBe(true);
-    expect([...s.market.tacticDeck, ...s.market.tacticRow].filter((id) => id === 'o-expansion')).toHaveLength(8);
-    expect(s.market.expansions).toBe(0);
-    expect(s.players.every((p) => p.missiles === 0 && p.skills.length === 0)).toBe(true);
-  });
-
-  it('original: reconfigure on the map or in the scrapyard, and only needs a different number', () => {
-    let s = quickStart(2, 3, 'original');
-    s = arrange(s, { [`p${s.turn.player}d0`]: [0, 0, 4] });
-    const me = s.turn.player;
-    const scrapped = s.dice.find((d) => d.owner === me && d.loc.zone === 'scrapyard')!;
-    expect(apply(s, { type: 'reconfigure', die: scrapped.id }).turn.actionsLeft).toBe(2);
-    let t = s;
-    for (let i = 0; i < 3; i++) {
-      const before = t.dice.find((d) => d.id === `p${me}d0`)!.value;
-      t = apply(t, { type: 'reconfigure', die: `p${me}d0` });
-      expect(t.dice.find((d) => d.id === `p${me}d0`)!.value).not.toBe(before);
-    }
-  });
-
-  it('original Sabotage makes every other player discard a Command card', () => {
-    let s = quickStart(3, 3, 'original');
-    const me = s.turn.player;
-    for (const p of s.players)
-      p.skills = [
-        { id: 'o-agile', active: true },
-        { id: 'o-eager', active: true },
-      ];
-    s.market.tacticRow[0] = 'o-sabotage';
-    s.pending = [{ kind: 'takeCard', player: me, count: 1 }];
-    s = apply(s, { type: 'takeCard', deck: 'tactic', index: 0 });
-    expect(s.pending.filter((p) => p.kind === 'discardSkill')).toHaveLength(2);
-    while (s.pending[0]?.kind === 'discardSkill') s = apply(s, { type: 'discardSkill', skill: 'o-agile' });
-    for (const p of s.players) expect(p.skills).toHaveLength(p.id === me ? 2 : 1);
-  });
-
-  it('original cards reuse shared effects (Cerebral works like Composed)', () => {
-    let s = quickStart(2, 3, 'original');
-    const me = s.turn.player;
-    s.players[me].skills = [{ id: 'o-cerebral', active: true }];
-    s.players[me].dominance = 3;
-    s = apply(s, { type: 'composed' });
-    expect(s.players[me].dominance).toBe(2);
-    expect(s.players[me].research).toBe(4);
-  });
-
-  describe('original Curious (2nd-printing errata: a free move on a turn without attacks)', () => {
-    /**
-     * Alpha Sector (planets at rows/cols 1, 4, 7). The current player has a Flagship at (2,2), a
-     * Destroyer at (3,3) and a Battlestation at (5,5) next to an enemy Scout at (5,6).
-     */
-    function curious(actionsLeft: number): GameState {
-      let s = quickStart(2, 3, 'original', 'alpha-sector');
-      const me = s.turn.player;
-      const foe = 1 - me;
-      s = arrange(s, { [`p${me}d0`]: [2, 2, 2], [`p${me}d1`]: [3, 3, 3], [`p${me}d2`]: [5, 5, 1], [`p${foe}d0`]: [5, 6, 6] });
-      s.players[me].skills = [{ id: 'o-curious', active: true }];
-      s.turn.actionsLeft = actionsLeft;
-      s.turn.freeMoves = 1;
-      return s;
-    }
-    const ids = (s: GameState) => ({
-      flag: `p${s.turn.player}d0`,
-      destroyer: `p${s.turn.player}d1`,
-      station: `p${s.turn.player}d2`,
-      enemy: `p${1 - s.turn.player}d0`,
-    });
-
-    it('the free move can pay for a Transport (a move without an attack)', () => {
-      const s = curious(0);
-      const { flag, destroyer } = ids(s);
-      const carry: Action = { type: 'carry', die: flag, passenger: destroyer, to: { r: 2, c: 3 }, drop: { r: 3, c: 3 } };
-      expect(legalActions(s, { includeCarry: true })).toContainEqual(carry);
-      const after = apply(s, carry);
-      expect(after.turn.freeMoves).toBe(0);
-      expect(after.turn.actionsLeft).toBe(0);
-    });
-
-    it('attacking after the free move pays for it with an action', () => {
-      let s = curious(3);
-      const { destroyer, station, enemy } = ids(s);
-      s = apply(s, { type: 'move', die: destroyer, to: { r: 3, c: 2 } });
-      expect(s.turn.actionsLeft).toBe(3);
-      s = apply(s, { type: 'attack', die: station, target: enemy });
-      expect(s.turn.actionsLeft).toBe(1); // the attack, plus the move it can no longer get for free
-      expect(s.turn.freeMoves).toBe(0);
-    });
-
-    it('cannot attack (even with a free Strike) when the free move cannot be paid for', () => {
-      let s = curious(0);
-      const { destroyer, station, enemy } = ids(s);
-      s = apply(s, { type: 'move', die: destroyer, to: { r: 3, c: 2 } });
-      expect(() => apply(s, { type: 'freeAttack', die: station, target: enemy })).toThrow(/Curious/);
-      expect(legalActions(s).some((a) => a.type === 'freeAttack' || a.type === 'attack')).toBe(false);
-    });
-
-    it('attacking first forfeits the free move', () => {
-      let s = curious(3);
-      const { destroyer, station, enemy } = ids(s);
-      s = apply(s, { type: 'freeAttack', die: station, target: enemy });
-      s = apply(s, { type: 'resolveCombat' });
-      if (s.pending[0]?.kind === 'advance') s = apply(s, { type: 'advance', move: false });
-      expect(s.turn.freeMoves).toBe(0);
-      s = apply(s, { type: 'move', die: destroyer, to: { r: 3, c: 2 } });
-      expect(s.turn.actionsLeft).toBe(2);
-    });
-  });
-});
-
-describe('Tactical with ship abilities (forum consensus, BGG threads 1093051 and 2433096)', () => {
-  /**
-   * Alpha Sector (planets at rows/cols 1, 4, 7). The current player has a Flagship at (2,2), a
-   * Destroyer at (3,3) and an Interceptor at (5,5); an enemy Scout sits diagonally at (4,6).
-   */
-  function tactical(mode: GameMode, skill: string): GameState {
-    let s = quickStart(2, 3, mode, 'alpha-sector');
-    const me = s.turn.player;
-    s = arrange(s, { [`p${me}d0`]: [2, 2, 2], [`p${me}d1`]: [3, 3, 3], [`p${me}d2`]: [5, 5, 5], [`p${1 - me}d0`]: [4, 6, 6] });
-    s.players[me].skills = [{ id: skill, active: true }];
-    s.turn.actionsLeft = 3;
-    return s;
-  }
-  const ids = (s: GameState) => ({
-    flag: `p${s.turn.player}d0`,
-    destroyer: `p${s.turn.player}d1`,
-    interceptor: `p${s.turn.player}d2`,
-    enemy: `p${1 - s.turn.player}d0`,
-  });
-  const at = (s: GameState, id: string) => s.dice.find((d) => d.id === id)!.loc;
-
-  it('a Flagship can transport over the 1 space, using its ability (and, on the Original card, its move)', () => {
-    const s = tactical('original', 'o-tactical');
-    const { flag, destroyer } = ids(s);
-    const carry: Action = { type: 'tactical', die: flag, passenger: destroyer, to: { r: 2, c: 3 }, drop: { r: 3, c: 4 } };
-    expect(legalActions(s, { includeCarry: true })).toContainEqual(carry);
-    const after = apply(s, carry);
-    expect(at(after, flag)).toEqual({ zone: 'board', r: 2, c: 3 });
-    expect(at(after, destroyer)).toEqual({ zone: 'board', r: 3, c: 4 });
-    expect(after.turn.actionsLeft).toBe(3);
-    expect(after.turn.abilityUsed[flag]).toBe(true);
-    expect(() => apply(after, { type: 'move', die: flag, to: { r: 2, c: 4 } })).toThrow(/already moved/);
-    // Exactly 1 space: no 2-space flight, and no out-and-back.
-    expect(() => apply(s, { ...carry, to: { r: 2, c: 4 }, drop: { r: 3, c: 4 } })).toThrow(/Invalid carry/);
-    expect(() => apply(s, { ...carry, to: { r: 2, c: 2 }, drop: { r: 2, c: 3 } })).toThrow(/Invalid carry/);
-  });
-
-  it('a Flagship that already used its ability cannot transport with Tactical', () => {
-    const s = tactical('original', 'o-tactical');
-    const { flag, destroyer } = ids(s);
-    s.turn.abilityUsed[flag] = true;
-    expect(() => apply(s, { type: 'tactical', die: flag, passenger: destroyer, to: { r: 2, c: 3 }, drop: { r: 3, c: 4 } })).toThrow(
-      /ability/,
-    );
-  });
-
-  it('an Interceptor can step or attack diagonally, using its ability', () => {
-    const s = tactical('community', 'tactical');
-    const { interceptor, enemy } = ids(s);
-    const step = apply(s, { type: 'tactical', die: interceptor, to: { r: 6, c: 6 } });
-    expect(at(step, interceptor)).toEqual({ zone: 'board', r: 6, c: 6 });
-    expect(step.turn.abilityUsed[interceptor]).toBe(true);
-    const strike = apply(s, { type: 'tactical', die: interceptor, target: enemy });
-    expect(strike.pending[0]?.kind).toBe('combat');
-    expect(strike.turn.abilityUsed[interceptor]).toBe(true);
-    // An orthogonal step leaves the ability unused.
-    expect(apply(s, { type: 'tactical', die: interceptor, to: { r: 5, c: 6 } }).turn.abilityUsed[interceptor]).toBeFalsy();
-    // Without its ability, no diagonals.
-    s.turn.abilityUsed[interceptor] = true;
-    expect(() => apply(s, { type: 'tactical', die: interceptor, to: { r: 6, c: 6 } })).toThrow(/one space/);
-    expect(() => apply(s, { type: 'tactical', die: interceptor, target: enemy })).toThrow(/adjacent/);
+    expect(s.board.mapId).toBe(quickStart(2, 3, 'regolith').board.mapId);
   });
 });
 
 describe('void tiles (The Void maps; BGA rules help)', () => {
-  // Axiomatic: the void tile is tile row 1, col 1, so board rows and cols 3–5.
-  const start = (mode: GameMode) => {
-    const s = quickStart(2, 5, mode, 'axiomatic');
+  // The Great Plan (hex): the void tile is the middle one, (7,5) and the six spaces round it.
+  const VOID: [number, number][] = [
+    [6, 5],
+    [6, 6],
+    [7, 4],
+    [7, 5],
+    [7, 6],
+    [8, 4],
+    [8, 5],
+  ];
+  const start = () => {
+    const s = quickStart(2, 5, 'regolith', 'the-great-plan-hex');
     for (const p of s.players) p.skills = [];
     return s;
   };
 
   it('is a tile of empty spaces with no planet', () => {
-    const s = start('community');
-    for (let r = 3; r < 6; r++) for (let c = 3; c < 6; c++) expect(s.board.cells[r][c]).toMatchObject({ kind: 'space', void: true });
-    expect(s.board.planets.some((p) => p.r >= 3 && p.r < 6 && p.c >= 3 && p.c < 6)).toBe(false);
+    const s = start();
+    for (const [r, c] of VOID) expect(s.board.cells[r][c]).toMatchObject({ kind: 'space', void: true });
+    expect(s.board.planets.some((p) => VOID.some(([r, c]) => p.r === r && p.c === c))).toBe(false);
   });
 
-  for (const mode of ['original', 'community'] as GameMode[])
-    it(`${mode}: +1 research per own ship on it at the start of your turn`, () => {
-      const s0 = start(mode);
-      const me = s0.turn.player;
-      const next = 1 - me;
-      let s = arrange(s0, {
-        [`p${next}d0`]: [3, 3, 4],
-        [`p${next}d1`]: [5, 5, 4],
-        [`p${next}d2`]: [0, 4, 4], // next to the void, not on it
-        [`p${me}d0`]: [4, 4, 4],
-      });
-      s.players[me].research = 1;
-      s.players[next].research = 1;
-      s = apply(s, { type: 'endTurn' });
-      expect(s.turn.player).toBe(next);
-      expect(s.players[next].research).toBe(3);
-      expect(s.players[me].research).toBe(1); // only gained at the start of your own turn
-    });
-
-  it('research gained this way is capped at 6', () => {
-    const s0 = start('community');
+  it('+1 research per own ship on it at the start of your turn', () => {
+    const s0 = start();
     const me = s0.turn.player;
     const next = 1 - me;
-    let s = arrange(s0, { [`p${next}d0`]: [3, 3, 4], [`p${next}d1`]: [5, 5, 4], [`p${me}d0`]: [0, 4, 4] });
+    let s = arrange(s0, {
+      [`p${next}d0`]: [6, 5, 4],
+      [`p${next}d1`]: [8, 4, 4],
+      [`p${next}d2`]: [9, 4, 4], // next to the void, not on it
+      [`p${me}d0`]: [7, 5, 4],
+    });
+    s.players[me].research = 1;
+    s.players[next].research = 1;
+    s = apply(s, { type: 'endTurn' });
+    expect(s.turn.player).toBe(next);
+    expect(s.players[next].research).toBe(3);
+    expect(s.players[me].research).toBe(1); // only gained at the start of your own turn
+  });
+
+  it('research gained this way is capped at 6', () => {
+    const s0 = start();
+    const me = s0.turn.player;
+    const next = 1 - me;
+    let s = arrange(s0, { [`p${next}d0`]: [6, 5, 4], [`p${next}d1`]: [8, 4, 4], [`p${me}d0`]: [9, 4, 4] });
     s.players[next].research = 5;
     s = apply(s, { type: 'endTurn' });
     expect(s.players[next].research).toBe(6);
@@ -434,15 +262,15 @@ describe('void tiles (The Void maps; BGA rules help)', () => {
 });
 
 describe('maps per rule set', () => {
-  it('Basic and Original are played only on published maps; Community also on the BGA maps', () => {
-    expect(() => createGame({ players: players(2), mode: 'basic', mapId: 'precis' })).toThrow(/isn't played with the Basic rules/);
-    expect(() => createGame({ players: players(2), mode: 'original', mapId: 'precis' })).toThrow(/Classic/);
-    expect(createGame({ players: players(2), mode: 'community', mapId: 'precis' }).board.mapId).toBe('precis');
-    expect(createGame({ players: players(2), mode: 'basic', mapId: 'axiomatic' }).board.mapId).toBe('axiomatic');
+  it('Basic and Regolith are played on the hex maps', () => {
+    for (const mode of ['basic', 'regolith'] as const) {
+      expect(createGame({ players: players(2), mode, mapId: 'arcadia-planitia' }).board.mapId).toBe('arcadia-planitia');
+      expect(createGame({ players: players(2), mode, mapId: 'twin-drift' }).board.mapId).toBe('twin-drift');
+    }
   });
 
   it('rejects a map for a different player count', () => {
-    expect(() => createGame({ players: players(3), mapId: 'alpha-sector' })).toThrow(/2-player map/);
+    expect(() => createGame({ players: players(3), mapId: 'alpha-hex' })).toThrow(/2-player map/);
   });
 });
 
@@ -450,8 +278,8 @@ describe('undo', () => {
   it('allows deterministic moves and forbids anything random', () => {
     let s = quickStart();
     const me = s.turn.player;
-    s = arrange(s, { [`p${me}d0`]: [0, 0, 3], [`p${1 - me}d0`]: [0, 1, 6] });
-    const moveTo = { r: 1, c: 0 };
+    s = arrange(s, { [`p${me}d0`]: [0, 5, 3], [`p${1 - me}d0`]: [0, 6, 6] });
+    const moveTo = { r: 1, c: 4 };
     const moved = apply(s, { type: 'move', die: `p${me}d0`, to: moveTo });
     expect(isUndoable(s, { type: 'move', die: `p${me}d0`, to: moveTo }, moved)).toBe(true);
 
@@ -466,13 +294,13 @@ describe('undo', () => {
   });
 });
 
-describe('Stubborn (2013 card text and CE card sheet)', () => {
-  /** Player 0's Scout attacks player 1's Battlestation, which has Stubborn; the combat rolls are fixed. */
+describe('Stubborn (Entrenched; 2013 card text and CE card sheet)', () => {
+  /** Player 0's Wisp attacks player 1's Breacher, which has Stubborn; the combat rolls are fixed. */
   function stubbornCombat(attackRoll: number, defenceRoll: number): GameState {
     let s = quickStart();
     s.turn.player = 0;
-    s = arrange(s, { p0d0: [0, 0, 6], p1d0: [0, 1, 1] });
-    s.players[1].skills = [{ id: 'stubborn', active: true }];
+    s = arrange(s, { p0d0: [0, 5, 6], p1d0: [0, 6, 1] });
+    s.players[1].skills = [{ id: 'r-stubborn', active: true }];
     s.players[0].dominance = 3;
     s.players[1].dominance = 3;
     s = apply(s, { type: 'attack', die: 'p0d0', target: 'p1d0' });
@@ -498,8 +326,8 @@ describe('Stubborn (2013 card text and CE card sheet)', () => {
   it('loses normally when the attacker has the lower total', () => {
     let s = quickStart();
     s.turn.player = 0;
-    s = arrange(s, { p0d0: [0, 0, 1], p1d0: [0, 1, 6] });
-    s.players[1].skills = [{ id: 'stubborn', active: true }];
+    s = arrange(s, { p0d0: [0, 5, 1], p1d0: [0, 6, 6] });
+    s.players[1].skills = [{ id: 'r-stubborn', active: true }];
     s = apply(s, { type: 'attack', die: 'p0d0', target: 'p1d0' });
     if (s.pending[0].kind !== 'combat') throw new Error();
     s.pending[0].attacker.dice = [1];
@@ -509,67 +337,49 @@ describe('Stubborn (2013 card text and CE card sheet)', () => {
   });
 });
 
-describe('Composed / Cerebral', () => {
+describe('Composed (Stand Down)', () => {
   it('needs dominance to lose ("reduce your dominance by 1")', () => {
-    for (const [mode, id] of [
-      ['community', 'composed'],
-      ['original', 'o-cerebral'],
-    ] as const) {
-      const s = quickStart(2, 3, mode);
-      const me = s.turn.player;
-      s.players[me].skills = [{ id, active: true }];
-      s.players[me].dominance = 1;
-      expect(legalActions(s).some((a) => a.type === 'composed')).toBe(false);
-      expect(() => apply(s, { type: 'composed' })).toThrow('No dominance to lose');
-    }
+    const s = quickStart(2, 3);
+    const me = s.turn.player;
+    s.players[me].skills = [{ id: 'r-composed', active: true }];
+    s.players[me].dominance = 1;
+    expect(legalActions(s).some((a) => a.type === 'composed')).toBe(false);
+    expect(() => apply(s, { type: 'composed' })).toThrow('No dominance to lose');
   });
 });
 
-describe('Original card market (2013 rulebook p.9)', () => {
-  function picking(mode: GameMode = 'original'): GameState {
-    let s = quickStart(2, 3, mode);
+describe('card market', () => {
+  function picking(): GameState {
+    let s = quickStart(2, 3);
     s = apply(s, { type: 'endTurn' });
     s.pending = [{ kind: 'takeCard', player: s.turn.player, count: 2 }];
     return s;
   }
 
-  it('a card pick may be spent on discarding all six face-up cards and dealing six new ones', () => {
+  it('has no refresh (the 2013 rulebook’s, p.9)', () => {
     const s = picking();
-    const before = [...s.market.skillRow, ...s.market.tacticRow];
-    const next = apply(s, { type: 'refreshMarket' });
-    expect(next.market.skillRow).toHaveLength(3);
-    expect(next.market.tacticRow).toHaveLength(3);
-    expect(next.market.skillDiscard).toEqual(s.market.skillRow);
-    expect(next.market.tacticDiscard).toEqual(s.market.tacticRow);
-    expect([...next.market.skillRow, ...next.market.tacticRow]).not.toEqual(before);
-    expect(next.pending[0]).toMatchObject({ kind: 'takeCard', count: 1 });
-  });
-
-  it('the Community Edition has no refresh', () => {
-    const s = picking('community');
     expect(legalActions(s).some((a) => a.type === 'refreshMarket')).toBe(false);
     expect(() => apply(s, { type: 'refreshMarket' })).toThrow();
   });
 
   it('an Expansion cannot be taken once both expansion ships are in the game', () => {
     const s = picking();
-    s.market.tacticRow[0] = 'o-expansion';
     for (const d of s.dice) if (d.owner === s.turn.player && d.loc.zone === 'reserve') d.loc = { zone: 'scrapyard' };
-    expect(legalActions(s).some((a) => a.type === 'takeCard' && a.deck === 'tactic' && a.index === 0)).toBe(false);
-    expect(() => apply(s, { type: 'takeCard', deck: 'tactic', index: 0 })).toThrow('Your reserve is empty');
+    expect(legalActions(s).some((a) => a.type === 'takeCard' && a.deck === 'expansion')).toBe(false);
+    expect(() => apply(s, { type: 'takeCard', deck: 'expansion', index: 0 })).toThrow('Your reserve is empty');
   });
 });
 
 describe('RULE-SUGGESTIONS §5.3', () => {
   it('#49: a held Talented raises the skill limit at once, so taking it as a 4th skill forces no discard', () => {
     for (const [taken, discard] of [
-      ['talented', false],
-      ['stealthy', true],
+      ['r-talented', false],
+      ['r-stealthy', true],
     ] as const) {
       let s = quickStart(2, 3);
       s = apply(s, { type: 'endTurn' });
       const me = s.turn.player;
-      s.players[me].skills = ['agile', 'ferocious', 'brutal'].map((id) => ({ id, active: true }));
+      s.players[me].skills = ['r-agile', 'r-ferocious', 'r-brutal'].map((id) => ({ id, active: true }));
       s.market.skillRow[0] = taken;
       s.pending = [{ kind: 'takeCard', player: me, count: 1 }];
       s = apply(s, { type: 'takeCard', deck: 'skill', index: 0 });
@@ -581,9 +391,9 @@ describe('RULE-SUGGESTIONS §5.3', () => {
   it('#49: discarding Talented while over 3 skills asks for another discard', () => {
     let s = quickStart(2, 3);
     const me = s.turn.player;
-    s.players[me].skills = ['agile', 'ferocious', 'brutal', 'stealthy', 'talented'].map((id) => ({ id, active: true }));
+    s.players[me].skills = ['r-agile', 'r-ferocious', 'r-brutal', 'r-stealthy', 'r-talented'].map((id) => ({ id, active: true }));
     s.pending = [{ kind: 'discardSkill', player: me, reason: 'limit' }];
-    s = apply(s, { type: 'discardSkill', skill: 'talented' });
+    s = apply(s, { type: 'discardSkill', skill: 'r-talented' });
     expect(s.pending[0]).toMatchObject({ kind: 'discardSkill', player: me });
   });
 
@@ -592,12 +402,12 @@ describe('RULE-SUGGESTIONS §5.3', () => {
       let s = quickStart();
       s.turn.player = 0;
       // The supporting ship sits on the far gate, adjacent to the attacker's space only through the link.
-      s = arrange(s, { p0d0: [0, 0, 3], p1d0: [0, 1, 3], p0d1: [8, 8, 2] });
-      s.players[0].skills = [{ id: 'strategic', active: true }];
+      s = arrange(s, { p0d0: [0, 5, 3], p1d0: [0, 6, 3], p0d1: [12, 2, 2] });
+      s.players[0].skills = [{ id: 'r-strategic', active: true }];
       s.gates = gates
         ? [
-            { r: 0, c: 0 },
-            { r: 8, c: 8 },
+            { r: 0, c: 5 },
+            { r: 12, c: 2 },
           ]
         : [];
       s = apply(s, { type: 'attack', die: 'p0d0', target: 'p1d0' });
@@ -612,15 +422,15 @@ describe('RULE-SUGGESTIONS §5.3', () => {
   it('#30: the two Warp Gate spaces are adjacent for Stealthy deploys', () => {
     const isolated = (gates: boolean) => {
       let s = quickStart();
-      s = arrange(s, { p1d0: [8, 8, 3] });
-      s.players[0].skills = [{ id: 'stealthy', active: true }];
+      s = arrange(s, { p1d0: [12, 2, 3] });
+      s.players[0].skills = [{ id: 'r-stealthy', active: true }];
       s.gates = gates
         ? [
-            { r: 0, c: 0 },
-            { r: 8, c: 8 },
+            { r: 5, c: 4 },
+            { r: 12, c: 2 },
           ]
         : [];
-      return deployTargets(s, 0).some((c) => c.r === 0 && c.c === 0);
+      return deployTargets(s, 0).some((c) => c.r === 5 && c.c === 4);
     };
     expect(isolated(false)).toBe(true);
     expect(isolated(true)).toBe(false);
@@ -629,7 +439,7 @@ describe('RULE-SUGGESTIONS §5.3', () => {
   it('#33: Composed is not offered under Righteous, where it could do nothing', () => {
     const s = quickStart(2, 3);
     const me = s.turn.player;
-    s.players[me].skills = ['composed', 'righteous'].map((id) => ({ id, active: true }));
+    s.players[me].skills = ['r-composed', 'r-righteous'].map((id) => ({ id, active: true }));
     s.players[me].dominance = 3;
     expect(legalActions(s).some((a) => a.type === 'composed')).toBe(false);
     expect(() => apply(s, { type: 'composed' })).toThrow('You cannot gain research');
@@ -640,8 +450,8 @@ describe('RULE-SUGGESTIONS §5.3', () => {
       let s = quickStart(2, 3);
       const me = s.turn.player;
       const foe = 1 - me;
-      s = arrange(s, { [`p${me}d0`]: [0, 0, 3], [`p${foe}d0`]: [8, 8, 3] });
-      s.players[me].skills = ['plundering', 'ravenous'].map((id) => ({ id, active: true }));
+      s = arrange(s, { [`p${me}d0`]: [0, 5, 3], [`p${foe}d0`]: [12, 2, 3] });
+      s.players[me].skills = ['r-plundering', 'r-ravenous'].map((id) => ({ id, active: true }));
       s.players[me].dominance = 3;
       s.players[me].research = 1;
       s.players[foe].dominance = 3;
@@ -669,8 +479,8 @@ describe('Clever (CE): after reconfiguring, ±1 (OPEN-QUESTIONS #63)', () => {
   function reconfigured(start: number): GameState {
     let s = quickStart(2, 3);
     const me = s.turn.player;
-    s = arrange(s, { [`p${me}d0`]: [0, 0, start] });
-    s.players[me].skills = [{ id: 'clever', active: true }];
+    s = arrange(s, { [`p${me}d0`]: [0, 5, start] });
+    s.players[me].skills = [{ id: 'r-clever', active: true }];
     s.turn.actionsLeft = 3;
     return apply(s, { type: 'reconfigure', die: `p${me}d0` });
   }
@@ -696,15 +506,6 @@ describe('Clever (CE): after reconfiguring, ±1 (OPEN-QUESTIONS #63)', () => {
     const far = v <= 3 ? v + 2 : v - 2;
     expect(() => apply(s, { type: 'clever', value: far })).toThrow('at most 1');
   });
-
-  it('also follows the Scout’s Free Reconfigure', () => {
-    let s = quickStart(2, 3);
-    const me = s.turn.player;
-    s = arrange(s, { [`p${me}d0`]: [0, 0, 6] });
-    s.players[me].skills = [{ id: 'clever', active: true }];
-    s = apply(s, { type: 'freeReconfigure', die: `p${me}d0` });
-    expect(s.pending[0]?.kind).toBe('clever');
-  });
 });
 
 describe('Devious: through enemy ships, normal moves only (OPEN-QUESTIONS #65)', () => {
@@ -712,28 +513,28 @@ describe('Devious: through enemy ships, normal moves only (OPEN-QUESTIONS #65)',
     let s = quickStart();
     s.turn.player = 0;
     const b = blockers === 'enemy' ? 'p1' : 'p0';
-    s = arrange(s, { p0d0: [0, 0, 1], [`${b}d1`]: [0, 1, 4], [`${b}d2`]: [0, 2, 4] });
-    s.players[0].skills = skill ? [{ id: 'devious', active: true }] : [];
+    s = arrange(s, { p0d0: [7, 2, 1], [`${b}d1`]: [7, 3, 4], [`${b}d2`]: [7, 4, 4] });
+    s.players[0].skills = skill ? [{ id: 'r-devious', active: true }] : [];
     return s;
   }
 
   it('passes through enemy ships at no cost, but can’t stop on them', () => {
     const moves = moveOptions(devious(true), 'p0d0').moves;
-    expect(moves.has('0,3')).toBe(true); // 2 enemy spaces free + 1 step
-    expect(moves.has('0,1')).toBe(false);
-    expect(moves.has('0,2')).toBe(false);
-    expect(moveOptions(devious(false), 'p0d0').moves.has('0,3')).toBe(false);
+    expect(moves.has('7,5')).toBe(true); // 2 enemy spaces free + 1 step
+    expect(moves.has('7,3')).toBe(false);
+    expect(moves.has('7,4')).toBe(false);
+    expect(moveOptions(devious(false), 'p0d0').moves.has('7,5')).toBe(false);
   });
 
   it('does not pass through your own ships', () => {
-    expect(moveOptions(devious(true, 'own'), 'p0d0').moves.has('0,3')).toBe(false);
+    expect(moveOptions(devious(true, 'own'), 'p0d0').moves.has('7,5')).toBe(false);
   });
 
   it('can attack an enemy beyond the ones it passes through', () => {
     let s = devious(true);
-    s = arrange(s, { p0d0: [0, 0, 2], p1d1: [0, 1, 4], p1d2: [0, 2, 4], p1d0: [0, 4, 4] });
-    s.players[0].skills = [{ id: 'devious', active: true }];
-    expect(moveOptions(s, 'p0d0').attacks.get('p1d0')?.from).toEqual({ r: 0, c: 3 });
+    s = arrange(s, { p0d0: [7, 2, 2], p1d1: [7, 3, 4], p1d2: [7, 4, 4], p1d0: [7, 6, 4] });
+    s.players[0].skills = [{ id: 'r-devious', active: true }];
+    expect(moveOptions(s, 'p0d0').attacks.get('p1d0')?.from).toEqual({ r: 7, c: 5 });
     expect(moveOptions(s, 'p0d0').attacks.has('p1d1')).toBe(true); // still attackable directly
   });
 });
@@ -743,7 +544,7 @@ describe('Profiteering: a card for a Conquer action may be 1 missile (OPEN-QUEST
   function cardPhase(opts: { conquered: number; infamy?: number; breakthrough?: boolean; skill?: boolean }): GameState {
     const s = quickStart(2, 3);
     const me = s.turn.player;
-    s.players[me].skills = opts.skill === false ? [] : [{ id: 'profiteering', active: true }];
+    s.players[me].skills = opts.skill === false ? [] : [{ id: 'r-profiteering', active: true }];
     s.turn.conquered = opts.conquered;
     s.turn.conquests = opts.conquered + (opts.infamy ?? 0);
     if (opts.breakthrough) s.players[me].research = 6;

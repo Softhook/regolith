@@ -31,12 +31,12 @@ const DEVICES: Record<string, BrowserContextOptions> = {
   'ipad-mini-landscape': devices['iPad Mini landscape'],
 };
 
-/** A small, a wide (5 sectors across, irregular), a typical 4-player and the largest map, each under rules that offer it. */
+/** A small, a wide (open ground, 8 tiles across), a typical 4-player and the largest map. */
 const GAMES = [
-  { play: 'basic', players: 2, map: 'alpha-sector' },
-  { play: 'community', players: 2, map: 'asymptote' },
-  { play: 'original', players: 4, map: 'tesseract' },
-  { play: 'community', players: 4, map: 'event-horizon' },
+  { play: 'basic', players: 2, map: 'alpha-hex' },
+  { play: 'regolith', players: 2, map: 'valles-marineris' },
+  { play: 'regolith', players: 4, map: 'nexus-hex' },
+  { play: 'regolith', players: 4, map: 'utopia-planitia' },
 ];
 
 /**
@@ -45,16 +45,15 @@ const GAMES = [
  * phone, in the bottom sheet) and every card you may take must be on screen, which a sideways scroll broke.
  */
 const POPUPS: { name: string; play: string; scene: string; must: string; box?: string }[] = [
-  { name: 'combat', play: 'community', scene: 'combat', must: '.combat-card h2, .combat-total, .combat-card button' },
+  { name: 'combat', play: 'regolith', scene: 'combat', must: '.combat-card h2, .combat-total, .combat-card button' },
   {
     name: 'changeOfHeart',
-    play: 'community',
+    play: 'regolith',
     scene: 'changeOfHeart',
     must: '.modal h2, .modal .skill-group:first-child .qcard:first-child',
   },
   { name: 'over', play: 'basic', scene: 'over', must: '.modal h2, .modal button' },
-  { name: 'pick', play: 'community', scene: 'takeCard', must: '.market .takeable', box: '.market' },
-  { name: 'pickClassic', play: 'original', scene: 'takeCard', must: '.market .takeable', box: '.market' },
+  { name: 'pick', play: 'regolith', scene: 'takeCard', must: '.market .takeable', box: '.market' },
   { name: 'rules', play: 'basic', scene: 'turn', must: '.dialog > h2, .dialog-close' },
 ];
 

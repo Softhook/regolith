@@ -25,15 +25,15 @@ const problem = (what: string) => {
   console.log(`  ✗ ${what}`);
 };
 
-// The square Alpha Sector with Community's rules; every hex map with Regolith's, the only rules that play them.
-for (const map of [MAPS.find((m) => m.id === 'alpha-sector')!, ...MAPS.filter((m) => m.grid === 'hex')]) {
+// Every hex map, with Regolith's rules.
+for (const map of MAPS.filter((m) => m.grid === 'hex')) {
   console.log(`${map.name}`);
   const page = await browser.newPage({ viewport: { width: 900, height: 900 } });
   page.on('pageerror', (e) => problem(`page error: ${e.message}`));
   page.on('console', (m) => m.type() === 'error' && problem(`console: ${m.text()}`));
   await page.goto(
     playUrl(server.base, {
-      play: map.grid === 'hex' ? 'regolith' : 'community',
+      play: 'regolith',
       players: map.players,
       map: map.id,
       seed: 5,

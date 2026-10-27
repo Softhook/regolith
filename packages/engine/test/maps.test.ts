@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { MAPS, adjacent, buildBoard, createGame, distance, isDiagonalStep, mapStats, stepNeighbours } from '../src';
+import { MAPS, adjacent, buildBoard, distance, isDiagonalStep, mapStats } from '../src';
 
 describe('maps', () => {
   for (const map of MAPS)
@@ -34,20 +34,6 @@ describe('wrapping maps', () => {
     expect(has(adjacent(b, { r: 0, c: 7 }), 11, 7)).toBe(true);
     expect(has(adjacent(b, { r: 5, c: 0 }), 5, 14)).toBe(true);
     expect(adjacent(b, { r: 3, c: 1 }).some((q) => q.r === 2)).toBe(false); // gap above, no wrap to the bottom
-  });
-
-  it('ships move across a joined edge', () => {
-    const s = createGame({
-      players: Array.from({ length: 5 }, (_, i) => ({ name: `P${i}`, color: '#fff', ai: true })),
-      mapId: 'appeal-to-authority',
-      seed: 1,
-    });
-    const d = s.dice[0];
-    d.loc = { zone: 'board', r: 4, c: 0 };
-    s.phase = 'play';
-    s.turn.player = d.owner;
-    s.pending = [];
-    expect(stepNeighbours(s, { r: 4, c: 0 }, false).some((q) => q.r === 4 && q.c === 14)).toBe(true);
   });
 
   it('non-wrapping maps are unchanged', () => {

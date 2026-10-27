@@ -1,7 +1,7 @@
 /**
  * Hex maps (docs/HEX.md) on 7-hex tiles. The rules are the square game's; what changes is which spaces
- * are next to each other, how far apart they are, and what a diagonal is. The lobby offers them with the
- * Regolith rules; the geometry is pinned down here with Basic's plain ones.
+ * are next to each other, how far apart they are, and what a diagonal is. The geometry is pinned down
+ * here with Basic's rules, Regolith without its cards.
  */
 import { describe, expect, it } from 'vitest';
 import {
@@ -29,15 +29,13 @@ import {
   tileCentres,
   type Cell,
   type GameState,
-  type GameMode,
 } from '../src';
-import { allowMapGroups, playAiGame, players, quickStart } from './helpers';
+import { playAiGame, players, quickStart } from './helpers';
 
 // The basic maps on hex tiles; the drift maps (offset.test.ts) put their planets off the middle.
 const HEX_MAPS = MAPS.filter((m) => m.group === 'hex');
 /** The basic maps on hex tiles (the hex group's others adapt advanced maps). */
 const BASIC_HEX = HEX_MAPS.filter((m) => ['alpha-hex', 'beta-hex', 'gamma-hex'].includes(m.id));
-allowMapGroups('basic', 'hex');
 const BASE = quickStart(2, 1, 'basic', 'alpha-hex');
 /** Alpha Sector (hex)'s middle planet, the 8: every other tile is next to it but the two starts. */
 const CENTRE = BASE.board.planets.find((p) => p.number === 8)!;
@@ -163,20 +161,6 @@ describe('hex maps', () => {
     for (const m of moveOptions(s3, 'p0d0').moves.values()) expect(distance(from, m.cell, s3.board)).toBeLessThanOrEqual(3);
   });
 
-  it('lets the Interceptor slip out diagonally, between two hexes, when every neighbour is taken', () => {
-    const b = BASE.board;
-    const from = orbitals(b, CENTRE)[0];
-    const walls = adjacent(b, from).filter((q) => b.cells[q.r][q.c].kind === 'space');
-    expect(walls).toHaveLength(5);
-    const ids = ['p0d1', 'p0d2', 'p0d3', 'p0d4', 'p1d0'];
-    const boxed = (value: number) =>
-      scenario({ p0d0: [from, value], ...Object.fromEntries(walls.map((q, i) => [ids[i], [q, 6] as [Cell, number]])) });
-    expect(moveOptions(boxed(4), 'p0d0').moves.size).toBe(0);
-    const out = [...moveOptions(boxed(5), 'p0d0').moves.values()];
-    expect(out.length).toBeGreaterThan(0);
-    expect(out.every((m) => m.diagonal)).toBe(true);
-  });
-
   it('counts ships on any of a planet’s six orbital hexes towards a conquest', () => {
     const [, , a, b, c, d] = orbitals(BASE.board, CENTRE);
     const s = scenario({ p0d0: [a, 1], p0d1: [b, 1], p0d2: [c, 2], p0d3: [d, 4] });
@@ -197,15 +181,14 @@ describe('hex maps', () => {
   });
 
   it('leaves Ingenious (conquer from the corners) out of the deck, as hex tiles have no corners', () => {
-    const cards = (mapId: string, mode: GameMode = 'regolith') => {
-      const s = createGame({ players: players(2), seed: 1, mode, mapId });
+    const cards = (mapId: string) => {
+      const s = createGame({ players: players(2), seed: 1, mode: 'regolith', mapId });
       expect(checkInvariants(s)).toEqual([]);
       const { skillDeck, skillRow } = s.market;
       const drafts = s.pending.flatMap((x) => (x.kind === 'skillDraft' ? x.options : []));
       return [...skillDeck, ...skillRow, ...drafts].map(effectOf);
     };
     expect(cards('alpha-hex')).not.toContain('ingenious');
-    expect(cards('alpha-sector', 'community')).toContain('ingenious');
   });
 
   for (const m of HEX_MAPS)

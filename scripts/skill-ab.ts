@@ -29,7 +29,7 @@ import { defaultJobs } from './pool';
 const { games, level, mode, skills, jobs, margin, seed } = args({
   games: '2000',
   level: '3',
-  mode: 'community',
+  mode: 'regolith',
   skills: 'none',
   jobs: defaultJobs,
   margin: '5',

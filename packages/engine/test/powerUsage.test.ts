@@ -30,8 +30,8 @@ describe('power usage by mode', () => {
   }
 
   // The quick games above are below level 4, so no transport is played in them: one game that plays some (about 2s).
-  it('counts Flagship transports', () => {
-    const flagship = measurePowerUsage('basic', { games: 1, level: 4 }).rows.find((r) => r.ship === 'Flagship')!;
+  it('counts Behemoth transports', () => {
+    const flagship = measurePowerUsage('basic', { games: 1, level: 4 }).rows.find((r) => r.ship === 'Behemoth')!;
     expect(flagship.used).toBeGreaterThan(0);
     expect(flagship.usedTurns).toBeLessThanOrEqual(flagship.offeredTurns);
   }, 120_000);

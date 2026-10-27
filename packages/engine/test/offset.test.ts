@@ -6,6 +6,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   MAPS,
+  MODES,
   RULESETS,
   adjacent,
   apply,
@@ -15,7 +16,6 @@ import {
   diagonals,
   drawing,
   mapStats,
-  nomadicTargets,
   orbitals,
   orbitedPlanets,
   parseToken,
@@ -215,91 +215,57 @@ describe('starting planets', () => {
 });
 
 describe('playing with off-centre planets', () => {
-  const base = quickStart(2, 1, 'basic', 'offset-square');
+  // Offset Hex: the 7 at (4,4) leans in towards the 8 at (5,4), and both reach the 7 at (3,6).
+  const base = quickStart(2, 1, 'basic', 'offset-hex');
   const b = base.board;
   const eight = at(b, 8);
-  const above = b.planets.find((p) => p.number === 7 && p.r === 2 && p.c === 4)!;
+  const leaning = b.planets.find((p) => p.number === 7 && p.r === 4 && p.c === 4)!;
 
-  it("the test map's 8 has its whole orbit shared with the 7s leaning in", () => {
-    for (const q of orbitals(b, eight)) expect(orbitedPlanets(b, q)).toHaveLength(2);
+  it("the test map's 8 shares orbital spaces with the 7 leaning in", () => {
+    const shared = orbitals(b, eight).filter((q) => orbitals(b, leaning).some((x) => x.r === q.r && x.c === q.c));
+    expect(sorted(shared)).toEqual(['4,5', '5,3']);
   });
 
   it('a ship in a shared orbital space counts towards both planets', () => {
-    const shared = { r: 3, c: 4 };
-    expect(orbitedPlanets(b, shared)).toEqual([above, eight]);
+    const shared = { r: 5, c: 3 };
+    expect(orbitedPlanets(b, shared)).toEqual([leaning, eight]);
     const s = scenario(base, {
       p0d0: [shared, 3],
-      p0d1: [{ r: 1, c: 4 }, 4],
-      p0d2: [{ r: 5, c: 4 }, 5],
+      p0d1: [{ r: 3, c: 4 }, 4],
+      p0d2: [{ r: 6, c: 4 }, 5],
     });
-    expect(conquerCheck(s, 0, above.id)).toMatchObject({ ok: true, sum: 7 });
+    expect(conquerCheck(s, 0, leaning.id)).toMatchObject({ ok: true, sum: 7 });
     expect(conquerCheck(s, 0, eight.id)).toMatchObject({ ok: true, sum: 8 });
-    expect(apply(s, { type: 'conquer', planet: above.id }).board.planets[above.id].cubes).toContain(0);
+    expect(apply(s, { type: 'conquer', planet: leaning.id }).board.planets[leaning.id].cubes).toContain(0);
     expect(apply(s, { type: 'conquer', planet: eight.id }).board.planets[eight.id].cubes).toContain(0);
   });
 
   it('a move into a shared space names both planets', () => {
-    const s = scenario(base, { p0d0: [{ r: 3, c: 3 }, 1] });
-    const after = apply(s, { type: 'move', die: 'p0d0', to: { r: 3, c: 4 } });
+    const s = scenario(base, { p0d0: [{ r: 6, c: 3 }, 1] });
+    const after = apply(s, { type: 'move', die: 'p0d0', to: { r: 5, c: 3 } });
     const entry = after.log.at(-1)!;
     expect(entry.text).toMatch(/next to planet 7 and planet 8/);
-    expect(entry.planets).toEqual([above.id, eight.id]);
-  });
-
-  it("Nomadic reaches the planets of the tiles next to the ship's planets' tiles, however far the planets are", () => {
-    const s = scenario(quickStart(2, 1, 'original', 'offset-square'), { p0d0: [{ r: 1, c: 4 }, 3] });
-    // The 7 leaning south on the top middle tile: its tile touches the starts' and the 8's tiles, not the
-    // far corners'. The 7 on the top right tile faces the map's edge, 4 steps from it, yet it's a neighbour.
-    const homeTile = cellAt(s.board, above)!.tile;
-    const near = s.board.planets.filter((p) => tilesTouch(s.board, homeTile, cellAt(s.board, p)!.tile));
-    expect(near.map((p) => `${p.number}@${p.r},${p.c}`).sort()).toEqual(['7@0,7', '7@2,2', '8@4,4']);
-    const targets = nomadicTargets(s, 'p0d0');
-    const want = near.flatMap((p) => orbitals(s.board, p));
-    expect(sorted(targets)).toEqual([...new Set(sorted(want))]);
-  });
-
-  it("Nomadic doesn't move a ship around the planets it already orbits, even on touching tiles", () => {
-    // (3,4) orbits the 7 above the 8 and the 8, whose tiles touch: neither is the other's neighbour here.
-    const s = scenario(quickStart(2, 1, 'original', 'offset-square'), { p0d0: [{ r: 3, c: 4 }, 3] });
-    const homes = orbitedPlanets(s.board, { r: 3, c: 4 });
-    expect(homes).toEqual([above, eight]);
-    const tileOf = (p: { r: number; c: number }) => cellAt(s.board, p)!.tile;
-    const near = s.board.planets.filter((p) => !homes.includes(p) && homes.some((h) => tilesTouch(s.board, tileOf(h), tileOf(p))));
-    expect(near).toHaveLength(5);
-    const targets = nomadicTargets(s, 'p0d0');
-    expect(sorted(targets)).toEqual([...new Set(sorted(near.flatMap((p) => orbitals(s.board, p))))]);
-    // Only the 7's own orbit: not a target. Shared with a neighbour (the 8 and the 7 to its left): a target.
-    expect(targets).not.toContainEqual({ r: 1, c: 4 });
-    expect(targets).toContainEqual({ r: 4, c: 3 });
-  });
-
-  it('a move to a space in no orbit names every planet it is diagonal to', () => {
-    const s = scenario(base, { p0d0: [{ r: 2, c: 3 }, 1] });
-    const after = apply(s, { type: 'move', die: 'p0d0', to: { r: 3, c: 3 } });
-    const entry = after.log.at(-1)!;
-    expect(orbitedPlanets(b, { r: 3, c: 3 })).toEqual([]);
-    expect(entry.planets).toHaveLength(4);
-    expect(entry.text).toMatch(/next to planet 7 and planet 7 and planet 7 and planet 8/);
+    expect(entry.planets).toEqual([leaning.id, eight.id]);
   });
 
   it('diagonal tiles on squares do not touch', () => {
-    expect(tilesTouch(b, 0, 4)).toBe(false);
-    expect(tilesTouch(b, 0, 1)).toBe(true);
-    expect(tilesTouch(b, 1, 4)).toBe(true);
+    const square = buildBoard(OFFSET_SQUARE);
+    expect(tilesTouch(square, 0, 4)).toBe(false);
+    expect(tilesTouch(square, 0, 1)).toBe(true);
+    expect(tilesTouch(square, 1, 4)).toBe(true);
   });
 
-  for (const mapId of ['offset-square', 'offset-hex'])
-    for (const mode of ['basic', 'original'] as const)
-      it(`AI plays a ${mode} game on ${mapId} to the end`, () => {
-        const { state } = playAiGame({ mode, players: 2, seed: 5, aiSeed: 7, mapId });
-        expect(state.winner).not.toBeNull();
-      }, 60_000);
+  for (const { id: mode } of MODES)
+    it(`AI plays a ${mode} game on Offset Hex to the end`, () => {
+      const { state } = playAiGame({ mode, players: 2, seed: 5, aiSeed: 7, mapId: 'offset-hex' });
+      expect(state.winner).not.toBeNull();
+    }, 60_000);
 });
 
 describe('the drift maps', () => {
-  const drift = MAPS.filter((m) => m.group === 'drift' || m.group === 'drift-square');
+  const drift = MAPS.filter((m) => (m.group === 'drift' || m.group === 'drift-square') && m !== OFFSET_HEX && m !== OFFSET_SQUARE);
 
-  it('are a square and a hex map; Regolith, hex only, plays the hex one and no mode the square one', () => {
+  it('are a square and a hex map; both modes, hex only, play the hex one and no mode the square one', () => {
     expect(drift.map((m) => [m.id, m.grid ?? 'square'])).toEqual([
       ['binary-reach', 'square'],
       ['twin-drift', 'hex'],
@@ -308,7 +274,7 @@ describe('the drift maps', () => {
       Object.values(RULESETS)
         .filter((r) => r.mapGroups.includes(m.group))
         .map((r) => r.id);
-    expect(drift.map(playedBy)).toEqual([[], ['regolith']]);
+    expect(drift.map(playedBy)).toEqual([[], ['basic', 'regolith']]);
   });
 
   for (const m of drift) {

@@ -185,24 +185,17 @@ describe('legal actions agree with the engine', () => {
         ]
       : [[3, 22]])
       it(`${mode}, ${players} players, seed ${seed}`, () => playChecked(mode, players, seed), DEEP ? 600_000 : 60_000);
-  // Hex tiles (docs/HEX.md): another geometry, under the rules of each mode the lobby offers it with.
-  for (const { id: mode } of MODES.filter((m) => m.mapGroups.includes('hex')))
+  // The open-ground and off-centre maps: blank tiles, and orbits that overlap, cross tiles and lose spaces at the edge.
+  for (const { id: mode } of MODES)
     for (const [players, mapId] of DEEP
       ? ([
-          [2, 'alpha-hex'],
-          [3, 'beta-hex'],
-          [4, 'gamma-hex'],
+          [2, 'arcadia-planitia'],
+          [3, 'stickney-crater'],
+          [2, 'twin-drift'],
+          [2, 'offset-hex'],
         ] as const)
-      : ([[3, 'beta-hex']] as const))
+      : ([[2, 'offset-hex']] as const))
       it(`${mode} on ${mapId}, seed 22`, () => playChecked(mode, players, 22, mapId), DEEP ? 600_000 : 60_000);
-  // Planets off the middle of their tiles: orbits that overlap, cross tiles and lose spaces at the edge.
-  // Original has Nomadic and Ingenious, which read orbits and tiles their own way.
-  for (const [mode, mapId] of [
-    ['basic', 'offset-square'],
-    ['original', 'offset-square'],
-    ['basic', 'offset-hex'],
-  ] as const)
-    it(`${mode} on ${mapId}, seed 22`, () => playChecked(mode, 2, 22, mapId), DEEP ? 600_000 : 60_000);
 });
 
 describe('invariant checker', () => {

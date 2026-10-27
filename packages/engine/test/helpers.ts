@@ -1,16 +1,8 @@
 /** Shared test helpers: players, a finished setup, and seeded AI-vs-AI games. */
 import { chooseAction, chooseCombatResponse, type AiLevel } from '../../ai/src';
-import { RULESETS, actor, apply, createGame, legalActions, type Action, type GameMode, type GameState } from '../src';
+import { DEFAULT_MODE, actor, apply, createGame, legalActions, type Action, type GameMode, type GameState } from '../src';
 
 export const players = (n: number) => Array.from({ length: n }, (_, i) => ({ name: `P${i}`, color: '#fff', ai: true }));
-
-/**
- * Lets `mode` play the map `groups` too, for the test file that asks, as if the lobby offered them: the
- * rules don't depend on the map, so e.g. Basic's plain rules can pin down the hex geometry.
- */
-export function allowMapGroups(mode: GameMode, ...groups: string[]) {
-  RULESETS[mode].mapGroups = [...RULESETS[mode].mapGroups, ...groups];
-}
 
 /** Finishes setup, taking the first legal choice for every setup decision. */
 export function finishSetup(s: GameState): GameState {
@@ -19,7 +11,7 @@ export function finishSetup(s: GameState): GameState {
 }
 
 /** A game with setup done (see `finishSetup`); `mapId` defaults to the mode's map for `n` players. */
-export function quickStart(n = 2, seed = 1, mode: GameMode = 'community', mapId?: string): GameState {
+export function quickStart(n = 2, seed = 1, mode: GameMode = DEFAULT_MODE, mapId?: string): GameState {
   return finishSetup(createGame({ players: players(n), seed, mode, mapId }));
 }
 
@@ -34,24 +26,6 @@ export function arrange(s: GameState, placements: Record<string, [number, number
     t.turn.seen[id] = [value];
   }
   return t;
-}
-
-/**
- * An Original game on Alpha Sector, setup done (planets at rows/cols 1, 4, 7: the centre is an 8,
- * the others 7s). The current player ("me") has a Scout at (0,0) next to the enemy's Destroyer at
- * (0,1); `skills` are given to each side, active.
- */
-export function originalGame(skills: { me?: string[]; foe?: string[] } = {}): GameState {
-  let s = quickStart(2, 3, 'original', 'alpha-sector');
-  const me = s.turn.player;
-  const foe = 1 - me;
-  s = arrange(s, { [`p${me}d0`]: [0, 0, 6], [`p${foe}d0`]: [0, 1, 3] });
-  s.players[me].skills = (skills.me ?? []).map((id) => ({ id, active: true }));
-  s.players[foe].skills = (skills.foe ?? []).map((id) => ({ id, active: true }));
-  s.players[me].dominance = 3;
-  s.players[foe].dominance = 3;
-  s.turn.actionsLeft = 3;
-  return s;
 }
 
 /** A seeded random number generator in [0, 1), independent of the game's own RNG. */

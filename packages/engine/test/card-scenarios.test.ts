@@ -10,30 +10,31 @@ import { describe, expect, it } from 'vitest';
 import { chooseAction } from '../../ai/src';
 import {
   apply as applyAction,
-  card,
   checkInvariants,
   combatOutcome,
   conquerCheck,
   deployTargets,
-  deploysFree,
   die,
   effectOf,
-  EXPANSION,
   legalActions,
-  nomadicTargets,
-  orbitals,
-  ORIGINAL_GAMBIT,
+  MODES,
+  RULESETS,
   shipsOnBoard,
   skillLimit,
-  TACTICS,
   type Action,
   type CombatPending,
-  type GameMode,
   type GameState,
 } from '../src';
 import { setSkills, toRow } from './audit';
-import { CARD_IDS, keyOf, unofferedAnswers } from './decisions';
-import { arrange, originalGame, quickStart, seededRandom } from './helpers';
+import { keyOf, unofferedAnswers } from './decisions';
+import { arrange, quickStart, seededRandom } from './helpers';
+
+/*
+ * Regolith on Alpha Sector (hex), in axial cells (docs/HEX.md): row 7 runs clear from (7,2) to (7,6), and the
+ * middle 8 at (6,4) is orbited by (5,4), (5,5), (6,3), (6,5), (7,3) and (7,4). Cards go by their effect (the
+ * Community card each started as).
+ */
+const DECKS = RULESETS.regolith.cards!;
 
 const covered = new Set<string>();
 
@@ -80,8 +81,8 @@ function combatOf(s: GameState): CombatPending {
 }
 
 /** Player 0 attacks player 1 with fixed dice, both at 3 Dominance; player 0's ship (p0d0) wins or loses. */
-function duel(mode: GameMode, seed: number, skills: { me?: string[]; foe?: string[] }, attackerWins: boolean): GameState {
-  let s = arrange(quickStart(2, seed, mode), attackerWins ? { p0d0: [2, 2, 2], p1d0: [2, 3, 6] } : { p0d0: [2, 2, 6], p1d0: [2, 3, 1] });
+function duel(seed: number, skills: { me?: string[]; foe?: string[] }, attackerWins: boolean): GameState {
+  let s = arrange(quickStart(2, seed), attackerWins ? { p0d0: [7, 2, 2], p1d0: [7, 3, 6] } : { p0d0: [7, 2, 6], p1d0: [7, 3, 1] });
   s.turn.player = 0;
   s.players[0].skills = (skills.me ?? []).map((id) => ({ id, active: true }));
   s.players[1].skills = (skills.foe ?? []).map((id) => ({ id, active: true }));
@@ -102,10 +103,10 @@ function takeTactic(s: GameState, id: string, store = false): GameState {
   return apply(s, { type: 'takeCard', deck: 'tactic', index: 0, store });
 }
 
-describe('tactics, gambits and expansion', () => {
-  TACTICS.forEach((tactic, i) =>
+describe('tactics and expansion', () => {
+  DECKS.tactics.forEach((tactic, i) =>
     cardCase([tactic.id], tactic.name, () => {
-      let s = quickStart(2, 200 + i, 'community');
+      let s = quickStart(2, 200 + i);
       const p = s.turn.player;
       const foe = 1 - p;
       setSkills(s, p, []);
@@ -113,7 +114,7 @@ describe('tactics, gambits and expansion', () => {
       const ships = shipsOnBoard(s).length;
       const r = resolveWithAi(takeTactic(s, tactic.id), seededRandom(i * 31 + 5));
       s = r.s;
-      switch (tactic.id) {
+      switch (effectOf(tactic.id)) {
         case 'aggression':
           expect(s.players[p].dominance).toBe(Math.min(6, before.players[p].dominance + 2));
           break;
@@ -126,8 +127,8 @@ describe('tactics, gambits and expansion', () => {
         case 'plan-ahead':
           expect(s.players[p].planAhead).toBe(2);
           break;
-        case 'sabotage':
-          expect(s.players[foe].actionPenalty).toBe(before.players[foe].actionPenalty + 1);
+        case 'sabotage-double':
+          expect(s.players[foe].actionPenalty).toBe(before.players[foe].actionPenalty + 2);
           break;
         case 'warp-gate':
           expect(s.gates).toHaveLength(2);
@@ -143,37 +144,21 @@ describe('tactics, gambits and expansion', () => {
         case 'unveil-the-fleet':
           expect(r.seen).toContain('unveil');
           break;
+        case 'barrier':
+          expect(r.seen).toContain('placeBarrier');
+          expect(s.barriers).toHaveLength((before.barriers?.length ?? 0) + 2);
+          break;
+        case 'kinetic-shunt':
+          expect(r.seen).toContain('kineticShunt');
+          break;
         default:
           throw new Error(`no scenario for ${tactic.id}`);
       }
     }),
   );
 
-  cardCase(['r-sabotage'], 'Sabotage (Regolith)', () => {
-    let s = quickStart(2, 198, 'regolith', 'alpha-hex');
-    const foe = 1 - s.turn.player;
-    setSkills(s, s.turn.player, []);
-    const before = s.players[foe].actionPenalty;
-    s = resolveWithAi(takeTactic(s, 'r-sabotage'), seededRandom(7)).s;
-    expect(s.players[foe].actionPenalty).toBe(before + 2);
-  });
-
-  cardCase(['r-barricade'], 'Barricade (Regolith)', () => {
-    const s = quickStart(2, 197, 'regolith', 'alpha-hex');
-    const before = s.barriers?.length ?? 0;
-    const r = resolveWithAi(takeTactic(s, 'r-barricade'), seededRandom(7));
-    expect(r.seen).toContain('placeBarrier');
-    expect(r.s.barriers).toHaveLength(before + 2);
-  });
-
-  cardCase(['r-kinetic-shunt'], 'Kinetic Shunt (Regolith)', () => {
-    const s = quickStart(2, 197, 'regolith', 'alpha-hex');
-    const r = resolveWithAi(takeTactic(s, 'r-kinetic-shunt'), seededRandom(7));
-    expect(r.seen).toContain('kineticShunt');
-  });
-
-  cardCase([EXPANSION.id], 'Expansion', () => {
-    let s = quickStart(2, 199, 'community');
+  cardCase([DECKS.expansion!.id], 'Expansion', () => {
+    let s = quickStart(2, 199);
     const p = s.turn.player;
     s.market.expansions = 1;
     s.pending.unshift({ kind: 'takeCard', player: p, count: 1 });
@@ -181,169 +166,89 @@ describe('tactics, gambits and expansion', () => {
     s = resolveWithAi(apply(s, { type: 'takeCard', deck: 'expansion', index: 0 }), seededRandom(3)).s;
     expect(shipsOnBoard(s, p)).toHaveLength(ships + 1);
   });
-
-  ORIGINAL_GAMBIT.forEach((gambit, i) =>
-    cardCase([gambit.id], `${gambit.name} (Original)`, () => {
-      let s = quickStart(2, 500 + i, 'original');
-      const p = s.turn.player;
-      const foe = 1 - p;
-      if (gambit.id === 'o-relocation') {
-        s.board.planets[0].cubes.push(foe);
-        s.players[foe].cubesLeft--;
-      }
-      if (gambit.id === 'o-sabotage') setSkills(s, foe, ['o-agile']);
-      const before = structuredClone(s);
-      const ships = shipsOnBoard(s, p).length;
-      const r = resolveWithAi(takeTactic(s, gambit.id), seededRandom(i * 13 + 7));
-      s = r.s;
-      switch (gambit.id) {
-        case 'o-aggression':
-          expect(s.players[p].dominance).toBe(Math.min(6, before.players[p].dominance + 2));
-          break;
-        case 'o-momentum':
-          expect(s.players[p].bonusTurns).toEqual([...before.players[p].bonusTurns, 2]);
-          break;
-        case 'o-relocation':
-          expect(s.board.planets[0].cubes).not.toContain(foe);
-          break;
-        case 'o-sabotage':
-          expect(s.players[foe].skills).toHaveLength(0);
-          break;
-        case 'o-reorganization':
-          expect(r.seen).toContain('unveil');
-          break;
-        case 'o-expansion':
-          expect(shipsOnBoard(s, p)).toHaveLength(ships + 1);
-          break;
-        default:
-          throw new Error(`no scenario for ${gambit.id}`);
-      }
-    }),
-  );
 });
 
 describe('activated skills', () => {
-  cardCase(['composed', 'o-cerebral'], 'Composed / Cerebral', () => {
-    for (const [mode, id] of [
-      ['community', 'composed'],
-      ['original', 'o-cerebral'],
-    ] as const) {
-      let s = quickStart(2, 601, mode);
-      const p = s.turn.player;
-      s.players[p].skills = [{ id, active: true }];
-      s.players[p].dominance = 3;
-      s.players[p].research = 1;
-      s = apply(s, { type: 'composed' });
-      expect(s.players[p].dominance).toBe(2);
-      expect(s.players[p].research).toBe(4);
-    }
+  cardCase(['r-composed'], 'Composed', () => {
+    let s = quickStart(2, 601);
+    const p = s.turn.player;
+    s.players[p].skills = [{ id: 'r-composed', active: true }];
+    s.players[p].dominance = 3;
+    s.players[p].research = 1;
+    s = apply(s, { type: 'composed' });
+    expect(s.players[p].dominance).toBe(2);
+    expect(s.players[p].research).toBe(4);
   });
 
-  cardCase(['ambitious'], 'Ambitious', () => {
-    let s = quickStart(2, 603, 'community');
+  cardCase(['r-ambitious'], 'Ambitious', () => {
+    let s = quickStart(2, 603);
     const p = s.turn.player;
-    s.players[p].skills = [{ id: 'ambitious', active: true }];
+    s.players[p].skills = [{ id: 'r-ambitious', active: true }];
     const actions = s.turn.actionsLeft;
     s = apply(s, { type: 'ambitious' });
     expect(s.turn.actionsLeft).toBe(actions + 1);
     expect(s.players[p].ambitionTokens).toBe(1);
   });
 
-  cardCase(['flexible', 'o-flexible'], 'Flexible', () => {
-    for (const [mode, id] of [
-      ['community', 'flexible'],
-      ['original', 'o-flexible'],
-    ] as const) {
-      let s = quickStart(2, 604, mode);
-      const p = s.turn.player;
-      s.players[p].skills = [{ id, active: true }];
-      const ship = shipsOnBoard(s, p)[0].id;
-      die(s, ship).value = 3;
-      s = apply(s, { type: 'flexible', die: ship, delta: 1 });
-      expect(die(s, ship).value).toBe(4);
-    }
-  });
-
-  cardCase(['resourceful', 'o-resourceful'], 'Resourceful', () => {
-    for (const [mode, id] of [
-      ['community', 'resourceful'],
-      ['original', 'o-resourceful'],
-    ] as const) {
-      let s = quickStart(2, 606, mode);
-      const p = s.turn.player;
-      s.players[p].skills = [{ id, active: true }];
-      const ship = shipsOnBoard(s, p)[0].id;
-      const actions = s.turn.actionsLeft;
-      s = apply(s, { type: 'resourceful', die: ship });
-      expect(die(s, ship).loc.zone).toBe('scrapyard');
-      expect(s.turn.actionsLeft).toBe(actions + 1);
-    }
-  });
-
-  cardCase(['tactical', 'o-tactical'], 'Tactical', () => {
-    for (const [mode, id] of [
-      ['community', 'tactical'],
-      ['original', 'o-tactical'],
-    ] as const) {
-      let s = arrange(quickStart(2, 608, mode), { p0d0: [2, 2, 3] });
-      s.players[0].skills = [{ id, active: true }];
-      s.turn.player = 0;
-      s = apply(s, { type: 'tactical', die: 'p0d0', to: { r: 2, c: 3 } });
-      expect(die(s, 'p0d0').loc).toEqual({ zone: 'board', r: 2, c: 3 });
-    }
-  });
-
-  cardCase(['o-nomadic'], 'Nomadic', () => {
-    let s = originalGame({ me: ['o-nomadic'] });
-    const ship = shipsOnBoard(s, s.turn.player)[0];
-    die(s, ship.id).loc = { zone: 'board', ...orbitals(s.board, s.board.planets[0])[0] };
-    const targets = nomadicTargets(s, ship.id);
-    expect(targets.length).toBeGreaterThan(0);
-    s = apply(s, { type: 'nomadic', die: ship.id, to: targets[0] });
-    expect(die(s, ship.id).loc).toEqual({ zone: 'board', ...targets[0] });
-  });
-
-  cardCase(['o-tyrannical'], 'Tyrannical (Original)', () => {
-    let s = quickStart(2, 610, 'original');
+  cardCase(['r-flexible'], 'Flexible', () => {
+    let s = quickStart(2, 604);
     const p = s.turn.player;
-    s.players[p].skills = [{ id: 'o-tyrannical', active: true }];
-    s.players[p].research = 3;
-    s.players[p].dominance = 1;
-    s = apply(s, { type: 'tyrannical' });
-    expect(s.players[p].research).toBe(2);
-    expect(s.players[p].dominance).toBe(2);
+    s.players[p].skills = [{ id: 'r-flexible', active: true }];
+    const ship = shipsOnBoard(s, p)[0].id;
+    die(s, ship).value = 3;
+    s = apply(s, { type: 'flexible', die: ship, delta: 1 });
+    expect(die(s, ship).value).toBe(4);
   });
 
-  cardCase(['patient'], 'Patient', () => {
-    let s = quickStart(2, 611, 'community');
+  cardCase(['r-resourceful'], 'Resourceful', () => {
+    let s = quickStart(2, 606);
     const p = s.turn.player;
-    s.players[p].skills = [{ id: 'patient', active: true }];
-    s = takeTactic(s, 'aggression', true);
-    expect(s.players[p].storedTactics).toEqual(['aggression']);
+    s.players[p].skills = [{ id: 'r-resourceful', active: true }];
+    const ship = shipsOnBoard(s, p)[0].id;
+    const actions = s.turn.actionsLeft;
+    s = apply(s, { type: 'resourceful', die: ship });
+    expect(die(s, ship).loc.zone).toBe('scrapyard');
+    expect(s.turn.actionsLeft).toBe(actions + 1);
+  });
+
+  cardCase(['r-tactical'], 'Tactical', () => {
+    let s = arrange(quickStart(2, 608), { p0d0: [7, 2, 3] });
+    s.players[0].skills = [{ id: 'r-tactical', active: true }];
+    s.turn.player = 0;
+    s = apply(s, { type: 'tactical', die: 'p0d0', to: { r: 7, c: 3 } });
+    expect(die(s, 'p0d0').loc).toEqual({ zone: 'board', r: 7, c: 3 });
+  });
+
+  cardCase(['r-patient'], 'Patient', () => {
+    let s = quickStart(2, 611);
+    const p = s.turn.player;
+    s.players[p].skills = [{ id: 'r-patient', active: true }];
+    s = takeTactic(s, 'r-aggression', true);
+    expect(s.players[p].storedTactics).toEqual(['r-aggression']);
     const dominance = s.players[p].dominance;
-    s = apply(s, { type: 'playStoredTactic', card: 'aggression' });
+    s = apply(s, { type: 'playStoredTactic', card: 'r-aggression' });
     expect(s.players[p].dominance).toBe(dominance + 2);
     expect(s.players[p].storedTactics).toEqual([]);
     expect(legalActions(s)).toEqual([{ type: 'endTurn' }]);
   });
 
-  cardCase(['curious'], 'Curious (CE)', () => {
-    let s = quickStart(2, 713, 'community');
+  cardCase(['r-curious'], 'Curious (CE)', () => {
+    let s = quickStart(2, 713);
     const p = s.turn.player;
-    s.players[p].skills = [{ id: 'curious', active: true }];
+    s.players[p].skills = [{ id: 'r-curious', active: true }];
     s.players[p].research = 1;
     for (let i = 0; i < 3; i++) s = apply(s, { type: 'research' });
     expect(s.turn.actionsLeft).toBe(0);
     s = apply(s, { type: 'research' });
     expect(s.turn.curiousUsed).toBe(true);
     expect(s.players[p].research).toBe(5);
-    expect(legalActions(s)).toEqual([{ type: 'endTurn' }]);
+    expect(legalActions(s).filter((a) => a.type !== 'change')).toEqual([{ type: 'endTurn' }]);
   });
 
-  cardCase(['profiteering'], 'Profiteering', () => {
-    let s = quickStart(2, 716, 'community');
+  cardCase(['r-profiteering'], 'Profiteering', () => {
+    let s = quickStart(2, 716);
     const p = s.turn.player;
-    s.players[p].skills = [{ id: 'profiteering', active: true }];
+    s.players[p].skills = [{ id: 'r-profiteering', active: true }];
     s.pending.unshift({ kind: 'takeCard', player: p, count: 1, conquer: 1 });
     const missiles = s.players[p].missiles;
     s = apply(s, { type: 'profiteer' });
@@ -352,32 +257,21 @@ describe('activated skills', () => {
 });
 
 describe('triggered and choice skills', () => {
-  cardCase(['clever', 'o-clever'], 'Clever', () => {
+  cardCase(['r-clever'], 'Clever', () => {
     // CE: after a Reconfigure, keep the number or change it by 1.
-    let s = arrange(quickStart(2, 701, 'community'), { p0d0: [2, 2, 3] });
+    let s = arrange(quickStart(2, 701), { p0d0: [7, 2, 3] });
     s.turn.player = 0;
-    s.players[0].skills = [{ id: 'clever', active: true }];
+    s.players[0].skills = [{ id: 'r-clever', active: true }];
     s = apply(s, { type: 'reconfigure', die: 'p0d0' });
-    const ce = s.pending[0];
-    expect(ce).toMatchObject({ kind: 'clever', source: 'clever' });
+    expect(s.pending[0]).toMatchObject({ kind: 'clever', source: 'clever' });
     const rolled = die(s, 'p0d0').value;
     s = apply(s, { type: 'clever', value: rolled });
     expect(die(s, 'p0d0').value).toBe(rolled);
-
-    // Original: choose the number instead of rolling it.
-    let so = arrange(quickStart(2, 702, 'original'), { p0d0: [2, 2, 3] });
-    so.turn.player = 0;
-    so.players[0].skills = [{ id: 'o-clever', active: true }];
-    so = apply(so, { type: 'reconfigure', die: 'p0d0' });
-    expect(so.pending[0]).toMatchObject({ kind: 'clever', avoid: 3 });
-    expect(() => apply(so, { type: 'clever', value: 3 })).toThrow();
-    so = apply(so, { type: 'clever', value: 5 });
-    expect(die(so, 'p0d0').value).toBe(5);
   });
 
-  cardCase(['calculating'], 'Calculating', () => {
+  cardCase(['r-calculating'], 'Calculating', () => {
     // Player 1's defending ship is destroyed: its owner picks the number it shows in the scrapyard.
-    let s = duel('community', 703, { foe: ['calculating'] }, true);
+    let s = duel(703, { foe: ['r-calculating'] }, true);
     expect(die(s, 'p1d0').loc.zone).toBe('scrapyard');
     expect(s.pending.find((p) => p.kind === 'clever')).toMatchObject({ player: 1, die: 'p1d0', source: 'calculating' });
     while (s.pending[0].kind !== 'clever') s = apply(s, legalActions(s)[0]);
@@ -385,213 +279,133 @@ describe('triggered and choice skills', () => {
     expect(die(s, 'p1d0').value).toBe(4);
   });
 
-  cardCase(['brilliant', 'o-brilliant'], 'Brilliant', () => {
-    for (const [mode, id] of [
-      ['community', 'brilliant'],
-      ['original', 'o-brilliant'],
-    ] as const) {
-      let s = quickStart(2, 704, mode);
-      const p = s.turn.player;
-      s.players[p].skills = [{ id, active: true }];
-      s.players[p].research = 1;
-      s = apply(s, { type: 'endTurn' });
-      s = apply(s, { type: 'endTurn' });
-      expect(s.players[p].research).toBe(3);
-    }
+  cardCase(['r-brilliant'], 'Brilliant', () => {
+    let s = quickStart(2, 704);
+    const p = s.turn.player;
+    s.players[p].skills = [{ id: 'r-brilliant', active: true }];
+    s.players[p].research = 1;
+    s = apply(s, { type: 'endTurn' });
+    s = apply(s, { type: 'endTurn' });
+    expect(s.players[p].research).toBe(3);
   });
 
-  cardCase(['o-scrappy'], 'Scrappy', () => {
-    let s = arrange(quickStart(2, 706, 'original'), { p0d0: [2, 2, 3] });
-    s.turn.player = 0;
-    s.players[0].skills = [{ id: 'o-scrappy', active: true }];
-    s = apply(s, { type: 'reconfigure', die: 'p0d0' });
-    expect(s.turn.scrappy).toMatchObject({ die: 'p0d0' });
-    s = apply(s, { type: 'scrappy' });
-    expect(s.turn.scrappy).toBeUndefined();
-  });
-
-  it("Scrappy waits out another player's choice, unless it changes the ship", () => {
-    let s = arrange(quickStart(2, 706, 'original'), { p0d0: [2, 2, 3], p1d0: [5, 5, 4] });
-    s.turn.player = 0;
-    s.players[0].skills = [{ id: 'o-scrappy', active: true }];
-    s = apply(s, { type: 'reconfigure', die: 'p0d0' });
-    const choice = (die: string) => {
-      const t = structuredClone(s);
-      t.pending.unshift({ kind: 'clever', player: 1, die, source: 'clever' });
-      return apply(t, { type: 'clever', value: t.dice.find((d) => d.id === die)!.value === 6 ? 5 : 6 });
-    };
-    expect(choice('p1d0').turn.scrappy).toMatchObject({ die: 'p0d0' });
-    expect(choice('p0d0').turn.scrappy).toBeUndefined();
-  });
-
-  cardCase(['ruthless'], 'Ruthless', () => {
-    let s = duel('community', 707, { me: ['ruthless'], foe: ['agile'] }, true);
+  cardCase(['r-ruthless'], 'Ruthless', () => {
+    let s = duel(707, { me: ['r-ruthless'], foe: ['r-agile'] }, true);
     expect(s.pending[0]).toMatchObject({ kind: 'ruthless', player: 0, victim: 1 });
-    s = apply(s, { type: 'ruthless', skill: 'agile' });
+    s = apply(s, { type: 'ruthless', skill: 'r-agile' });
     expect(s.players[1].skills[0]).toMatchObject({ active: false, disabledUntil: 0 });
   });
 
-  cardCase(['prideful'], 'Prideful', () => {
-    let s = duel('community', 708, { foe: ['prideful'] }, true);
+  cardCase(['r-prideful'], 'Prideful', () => {
+    let s = duel(708, { foe: ['r-prideful'] }, true);
     expect(s.pending[0]).toMatchObject({ kind: 'prideful', player: 0, victim: 1 });
     s = apply(s, { type: 'prideful', take: true });
-    expect(s.players[0].skills).toEqual([{ id: 'prideful', active: true }]);
+    expect(s.players[0].skills).toEqual([{ id: 'r-prideful', active: true }]);
     expect(s.players[1].skills).toEqual([]);
   });
 
-  cardCase(['dangerous', 'o-dangerous'], 'Dangerous', () => {
-    for (const [mode, id] of [
-      ['community', 'dangerous'],
-      ['original', 'o-dangerous'],
-    ] as const) {
-      let s = arrange(quickStart(2, 709, mode), { p0d0: [2, 2, 3], p1d0: [2, 3, 3] });
-      s.turn.player = 0;
-      s.players[1].skills = [{ id, active: true }];
-      s = apply(s, { type: 'attack', die: 'p0d0', target: 'p1d0' });
-      expect(s.pending[0]).toMatchObject({ kind: 'dangerous', player: 1 });
-      s = apply(s, { type: 'dangerous', destroy: true });
-      expect(die(s, 'p0d0').loc.zone).toBe('scrapyard');
-      expect(die(s, 'p1d0').loc.zone).toBe('scrapyard');
-    }
+  cardCase(['r-dangerous'], 'Dangerous', () => {
+    let s = arrange(quickStart(2, 709), { p0d0: [7, 2, 3], p1d0: [7, 3, 3] });
+    s.turn.player = 0;
+    s.players[1].skills = [{ id: 'r-dangerous', active: true }];
+    s = apply(s, { type: 'attack', die: 'p0d0', target: 'p1d0' });
+    expect(s.pending[0]).toMatchObject({ kind: 'dangerous', player: 1 });
+    s = apply(s, { type: 'dangerous', destroy: true });
+    expect(die(s, 'p0d0').loc.zone).toBe('scrapyard');
+    expect(die(s, 'p1d0').loc.zone).toBe('scrapyard');
   });
 
-  cardCase(['o-cruel', 'o-relentless'], 'Cruel / Relentless', () => {
-    // Cruel re-rolls the attacker's die when defending; Relentless re-rolls its own when attacking.
-    for (const [id, by] of [
-      ['o-cruel', 1],
-      ['o-relentless', 0],
-    ] as const) {
-      let s = arrange(quickStart(2, 711, 'original'), { p0d0: [2, 2, 3], p1d0: [2, 3, 3] });
-      s.turn.player = 0;
-      s.players[by].skills = [{ id, active: true }];
-      s = apply(s, { type: 'attack', die: 'p0d0', target: 'p1d0' });
-      const combat = combatOf(s);
-      combat.attacker.dice = by === 1 ? [1] : [6];
-      combat.defender.dice = by === 1 ? [6] : [1];
-      s = apply(s, { type: 'reroll', by, side: 'attacker' });
-      expect(combatOf(s).rerolls).toHaveLength(1);
-    }
-  });
-
-  cardCase(['cunning', 'o-cunning'], 'Cunning', () => {
-    for (const [mode, id] of [
-      ['community', 'cunning'],
-      ['original', 'o-cunning'],
-    ] as const) {
-      let s = arrange(quickStart(2, 714, mode), { p0d0: [2, 2, 6] });
-      s.players[0].skills = [{ id, active: true }];
-      s.turn.player = 0;
-      s = apply(s, { type: 'freeReconfigure', die: 'p0d0' });
-      while (s.pending.length) s = apply(s, legalActions(s)[0]);
-      die(s, 'p0d0').value = 6;
-      s = apply(s, { type: 'freeReconfigure', die: 'p0d0' });
-      expect(s.turn.oncePerTurn).toContain('cunning');
-    }
+  cardCase(['r-cunning'], 'Cunning', () => {
+    // A ship's ability twice in a turn: a Tactician swaps, and swaps back.
+    let s = arrange(quickStart(2, 714), { p0d0: [0, 5, 3], p0d1: [12, 2, 6] });
+    s.players[0].skills = [{ id: 'r-cunning', active: true }];
+    s.turn.player = 0;
+    s = apply(s, { type: 'swap', die: 'p0d0', other: 'p0d1' });
+    s = apply(s, { type: 'swap', die: 'p0d0', other: 'p0d1' });
+    expect(s.turn.oncePerTurn).toContain('cunning');
+    expect(die(s, 'p0d0').loc).toEqual({ zone: 'board', r: 0, c: 5 });
   });
 });
 
 describe('passive skills and rule hooks', () => {
-  cardCase(['agile', 'o-agile'], 'Agile', () => {
-    for (const [mode, id] of [
-      ['community', 'agile'],
-      ['original', 'o-agile'],
-    ] as const) {
-      let s = arrange(quickStart(2, 801, mode), { p0d0: [0, 0, 3] });
-      s.turn.player = 0;
-      expect(() => apply(s, { type: 'move', die: 'p0d0', to: { r: 4, c: 0 } })).toThrow();
-      s.players[0].skills = [{ id, active: true }];
-      s = apply(s, { type: 'move', die: 'p0d0', to: { r: 4, c: 0 } });
-      expect(die(s, 'p0d0').loc).toEqual({ zone: 'board', r: 4, c: 0 });
-    }
-  });
-
-  cardCase(['devious'], 'Devious', () => {
-    let s = arrange(quickStart(2, 803, 'community'), { p0d0: [0, 0, 2], p1d0: [1, 0, 4] });
+  cardCase(['r-agile'], 'Agile', () => {
+    // A 3 moves 3 (Regolith's cap), and Agile's +1 on top: 4 along row 7.
+    let s = arrange(quickStart(2, 801), { p0d0: [7, 2, 3] });
     s.turn.player = 0;
-    s.players[0].skills = [{ id: 'devious', active: true }];
-    s = apply(s, { type: 'move', die: 'p0d0', to: { r: 2, c: 0 } });
-    expect(die(s, 'p0d0').loc).toEqual({ zone: 'board', r: 2, c: 0 });
+    expect(() => apply(s, { type: 'move', die: 'p0d0', to: { r: 7, c: 6 } })).toThrow();
+    s.players[0].skills = [{ id: 'r-agile', active: true }];
+    s = apply(s, { type: 'move', die: 'p0d0', to: { r: 7, c: 6 } });
+    expect(die(s, 'p0d0').loc).toEqual({ zone: 'board', r: 7, c: 6 });
   });
 
-  cardCase(['stealthy', 'o-stealthy'], 'Stealthy', () => {
-    for (const [mode, id] of [
-      ['community', 'stealthy'],
-      ['original', 'o-stealthy'],
-    ] as const) {
-      let s = quickStart(2, 805, mode);
-      s.turn.player = 0;
-      die(s, 'p0d0').loc = { zone: 'scrapyard' };
-      const normal = deployTargets(s, 0).length;
-      s.players[0].skills = [{ id, active: true }];
-      const targets = deployTargets(s, 0);
-      expect(targets.length).toBeGreaterThan(normal);
-      s = apply(s, { type: 'deploy', die: 'p0d0', to: targets[targets.length - 1] });
-      expect(die(s, 'p0d0').loc.zone).toBe('board');
-    }
+  cardCase(['r-devious'], 'Devious', () => {
+    let s = arrange(quickStart(2, 803), { p0d0: [7, 2, 2], p1d0: [7, 3, 4] });
+    s.turn.player = 0;
+    expect(() => apply(s, { type: 'move', die: 'p0d0', to: { r: 7, c: 4 } })).toThrow();
+    s.players[0].skills = [{ id: 'r-devious', active: true }];
+    s = apply(s, { type: 'move', die: 'p0d0', to: { r: 7, c: 4 } });
+    expect(die(s, 'p0d0').loc).toEqual({ zone: 'board', r: 7, c: 4 });
   });
 
-  cardCase(['steadfast', 'o-energetic'], 'Steadfast / Energetic', () => {
-    for (const [mode, id] of [
-      ['community', 'steadfast'],
-      ['original', 'o-energetic'],
-    ] as const) {
-      let s = arrange(quickStart(2, 807, mode), { p0d0: [0, 0, 1] });
-      s.players[0].skills = [{ id, active: true }];
-      s.turn.player = 0;
-      s = apply(s, { type: 'move', die: 'p0d0', to: { r: 1, c: 0 } });
-      s = apply(s, { type: 'move', die: 'p0d0', to: { r: 2, c: 0 } });
-      expect(die(s, 'p0d0').loc).toEqual({ zone: 'board', r: 2, c: 0 });
-    }
+  cardCase(['r-stealthy'], 'Stealthy', () => {
+    let s = quickStart(2, 805);
+    s.turn.player = 0;
+    die(s, 'p0d0').loc = { zone: 'scrapyard' };
+    const normal = deployTargets(s, 0).length;
+    s.players[0].skills = [{ id: 'r-stealthy', active: true }];
+    const targets = deployTargets(s, 0);
+    expect(targets.length).toBeGreaterThan(normal);
+    s = apply(s, { type: 'deploy', die: 'p0d0', to: targets[targets.length - 1] });
+    expect(die(s, 'p0d0').loc.zone).toBe('board');
   });
 
-  cardCase(['talented'], 'Talented', () => {
-    const s = quickStart(2, 809, 'community');
+  cardCase(['r-steadfast'], 'Steadfast', () => {
+    let s = arrange(quickStart(2, 807), { p0d0: [7, 2, 1] });
+    s.players[0].skills = [{ id: 'r-steadfast', active: true }];
+    s.turn.player = 0;
+    s = apply(s, { type: 'move', die: 'p0d0', to: { r: 7, c: 3 } });
+    s = apply(s, { type: 'move', die: 'p0d0', to: { r: 7, c: 4 } });
+    expect(die(s, 'p0d0').loc).toEqual({ zone: 'board', r: 7, c: 4 });
+  });
+
+  cardCase(['r-talented'], 'Talented', () => {
+    const s = quickStart(2, 809);
     s.players[0].skills = [];
     expect(skillLimit(s, 0)).toBe(3);
-    s.players[0].skills = [{ id: 'talented', active: true }];
+    s.players[0].skills = [{ id: 'r-talented', active: true }];
     expect(skillLimit(s, 0)).toBe(5);
   });
 
-  cardCase(['precocious', 'o-precocious'], 'Precocious', () => {
-    for (const [mode, id] of [
-      ['community', 'precocious'],
-      ['original', 'o-precocious'],
-    ] as const) {
-      let s = quickStart(2, 810, mode);
-      s.turn.player = 0;
-      s.players[0].research = 4;
-      expect(apply(s, { type: 'endTurn' }).pending.some((p) => p.kind === 'takeCard')).toBe(false);
-      s.players[0].skills = [{ id, active: true }];
-      s = apply(s, { type: 'endTurn' });
-      expect(s.pending.some((p) => p.kind === 'takeCard')).toBe(true);
-    }
+  cardCase(['r-precocious'], 'Precocious', () => {
+    let s = quickStart(2, 810);
+    s.turn.player = 0;
+    s.players[0].research = 4;
+    expect(apply(s, { type: 'endTurn' }).pending.some((p) => p.kind === 'takeCard')).toBe(false);
+    s.players[0].skills = [{ id: 'r-precocious', active: true }];
+    s = apply(s, { type: 'endTurn' });
+    expect(s.pending.some((p) => p.kind === 'takeCard')).toBe(true);
   });
 
-  cardCase(['righteous', 'o-righteous'], 'Righteous', () => {
-    // Both keep Dominance when a ship is destroyed; the CE card also blocks every research gain.
-    for (const [mode, id] of [
-      ['community', 'righteous'],
-      ['original', 'o-righteous'],
-    ] as const) {
-      const before = duel(mode, 812, {}, false).players[1].dominance;
-      expect(duel(mode, 812, {}, true).players[1].dominance).toBeLessThan(before);
-      expect(duel(mode, 812, { foe: [id] }, true).players[1].dominance).toBe(before);
-    }
-    const s = quickStart(2, 813, 'community');
-    s.players[s.turn.player].skills = [{ id: 'righteous', active: true }];
+  cardCase(['r-righteous'], 'Righteous', () => {
+    // Keeps Dominance when a ship is destroyed, and blocks every research gain.
+    const before = duel(812, {}, false).players[1].dominance;
+    expect(duel(812, {}, true).players[1].dominance).toBeLessThan(before);
+    expect(duel(812, { foe: ['r-righteous'] }, true).players[1].dominance).toBe(before);
+    const s = quickStart(2, 813);
+    s.players[s.turn.player].skills = [{ id: 'r-righteous', active: true }];
     expect(() => apply(s, { type: 'research' })).toThrow('You cannot gain research');
   });
 
-  cardCase(['brutal'], 'Brutal', () => {
-    const s = arrange(quickStart(2, 820, 'community'), { p0d0: [2, 2, 6], p1d0: [2, 3, 3] });
-    s.players[0].skills = [{ id: 'brutal', active: true }];
+  cardCase(['r-brutal'], 'Brutal', () => {
+    const s = arrange(quickStart(2, 820), { p0d0: [7, 2, 6], p1d0: [7, 3, 3] });
+    s.players[0].skills = [{ id: 'r-brutal', active: true }];
     s.turn.player = 0;
     expect(combatOf(apply(s, { type: 'attack', die: 'p0d0', target: 'p1d0' })).attacker.dice).toHaveLength(2);
   });
 
   /** The attacker's combat total with fixed dice of 3 each, with `skills` on `side`. */
-  function total(mode: GameMode, skills: string[], side: 0 | 1, placements: Record<string, [number, number, number]> = {}) {
-    let s = arrange(quickStart(2, 821, mode), { p0d0: [2, 2, 6], p1d0: [2, 3, 3], ...placements });
+  function total(skills: string[], side: 0 | 1, placements: Record<string, [number, number, number]> = {}) {
+    let s = arrange(quickStart(2, 821), { p0d0: [7, 2, 6], p1d0: [7, 3, 3], ...placements });
     s.players[side].skills = skills.map((id) => ({ id, active: true }));
     s.turn.player = 0;
     s = apply(s, { type: 'attack', die: 'p0d0', target: 'p1d0' });
@@ -601,116 +415,69 @@ describe('passive skills and rule hooks', () => {
     return { s, combat, out: combatOutcome(s, combat) };
   }
 
-  cardCase(['ferocious', 'o-ferocious'], 'Ferocious', () => {
-    for (const [mode, id] of [
-      ['community', 'ferocious'],
-      ['original', 'o-ferocious'],
-    ] as const) {
-      expect(total(mode, [id], 0).out.attacker.total).toBe(total(mode, [], 0).out.attacker.total - 1);
-    }
+  cardCase(['r-ferocious'], 'Ferocious', () => {
+    expect(total(['r-ferocious'], 0).out.attacker.total).toBe(total([], 0).out.attacker.total - 1);
   });
 
-  cardCase(['rational', 'o-rational'], 'Rational', () => {
-    for (const [mode, id] of [
-      ['community', 'rational'],
-      ['original', 'o-rational'],
-    ] as const) {
-      const { s, combat } = total(mode, [id], 0);
-      combat.attacker.dice = [6];
-      expect(combatOutcome(s, combat).attacker.roll).toBe(3);
-    }
+  cardCase(['r-rational'], 'Rational', () => {
+    const { s, combat } = total(['r-rational'], 0);
+    combat.attacker.dice = [6];
+    expect(combatOutcome(s, combat).attacker.roll).toBe(3);
   });
 
-  cardCase(['strategic', 'o-strategic'], 'Strategic', () => {
-    for (const [mode, id] of [
-      ['community', 'strategic'],
-      ['original', 'o-strategic'],
-    ] as const) {
-      const support = { p0d1: [1, 2, 2] as [number, number, number] };
-      expect(total(mode, [id], 0, support).out.attacker.total).toBe(total(mode, [], 0, support).out.attacker.total - 2);
-    }
+  cardCase(['r-strategic'], 'Strategic', () => {
+    const support = { p0d1: [8, 2, 2] as [number, number, number] };
+    expect(total(['r-strategic'], 0, support).out.attacker.total).toBe(total([], 0, support).out.attacker.total - 2);
   });
 
-  cardCase(['stubborn', 'o-stubborn'], 'Stubborn', () => {
-    for (const [mode, id] of [
-      ['community', 'stubborn'],
-      ['original', 'o-stubborn'],
-    ] as const) {
-      const { out } = total(mode, [id], 1, { p1d0: [2, 3, 6] });
-      expect(out.attackerWins).toBe(false);
-      expect(out.stubborn).toBe(true);
-    }
+  cardCase(['r-stubborn'], 'Stubborn', () => {
+    const { out } = total(['r-stubborn'], 1, { p1d0: [7, 3, 6] });
+    expect(out.attackerWins).toBe(false);
+    expect(out.stubborn).toBe(true);
   });
 
-  cardCase(['ingenious', 'o-ingenious', 'intelligent', 'o-intelligent', 'pioneering', 'tyrannical'], 'Conquer skills', () => {
-    const conquers = (id: string | null, ships: [number, number, number][], research?: number) => {
-      const base = originalGame({ me: id ? [id] : [] });
-      const me = base.turn.player;
-      const s = arrange(base, Object.fromEntries(ships.map((p, i) => [`p${me}d${i}`, p])));
-      if (research !== undefined) s.players[me].research = research;
-      if (id === 'tyrannical') s.players[me].dominance = 2;
-      const centre = s.board.planets.find((p) => p.number === 8)!.id;
-      return conquerCheck(s, me, centre).ok;
-    };
+  /** Whether the current player can conquer the middle 8 with these ships (in its orbit) and skills. */
+  function conquers(id: string | null, ships: [number, number, number][], research?: number, dominance?: number) {
+    const base = quickStart(2, 830);
+    const me = base.turn.player;
+    const s = arrange(base, Object.fromEntries(ships.map((p, i) => [`p${me}d${i}`, p])));
+    s.players[me].skills = id ? [{ id, active: true }] : [];
+    if (research !== undefined) s.players[me].research = research;
+    if (dominance !== undefined) s.players[me].dominance = dominance;
+    const centre = s.board.planets.find((p) => p.number === 8)!.id;
+    return conquerCheck(s, me, centre).ok;
+  }
+
+  cardCase(['r-intelligent', 'r-tyrannical'], 'Conquer skills', () => {
     const cases: [string, [number, number, number][], number?][] = [
       [
-        'ingenious',
+        'r-intelligent',
         [
-          [3, 3, 5],
-          [3, 4, 3],
-        ],
-      ], // a diagonal ship counts
-      [
-        'o-ingenious',
-        [
-          [3, 3, 5],
-          [3, 4, 3],
-        ],
-      ],
-      [
-        'intelligent',
-        [
-          [3, 4, 3],
-          [5, 4, 4],
+          [5, 4, 3],
+          [7, 4, 4],
         ],
       ], // 7 for an 8
-      [
-        'o-intelligent',
-        [
-          [3, 4, 3],
-          [5, 4, 4],
-        ],
-      ],
-      ['pioneering', [[3, 4, 2]], 8], // research in place of a ship
-      ['tyrannical', [[3, 4, 6]]], // ship 6 + dominance 2
+      ['r-tyrannical', [[5, 4, 6]], 2], // ship 6 + dominance 2
     ];
-    for (const [id, ships, research] of cases) {
-      expect(conquers(null, ships, research), `${id} needed`).toBe(false);
-      expect(conquers(id, ships, research), id).toBe(true);
+    for (const [id, ships, dominance] of cases) {
+      expect(conquers(null, ships, undefined, dominance), `${id} needed`).toBe(false);
+      expect(conquers(id, ships, undefined, dominance), id).toBe(true);
     }
   });
 
-  cardCase(['r-pioneering'], 'Science (Regolith)', () => {
-    const conquers = (id: string | null, ships: [number, number, number][], research: number) => {
-      const base = originalGame({ me: id ? [id] : [] });
-      const me = base.turn.player;
-      const s = arrange(base, Object.fromEntries(ships.map((p, i) => [`p${me}d${i}`, p])));
-      s.players[me].research = research;
-      const centre = s.board.planets.find((p) => p.number === 8)!.id;
-      return conquerCheck(s, me, centre).ok;
-    };
+  cardCase(['r-pioneering'], 'Science', () => {
     // Ship 6 + 2 of research 3; ships 12 − 4 of research 5; research 2 has only 1 to spend.
     const cases: [[number, number, number][], number, boolean][] = [
-      [[[3, 4, 6]], 3, true],
+      [[[5, 4, 6]], 3, true],
       [
         [
-          [3, 4, 6],
           [5, 4, 6],
+          [7, 4, 6],
         ],
         5,
         true,
       ],
-      [[[3, 4, 6]], 2, false],
+      [[[5, 4, 6]], 2, false],
     ];
     for (const [ships, research, ok] of cases) {
       expect(conquers(null, ships, research)).toBe(false);
@@ -718,81 +485,34 @@ describe('passive skills and rule hooks', () => {
     }
   });
 
-  cardCase(['industrious', 'o-curious', 'o-arrogant', 'o-conformist'], 'Start-of-turn bonuses', () => {
-    let s = quickStart(2, 814, 'community');
+  cardCase(['r-industrious'], 'Industrious', () => {
+    let s = quickStart(2, 814);
     const p = s.turn.player;
-    s.players[p].skills = [{ id: 'industrious', active: true }];
+    s.players[p].skills = [{ id: 'r-industrious', active: true }];
     s = apply(apply(s, { type: 'endTurn' }), { type: 'endTurn' });
     expect(s.turn.freeDeploys).toBe(1);
-
-    let so = quickStart(2, 815, 'original');
-    const po = so.turn.player;
-    so.players[po].skills = [{ id: 'o-curious', active: true }];
-    so = apply(apply(so, { type: 'endTurn' }), { type: 'endTurn' });
-    expect(so.turn.freeMoves).toBe(1);
-
-    let sa = quickStart(2, 816, 'original');
-    const pa = sa.turn.player;
-    sa.players[pa].skills = [{ id: 'o-arrogant', active: true }];
-    for (const d of sa.dice) if (d.owner === 1 - pa) d.loc = { zone: 'scrapyard' };
-    sa = apply(apply(sa, { type: 'endTurn' }), { type: 'endTurn' });
-    expect(sa.turn.actionsLeft).toBe(4);
-
-    let sc = quickStart(2, 817, 'original');
-    const pc = sc.turn.player;
-    sc.players[pc].skills = [{ id: 'o-conformist', active: true }];
-    const [a, b] = shipsOnBoard(sc, pc);
-    a.value = 3;
-    b.value = 3;
-    sc = apply(apply(sc, { type: 'endTurn' }), { type: 'endTurn' });
-    expect(sc.turn.actionsLeft).toBe(4);
   });
 
-  cardCase(['hostile', 'o-warlike'], 'Hostile / Warlike', () => {
-    for (const [mode, id] of [
-      ['community', 'hostile'],
-      ['original', 'o-warlike'],
-    ] as const) {
-      // The attack's action is given back.
-      expect(duel(mode, 835, { me: [id] }, true).turn.actionsLeft).toBe(3);
-      expect(duel(mode, 835, {}, true).turn.actionsLeft).toBe(2);
-    }
+  cardCase(['r-hostile'], 'Hostile', () => {
+    // The attack's action is given back.
+    expect(duel(835, { me: ['r-hostile'] }, true).turn.actionsLeft).toBe(3);
+    expect(duel(835, {}, true).turn.actionsLeft).toBe(2);
   });
 
-  cardCase(['plundering', 'o-plundering'], 'Plundering', () => {
-    for (const [mode, id] of [
-      ['community', 'plundering'],
-      ['original', 'o-plundering'],
-    ] as const) {
-      const s = duel(mode, 837, { me: [id] }, true);
-      expect(s.players[0].research).toBe(duel(mode, 837, {}, true).players[0].research + 3);
-    }
+  cardCase(['r-plundering'], 'Plundering', () => {
+    const s = duel(837, { me: ['r-plundering'] }, true);
+    expect(s.players[0].research).toBe(duel(837, {}, true).players[0].research + 3);
   });
 
-  cardCase(['ravenous', 'o-ravenous'], 'Ravenous', () => {
-    for (const [mode, id] of [
-      ['community', 'ravenous'],
-      ['original', 'o-ravenous'],
-    ] as const) {
-      const s = duel(mode, 839, { me: [id] }, true);
-      expect(s.players[0].dominance).toBe(duel(mode, 839, {}, true).players[0].dominance + 1);
-    }
-  });
-
-  cardCase(['o-eager'], 'Eager', () => {
-    const s = quickStart(2, 818, 'original');
-    expect(deploysFree(s, 0)).toBe(false);
-    s.players[0].skills = [{ id: 'o-eager', active: true }];
-    expect(deploysFree(s, 0)).toBe(true);
+  cardCase(['r-ravenous'], 'Ravenous', () => {
+    const s = duel(839, { me: ['r-ravenous'] }, true);
+    expect(s.players[0].dominance).toBe(duel(839, {}, true).players[0].dominance + 1);
   });
 });
 
-// A mode's card with the rules of the card it started as (same effect) is covered by that card's scenario.
-const coveredByFrom = (id: string) => {
-  const from = card(id).from;
-  return !!from && effectOf(id) === effectOf(from) && covered.has(from);
-};
-
 it('has a scenario for every card', () => {
-  expect(CARD_IDS.filter((id) => !covered.has(id) && !coveredByFrom(id))).toEqual([]);
+  const cards = MODES.flatMap((m) =>
+    m.cards ? [...m.cards.skills, ...m.cards.tactics, ...(m.cards.expansion ? [m.cards.expansion] : [])] : [],
+  );
+  expect(cards.map((c) => c.id).filter((id) => !covered.has(id))).toEqual([]);
 });

@@ -27,7 +27,7 @@ const check = (ok: boolean, what: string, otherwise: string) => (ok ? console.lo
 
 /** A dev game with every seat an AI, played until its log has `entries` entries. */
 async function aiGame(page: Page, entries: number) {
-  await page.goto(playUrl(base, { play: 'community', players: 2, seed: 5 }));
+  await page.goto(playUrl(base, { play: 'regolith', players: 2, seed: 5 }));
   await page.waitForFunction(() => '__game' in window);
   await page.evaluate(() => {
     const s = structuredClone(window.__game.state()) as GameState;

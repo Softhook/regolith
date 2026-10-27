@@ -53,8 +53,6 @@ export interface RuleSet {
   contestedDeploy?: boolean;
   /** With `contestedDeploy`: a player may still deploy to their own home planet (PROTOTYPING.md §6.8, *Home shipyard*). */
   homeShipyard?: boolean;
-  /** A rule set we're still testing: playable from the lobby, but left out of the rulebook. */
-  experimental?: boolean;
   /** How the game screen looks: absent, Quantum's deep space; `ground`, dust and basalt under a low sun (web styles.css, :root[data-look]). */
   look?: 'ground';
   /** The mode's own words for Quantum's, as the UI shows its text (words.ts); none: Quantum's. */

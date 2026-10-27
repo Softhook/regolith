@@ -1,12 +1,12 @@
 /**
  * Test maps with planets off the middle of their tiles (data/maps.yaml, tile tokens such as `7ne`). They
- * aren't in the lobby yet: `registerOffsetMaps` adds them to MAPS for the test file that asks. They're in
- * the basic group, which every mode plays, so the Original mode's cards (Nomadic, Ingenious) meet them too.
+ * aren't in the lobby: `registerOffsetMaps` adds them to MAPS for the test file that asks. They're in the
+ * drift group, which every mode plays.
  */
 import { MAPS, mapStats, type MapDef } from '../src';
 
 const def = (m: Omit<MapDef, 'stats' | 'cubes' | 'group'>): MapDef => {
-  const map: MapDef = { ...m, group: 'basic', cubes: 5, stats: { slack: 0, shared: null, planets: 0 } };
+  const map: MapDef = { ...m, group: 'drift', cubes: 5, stats: { slack: 0, shared: null, planets: 0 } };
   return { ...map, stats: mapStats(map) };
 };
 

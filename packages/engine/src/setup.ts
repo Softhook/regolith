@@ -7,14 +7,14 @@ import { effectOf, MAPS, type CardDef, type GameMode } from './data';
 import { boardLoc, die, scrapyard } from './lookups';
 import { startSlots } from './queries';
 import { next, shuffle } from './rng';
-import { RULESETS } from './rulesets';
+import { DEFAULT_MODE, RULESETS } from './rulesets';
 import type { Die, GameState, PlayerConfig } from './types';
 
 export interface NewGameOptions {
   players: PlayerConfig[];
   mapId?: string;
   seed?: number;
-  /** Defaults to the Community Edition. */
+  /** Defaults to the lobby's first mode. */
   mode?: GameMode;
 }
 
@@ -22,7 +22,7 @@ export function createGame(opts: NewGameOptions): GameState {
   const n = opts.players.length;
   // 5 players only on the CE print booklet's 5-player maps, which the mode's map groups decide.
   if (n < 2 || n > 5) throw new Error('A game needs 2–5 players');
-  const mode = opts.mode ?? 'community';
+  const mode = opts.mode ?? DEFAULT_MODE;
   if (!Object.hasOwn(RULESETS, mode)) throw new Error(`Unknown mode ${mode}`);
   const rules = RULESETS[mode];
   const map = opts.mapId ? MAPS.find((m) => m.id === opts.mapId) : defaultMapFor(rules, n);

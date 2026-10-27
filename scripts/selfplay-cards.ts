@@ -23,7 +23,7 @@ import { auditGame, cardTaken, modeCards, type Anomaly } from '../packages/engin
 import { args } from './args';
 import { defaultJobs, isWorker, pool } from './pool';
 
-const { games: argGames, mode: argMode, level: argLevel, jobs } = args({ games: '50', mode: 'community', level: '1', jobs: defaultJobs });
+const { games: argGames, mode: argMode, level: argLevel, jobs } = args({ games: '50', mode: 'regolith', level: '1', jobs: defaultJobs });
 const numGames = Number(argGames);
 const mode = argMode as GameMode;
 const level = Number(argLevel) as AiLevel;

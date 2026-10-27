@@ -24,7 +24,6 @@
     "selfplay:powers": "npm run data && vite-node scripts/power-ab.ts --",
     "selfplay:stalls": "npm run data && vite-node scripts/stall-probe.ts --",
     "audit:cards": "npm run data && vite-node scripts/card-audit.ts --",
-    "sweep:basic": "npm run data && vite-node scripts/basic-sweep.ts",
     "relays:check": "vite-node scripts/relay-check.ts --",
     "mobile:shots": "npm run data && vite-node scripts/mobile-shots.ts --",
     "ui:check": "npm run data && vite-node scripts/ui-check.ts --",

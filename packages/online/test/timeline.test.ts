@@ -108,7 +108,7 @@ describe('online timeline', () => {
   it('two browsers and an AI play a whole game and end with the same game', { timeout: 60000 }, () => {
     const a = new Browser('alice', [0], true, 1, 0.3);
     const b = new Browser('bob', [1], false, 2, 0.3);
-    a.timeline.add(create('alice', [seat('Alice'), seat('Open'), seat('Nova', true)], [1], 7, 'community'));
+    a.timeline.add(create('alice', [seat('Alice'), seat('Open'), seat('Nova', true)], [1], 7, 'regolith'));
     for (const p of a.timeline.all()) b.timeline.add(p);
     b.send({ t: 'claim', seat: 1, name: '  Bob the very long name  ' }, false);
     a.timeline.add(b.sent[0]);
@@ -244,7 +244,7 @@ describe('online timeline', () => {
     // Two browsers both moving an AI seat in a battle it is losing: one fires its missile, the other
     // passes. Whichever arrives first, every browser must end up with the same game.
     const t = new Timeline();
-    const all: Post[] = [create('alice', [seat('Alice'), seat('Nova', true), seat('Orion', true)], [], 1, 'community')];
+    const all: Post[] = [create('alice', [seat('Alice'), seat('Nova', true), seat('Orion', true)], [], 1, 'regolith')];
     for (const p of all) t.add(p);
     const add = (p: Post) => (t.add(p), all.push(p));
     const random = seededRandom(1);

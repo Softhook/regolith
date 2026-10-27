@@ -20,7 +20,7 @@ import {
 import { card, effectOf } from './data';
 import { barrierAt, cellOf, die, dieAt, isEmptySpace, reserve, shipsOnBoard } from './lookups';
 import { hasPower, hooksOf, modeHasHook, rulesOf } from './rules';
-import { activeSkills, anySkill, ruleOf, skillRules, type ActiveSkill, type CombatPart } from './skillRules';
+import { activeSkills, anySkill, ruleOf, skillRules, type ActiveSkill, type CombatPart, type SkillRule } from './skillRules';
 import type { Barrier, Cell, CombatPending, CombatRole, Die, GameState, OncePerTurn, Planet, PlayerId, TurnState } from './types';
 
 export type { CombatPart } from './skillRules';
@@ -939,9 +939,16 @@ export function attackChance(state: GameState, attacker: Die, defender: Die, fro
   return wins;
 }
 
+/** The name of the player's active skill with this rule, as printed. */
+function skillName(state: GameState, player: PlayerId, test: (r: SkillRule) => unknown): string | undefined {
+  const held = state.players[player].skills.find((s) => s.active && test(ruleOf(s.id)));
+  return held && card(held.id).name;
+}
+
 /**
  * What changes the odds of an attack (see attackChance) for each side, beyond the ships and the
- * dice: e.g. "Ferocious −1", "Rational: rolls 3", "Brutal: lowest of 2 dice", "Stubborn: wins ties".
+ * dice, by the cards' names: e.g. "Armour Piercing −1", "Drill Sergeant: rolls 3", "Paired Cannons: lowest
+ * of 2 dice", "Entrenched: wins ties".
  */
 export function attackFactors(
   state: GameState,
@@ -956,8 +963,9 @@ export function attackFactors(
     const out = set ? [`${set.label}: rolls ${set.value}`] : [];
     for (const part of parts) if (part.kind === 'modifier') out.push(`${part.label} ${signed(part.value)}`);
     const n = combatDice(state, combat[role].player);
-    if (n > 1 && !set) out.push(`Brutal: lowest of ${n} dice`);
-    if (role === 'defender' && anySkill(state, defender.owner, (r) => r.combat?.stubborn)) out.push('Stubborn: wins ties');
+    if (n > 1 && !set) out.push(`${skillName(state, combat[role].player, (r) => (r.combat?.dice ?? 1) > 1)!}: lowest of ${n} dice`);
+    const stubborn = role === 'defender' && skillName(state, defender.owner, (r) => r.combat?.stubborn);
+    if (stubborn) out.push(`${stubborn}: wins ties`);
     return out;
   };
   return { attacker: factors('attacker'), defender: factors('defender') };

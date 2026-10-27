@@ -3,10 +3,9 @@
  *
  *   npm run interaction -- [games=200] [levels=4,4] [setups=...] [jobs=fast cores]
  *
- * A setup is mode@map, the mode with `-nocards` for its rules without cards: the default compares
- * basic, original and community on Alpha Sector, and regolith (hex maps only) with and
- * without cards on Alpha Sector (hex). Seats alternate between games and each pair of games shares a map
- * seed. Prints one markdown table of averages, a column per setup.
+ * A setup is mode@map: the default compares Basic (Regolith without cards) and Regolith on Alpha Sector
+ * (hex). Seats alternate between games and each pair of games shares a map seed. Prints one markdown table
+ * of averages, a column per setup.
  *
  * Each player's value is the AI's evaluation of their own position (valueOf in evaluate.ts, in cube
  * points), scored after every action and credited to the player who acted and to what they did. The
@@ -28,7 +27,6 @@ import {
   distance,
   mulberry32,
   orbitals,
-  RULESETS,
   shipsOnBoard,
   type Action,
   type GameMode,
@@ -38,13 +36,7 @@ import { aiAction } from '../packages/engine/test/helpers';
 import { args } from './args';
 import { defaultJobs, pool } from './pool';
 
-const SETUPS = [
-  'basic@alpha-sector',
-  'original@alpha-sector',
-  'community@alpha-sector',
-  'regolith-nocards@alpha-hex',
-  'regolith@alpha-hex',
-];
+const SETUPS = ['basic@alpha-hex', 'regolith@alpha-hex'];
 const {
   games,
   levels: levelList,
@@ -108,7 +100,7 @@ interface Game {
 
 function play(setup: string, g: number): Game {
   const [modeName, map] = setup.split('@');
-  const mode = modeName.replace(/-nocards$/, '') as GameMode;
+  const mode = modeName as GameMode;
   const swap = g % 2 === 1;
   const side = (p: number) => (swap ? 1 - p : p);
   let s: GameState = createGame({
@@ -202,16 +194,9 @@ function play(setup: string, g: number): Game {
   return r;
 }
 
-/** Plays games from-to of one setup, with that setup's cards switched off if it says so. */
+/** Plays games from-to of one setup. */
 function playRange(setup: string, from: number, to: number): Game[] {
-  const mode = RULESETS[setup.split('@')[0].replace(/-nocards$/, '') as GameMode];
-  const cards = mode.cards;
-  if (setup.includes('-nocards@')) mode.cards = null;
-  try {
-    return Array.from({ length: to - from }, (_, i) => play(setup, from + i));
-  } finally {
-    mode.cards = cards;
-  }
+  return Array.from({ length: to - from }, (_, i) => play(setup, from + i));
 }
 
 const sum = (gs: Game[], f: (g: Game) => number) => gs.reduce((n, g) => n + f(g), 0);
