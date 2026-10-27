@@ -93,7 +93,13 @@ async function playToMyTurn(page: Page) {
       deployChecked = true;
       // The turn bar's scrapyard below 980px, the player list's on the desktop layout (the sidebar may scroll there).
       if (await page.locator('.turn-scrap').isVisible()) {
-        issues.push(...(await unreachable(page, '.turn-scrap .scrap-die.clickable')).map((t) => `placing ships: ${t}`));
+        // Up to 3 s, as the turn bar may still be coming in on a loaded machine (CI).
+        let hidden = await unreachable(page, '.turn-scrap .scrap-die.clickable');
+        for (let k = 0; k < 10 && hidden.length; k++) {
+          await page.waitForTimeout(300);
+          hidden = await unreachable(page, '.turn-scrap .scrap-die.clickable');
+        }
+        issues.push(...hidden.map((t) => `placing ships: ${t}`));
       }
     }
     const step = await page.evaluate(() => {
