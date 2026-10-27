@@ -1,4 +1,4 @@
-import { adjacent, cellAt, cellOf, delta, drawing, geometry, onBoard, type Board, type Cell, type GameState } from '@quantum/engine';
+import { adjacent, cellAt, cellOf, delta, drawing, geometry, onBoard, type Board, type Cell, type GameState } from '@regolith/engine';
 
 /** Where each ship on the map is drawn, by id, in cell units from the map's top left (engine drawing). */
 export type ShipSpots = Map<string, { r: number; c: number }>;

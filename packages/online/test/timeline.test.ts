@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { generateSecretKey, getPublicKey } from 'nostr-tools/pure';
-import { actor, apply, checkInvariants, legalActions, defaultMap, type Action, type GameState, type PlayerId } from '@quantum/engine';
-import { chooseAction, chooseCombatResponse } from '@quantum/ai';
+import { actor, apply, checkInvariants, legalActions, defaultMap, type Action, type GameState, type PlayerId } from '@regolith/engine';
+import { chooseAction, chooseCombatResponse } from '@regolith/ai';
 import {
   actBody,
   decodeEvent,
@@ -406,7 +406,7 @@ describe('codec', () => {
 
   it('derives the same tag and key as ever (games in progress depend on it)', () => {
     const keys = gameKeys('gq_wKfjFrFzGQCE2WHmazg');
-    expect(keys.tag).toBe('8dbaab9cb552779f596f192afa6f545f');
-    expect(hex(keys.key)).toBe('13c0a7eff257563e07c4ef255bfdff7f0fd75ba77d3af14363f9f505dedc6823');
+    expect(keys.tag).toBe('f0521fea6bf6fb50689d9a83896e3712');
+    expect(hex(keys.key)).toBe('d8f8ea43095be6112d8c8890257f37486c60fc83870e0b6bd6b32b32d3f537f6');
   });
 });

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { GameState, LogEvent, PlayerId } from '@quantum/engine';
+import type { GameState, LogEvent, PlayerId } from '@regolith/engine';
 import { sfx } from '../sound';
 import { logText } from './logText';
 import { playSounds } from './sounds';

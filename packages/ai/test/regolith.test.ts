@@ -1,6 +1,6 @@
 /** Regolith's own rules for the AI: positions only its rules make (docs/regolith/PROTOTYPING.md). */
 import { describe, expect, it } from 'vitest';
-import { grid, orbitals, type GameState } from '@quantum/engine';
+import { grid, orbitals, type GameState } from '@regolith/engine';
 import { arrange, quickStart } from '../../engine/test/helpers';
 import type { AiLevel } from '../src';
 import { playTurn } from './helpers';

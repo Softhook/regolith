@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useState } from 'react';
-import { createGame, type GameState } from '@quantum/engine';
+import { createGame, type GameState } from '@regolith/engine';
 import { useGame } from './game/useGame';
 import { clearSavedGame, gameOnScreenBeforeReload, markGameOnScreen, saveGame } from './game/savedGame';
 import { begin, saved } from './game/past';

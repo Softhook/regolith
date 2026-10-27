@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { getPublicKey } from 'nostr-tools/pure';
-import { actor, apply, legalActions, RuleError, say, type Action, type GameState, type PlayerId } from '@quantum/engine';
-import { actBody, CHAINED, encodePost, type AskMode, type Body, type Post, type Replay, type Step } from '@quantum/online';
+import { actor, apply, legalActions, RuleError, say, type Action, type GameState, type PlayerId } from '@regolith/engine';
+import { actBody, CHAINED, encodePost, type AskMode, type Body, type Post, type Replay, type Step } from '@regolith/online';
 import { aiLevelOf, combatResponse, think } from '../game/aiClient';
 import { useErrorToast, useToasts } from '../game/toasts';
 import type { GameView } from '../game/view';

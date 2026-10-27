@@ -1,7 +1,7 @@
 // The lobby backdrop's quiet game (Backdrop.tsx shows it): fleets around their home planets, a ship at a time
 // re-rolling, moving space to space as in the game (along rows and columns, or hex to hex), or attacking an enemy in reach.
 
-import { adjacent, distance, surrounding, type Board } from '@quantum/engine';
+import { adjacent, distance, surrounding, type Board } from '@regolith/engine';
 import { PLAYER_COLORS } from '../../theme';
 import { pick } from '../../random';
 

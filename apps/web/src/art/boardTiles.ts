@@ -1,5 +1,5 @@
-import { drawing, tileCentres, type Board, type Cell } from '@quantum/engine';
-import { BLANK, assignTiles, tileFlavour, tileSpec, type Spot } from '@quantum/art';
+import { drawing, tileCentres, type Board, type Cell } from '@regolith/engine';
+import { BLANK, assignTiles, tileFlavour, tileSpec, type Spot } from '@regolith/art';
 
 export interface TileArt {
   /** The tile's middle space, where its sky is centred. */

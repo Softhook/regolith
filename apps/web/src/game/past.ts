@@ -1,4 +1,4 @@
-import { actor, apply, isUndoable, type Action, type GameState } from '@quantum/engine';
+import { actor, apply, isUndoable, type Action, type GameState } from '@regolith/engine';
 import { keepReviewable } from './review';
 
 /** A move of a game on this device: an action, or null for an undo. */

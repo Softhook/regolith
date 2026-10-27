@@ -15,8 +15,8 @@ import {
   type GameState,
   type PlayerId,
   type PlayerState,
-} from '@quantum/engine';
-import { combatStage } from '@quantum/online';
+} from '@regolith/engine';
+import { combatStage } from '@regolith/online';
 import type { Dispatch } from '../game/useGame';
 import type { GameView } from '../game/view';
 import { COMBAT_RESOLVE_MS, humanFights } from '../game/useAiDriver';

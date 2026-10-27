@@ -1,5 +1,5 @@
 import { useState, type CSSProperties } from 'react';
-import { card, rulesOf, say, type GameState, type PlayerConfig, type PlayerState } from '@quantum/engine';
+import { card, rulesOf, say, type GameState, type PlayerConfig, type PlayerState } from '@regolith/engine';
 import { aiLevelInfo } from '../game/aiClient';
 import type { Controller } from '../game/controller';
 import type { Dispatch } from '../game/useGame';

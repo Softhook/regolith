@@ -1,7 +1,7 @@
 import { setGroundMaps, useGroundMaps } from '../art/mapLook';
 import { Switch } from './SoundButton';
-import { WORLD_NAMES } from '@quantum/art';
-import type { World } from '@quantum/engine';
+import { WORLD_NAMES } from '@regolith/art';
+import type { World } from '@regolith/engine';
 
 /** The top bar's switch, on a hex map, between its world's tiles (Phobos's, Deimos's or Mars's) and the original space ones. */
 export function WorldButton({ world }: { world: World }) {

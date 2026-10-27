@@ -1,4 +1,4 @@
-import type { GameState, PlayerId, PlayerState } from '@quantum/engine';
+import type { GameState, PlayerId, PlayerState } from '@regolith/engine';
 import { lastLogId } from '../game/useTransient';
 
 /** The numbers a player's panel shows that a step can change: their tracks, then the chips under them. */

@@ -1,6 +1,6 @@
 /** Looking back from the log: each entry shows the position just after it was written. */
 import { describe, expect, it } from 'vitest';
-import type { GameState } from '@quantum/engine';
+import type { GameState } from '@regolith/engine';
 import { quickStart } from '../../../packages/engine/test/helpers';
 import { keepReviewable, logPositions, reviewSteps } from '../src/game/review';
 

@@ -12,7 +12,7 @@ import {
   type TileLook,
   type TileOptions,
   type TileSpec,
-} from '@quantum/art';
+} from '@regolith/art';
 import { blobToDataUrl, rasterise } from '../files';
 import type { PressSheets } from '../print/exports';
 import { PIECES, slugOf, type Piece, type Printable } from '../print/pieces';

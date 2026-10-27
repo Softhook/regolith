@@ -1,4 +1,4 @@
-import type { GameState, PlayerId } from '@quantum/engine';
+import type { GameState, PlayerId } from '@regolith/engine';
 import { storedTacticValue } from './cardValues';
 
 /**

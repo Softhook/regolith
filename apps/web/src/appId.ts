@@ -3,16 +3,16 @@
  * with APP_ID. Apps served from one origin (softhook.github.io/cubic and /regolith) share their storage, so
  * each needs its own; a fork changes it here and nowhere else (docs/regolith/SPLIT.md).
  */
-export const APP_ID = 'quantum';
+export const APP_ID = 'regolith';
 
 /**
  * The game's name, where the app names itself to players: the lobby's title, the share sheet, and every file
- * it saves (`cubic-manual.html`, `cubic-tiles.zip`). A fork changes it here (docs/regolith/SPLIT.md).
+ * it saves (`regolith-manual.html`, `regolith-tiles.zip`). A fork changes it here (docs/regolith/SPLIT.md).
  */
-export const GAME_NAME = 'Cubic';
+export const GAME_NAME = 'Regolith';
 
-/** A saved file's name: `gameFile('manual.html')` is `cubic-manual.html`. */
+/** A saved file's name: `gameFile('manual.html')` is `regolith-manual.html`. */
 export const gameFile = (rest: string) => `${GAME_NAME.toLowerCase()}-${rest}`;
 
-/** A localStorage key in this app's namespace: `appKey('mode')` is `quantum.mode`. */
+/** A localStorage key in this app's namespace: `appKey('mode')` is `regolith.mode`. */
 export const appKey = (name: string) => `${APP_ID}.${name}`;

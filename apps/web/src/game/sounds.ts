@@ -1,4 +1,4 @@
-import { cellOf, effectOf, same, type Cell, type GameState, type LogEntry, type LogEvent, type PlayerId } from '@quantum/engine';
+import { cellOf, effectOf, same, type Cell, type GameState, type LogEntry, type LogEvent, type PlayerId } from '@regolith/engine';
 import { stagingOf } from '../components/board/staging';
 import { sfx } from '../sound';
 import { destroyedOf, shotOf, strikeOf } from './strike';

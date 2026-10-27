@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { drawing, type GameState } from '@quantum/engine';
+import { drawing, type GameState } from '@regolith/engine';
 import { COARSE, reducedMotion } from '../../game/useMediaQuery';
 import { useEffectEvent } from '../../game/useEffectEvent';
 import { shotOf } from '../../game/strike';

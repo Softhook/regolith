@@ -1,5 +1,5 @@
 {
-  "name": "quantum",
+  "name": "regolith",
   "private": true,
   "type": "module",
   "workspaces": [
@@ -9,9 +9,9 @@
   "scripts": {
     "prepare": "git config core.hooksPath .githooks",
     "data": "node scripts/build-data.mjs",
-    "dev": "npm run data && npm run dev -w @quantum/web",
-    "dev:https": "npm run data && npm run dev:https -w @quantum/web",
-    "build": "npm run data && npm run typecheck && npm run build -w @quantum/web",
+    "dev": "npm run data && npm run dev -w @regolith/web",
+    "dev:https": "npm run data && npm run dev:https -w @regolith/web",
+    "build": "npm run data && npm run typecheck && npm run build -w @regolith/web",
     "typecheck": "tsc --noEmit -p packages/engine && tsc --noEmit -p packages/ai && tsc --noEmit -p packages/art && tsc --noEmit -p packages/online && tsc --noEmit -p apps/web && tsc -p tsconfig.test.json",
     "test": "npm run data && vitest run",
     "test:deep": "npm run data && DEEP=1 vitest run consistency",

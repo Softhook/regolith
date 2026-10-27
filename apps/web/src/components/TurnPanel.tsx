@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react';
-import { canCurious, say, shipOf, card, die, rulesOf, skillCard, type GameState, type SkillEffect } from '@quantum/engine';
+import { canCurious, say, shipOf, card, die, rulesOf, skillCard, type GameState, type SkillEffect } from '@regolith/engine';
 import type { Controller } from '../game/controller';
 import { hintFor } from '../game/hints';
 import type { Dispatch } from '../game/useGame';

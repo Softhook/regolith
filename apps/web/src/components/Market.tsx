@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type RefObject } from 'react';
-import { card, cardKind, effectOf, expansionCard, rulesOf, say, type DeckKind, type GameState } from '@quantum/engine';
+import { card, cardKind, effectOf, expansionCard, rulesOf, say, type DeckKind, type GameState } from '@regolith/engine';
 import type { Legal } from '../game/legal';
 import type { Dispatch } from '../game/useGame';
 import { FOLD_MARKET, useMediaQuery } from '../game/useMediaQuery';

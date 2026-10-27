@@ -1,6 +1,6 @@
 import { useEffect, useState, type CSSProperties } from 'react';
-import { CARD_CATEGORIES } from '@quantum/art';
-import { say, shipOf, card, die, rulesOf, scrapyard, type Action, type ActionOf, type GameState } from '@quantum/engine';
+import { CARD_CATEGORIES } from '@regolith/art';
+import { say, shipOf, card, die, rulesOf, scrapyard, type Action, type ActionOf, type GameState } from '@regolith/engine';
 import { SHORT, useMediaQuery } from '../game/useMediaQuery';
 import type { Dispatch } from '../game/useGame';
 import { CardView, CategoryIcon, categoryStyle } from './Card';

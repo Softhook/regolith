@@ -9,7 +9,7 @@ import {
   type CombatPending,
   type GameState,
   type PlayerId,
-} from '@quantum/engine';
+} from '@regolith/engine';
 import { byTime, CHAINED, combatStage, PROTOCOL, stateHash, type AskMode, type Body, type GameConfig, type Post } from './protocol';
 
 export interface Seat {

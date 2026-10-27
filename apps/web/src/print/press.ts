@@ -1,4 +1,4 @@
-import { SPACE_BASE, hslToRgb } from '@quantum/art';
+import { SPACE_BASE, hslToRgb } from '@regolith/art';
 import { CMYK_TABLE } from './cmykTable';
 import { deflateChunks } from './pdf';
 import { crc32 } from './zip';

@@ -13,4 +13,4 @@ export const GATE_COLOR = '#5ef0b0';
 export const PIP = '#0a0f1e';
 
 /** The two combat dice: black for the attacker, white for the defender (shared with the card art). */
-export { COMBAT_DICE } from '@quantum/art';
+export { COMBAT_DICE } from '@regolith/art';

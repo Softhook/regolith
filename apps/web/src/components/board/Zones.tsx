@@ -1,4 +1,4 @@
-import { key, type Board, type Cell } from '@quantum/engine';
+import { key, type Board, type Cell } from '@regolith/engine';
 import { hexCorners, placement } from './geometry';
 
 /** Enemy zones of control (highlights.zones): a hatched tint on each space, square or hex like the map's spaces. */

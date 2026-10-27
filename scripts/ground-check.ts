@@ -37,7 +37,7 @@ try {
   await page.evaluate('window.loadModule = (url) => import(url)');
   const results = await page.evaluate(async (base) => {
     const load = <T>(url: string) => (window as unknown as { loadModule: (url: string) => Promise<T> }).loadModule(url);
-    const { TILE_SET } = await load<typeof import('../packages/art/src')>(`${base}@id/@quantum/art`);
+    const { TILE_SET } = await load<typeof import('../packages/art/src')>(`${base}@id/@regolith/art`);
     const { printableTile } = await load<typeof import('../apps/web/src/lab/pressSheets')>(`${base}src/lab/pressSheets.ts`);
     const { PIECES, pieceSize } = await load<typeof import('../apps/web/src/print/pieces')>(`${base}src/print/pieces.ts`);
     const { svgToPng } = await load<typeof import('../apps/web/src/print/exports')>(`${base}src/print/exports.ts`);

@@ -1,6 +1,6 @@
 /** Asks the AI worker for a move; falls back to thinking on the main thread if workers fail. */
-import { AI_LEVELS, chooseAction, chooseCombatResponse, DEFAULT_AI_LEVEL, type AiLevel } from '@quantum/ai';
-import { legalActions, type Action, type GameState, type PlayerConfig, type PlayerId } from '@quantum/engine';
+import { AI_LEVELS, chooseAction, chooseCombatResponse, DEFAULT_AI_LEVEL, type AiLevel } from '@regolith/ai';
+import { legalActions, type Action, type GameState, type PlayerConfig, type PlayerId } from '@regolith/engine';
 import type { AiRequest, AiResponse } from './aiWorker';
 
 let worker: Worker | null | undefined;

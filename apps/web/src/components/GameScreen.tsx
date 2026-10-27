@@ -1,5 +1,5 @@
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
-import { actor, drawing, rulesOf, say, type GameState, type PlayerId } from '@quantum/engine';
+import { actor, drawing, rulesOf, say, type GameState, type PlayerId } from '@regolith/engine';
 import { useController } from '../game/controller';
 import { useUndoShortcut } from '../game/useGame';
 import { conquerOptions } from '../game/legal';

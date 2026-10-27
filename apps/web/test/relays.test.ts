@@ -14,7 +14,7 @@ const harness = vi.hoisted(() => ({
 vi.mock('nostr-tools/relay', () => ({ Relay: { connect: (...args: unknown[]) => harness.connect(...args) } }));
 
 import { RELAYS, RelayLink } from '../src/online/relays';
-import type { NostrEvent } from '@quantum/online';
+import type { NostrEvent } from '@regolith/online';
 
 function event(id: string, created_at = 1): NostrEvent {
   return { id, pubkey: '', created_at, kind: 4747, tags: [], content: '', sig: '' };

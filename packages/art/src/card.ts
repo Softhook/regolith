@@ -316,7 +316,7 @@ export function cardBackSvg(deck: CardDeck, o: Omit<CardOptions, 'measure'> & { 
   let orbits = '';
   for (let i = 0; i < 3; i++)
     orbits += `<ellipse cx="${n(cx)}" cy="${n(cy + 1)}" rx="${n(16 + i * 5)}" ry="${n(5 + i * 1.6)}" fill="none" stroke="${hsl(hue, 80, 75)}" stroke-width=".3" opacity="${n(0.6 - i * 0.15)}" transform="rotate(-18 ${n(cx)} ${n(cy)})"/>`;
-  const title = `<text x="${n(cx)}" y="${n(H * 0.72)}" font-family="${FONTS.title}" font-weight="900" font-size="7" letter-spacing="1.4" fill="#fff" text-anchor="middle">CUBIC</text>`;
+  const title = `<text x="${n(cx)}" y="${n(H * 0.72)}" font-family="${FONTS.title}" font-weight="900" font-size="7" letter-spacing="1.4" fill="#fff" text-anchor="middle">REGOLITH</text>`;
   const sub = `<text x="${n(cx)}" y="${n(H * 0.72 + 6)}" font-family="${FONTS.body}" font-weight="700" font-size="2.4" letter-spacing=".9" fill="${hsl(hue, 90, 78)}" text-anchor="middle">${esc(info.label.toUpperCase())}${info.edition === 'Classic' ? ' · CLASSIC' : ''}</text>`;
   const border = info.light
     ? rect(win, `rx="2.6" fill="none" stroke="${p.accent}" stroke-width=".4"`)

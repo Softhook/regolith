@@ -1,11 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { chooseAction, chooseCombatResponse, DEFAULT_AI_LEVEL } from '@quantum/ai';
-import { createGame, legalActions } from '@quantum/engine';
+import { chooseAction, chooseCombatResponse, DEFAULT_AI_LEVEL } from '@regolith/ai';
+import { createGame, legalActions } from '@regolith/engine';
 import { aiLevelOf, combatResponse, think } from '../src/game/aiClient';
 
 // The real AI, with a way to make it fail: an engine bug the AI runs into.
-vi.mock('@quantum/ai', async (importOriginal) => {
-  const real = await importOriginal<typeof import('@quantum/ai')>();
+vi.mock('@regolith/ai', async (importOriginal) => {
+  const real = await importOriginal<typeof import('@regolith/ai')>();
   return { ...real, chooseAction: vi.fn(real.chooseAction), chooseCombatResponse: vi.fn(real.chooseCombatResponse) };
 });
 

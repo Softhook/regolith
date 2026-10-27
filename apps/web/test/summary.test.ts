@@ -1,7 +1,7 @@
 /** How an online game stands for the lobby, and when it has just become the player's move. */
 import { describe, expect, it } from 'vitest';
-import { actor, type GameState } from '@quantum/engine';
-import type { Post, Replay, Seat } from '@quantum/online';
+import { actor, type GameState } from '@regolith/engine';
+import type { Post, Replay, Seat } from '@regolith/online';
 import { quickStart } from '../../../packages/engine/test/helpers';
 import { summary, yourMoveSince } from '../src/online/summary';
 

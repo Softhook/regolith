@@ -1,6 +1,6 @@
 /** Runs the AI off the main thread, so the board keeps animating while it thinks. */
-import { chooseAction, type AiLevel } from '@quantum/ai';
-import type { Action, GameState } from '@quantum/engine';
+import { chooseAction, type AiLevel } from '@regolith/ai';
+import type { Action, GameState } from '@regolith/engine';
 
 export interface AiRequest {
   id: number;

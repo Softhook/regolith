@@ -1,4 +1,4 @@
-import type { GameState, LogEntry } from '@quantum/engine';
+import type { GameState, LogEntry } from '@regolith/engine';
 import { lastLogId } from './useTransient';
 
 /** The decisions a Tactic leaves its player, where it lands: each step that settles one is the card's doing. */

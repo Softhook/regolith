@@ -1,4 +1,4 @@
-import { delta, type GameState } from '@quantum/engine';
+import { delta, type GameState } from '@regolith/engine';
 import { SHOT } from '../../beats';
 import { shotOf } from '../../game/strike';
 import { useStepEffects } from '../../game/useTransient';

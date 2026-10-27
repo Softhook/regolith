@@ -1,6 +1,6 @@
 /** A game's past on this device: played, taken back, kept short, saved and rebuilt. */
 import { describe, expect, it } from 'vitest';
-import { createGame, isUndoable, apply, legalActions, type GameState } from '@quantum/engine';
+import { createGame, isUndoable, apply, legalActions, type GameState } from '@regolith/engine';
 import { playAiGame, players, quickStart } from '../../../packages/engine/test/helpers';
 import { begin, play, restore, saved, takeBack, type Past } from '../src/game/past';
 import { logPositions } from '../src/game/review';

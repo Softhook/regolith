@@ -1,4 +1,4 @@
-import { checkInvariants, MODES, type GameState } from '@quantum/engine';
+import { checkInvariants, MODES, type GameState } from '@regolith/engine';
 import { forget, remember, stored } from '../storage';
 import type { SavedPast } from './past';
 import { appKey } from '../appId';

@@ -1,4 +1,4 @@
-import { legalActions, type Action, type ActionOf, type GameState } from '@quantum/engine';
+import { legalActions, type Action, type ActionOf, type GameState } from '@regolith/engine';
 
 /**
  * The legal actions of a state, indexed by type. The UI enables a button or highlights a space

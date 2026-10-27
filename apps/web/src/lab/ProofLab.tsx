@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { PRESS_TEST, cardSvg, dataUrl, pressTestSvg, tileSpec, tileSvg } from '@quantum/art';
+import { PRESS_TEST, cardSvg, dataUrl, pressTestSvg, tileSpec, tileSvg } from '@regolith/art';
 import { DECKS, cardFontCss, measure, tileFontCss, useFontCss, useSvgUrl } from './cards';
 import { exportCmykPdf, exportPng } from '../print/exports';
 import type { Format, Printable } from '../print/pieces';

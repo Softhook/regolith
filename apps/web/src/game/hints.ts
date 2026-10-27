@@ -9,7 +9,7 @@ import {
   rulesOf,
   shipOf,
   type GameState,
-} from '@quantum/engine';
+} from '@regolith/engine';
 import type { Sel } from './controller';
 
 /** The carrying ship's name in this game's rules, as a common noun: "flagship", or "behemoth" in Regolith. */

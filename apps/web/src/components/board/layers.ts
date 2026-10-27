@@ -6,8 +6,8 @@ import {
   type RasterLayer,
   type Spot,
   type TileLayerName,
-} from '@quantum/art';
-import { cellAt, drawing, orbitedPlanets, spaces, tileCentres, type Board, type Cell, type Planet } from '@quantum/engine';
+} from '@regolith/art';
+import { cellAt, drawing, orbitedPlanets, spaces, tileCentres, type Board, type Cell, type Planet } from '@regolith/engine';
 
 /*
  * What the map's live layers show (MapTiles), worked out from the board rather than from the tiles: a planet

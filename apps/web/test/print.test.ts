@@ -172,21 +172,21 @@ describe('hex tiles', () => {
 
   it('are named as hex tiles', () => {
     expect(fileName(p, { name: 'p7-01-ne', svg: () => '' }, { bleed: true, dpi: 300, ext: 'png' })).toBe(
-      'cubic-hex-tile-p7-01-ne-bleed-300dpi.png',
+      'regolith-hex-tile-p7-01-ne-bleed-300dpi.png',
     );
-    expect(setName(p, {})).toBe('cubic-hex-tiles.zip');
+    expect(setName(p, {})).toBe('regolith-hex-tiles.zip');
   });
 });
 
 describe('print file names', () => {
-  it('follow cubic-<piece>-<name>[-bleed][-<dpi>dpi] cubic-<pieces>[-<part>][-<tag>] and cubic-<name>-a4-<condition>', () => {
+  it('follow regolith-<piece>-<name>[-bleed][-<dpi>dpi] regolith-<pieces>[-<part>][-<tag>] and regolith-<name>-a4-<condition>', () => {
     const card = { name: 'skill/07-agile', svg: () => '' };
-    expect(fileName(PIECES.card, card, { bleed: true, dpi: 300, ext: 'png' })).toBe('cubic-card-skill-07-agile-bleed-300dpi.png');
-    expect(fileName(PIECES.tile, { name: 'p7-01', svg: () => '' }, { bleed: false, ext: 'svg' })).toBe('cubic-tile-p7-01.svg');
-    expect(setName(PIECES.card, { part: 'community', tag: 'bleed' })).toBe('cubic-cards-community-bleed.zip');
-    expect(setName(PIECES.tile, {})).toBe('cubic-tiles.zip');
-    expect(sheetName('tiles-aids', false)).toBe('cubic-tiles-aids-a4-fogra39.pdf');
-    expect(sheetName('tiles-aids', true)).toBe('cubic-tiles-aids-a4-fogra39-deep.pdf');
+    expect(fileName(PIECES.card, card, { bleed: true, dpi: 300, ext: 'png' })).toBe('regolith-card-skill-07-agile-bleed-300dpi.png');
+    expect(fileName(PIECES.tile, { name: 'p7-01', svg: () => '' }, { bleed: false, ext: 'svg' })).toBe('regolith-tile-p7-01.svg');
+    expect(setName(PIECES.card, { part: 'community', tag: 'bleed' })).toBe('regolith-cards-community-bleed.zip');
+    expect(setName(PIECES.tile, {})).toBe('regolith-tiles.zip');
+    expect(sheetName('tiles-aids', false)).toBe('regolith-tiles-aids-a4-fogra39.pdf');
+    expect(sheetName('tiles-aids', true)).toBe('regolith-tiles-aids-a4-fogra39-deep.pdf');
   });
 
   it('size pieces with their bleed on every side', () => {

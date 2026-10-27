@@ -1,4 +1,4 @@
-import type { PlayerConfig } from '@quantum/engine';
+import type { PlayerConfig } from '@regolith/engine';
 import { PLAYER_COLORS } from '../theme';
 
 const AI_NAMES = ['Nova', 'Vex', 'Orion', 'Lyra', 'Kepler'];

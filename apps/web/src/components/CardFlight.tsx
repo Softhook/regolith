@@ -1,6 +1,6 @@
 import { Component, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
-import { expansionCard, type GameState } from '@quantum/engine';
+import { expansionCard, type GameState } from '@regolith/engine';
 import { reducedMotion } from '../game/useMediaQuery';
 import { lastLogId, useTransient } from '../game/useTransient';
 import { leftRow } from '../game/marketRow';

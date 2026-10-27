@@ -1,4 +1,4 @@
-import { isSecret } from '@quantum/online';
+import { isSecret } from '@regolith/online';
 
 /** The secret of the online game the URL opens (#online/<secret>), if any. */
 export function onlineSecret(): string | null {

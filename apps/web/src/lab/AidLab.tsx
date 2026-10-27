@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { type AidEdition } from '@quantum/art';
+import { type AidEdition } from '@regolith/art';
 import { cardFontCss, useFontCss, useSvgUrl } from './cards';
 import { PIECES } from '../print/pieces';
 import { PrintPanel } from '../print/PrintPanel';

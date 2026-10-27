@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type RefObject } from 'react';
 import { createPortal } from 'react-dom';
-import { drawing, effectOf, same, type Cell, type GameState, type LogEntry, type PlayerId } from '@quantum/engine';
+import { drawing, effectOf, same, type Cell, type GameState, type LogEntry, type PlayerId } from '@regolith/engine';
 import { castOf, landing } from '../game/cast';
 import { reducedMotion } from '../game/useMediaQuery';
 import { lastLogId, useTransient } from '../game/useTransient';

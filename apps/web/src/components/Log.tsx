@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
-import type { GameState } from '@quantum/engine';
+import type { GameState } from '@regolith/engine';
 import { logText } from '../game/logText';
 import { remember, stored } from '../storage';
 import { appKey } from '../appId';

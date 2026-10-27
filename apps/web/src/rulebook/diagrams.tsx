@@ -15,7 +15,7 @@ import {
   tileSpec,
   tileSvg,
   type CardDeck,
-} from '@quantum/art';
+} from '@regolith/art';
 import { PlanetMarkings, PlanetNumber } from '../components/board/PlanetMarkings';
 import { PIPS } from '../components/Die3D';
 import { COMBAT_DICE, PIP, PLAYER_COLORS } from '../theme';

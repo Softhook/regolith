@@ -1,5 +1,5 @@
 import { useRef, useState, type CSSProperties } from 'react';
-import { defaultMapFor, MAPS, MODES, playerCounts, RULESETS, type GameMode, type GameState, type PlayerConfig } from '@quantum/engine';
+import { defaultMapFor, MAPS, MODES, playerCounts, RULESETS, type GameMode, type GameState, type PlayerConfig } from '@regolith/engine';
 import { Segmented } from '../Segmented';
 import { Confirm } from '../Dialog';
 import { FullscreenButton } from '../FullscreenButton';
@@ -193,8 +193,7 @@ export function Lobby({
         <a href="#lab/cards">Art Lab: cards &amp; tiles</a>
       </nav>
       <p className="credits">
-        Cubic by Christian Nold is a reimagining of Quantum by Eric Zimmerman and its fan-made Community Edition. Non-commercial fan
-        project.
+        Regolith by Christian Nold is inspired by Quantum by Eric Zimmerman and its fan-made Community Edition. Non-commercial fan project.
       </p>
       <VersionLine />
     </div>

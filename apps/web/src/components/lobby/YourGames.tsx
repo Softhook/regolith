@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { rulesOf, type GameState } from '@quantum/engine';
+import { rulesOf, type GameState } from '@regolith/engine';
 import { Confirm } from '../Dialog';
 import { forgetFinishedGames, forgetGame, onlineGames } from '../../online/games';
 import { WhereIcon } from './WhereIcon';

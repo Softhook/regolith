@@ -1,7 +1,7 @@
 /** What the map's live layers mark, worked out from the board (MapTiles): space roles, number corners, labels. */
 import { describe, expect, it } from 'vitest';
-import { MAPS, buildBoard, tileCentres, type MapDef } from '@quantum/engine';
-import { OFF_CENTRE, tileLayerNames } from '@quantum/art';
+import { MAPS, buildBoard, tileCentres, type MapDef } from '@regolith/engine';
+import { OFF_CENTRE, tileLayerNames } from '@regolith/art';
 import { labelFits, mapStack, numberCorner, spaceRoles } from '../src/components/board/layers';
 import { tileArt } from '../src/art/boardTiles';
 

@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react';
-import { drawing, type Board, type Cell } from '@quantum/engine';
+import { drawing, type Board, type Cell } from '@regolith/engine';
 
 /** How many of `owner`'s cubes a planet holds. */
 export const cubeCount = (cubes: readonly number[], owner: number) => cubes.filter((x) => x === owner).length;

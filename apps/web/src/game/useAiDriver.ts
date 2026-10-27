@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { actor, canRespondToCombat, type CombatPending, type GameState, type PlayerId } from '@quantum/engine';
-import { combatStage } from '@quantum/online';
+import { actor, canRespondToCombat, type CombatPending, type GameState, type PlayerId } from '@regolith/engine';
+import { combatStage } from '@regolith/online';
 import { aiLevelOf, combatResponse, think } from './aiClient';
 import { landingNext } from './cast';
 import { shotWait } from './strike';

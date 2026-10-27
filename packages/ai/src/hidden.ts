@@ -1,4 +1,4 @@
-import type { GameState } from '@quantum/engine';
+import type { GameState } from '@regolith/engine';
 
 /**
  * Shuffles the unseen cards of both decks in `s`, in place: the AI plays on a shuffle of its own and

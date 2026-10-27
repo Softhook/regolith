@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
-import type { GameState, LogEntry, PlayerId } from '@quantum/engine';
+import type { GameState, LogEntry, PlayerId } from '@regolith/engine';
 import type { Toast } from '../game/toasts';
 import { CardArt } from './CardViewer';
 import { useCardCasts } from './CardCast';

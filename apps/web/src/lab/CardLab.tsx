@@ -8,7 +8,7 @@ import {
   type CardDeck,
   type CardFace,
   type CardLook,
-} from '@quantum/art';
+} from '@regolith/art';
 import {
   DECKS,
   EDITIONS as ALL_EDITIONS,

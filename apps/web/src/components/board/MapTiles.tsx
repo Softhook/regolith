@@ -1,5 +1,5 @@
 import { Fragment, memo, type ReactNode } from 'react';
-import { cellAt, type Board } from '@quantum/engine';
+import { cellAt, type Board } from '@regolith/engine';
 import {
   HATCH,
   HEX_EDGE,
@@ -14,7 +14,7 @@ import {
   voidFlask,
   well,
   type RasterLayer,
-} from '@quantum/art';
+} from '@regolith/art';
 import { useMapLook } from '../../art/mapLook';
 import { useTileImages } from '../../art/tileImages';
 import type { TileArt } from '../../art/boardTiles';

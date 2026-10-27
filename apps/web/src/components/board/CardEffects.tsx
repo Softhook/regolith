@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { cellOf, effectOf, same, type Cell, type GameState } from '@quantum/engine';
+import { cellOf, effectOf, same, type Cell, type GameState } from '@regolith/engine';
 import { lastLogId, useStepEffects } from '../../game/useTransient';
 import { GATE_COLOR } from '../../theme';
 import { EffectBox, type MapEffect } from './EffectBox';

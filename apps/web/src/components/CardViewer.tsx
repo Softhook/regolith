@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { card } from '@quantum/engine';
+import { card } from '@regolith/engine';
 import { useCardImage } from '../art/useCardImages';
 import { useSay } from '../game/words';
 import { Dialog } from './Dialog';

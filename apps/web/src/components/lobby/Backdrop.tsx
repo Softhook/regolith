@@ -1,5 +1,5 @@
 import { memo, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
-import { buildBoard, drawing, spaces, type Board, type MapDef } from '@quantum/engine';
+import { buildBoard, drawing, spaces, type Board, type MapDef } from '@regolith/engine';
 import {
   HEX_EDGE,
   PLANET_DIAMETER,
@@ -10,7 +10,7 @@ import {
   tileSpec,
   type RasterLayer,
   type TileLook,
-} from '@quantum/art';
+} from '@regolith/art';
 import { decodedTileImage } from '../../art/tileImages';
 import { tileArt, type TileArt } from '../../art/boardTiles';
 import { PIPS } from '../Die3D';

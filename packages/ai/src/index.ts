@@ -1,4 +1,4 @@
-import { actor, type Action, type GameState, type PlayerId } from '@quantum/engine';
+import { actor, type Action, type GameState, type PlayerId } from '@regolith/engine';
 import * as greedy from './greedy';
 import { Search, type SearchParams } from './search';
 

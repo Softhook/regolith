@@ -1,6 +1,6 @@
 import { useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode, type RefObject } from 'react';
-import { CARD_CATEGORIES, ICONS, cardPalette, missile } from '@quantum/art';
-import { card, cardKind, effectOf, isOriginalCard, type CardDef } from '@quantum/engine';
+import { CARD_CATEGORIES, ICONS, cardPalette, missile } from '@regolith/art';
+import { card, cardKind, effectOf, isOriginalCard, type CardDef } from '@regolith/engine';
 import { useCardImage } from '../art/useCardImages';
 import { useSay } from '../game/words';
 

@@ -57,7 +57,7 @@ export default defineConfig(({ command, mode }) => ({
       },
     }),
   ],
-  // Relative asset paths so the build works under a subpath (e.g. GitHub Pages /cubic/).
+  // Relative asset paths so the build works under a subpath (e.g. GitHub Pages /regolith/).
   base: './',
   // All addresses: IPv4 and IPv6 localhost (browsers differ in which "localhost" means), and the
   // local network, for trying online play from a phone.

@@ -1,5 +1,5 @@
-import { actor, MAPS, RULESETS, type PlayerId } from '@quantum/engine';
-import { unclaimedSeats, type Post, type Replay } from '@quantum/online';
+import { actor, MAPS, RULESETS, type PlayerId } from '@regolith/engine';
+import { unclaimedSeats, type Post, type Replay } from '@regolith/online';
 
 /** Whether `p` is a move by the player `me` for one of their own seats (not one of the AI seats they play). */
 export const ownMove = (r: Replay, me: string, p: Post) => p.author === me && 'seat' in p.body && !r.seats[p.body.seat]?.ai;

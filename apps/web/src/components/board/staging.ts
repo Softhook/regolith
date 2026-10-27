@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { Die, GameState } from '@quantum/engine';
+import type { Die, GameState } from '@regolith/engine';
 import { BEAM_ARRIVES, BLINK, boomAt, EXPANSION } from '../../beats';
 import { isPlayStep } from '../../game/useTransient';
 import { reducedMotion } from '../../game/useMediaQuery';

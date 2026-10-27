@@ -12,7 +12,7 @@ import {
   type GameState,
   type Pending,
   type PlayerId,
-} from '@quantum/engine';
+} from '@regolith/engine';
 import { outcomes, type Outcome } from './chance';
 import { shuffleUnseen } from './hidden';
 import { candidates } from './candidates';

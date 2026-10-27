@@ -1,4 +1,4 @@
-import { canMoveDie, canUseAbility, card, die, hasSkill, movementRange, say, shipOf, skillCard, type GameState } from '@quantum/engine';
+import { canMoveDie, canUseAbility, card, die, hasSkill, movementRange, say, shipOf, skillCard, type GameState } from '@regolith/engine';
 import type { Controller } from '../game/controller';
 import type { Dispatch } from '../game/useGame';
 import { Die3D } from './Die3D';

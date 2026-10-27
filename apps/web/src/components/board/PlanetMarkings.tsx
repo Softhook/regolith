@@ -8,7 +8,7 @@ import {
   well,
   type Corner,
   type TileShape,
-} from '@quantum/art';
+} from '@regolith/art';
 import type { CSSProperties } from 'react';
 import { PIECE_SHADOW_LENGTH, PIECE_SHADOW_OPACITY, castShadow } from './shadows';
 

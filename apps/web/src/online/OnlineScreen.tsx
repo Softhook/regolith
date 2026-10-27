@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
-import { say } from '@quantum/engine';
-import { unclaimedSeats, type AskMode, type Replay } from '@quantum/online';
+import { say } from '@regolith/engine';
+import { unclaimedSeats, type AskMode, type Replay } from '@regolith/online';
 import { Dialog, Modal } from '../components/Dialog';
 import { Game } from '../components/GameScreen';
 import { resumeFullscreen } from '../fullscreen';

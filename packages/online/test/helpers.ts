@@ -1,4 +1,4 @@
-import { defaultMapFor, RULESETS, type GameMode, type PlayerConfig } from '@quantum/engine';
+import { defaultMapFor, RULESETS, type GameMode, type PlayerConfig } from '@regolith/engine';
 import { PROTOCOL, type Body, type Post } from '../src';
 
 export const seat = (name: string, ai = false): PlayerConfig => ({ name, color: '#fff', ai, aiLevel: 1 });

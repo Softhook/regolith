@@ -237,7 +237,13 @@ describe('Regolith mode', () => {
   // So Regolith can leave for its own app one day (docs/regolith/REGOLITH.md): everything else asks the rule set, never the mode's id.
   it('is named, by its id or its name, only in its folder, rulesets.ts and the GameMode type', () => {
     const root = join(__dirname, '../../..');
-    const allowed = ['packages/engine/src/regolith/', 'packages/engine/src/rulesets.ts'];
+    // The app's identity (appId.ts, the online namespace) names its game, not the mode.
+    const allowed = [
+      'packages/engine/src/regolith/',
+      'packages/engine/src/rulesets.ts',
+      'apps/web/src/appId.ts',
+      'packages/online/src/codec.ts',
+    ];
     const isGameMode = (node: ts.Node): boolean =>
       !!node.parent && ((ts.isTypeAliasDeclaration(node.parent) && node.parent.name.text === 'GameMode') || isGameMode(node.parent));
     const names = (text: string) => text.toLowerCase() === 'regolith';

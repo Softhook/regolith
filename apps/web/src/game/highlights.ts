@@ -11,7 +11,7 @@ import {
   tacticalOptions,
   type Cell,
   type GameState,
-} from '@quantum/engine';
+} from '@regolith/engine';
 import type { Sel } from './controller';
 import type { Legal } from './legal';
 

@@ -1,5 +1,5 @@
 import { generateSecretKey } from 'nostr-tools/pure';
-import { decodeEvent, gameKeys, hex, Timeline, type NostrEvent } from '@quantum/online';
+import { decodeEvent, gameKeys, hex, Timeline, type NostrEvent } from '@regolith/online';
 import { forget, remember, stored, storedJson } from '../storage';
 import { eventsKey, onlineGames, saveOnlineGames, type OnlineGameEntry } from './games';
 import { appKey } from '../appId';

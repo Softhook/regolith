@@ -1,4 +1,4 @@
-import { effectOf } from '@quantum/engine';
+import { effectOf } from '@regolith/engine';
 
 /**
  * What holding each card is worth, in cube points, for the evaluation. A skill only takes effect

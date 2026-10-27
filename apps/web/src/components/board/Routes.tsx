@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react';
-import { drawing, key, type Board, type Cell } from '@quantum/engine';
+import { drawing, key, type Board, type Cell } from '@regolith/engine';
 import type { Route } from '../../game/controller';
 import { placement } from './geometry';
 

@@ -24,7 +24,7 @@ import {
   type Planet,
   type PlayerId,
   type ShipReach,
-} from '@quantum/engine';
+} from '@regolith/engine';
 import { skillValue } from './cardValues';
 import { storedTacticsValue } from './patient';
 

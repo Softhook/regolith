@@ -12,8 +12,8 @@ import {
   tryApply,
   type GameState,
   type PlayerId,
-} from '@quantum/engine';
-import { DEFAULT_AI_LEVEL } from '@quantum/ai';
+} from '@regolith/engine';
+import { DEFAULT_AI_LEVEL } from '@regolith/ai';
 import { defaultSeat } from './seats';
 
 /**

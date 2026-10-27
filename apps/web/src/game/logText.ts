@@ -1,4 +1,4 @@
-import { say, type GameState, type LogEntry } from '@quantum/engine';
+import { say, type GameState, type LogEntry } from '@regolith/engine';
 import { planetNames } from '../art/boardTiles';
 
 /**

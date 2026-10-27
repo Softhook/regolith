@@ -1,4 +1,4 @@
-import { AID, CARD, HEX_TILE_CUT, TILE, hexTileShape } from '@quantum/art';
+import { AID, CARD, HEX_TILE_CUT, TILE, hexTileShape } from '@regolith/art';
 import type { Line, Polygon } from './pdf';
 import { pressTag } from './press';
 import { gameFile } from '../appId';

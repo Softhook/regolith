@@ -1,6 +1,6 @@
 /** Sounds heard from a step: worked out from what changed, so AI and online moves sound like local ones. */
 import { describe, expect, it, vi } from 'vitest';
-import type { GameState, LogEntry } from '@quantum/engine';
+import type { GameState, LogEntry } from '@regolith/engine';
 import { arrange, quickStart } from '../../../packages/engine/test/helpers';
 import { EXPANSION } from '../src/beats';
 

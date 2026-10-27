@@ -1,4 +1,4 @@
-import { say, scrapyard, shipOf, type Die, type GameState, type PlayerState } from '@quantum/engine';
+import { say, scrapyard, shipOf, type Die, type GameState, type PlayerState } from '@regolith/engine';
 import type { Controller } from '../game/controller';
 import type { Dispatch } from '../game/useGame';
 import { Die3D } from './Die3D';

@@ -1,6 +1,6 @@
 import type { CSSProperties, MouseEvent, ReactNode } from 'react';
-import type { CardDeck } from '@quantum/art';
-import { CLASSIC_SHIPS, MODES } from '@quantum/engine';
+import type { CardDeck } from '@regolith/art';
+import { CLASSIC_SHIPS, MODES } from '@regolith/engine';
 import { ActionHex, MissileIcon } from '../components/Card';
 import { PLAYER_COLORS } from '../theme';
 import {
@@ -710,7 +710,7 @@ export function Manual({ dark }: { dark?: boolean }) {
       </section>
 
       <footer className="mn-credits">
-        Cubic by Christian Nold is a non-commercial reimagining of <i>Quantum</i> by Eric Zimmerman (FunForge, 2013) and its fan-made
+        Regolith by Christian Nold is a non-commercial game inspired by <i>Quantum</i> by Eric Zimmerman (FunForge, 2013) and its fan-made
         Community Edition. Quantum is a trademark of its owners; this manual is an independent text.
       </footer>
     </article>

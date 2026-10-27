@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { GameState } from '@quantum/engine';
+import type { GameState } from '@regolith/engine';
 import { reducedMotion } from './useMediaQuery';
 
 /** The id of the game's last log entry, 0 before there is one. */

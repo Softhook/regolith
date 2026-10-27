@@ -1,4 +1,4 @@
-import type { Action, CombatPending, GameMode, GameState, PlayerConfig, PlayerId } from '@quantum/engine';
+import type { Action, CombatPending, GameMode, GameState, PlayerConfig, PlayerId } from '@regolith/engine';
 
 /**
  * An online game is a log of posts that every player's browser keeps and replays with the engine.

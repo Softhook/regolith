@@ -1,6 +1,6 @@
 import { memo, type CSSProperties } from 'react';
-import { drawing, type Board, type GameState } from '@quantum/engine';
-import { PLANET_DIAMETER, TILE, lookWorld } from '@quantum/art';
+import { drawing, type Board, type GameState } from '@regolith/engine';
+import { PLANET_DIAMETER, TILE, lookWorld } from '@regolith/art';
 import { BarrierBubble } from './BarrierBubble';
 import { tileArt, type TileArt } from '../../art/boardTiles';
 import { GATE_COLOR } from '../../theme';

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import type { GameState, LogEntry } from '@quantum/engine';
+import type { GameState, LogEntry } from '@regolith/engine';
 import { useShortcut } from './useShortcut';
 
 /**

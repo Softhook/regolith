@@ -1,4 +1,4 @@
-import { combatOutcome, copyState, die, rulesOf, tryApply, type Action, type CombatPending, type GameState } from '@quantum/engine';
+import { combatOutcome, copyState, die, rulesOf, tryApply, type Action, type CombatPending, type GameState } from '@regolith/engine';
 
 /**
  * The possible results of an action, with their probabilities.

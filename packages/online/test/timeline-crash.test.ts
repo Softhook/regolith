@@ -4,16 +4,16 @@
  * swaps in an engine that fails on a marked move, or on battles once told to.
  */
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { chooseAction } from '@quantum/ai';
-import { actor, legalActions, type Action, type PlayerConfig } from '@quantum/engine';
+import { chooseAction } from '@regolith/ai';
+import { actor, legalActions, type Action, type PlayerConfig } from '@regolith/engine';
 import { Timeline, type Body } from '../src';
 import { create, post, seat } from './helpers';
 
 const engine = vi.hoisted(() => ({ failBattles: false }));
 
 // The real engine, except that it fails (as a bug would) on an action marked `crash`, and on battles while `failBattles`.
-vi.mock('@quantum/engine', async (importOriginal) => {
-  const real = await importOriginal<typeof import('@quantum/engine')>();
+vi.mock('@regolith/engine', async (importOriginal) => {
+  const real = await importOriginal<typeof import('@regolith/engine')>();
   return {
     ...real,
     apply: (s: Parameters<typeof real.apply>[0], a: Action) => {

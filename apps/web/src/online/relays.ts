@@ -1,5 +1,5 @@
 import { Relay } from 'nostr-tools/relay';
-import { KIND, type NostrEvent } from '@quantum/online';
+import { KIND, type NostrEvent } from '@regolith/online';
 
 /** Six relays that accepted and returned a burst of 40 events from a new key in 2026-10. */
 export const RELAYS = [

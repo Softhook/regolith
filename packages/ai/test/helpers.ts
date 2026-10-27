@@ -1,4 +1,4 @@
-import { apply, type Action, type GameState } from '@quantum/engine';
+import { apply, type Action, type GameState } from '@regolith/engine';
 import { seededRandom } from '../../engine/test/helpers';
 import { chooseAction, type AiLevel } from '../src';
 

@@ -1,6 +1,6 @@
 /** Which card a step is the doing of (the card on screen casts it), and which start-of-turn bonuses are news. */
 import { describe, expect, it } from 'vitest';
-import { apply, type GameState, type LogEntry } from '@quantum/engine';
+import { apply, type GameState, type LogEntry } from '@regolith/engine';
 import { arrange, quickStart } from '../../../packages/engine/test/helpers';
 import { castOf, landing, repeatsLastTurn } from '../src/game/cast';
 

@@ -9,7 +9,7 @@
  *    id6 (7,1) 7    id7 (7,4) 7    id8 (7,7) 7*
  */
 import { describe, expect, it } from 'vitest';
-import { checkInvariants, type GameState } from '@quantum/engine';
+import { checkInvariants, type GameState } from '@regolith/engine';
 import { playAiGame, quickStart, seededRandom } from '../../engine/test/helpers';
 import { chooseAction, type AiLevel } from '../src';
 import { playTurn } from './helpers';

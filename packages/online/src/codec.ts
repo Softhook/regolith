@@ -57,7 +57,7 @@ export function newSecret(): string {
  * Whose games these are: a game's relay tag and key are derived under it, so another app on the same relays
  * (another game built from this code) never sees this one's games, even from the same invite secret.
  */
-const NAMESPACE = 'cubic';
+const NAMESPACE = 'regolith';
 
 const derive = (label: string, secret: string) => sha256(enc.encode(`${NAMESPACE}:${label}:${secret}`));
 

@@ -1180,7 +1180,7 @@ svg.zones polygon {
 .qcard-skill { background: linear-gradient(180deg, var(--card-skill-1), var(--card-skill-2)); color: var(--card-skill-ink); }
 .qcard-tactic { background: linear-gradient(180deg, var(--card-tactic-1), var(--card-tactic-2)); color: var(--card-tactic-ink); border-color: rgba(185,140,255,.3); }
 .qcard-expansion { background: linear-gradient(180deg, var(--card-expansion-1), var(--card-expansion-2)); color: var(--card-expansion-ink); border-color: rgba(94,240,176,.35); }
-/* --cat, the category's accent, is set per card from @quantum/art (categoryStyle in Card.tsx). */
+/* --cat, the category's accent, is set per card from @regolith/art (categoryStyle in Card.tsx). */
 .qcard-top { display: flex; align-items: center; justify-content: space-between; gap: 4px; }
 .qcard-cat { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--cat-ink, var(--cat)); }
 /* A one-shot card's deck (Tactic, Gambit) beside its category, where there's room: not in the market, whose rows are labelled. */

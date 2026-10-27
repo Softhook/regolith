@@ -1,5 +1,5 @@
 {
-  "name": "@quantum/online",
+  "name": "@regolith/online",
   "version": "0.1.0",
   "private": true,
   "sideEffects": false,
@@ -9,7 +9,7 @@
   "dependencies": {
     "@noble/ciphers": "^2.1.1",
     "@noble/hashes": "^2.0.1",
-    "@quantum/engine": "*",
+    "@regolith/engine": "*",
     "nostr-tools": "^2.25.2"
   }
 }

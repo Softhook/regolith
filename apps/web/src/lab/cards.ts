@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import type { CardFace } from '@quantum/art';
-import { card, effectOf, isOriginalCard } from '@quantum/engine';
+import type { CardFace } from '@regolith/art';
+import { card, effectOf, isOriginalCard } from '@regolith/engine';
 import { DECKS, EDITIONS, cardFontCss, faceOf, measure, tileFontCss, type Deck } from '../art/cards';
 
 export { DECKS, EDITIONS, cardFontCss, measure, tileFontCss, type Deck };

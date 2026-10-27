@@ -15,7 +15,7 @@ import {
   type CombatRole,
   type GameState,
   type PlayerId,
-} from '@quantum/engine';
+} from '@regolith/engine';
 import { sfx } from '../sound';
 import { highlightsFor, noHighlights } from './highlights';
 import { conquerTap, legalFor, NO_LEGAL } from './legal';

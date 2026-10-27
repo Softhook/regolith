@@ -1,4 +1,4 @@
-import { dataUrl } from '@quantum/art';
+import { dataUrl } from '@regolith/art';
 
 /** Browser file helpers: saving downloads, and drawing SVG documents to bitmaps. */
 

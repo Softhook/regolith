@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useRef, useState, type CSSProperties, type MouseEvent, type ReactNode } from 'react';
-import { cellAtPoint, die, dieAt, drawing, key, moveOptions, orbitals, rulesOf, same, say, shipOf, type GameState } from '@quantum/engine';
+import { cellAtPoint, die, dieAt, drawing, key, moveOptions, orbitals, rulesOf, same, say, shipOf, type GameState } from '@regolith/engine';
 import type { Controller } from '../game/controller';
 import { BoardArt, tileArtOf } from './board/BoardArt';
 import { ActionEffects } from './board/ActionEffects';
@@ -14,7 +14,7 @@ import { useBoardZoom } from './board/useBoardZoom';
 import { OffscreenHints, ZoomControls, useFollowMoves, useZoomIntro } from './board/ZoomUi';
 import { Die3D, DieShadow } from './Die3D';
 import { PIECE_SHADOW_OPACITY } from './board/shadows';
-import { REGOLITH_SHADOW, TILE } from '@quantum/art';
+import { REGOLITH_SHADOW, TILE } from '@regolith/art';
 import { useOnGround } from '../art/mapLook';
 import { planetNames } from '../art/boardTiles';
 import { InfoPop, useAnchorName } from './InfoPop';

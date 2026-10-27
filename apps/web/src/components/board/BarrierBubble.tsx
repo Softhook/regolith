@@ -1,5 +1,5 @@
-import type { World } from '@quantum/art';
-import { REGOLITH_SHADOW } from '@quantum/art';
+import type { World } from '@regolith/art';
+import { REGOLITH_SHADOW } from '@regolith/art';
 import { PIECE_SHADOW_LENGTH, PIECE_SHADOW_OPACITY, pieceShadowTint } from './shadows';
 
 /**

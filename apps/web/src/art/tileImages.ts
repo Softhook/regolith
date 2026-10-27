@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { buildBoard, type MapDef } from '@quantum/engine';
+import { buildBoard, type MapDef } from '@regolith/engine';
 import {
   RASTER_AREA,
   TILE,
@@ -17,7 +17,7 @@ import {
   type Spot,
   type TileLook,
   type World,
-} from '@quantum/art';
+} from '@regolith/art';
 import { rasterise, rasteriseWithCutout } from '../files';
 import { COARSE } from '../game/useMediaQuery';
 import { idle, storeImage, storedImage } from './imageStore';

@@ -13,7 +13,7 @@ import {
   type PlanetType,
   type TileLook,
   type TileSpec,
-} from '@quantum/art';
+} from '@regolith/art';
 import { blobToDataUrl, download } from '../files';
 import { svgToPng } from '../print/exports';
 import { fileName, pieceSize } from '../print/pieces';

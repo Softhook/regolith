@@ -1,6 +1,6 @@
 /** What a tap on a planet does about conquering it (conquerTap): conquer at once, or ask how. */
 import { describe, expect, it } from 'vitest';
-import { orbitals, RULESETS, type GameMode, type GameState, type PlayerId } from '@quantum/engine';
+import { orbitals, RULESETS, type GameMode, type GameState, type PlayerId } from '@regolith/engine';
 import { arrange, quickStart } from '../../../packages/engine/test/helpers';
 import { conquerOptions, conquerTap, legalFor } from '../src/game/legal';
 

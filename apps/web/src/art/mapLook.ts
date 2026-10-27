@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from 'react';
-import type { Board } from '@quantum/engine';
-import { lookWorld, type TileLook } from '@quantum/art';
+import type { Board } from '@regolith/engine';
+import { lookWorld, type TileLook } from '@regolith/art';
 import { remember, stored } from '../storage';
 import { appKey } from '../appId';
 

@@ -1,7 +1,7 @@
 /** Files for a press: the CMYK conversion follows its table, and the CMYK PDF is well formed with the boxes and intent PDF/X wants. */
 import { inflateSync } from 'node:zlib';
 import { describe, expect, it } from 'vitest';
-import { SPACE_BASE, hslToRgb } from '@quantum/art';
+import { SPACE_BASE, hslToRgb } from '@regolith/art';
 import { CMYK_TABLE } from '../src/print/cmykTable';
 import { cmykPdf, deflate, fullPage } from '../src/print/pdf';
 import { encodePng, toCmyk } from '../src/print/press';

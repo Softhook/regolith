@@ -1,4 +1,4 @@
-import { dieLine } from '@quantum/art';
+import { dieLine } from '@regolith/art';
 import { download, drawBands } from '../files';
 import { cmykPdf, deflate, fullPage, type PdfImage, type PdfOptions } from './pdf';
 import {
