@@ -1,7 +1,7 @@
 # Online multiplayer
 
-How online play works, and the options we weighed. Expands roadmap milestone **M4**
-([ROADMAP.md](ROADMAP.md#m4--online-multiplayer)).
+How online play works, and the options we weighed. What is still to do is in
+[ROADMAP.md](ROADMAP.md#app).
 
 Status: **built (2026-10-06)**: serverless, live *and* asynchronous play between friends,
 as described in §0. Sections 1–7 are the original proposal, kept for the server options
@@ -137,7 +137,7 @@ So browser-to-browser Web Push reaches only Firefox players. Three options, chea
 2. **ntfy.sh (nothing to run; players install the ntfy app).** Each player picks a random topic and
    carries it in an encrypted post; the mover's browser POSTs "Your move in …" to it (one `fetch`,
    CORS is open). Keeps "we run nothing", at the cost of a second app and a QR code to subscribe.
-3. **Web Push to our own app, through a stateless forwarder.** Real notifications from the Quantum
+3. **Web Push to our own app, through a stateless forwarder.** Real notifications from the Regolith
    icon. Described below.
 
 #### Option 3: Web Push through a forwarder
@@ -222,7 +222,7 @@ The engine was built with this in mind, which makes online play much easier than
 | The AI never reads the real RNG or deck order | AI can play from a *redacted* view, the same one a human client gets |
 | The UI holds no rules; it renders a state and sends actions | The UI can be pointed at a server with little change |
 
-### What's secret in Quantum
+### What's secret in Regolith
 
 Almost everything is public: board, dice, cubes, skills, tracks, the card rows. The secrets are:
 
@@ -401,8 +401,7 @@ connection status, timers.
 ### Missiles: who may interrupt, and for how long?
 In a combat, **any** player holding missiles may fire one, on either side. Hot-seat, the
 combat overlay simply waits for someone to click *Resolve*. Online, the server must know
-when everyone has had their chance. (This is open question #21 in
-[OPEN-QUESTIONS.md](OPEN-QUESTIONS.md#interrupts-critical-for-online-play).)
+when everyone has had their chance. (Settled as [RULES.md ruling 2](RULES.md#rulings).)
 
 Proposal:
 1. After both combat dice are rolled, open a **response window** for every player with missiles.
@@ -477,7 +476,7 @@ and the site stays on GitHub Pages. Moving the same room module to a server late
 - [ ] In-game: whose turn, who's connected, waiting states, connection lost/restored.
 - [ ] Storage of config + actions + snapshot; local dev server (`npm run dev:server`).
 
-**Done when:** two people on different devices finish an Original-mode game via a link,
+**Done when:** two people on different devices finish a Regolith game via a link,
 including combats with missiles and a page reload in the middle.
 
 ### Phase 2b — Move the room to a server (2–3 days, when needed)
@@ -507,8 +506,8 @@ Needed for async play (phase 4), public play, or if P2P connections fail too oft
 ### Phase 6 — Public play (only if we want strangers to play)
 - [ ] Open lobbies / matchmaking, ratings.
 - [ ] Moderation basics (chat filter, report, block).
-- [ ] **Name & IP check from roadmap M0 must be settled first** — "Quantum" and its trade dress
-      belong to the publisher; anything public needs a working title.
+- [ ] **Credit and licence settled first** ([ROADMAP.md](ROADMAP.md#project)): Regolith's rules come
+      from Quantum's, whose name and trade dress belong to its publisher.
 
 **Rough total:** phases 0–3 about 2–3 weeks (play with friends, real-time, with AI);
 phase 4 another 1–2 weeks.

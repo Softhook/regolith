@@ -245,7 +245,7 @@ function destroyed(c: Step, w: PlayerId, v: PlayerId, inCombat: boolean) {
     c.fail(ravenous, `winner's Dominance ${before.players[w].dominance} → ${after.players[w].dominance}, expected ${dominance}`);
   } else c.fire(ravenous);
 
-  // Loser (combat only, RULE-SUGGESTIONS #26): Dominance −1, unless Righteous.
+  // Loser (combat only, RULES.md ruling 14): Dominance −1, unless Righteous.
   if (inCombat) {
     const keep = held(before, v, 'righteous');
     const was = before.players[v].dominance;

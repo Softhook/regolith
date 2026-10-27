@@ -364,8 +364,8 @@ describe('card market', () => {
   });
 });
 
-describe('RULE-SUGGESTIONS §5.3', () => {
-  it('#49: a held Talented raises the skill limit at once, so taking it as a 4th skill forces no discard', () => {
+describe('RULES.md rulings 10–13', () => {
+  it('13: a held Talented raises the skill limit at once, so taking it as a 4th skill forces no discard', () => {
     for (const [taken, discard] of [
       ['r-talented', false],
       ['r-stealthy', true],
@@ -382,7 +382,7 @@ describe('RULE-SUGGESTIONS §5.3', () => {
     }
   });
 
-  it('#49: discarding Talented while over 3 skills asks for another discard', () => {
+  it('13: discarding Talented while over 3 skills asks for another discard', () => {
     let s = quickStart(2, 3);
     const me = s.turn.player;
     s.players[me].skills = ['r-agile', 'r-ferocious', 'r-brutal', 'r-stealthy', 'r-talented'].map((id) => ({ id, active: true }));
@@ -391,7 +391,7 @@ describe('RULE-SUGGESTIONS §5.3', () => {
     expect(s.pending[0]).toMatchObject({ kind: 'discardSkill', player: me });
   });
 
-  it('#30: the two Warp Gate spaces are adjacent for Strategic support', () => {
+  it('11: the two Warp Gate spaces are adjacent for Strategic support', () => {
     const attackerTotal = (gates: boolean) => {
       let s = quickStart();
       s.turn.player = 0;
@@ -413,7 +413,7 @@ describe('RULE-SUGGESTIONS §5.3', () => {
     expect(attackerTotal(true)).toBe(attackerTotal(false) - 2);
   });
 
-  it('#30: the two Warp Gate spaces are adjacent for Stealthy deploys', () => {
+  it('11: the two Warp Gate spaces are adjacent for Stealthy deploys', () => {
     const isolated = (gates: boolean) => {
       let s = quickStart();
       s = arrange(s, { p1d0: [12, 2, 3] });
@@ -430,7 +430,7 @@ describe('RULE-SUGGESTIONS §5.3', () => {
     expect(isolated(true)).toBe(false);
   });
 
-  it('#33: Composed is not offered under Righteous, where it could do nothing', () => {
+  it('12: Composed is not offered under Righteous, where it could do nothing', () => {
     const s = quickStart(2, 3);
     const me = s.turn.player;
     s.players[me].skills = ['r-composed', 'r-righteous'].map((id) => ({ id, active: true }));
@@ -439,7 +439,7 @@ describe('RULE-SUGGESTIONS §5.3', () => {
     expect(() => apply(s, { type: 'composed' })).toThrow('You cannot gain research');
   });
 
-  describe('#26: Show of Force fires "destroy" skills, with no dominance loss for the victim', () => {
+  describe('10: Show of Force fires "destroy" skills, with no dominance loss for the victim', () => {
     function showOfForce(target: 'enemy' | 'own'): { s: GameState; me: number; foe: number } {
       let s = quickStart(2, 3);
       const me = s.turn.player;
@@ -469,7 +469,7 @@ describe('RULE-SUGGESTIONS §5.3', () => {
   });
 });
 
-describe('Clever (CE): after reconfiguring, ±1 (OPEN-QUESTIONS #63)', () => {
+describe('Clever (CE): after reconfiguring, ±1 (RULES.md ruling 6)', () => {
   function reconfigured(start: number): GameState {
     let s = quickStart(2, 3);
     const me = s.turn.player;
@@ -502,7 +502,7 @@ describe('Clever (CE): after reconfiguring, ±1 (OPEN-QUESTIONS #63)', () => {
   });
 });
 
-describe('Devious: through enemy ships, normal moves only (OPEN-QUESTIONS #65)', () => {
+describe('Devious: through enemy ships, normal moves only (RULES.md ruling 8)', () => {
   function devious(skill: boolean, blockers: 'enemy' | 'own' = 'enemy'): GameState {
     let s = quickStart();
     s.turn.player = 0;
@@ -533,7 +533,7 @@ describe('Devious: through enemy ships, normal moves only (OPEN-QUESTIONS #65)',
   });
 });
 
-describe('Profiteering: a card for a Conquer action may be 1 missile (OPEN-QUESTIONS #64)', () => {
+describe('Profiteering: a card for a Conquer action may be 1 missile (RULES.md ruling 7)', () => {
   /** Ends a turn with `conquered` Conquer actions and `infamy` Infamy cubes; `breakthrough` adds a research pick. */
   function cardPhase(opts: { conquered: number; infamy?: number; breakthrough?: boolean; skill?: boolean }): GameState {
     const s = quickStart(2, 3);

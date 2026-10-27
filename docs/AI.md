@@ -7,7 +7,7 @@ The AI comes in five levels. Each player seat in the lobby picks one; the defaul
 | 1 | **Cadet** | One action at a time. Scores the position after each legal action and takes the best. Random actions are sampled 3 times. | ~5 ms |
 | 2 | **Captain** | One action at a time, with exact odds for re-rolls and combat and an evaluation that knows whose turn is next and which enemy ships can reach which of its ships. | ~5 ms |
 | 3 | **Commodore** | Plans the whole turn: searches combinations of up to 3 actions (plus free ship abilities) and the outcomes of every dice roll on the way. | ~10–20 ms, ≤ 0.1 s |
-| 4 | **Admiral** | Wider turn search, includes Flagship transports, and checks its best three plans against the opponent's actual next turn. | ~25–50 ms, ≤ 0.2 s |
+| 4 | **Admiral** | Wider turn search, includes Behemoth carries, and checks its best three plans against the opponent's actual next turn. | ~25–50 ms, ≤ 0.2 s |
 | 5 | **Fleet Admiral** | Deeper and wider turn search (4 actions, more samples), and checks its best four plans against three replies each, with the same dice for every plan, averaged. | ~65–100 ms, ≤ 0.5 s |
 
 All levels choose among `legalActions(state)`, so they can only play legal moves. None of them
@@ -43,7 +43,7 @@ on the reply check did not do better than Fleet Admiral (200 games each, after t
 Checking more plans against a noisy reply seems to pick the luckiest one; a stronger reply player
 costs far more than it gains. Further strength more likely comes from the evaluation (see Next steps).
 
-Card values (2026-10-09, [card-benchmark.md](card-benchmark.md#limits)): with skills and stored
+Card values (2026-10-09, measured in Community while Regolith was part of Cubic): with skills and stored
 Tactics valued card by card instead of all alike, threats worked out with both players' combat
 skills (`attackChance`), and Calculating choosing 4s, Commodore beat the previous Commodore
 158 – 82 over 240 Community games (65.8%) at about the same thinking time.
@@ -70,8 +70,8 @@ a difference of a few percent (the script prints z; |z| > 2 is about p < 0.05).
 ## What was wrong with the original AI
 
 The original AI is kept as level 1. Self-play showed it rarely fought (about one attack per Basic
-game, with dominance often never leaving 1), re-rolled ships with no purpose, and in Original mode
-researched about 27 times a game. The causes were assumptions built into its design:
+game, with dominance often never leaving 1), re-rolled ships with no purpose, and in Quantum's Original
+mode researched about 27 times a game. The causes were assumptions built into its design:
 
 1. **One action at a time.** It scored each action on its own and never planned how a turn's three
    actions work together. In Quantum the strong moves are combinations ("move A out, move B in,
@@ -111,7 +111,7 @@ search decides whether to do more first. Each player's value adds up:
   it gives them Infamy. Ships of the player who moves next are less exposed (they can react).
 
 **Chance** (`chance.ts`): a re-roll branches into each value it can show, following the mode's
-rule (any other value in Original, an unseen value in Community). An attack branches into
+rule (a value not yet shown this turn). An attack branches into
 win / repelled / attacker destroyed, with exact probabilities from every combination of combat
 dice. Card draws and other random effects are sampled with the same seeds for every candidate.
 
@@ -135,9 +135,9 @@ In rough order of value:
 1. **Tune the evaluation by self-play.** The weights in `evaluate.ts` are hand-set. Adjusting them
    automatically (e.g. SPSA over many Captain-vs-Captain games) is the cheapest strength gain, and
    the same harness becomes the M5 balance lab.
-2. **Value cards individually.** Every skill is worth the same today. A per-card rating, or better
-   a measured one (win rate with/without the card in self-play), would fix card picks in Original
-   and Community.
+2. **Value Regolith's cards on their own.** Each card is valued by the Community card it began as
+   (`cardValues.ts`, through its `effect`); Regolith's own benchmark ([card-benchmark.md](card-benchmark.md))
+   shows several are worth quite different amounts here.
 3. **Missiles in the search.** The chance model assumes nobody fires a missile into a battle. The
    defender's possible missile should lower the attacker's odds.
 4. **Faster engine for search.** Done (2026-10): states are copied by a plain recursive copy instead

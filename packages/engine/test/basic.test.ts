@@ -1,7 +1,7 @@
 /**
- * Basic mode, rule by rule. Regolith's rules start from the 2013 FunForge rulebook
- * (Quantum_rules_US.pdf), and the page numbers here are its printed ones; Basic is Regolith with the
- * cards left out (docs/regolith/PROTOTYPING.md). The 5 and 6, the movement cap, zones of control and
+ * Basic mode, rule by rule. Regolith's rules start from the 2013 FunForge rulebook (Quantum_rules_US.pdf, in
+ * Cubic's reference/ folder), and the page numbers here are its printed ones; Basic is Regolith with the cards
+ * left out (docs/regolith/PROTOTYPING.md). The 5 and 6, the movement cap, zones of control and
  * contested orbits are pinned in regolith.test.ts.
  *
  * Scenarios run on Alpha Sector (hex), the basic map for 2 players, in axial cells (docs/HEX.md): a

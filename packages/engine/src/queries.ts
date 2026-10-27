@@ -49,7 +49,7 @@ export function canReconfigure(state: GameState, d: Die): boolean {
 
 /**
  * Unlike other skills, a held Talented raises the limit at once, before it becomes active at the end
- * of the turn, so taking it as a 4th skill forces no discard (RULE-SUGGESTIONS #49).
+ * of the turn, so taking it as a 4th skill forces no discard (RULES.md ruling 13).
  */
 export function skillLimit(state: GameState, player: PlayerId): number {
   return Math.max(3, ...state.players[player].skills.map((s) => ruleOf(s.id).skillLimit ?? 0));
@@ -367,7 +367,7 @@ export function moveIndexes(state: GameState, ship: string | Die, at = shipsByIn
   const range = movementRange(state, d);
   const zone = stopZone(state, d.owner, at);
 
-  // Devious: normal moves only, not Transport or the Tactical step (decided 2026-10-03, OPEN-QUESTIONS #65).
+  // Devious: normal moves only, not Transport or the Tactical step (RULES.md ruling 8).
   const through = anySkill(state, d.owner, (r) => r.moveThroughEnemies) ? d.owner : undefined;
   const g = grid(state.board);
   const gate = gates(state, g);
@@ -706,7 +706,7 @@ function rollOverride(state: GameState, combat: CombatPending, side: CombatRole)
 }
 
 /**
- * Combat roll pipeline (see docs/OPEN-QUESTIONS.md #10):
+ * Combat roll pipeline (docs/RULES.md ruling 1):
  * roll (Brutal: lower of two) → set effects (Rational 3, Plan Ahead 1) → missile (1) → modifiers.
  */
 export function combatTotal(state: GameState, combat: CombatPending, side: CombatRole): CombatTotal {

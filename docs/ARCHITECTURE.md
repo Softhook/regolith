@@ -8,9 +8,9 @@ How the code is organised, and where to make the common changes.
 |---|---|---|
 | [`packages/engine`](../packages/engine) | The rules. A game is `apply(state, action) → state`: pure, deterministic (seeded RNG in the state), serialisable. | — |
 | [`packages/ai`](../packages/ai) | AI players in five levels ([AI.md](AI.md)). Chooses among `legalActions(state)`; never sees the real RNG or deck order. | engine |
-| [`packages/art`](../packages/art) | Artwork as SVG text: tiles, planets, starfields ([GRAPHICS.md](GRAPHICS.md)). Plain functions, seeded, in mm; shared by the game and print. | — |
+| [`packages/art`](../packages/art) | Artwork as SVG text: tiles on each world's ground, cards in the screenprint look, the player aid and map sheets ([GRAPHICS.md](GRAPHICS.md)). Plain functions, seeded, in mm; shared by the game and print. | — |
 | [`packages/online`](../packages/online) | Online play without a server ([MULTIPLAYER.md](MULTIPLAYER.md)): a game as a log of signed, encrypted posts; `Timeline` replays it with the engine so every browser computes the same game. No network code. | engine |
-| [`apps/web`](../apps/web) | React UI. Renders a state, sends actions. Holds no rules of its own: buttons and highlights come from `legalActions` ([`game/legal.ts`](../apps/web/src/game/legal.ts)). The Art Lab is at `#lab` (tiles), `#lab/cards`, `#lab/aid` (player aid) and `#lab/proof` (press test); the player manual at `#rulebook` (the same `Manual` component as the in-game How to play dialog). | engine, ai, art, online |
+| [`apps/web`](../apps/web) | React UI. Renders a state, sends actions. Holds no rules of its own: buttons and highlights come from `legalActions` ([`game/legal.ts`](../apps/web/src/game/legal.ts)). The Art Lab is at `#lab` (tiles), `#lab/cards`, `#lab/aid` (player aid), `#lab/maps` (map setup sheets) and `#lab/proof` (press test); the player manual at `#rulebook` (the same `Manual` component as the in-game How to play dialog). | engine, ai, art, online |
 | [`data/`](../data) | Cards and maps as YAML, compiled to JSON by `npm run data`. | — |
 
 ## Engine modules
@@ -18,12 +18,13 @@ How the code is organised, and where to make the common changes.
 | File | Contents |
 |---|---|
 | `engine.ts` | Public API (`apply`, `tryApply`, `actor`) and the handler registry |
-| `rules.ts` | `RuleSet`: everything that differs between Basic, Original and Community; `rulesOf()` |
-| `rulesets.ts` | `RULESETS`, the rule set of each mode (the one module that imports `regolith/`). It hands the table to `rules.ts` when it loads, so each module that takes a state from outside (`setup`, `engine`, `invariants`) imports it |
+| `rules.ts` | `RuleSet`: everything that differs between Basic and Regolith; `rulesOf()` |
+| `rulesets.ts` | `RULESETS`, the rule set of each mode, with the mechs (`ships.ts`). It hands the table to `rules.ts` when it loads, so each module that takes a state from outside (`setup`, `engine`, `invariants`) imports it |
 | `actionShape.ts` | `isWellFormed()`: the shape of every action, checked by `apply` before any handler (actions from other browsers are untrusted) |
 | `setup.ts` | `createGame` and the setup decisions |
 | `actions.ts` | Move/Attack, Deploy, Reconfigure, Research, Conquer, end turn |
-| `abilities.ts` | Ship abilities 1–6 |
+| `abilities.ts` | The mechs' powers built into the engine (1–4) |
+| `ships.ts`, `powers/` | The mechs by die value, and the powers that plug in through `ShipHooks` (Shoot, Barrier, the zone of control) |
 | `combat.ts` | Attacks, missiles, advancing, Infamy |
 | `cards.ts` | Card market, Tactic effects, card decisions |
 | `effects.ts` | The implemented Skill and Tactic effects, as types |
@@ -125,27 +126,28 @@ the new rule set changes a rule rather than a parameter, add a field to `RuleSet
 rule lives. Don't compare `state.mode` to a name anywhere else.
 
 **Add a map.** Add it to `data/maps.yaml` with its published stats (or `mapStats()`'s, if none are published); [`maps.test.ts`](../packages/engine/test/maps.test.ts) recomputes the stats
-from the layout and fails if they disagree. Official layouts are in
-[`reference/bga/maps.json`](../reference/bga/maps.json).
+from the layout and fails if they disagree. A map's setup sheet for the table comes with it (Art Lab, `#lab/maps`).
 
 ## Tests
 
 | Test | Guards |
 |---|---|
-| [`basic.test.ts`](../packages/engine/test/basic.test.ts) | Every official rule in Basic mode, one scenario each, citing its source |
+| [`basic.test.ts`](../packages/engine/test/basic.test.ts) | Every rule Basic inherits from Quantum's 2013 rulebook, one scenario each, citing its page |
+| [`regolith.test.ts`](../packages/engine/test/regolith.test.ts) | Regolith's own rules: the movement cap, zones of control, Shoot, Barrier, contested perimeters |
+| [`hex.test.ts`](../packages/engine/test/hex.test.ts), [`offset.test.ts`](../packages/engine/test/offset.test.ts) | Hex geometry; objectives off the middle of their tiles |
 | [`engine.test.ts`](../packages/engine/test/engine.test.ts) | Card effects, modes, missiles, undo |
 | [`card-audit.test.ts`](../packages/engine/test/card-audit.test.ts) | The card audit ([`audit.ts`](../packages/engine/test/audit.ts)) on its quick games: AI games with skills dealt so every card is held, checking at every step legality, soundness of card decisions, invariants, and each card's effect against its text. `npm run audit:cards` plays the whole matrix (`-- --deep`: level 4 and more maps) and prints each anomaly with the game log, plus card coverage |
 | [`card-scenarios.test.ts`](../packages/engine/test/card-scenarios.test.ts) | A scenario per card (every mode), driven through its real trigger; fails if a card has none. At every decision a scenario reaches, the engine accepts no answer `legalActions` doesn't offer ([`decisions.ts`](../packages/engine/test/decisions.ts)), which covers decisions the AI games rarely reach |
-| [`community-cards.test.ts`](../packages/engine/test/community-cards.test.ts) | Calculating, Curious, Patient, Prideful and Ruthless, edge cases included |
+| [`card-rulings.test.ts`](../packages/engine/test/card-rulings.test.ts) | Prospectors, Remodel, Stolen Flag, Strategic Plan and Signal Jammer, edge cases included |
 | [`consistency.test.ts`](../packages/engine/test/consistency.test.ts) | `legalActions` and `apply` agree (every offered action is accepted; brute force: every accepted action is offered, for every decision's answers ([`decisions.ts`](../packages/engine/test/decisions.ts)) and phase-1 actions on sampled states); invariants after every action |
 | [`untrusted.test.ts`](../packages/engine/test/untrusted.test.ts) | Untrusted actions never crash the engine, only get refused with a `RuleError`: random actions of every type (many well formed, so they reach the handlers), legal actions with a field corrupted, and unknown types. Extra keys on a cell change nothing, and an unknown mode (`__proto__` included) is refused by name |
 | [`load-order.test.ts`](../packages/engine/test/load-order.test.ts) | The engine works whichever of its modules is imported first, and each entry point (`createGame`, `apply`, `legalActions`, `checkInvariants`) works with only its own module imported |
 | [`data.test.ts`](../packages/engine/test/data.test.ts) | Card ids unique; every card effect implemented or on the known-missing list |
 | [`golden.test.ts`](../packages/engine/test/golden.test.ts) | Exact replay of seeded AI-vs-AI games in every mode, with invariants checked after every action. Fails on *any* behaviour change. After an intended change, review and run `npx vitest run -u`. |
 | [`maps.test.ts`](../packages/engine/test/maps.test.ts) | Map stats match layouts |
-| [`original-cards.test.ts`](../packages/engine/test/original-cards.test.ts) | Original cards that open decisions of their own (combat re-rolls, Dangerous, Clever, Nomadic, Relocation) |
-| [`original-commands.test.ts`](../packages/engine/test/original-commands.test.ts) | Original Command and Gambit cards that hook into existing rules, citing the 2013 FAQ |
-| [`off-turn.test.ts`](../packages/engine/test/off-turn.test.ts) | Cards taken on someone else's turn (skills, Plan Ahead, Momentum); Warp Gate, Change of Heart and Ambitious edge cases; when CE Brilliant asks |
+| [`off-turn.test.ts`](../packages/engine/test/off-turn.test.ts) | Cards taken on someone else's turn (skills, Kill Zone, Forced March); Ice Tunnel, Headhunter and Final Push edge cases; when Science Survey asks |
+| [`words.test.ts`](../packages/engine/test/words.test.ts), [`skill-log.test.ts`](../packages/engine/test/skill-log.test.ts), [`stats.test.ts`](../packages/engine/test/stats.test.ts) | The log in Regolith's words; skills that fire by themselves named on it; the players' game stats |
+| [`powerUsage.test.ts`](../packages/engine/test/powerUsage.test.ts) | How often each mech power is offered and used (`npm run power:usage` for real numbers) |
 
 Shared helpers (`quickStart`, `aiAction`, `playAiGame`…) are in [`test/helpers.ts`](../packages/engine/test/helpers.ts). `npm run selfplay:cards` (card win, pick and use rates over AI self-play) plays its games through the card audit too, with skills drafted rather than dealt. `npm run check` typechecks
 everything (tests included) and runs the tests.

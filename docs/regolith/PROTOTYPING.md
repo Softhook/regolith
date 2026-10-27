@@ -10,7 +10,7 @@ mode was called Prototyping until October 2026; this log keeps the word for the 
 
 Regolith is becoming its own hex-only game on Phobos, Deimos and Mars, with its own screenprint cards:
 [REGOLITH.md](REGOLITH.md).
-Nothing here is permanently adopted. Rulings go to [OPEN-QUESTIONS.md](../OPEN-QUESTIONS.md) and, once decided, to [RULES.md](../RULES.md).
+Nothing here is permanently adopted. Rulings, once decided, go to [RULES.md](../RULES.md#rulings).
 
 > **Status key:** **Current** rules are enabled in the playable Regolith mode and covered by
 > [regolith.test.ts](../../packages/engine/test/regolith.test.ts). **Candidates** are described
@@ -763,7 +763,7 @@ earlier Shoot) measured a different configuration and are not evidence for these
 | 2026-10-21 | Contested orbit against over-conquest; 200 games per hex map | §6.8 | Games 2–3 rounds longer, fewer conquests, more attacks and Infamy; no game unfinished. |
 | 2026-10-21 | Contested deploy on and off; 200 games per map, 2–4 players | §6.8 | Ends the re-block loop (up to 10 a game with 4 players) and shortens games, but locks players out in 12–40% of 4-player games. With the home shipyard: no lockouts, and 60–85% of the loop still gone. |
 | 2026-10-21 | Interaction, all modes, Alpha Sector square and hex, with and without cards | [HEX.md](../HEX.md) *Interaction* | Regolith is the most interactive set (ratio 0.33 square, 0.39 hex, against 0.30 Classic), and its harm comes as much from moves as attacks. Cards make every mode more solitary. Neither hexes nor cards change how often the stronger AI wins. |
-| 2026-10-25 | Card balance: every Regolith skill against none, with Community as a control; 2,000 drafted games | [card-benchmark.md](../card-benchmark.md#regolith) | Defence gets stronger: Unstable Reactor and Entrenched gain ~10 points and lead with Science Survey and Field Refit (75–85%). Remodel and Engineering are worth nothing here; Sneak does nothing. |
+| 2026-10-25 | Card balance: every Regolith skill against none, with Community as a control; 2,000 drafted games | [card-benchmark.md](../card-benchmark.md) | Defence gets stronger: Unstable Reactor and Entrenched gain ~10 points and lead with Science Survey and Field Refit (75–85%). Remodel and Engineering are worth nothing here; Sneak does nothing. |
 
 The open risk is stalls: the AI barely garrisons, so it may understate how long games run when people
 park ships in orbit on purpose.

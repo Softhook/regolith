@@ -128,7 +128,7 @@ export function rerollNew(s: GameState, d: Die) {
   seen.push(d.value);
   d.rolls++;
   // CE Clever: the result may be shifted by 1, even onto a number already shown this turn; no wrap
-  // between 1 and 6, as with Flexible (decided 2026-10-03, OPEN-QUESTIONS #63).
+  // between 1 and 6, as with Flexible (RULES.md ruling 6).
   if (anySkill(s, d.owner, (r) => r.adjustReconfigure)) {
     const options = [d.value - 1, d.value, d.value + 1].filter((v) => v >= 1 && v <= 6);
     s.pending.unshift({ kind: 'clever', player: d.owner, die: d.id, options, source: 'clever' });
@@ -247,7 +247,7 @@ export function gainDominance(s: GameState, p: PlayerId, n: number) {
 
 /**
  * Infamy: Dominance at the player's threshold (6, or 4 with Prideful) earns an Infamy cube. Checked
- * when Dominance rises and when Prideful takes effect (OPEN-QUESTIONS #32).
+ * when Dominance rises and when Prideful takes effect (RULES.md ruling 3).
  */
 export function checkInfamy(s: GameState, p: PlayerId) {
   const pl = s.players[p];
@@ -280,7 +280,7 @@ function logBonus(s: GameState, p: PlayerId, id: string, b: Gains) {
 
 /**
  * `winner` destroyed an enemy ship, in combat or with a card such as Show of Force: gains `dominance`
- * plus the bonuses of their "destroy" skills (Hostile, Plundering, Ravenous; RULE-SUGGESTIONS #26).
+ * plus the bonuses of their "destroy" skills (Hostile, Plundering, Ravenous; RULES.md ruling 10).
  */
 export function destroyedEnemyShip(s: GameState, winner: PlayerId, dominance: number, victim?: PlayerId) {
   tally(s, winner, 'shipsDestroyed');

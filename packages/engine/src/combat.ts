@@ -97,7 +97,7 @@ function resolveCombat(s: GameState, combat: PendingOf<'combat'>) {
 export const combatHandlers = {
   missile(s, a) {
     const head = headOf(s, 'combat', 'No combat to target');
-    // A combatant fires only on their own roll, and only while losing (OPEN-QUESTIONS #21).
+    // A combatant fires only on their own roll, and only while losing (RULES.md ruling 2).
     const refusal = missileRefusal(s, head, a.by, a.side);
     if (refusal) fail(refusal);
     const pl = s.players[a.by];
@@ -170,7 +170,7 @@ export const combatHandlers = {
     const winnerPl = s.players[head.player];
     const idx = stealableSkill(s, head.victim);
     if (idx !== -1) {
-      // A stolen Prideful works at once, even if a Ruthless player had disabled it (OPEN-QUESTIONS #32).
+      // A stolen Prideful works at once, even if a Ruthless player had disabled it (RULES.md ruling 3).
       const [stolen] = victimPl.skills.splice(idx, 1);
       winnerPl.skills.push({ id: stolen.id, active: true });
       log(s, `${winnerPl.name} takes ${cardName('prideful')} from ${victimPl.name}!`, head.player, 'cardTaken');

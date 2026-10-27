@@ -1,456 +1,194 @@
-# Quantum — The Game and the Rules
+# Regolith: the rules
 
-This is the consolidated rules reference for this project. It is based on the
-**Quantum: Community Edition (CE)**, using the print-ready rules booklet by
-*WaterGoesRed* (Sept 2026) as the baseline, which itself consolidates the
-[stolksdorf/quantum](https://github.com/stolksdorf/quantum) Community Edition
-on top of the original 2013 rules. Where those sources disagree, it is called out
-in [Ruleset divergences](#ruleset-divergences).
+The developer reference behind the player's manual ([`Manual.tsx`](../apps/web/src/rulebook/Manual.tsx), the
+in-game *How to play* and the printable `#rulebook`). The manual teaches; this file states each rule once,
+precisely, with the rulings a rules engine needs and the engine's name for each thing. Where the two disagree,
+the engine and its tests ([`packages/engine/test/`](../packages/engine/test)) are right and both texts are fixed.
 
-The **Basic** and **Original** modes follow the official rules: the 2013 FunForge rulebook
-(first printing, mirrored in [`reference/original-2013/`](../reference/original-2013/)) plus the
-designer's errata for the second printing ([BGG thread 1087563](https://boardgamegeek.com/thread/1087563)),
-which corrects the 2p and 3p basic maps, adds Quantum Entanglement and changes Curious. Card
-text follows the revised edition (the second printing, as Board Game Arena implements it), so
-Relocation has no planet-number limit and Strategic drops "you can consider an attacker to be in
-either square". The first-printing PDF is only mirrored because FunForge never posted a revised
-one; where the two differ, the revision, then designer rulings on BGG, win. The official 2014
-add-on pack (French edition, transcribed in [`reference/addon-pack-2014/`](../reference/addon-pack-2014/TRANSCRIPT.md))
-prints the Entanglement rules, the revised Curious and an expert FAQ, and ranks with the
-revision. Every Basic-mode rule has a scenario test citing its
-source in
-[`packages/engine/test/basic.test.ts`](../packages/engine/test/basic.test.ts).
+Regolith began as the Community Edition of *Quantum* (Eric Zimmerman, FunForge 2013) and was split off from
+Cubic on 2026-10-27 ([SPLIT.md](regolith/SPLIT.md)). How each rule came to be, and what was tried, is in
+[PROTOTYPING.md](regolith/PROTOTYPING.md); the cards, look and words in [REGOLITH.md](regolith/REGOLITH.md).
 
-Rule ambiguities that matter for a digital implementation are tracked separately
-in [OPEN-QUESTIONS.md](OPEN-QUESTIONS.md). Card and map data are machine-readable
-in [`data/`](../data/).
+## Rule sets
 
----
-
-## Game modes
-
-The digital edition offers three rule sets, chosen when starting a game:
-
-| | Basic | Original (2013) | Community Edition |
-|---|---|---|---|
-| Purpose | Learning the core game | The published rules | Recommended; the rest of this document |
-| Rules source | Official rules + errata, minus cards | Official rules + errata | CE print booklet |
-| Cards | None | 31 Command (permanent) + 22 Gambit (one-shot) | 35 Skills + 9 Tactics ×2 + Expansion pile |
-| Research action | — (it only earns cards) | ✓ | ✓ |
-| Missiles | — | — | 1 per player |
-| Starting skill | — | — | Draw 2, keep 1 |
-| Expansion | — | 8 Expansion cards in the Gambit deck | Separate pile, players + 1 |
-| Peek at oldest card | — | — | ✓ |
-| Spend a card pick to deal 6 new face-up cards | — | ✓ (rulebook p.9) | — |
-| Reconfigure | Ship on the map or scrapyard; any different value | Ship on the map or scrapyard; any different value | Ship on the map or scrapyard; new value not seen this turn |
-| Infamy, Quantum Entanglement, void tiles | ✓ | ✓ | ✓ |
-| Maps | Published (basic, advanced, add-on pack) | Published | Published + Board Game Arena's + the CE booklet's 5-player maps |
-
-Basic mode has no Research action: in the 2013 rules research only earns advance cards.
-
-Original card text is in [`data/cards.yaml`](../data/cards.yaml) under `original_command` / `original_gambit`.
-Cards whose behaviour matches a Community Edition card share its implementation (e.g. Cerebral ≙ Composed,
-Energetic ≙ Steadfast, Warlike ≙ Hostile).
-
-Every Original card and every Community Edition card (all 35 skills, 9 tactics, 1 expansion, 31 command cards, 6 gambits) is fully implemented.
-
----
-
-## 1. About the game
-
-| | |
-|---|---|
-| **Original title** | Quantum ([BGG #143519](https://boardgamegeek.com/boardgame/143519/quantum)) |
-| **Designer** | Eric Zimmerman |
-| **Publisher** | FunForge (2013), with regional partners; now out of print |
-| **Players** | 2–4 (the CE print edition adds 5-player maps) |
-| **Play time** | ~60 minutes |
-| **Genre** | Light 4X / area control, dice-as-units, modular grid board |
-
-Each player is a fleet commander conquering a sector of space. **Every die is a
-starship.** The face value is both the ship's **speed** (how far it moves) and its
-**combat strength** — *lower is stronger*. A 6 is a fast but fragile Scout; a 1 is
-a slow but mighty Battlestation.
-
-You win by placing all of your **quantum cubes** on planets. You place cubes by:
-
-1. **Conquering** — arranging ships around a planet so their values sum exactly to
-   the planet's number, or
-2. **Infamy** — destroying enemy ships to push your **dominance** to 6.
-
-Along the way you collect **Skill** cards (permanent abilities) and **Tactic** cards
-(one-shot effects), which are what give each faction its personality.
-
-### Lineage of this ruleset
-
-| Version | What it is |
-|---|---|
-| **Original (2013)** | 31 Command cards (permanent), 22 Gambit cards (one-shot, incl. 8 Expansion). |
-| **stolksdorf CE (2019)** | Renames Command → Skill, Gambit → Tactic, cubes → "Conquer markers". Rebalances/replaces many cards, moves Expansion out of the Tactic deck, adds Starting Skill, Card Peek, and Missiles. Written as a *diff* against the original rules. |
-| **WaterGoesRed CE print edition (2026)** | Standalone rewrite of the CE: A5 rules booklet, A5 player sheet, printable card sheets, all official + fan maps, new 5-player maps, map stats. Keeps "quantum cubes", renames Hypernet Gate → Warp Gate, adds Quantum Entanglement rule. **This is our baseline.** |
-
----
-
-## 2. Components
-
-| Component | Physical game | Notes for digital |
+| | Basic | Regolith |
 |---|---|---|
-| Map tiles | 3×3-space tiles, planet in the centre | Board is a square grid; tiles laid out per map |
-| Dice | 7 per player, one colour each | 3 start as ships, 2 in reserve, 2 used as trackers |
-| Combat dice | 1 attack die + 1 defence die (d6) | RNG |
-| Quantum cubes | 5 per player (some maps need 4, 6 or 7) | Per map |
-| Skill deck (light) | 35 cards, 1 of each | [`data/cards.yaml`](../data/cards.yaml) |
-| Tactic deck (dark) | 9 cards × 2 copies = 18 | |
-| Expansion deck | Players + 1 cards (print set has 6) | Always face-up |
-| Missile tokens | 1 per player at start (~8 total) | |
-| Warp Gate tokens | 2 | Used by *Warp Gate* tactic |
-| Ambition tokens | 3 | Used by *Ambitious* skill |
-| Player board | Dominance track, research track, skill slots, scrapyard | |
+| Who it is for | Learning: the game without cards | The full game |
+| Cards, Research, Sinkhole research | No | Yes |
+| Starting skill | No | Draw 2 Skills, keep 1 |
+| Everything else | Same | Same |
 
----
+Both are `RuleSet`s in [`rulesets.ts`](../packages/engine/src/rulesets.ts); Basic is Regolith with `cards: null`.
 
-## 3. Key concepts
+## Words
 
-### The board
+The engine keeps Quantum's identifiers; players read Regolith's words (REGOLITH.md §7).
 
-Each map tile is a 3×3 block of spaces with a **planet** in the centre:
-
-```
- ·  ·  ·
- ·  8  ·      8 = planet number
- ·  ·  ·
-```
-
-Tiles are placed edge-to-edge to form the map (see [Maps](#9-maps)). Planets and
-ships block movement.
-
-| Term | Definition |
-|---|---|
-| **Adjacent** | The 4 orthogonal spaces next to a ship or planet. |
-| **Orbital positions** | The 4 spaces adjacent to a planet. Ships here count towards conquering. |
-| **Surrounding spaces** | The 8 spaces around a ship or planet (orthogonal + diagonal). |
-| **Once per turn** | Once, on your own turn only. |
-
-### Planets
-
-- The **planet number** (7, 8, 9, 10) is the target sum for conquering **and** its
-  number of cube locations: **7 → 1, 8 → 2, 9 → 3, 10 → 4**.
-- A player may have at most **one** cube on a given planet (except via
-  [Quantum Entanglement](#quantum-entanglement)).
-- **Void tile (0):** no planet and no cube locations. At the start of your turn,
-  gain **+1 research per ship of yours on the void tile**.
-
-### Ships
-
-The die's value is its ship type. Movement = value. In combat, lower totals win.
-
-| Value | Ship | Moves | Ability (once per die per turn) |
-|:-:|---|:-:|---|
-| **1** | Battlestation | 1 | **Free Attack** — move 1 space to attack an orthogonally adjacent enemy. Can give the battlestation a second attack in the same turn. |
-| **2** | Flagship | 2 | **Carry & Move** — pick up one of your ships from a surrounding space, use the flagship's move to travel at least 1 space, then drop the passenger in any surrounding space. The flagship can't attack during this move; the passenger may then move/attack normally. *(Part of a Move action.)* |
-| **3** | Destroyer | 3 | **Swap** — swap with any of your other ships on the map. |
-| **4** | Frigate | 4 | **Change to 3 or 5** — turn into a Destroyer or Interceptor. |
-| **5** | Interceptor | 5 | **Move Diagonally** — may also move and attack diagonally. *(Part of a Move action.)* |
-| **6** | Scout | 6 | **Free Reconfigure** — re-roll until you get a new number. |
-
-Ability rules:
-- Each die may use **one ability per turn**, even if it changes ship type.
-- Flagship and Interceptor abilities are used **as part of** a Move/Attack action.
-  All other abilities are used **outside** actions (they cost no action).
-- Only ships on the map use abilities, and only during Phase 1 of your own turn.
-
-### Player state
-
-- **Dominance** (1–6) — rises when you destroy enemies, falls when you're destroyed.
-- **Research** (1–6) — rises with the Research action.
-- **Scrapyard** — destroyed ships (already re-rolled) waiting to be deployed.
-- **Reserve** — dice not yet in play, brought in by Expansion cards.
-- **Skills** — up to 3 (5 with *Talented*).
-- **Missiles** — spend any time to set any combat roll to 1.
-
----
-
-## 4. Setup
-
-### Map
-1. Choose a map for the player count and lay it out.
-2. Build the **Expansion deck**: Expansion cards = players + 1. Place it face-up.
-3. Shuffle the **Skill** and **Tactic** decks separately; place each face-down.
-4. Deal **3 Skill** and **3 Tactic** cards face-up in a line from each deck.
-5. Put the attack and defence dice by the map.
-
-### Each player
-1. Take a player board, **1 missile**, **7 dice** and the map's number of cubes.
-2. Put a die on **dominance** and on **research**, both set to **1**.
-3. Put **2 dice in your reserve**.
-4. Draw **2 Skill cards**, keep 1 secretly, put the other on the **bottom** of the Skill deck.
-5. Roll your remaining **3 dice** as starting ships. You may re-roll once, but must re-roll **all 3**.
-
-### Deployment
-- The player with the **lowest total** of their 3 ships goes first (ties: roll off).
-- Starting with the first player and going clockwise, each player places one cube on
-  a **starting planet** (marked on the map).
-- Then, in player order, each player places their 3 ships in orbital positions around
-  their starting planet, choosing which ship goes where (one position stays empty).
-
----
-
-## 5. Turn sequence
-
-Players take turns clockwise. Each turn has two phases.
-
-### Phase 1 — Use up to 3 actions (and ship abilities)
-
-You may take the same action more than once. **Each die may move once per turn and
-use one ability per turn**, even if it changes type.
-
-| Action | Cost | Effect |
-|---|:-:|---|
-| **Conquer** | 2 | Place a cube on an empty cube location of a planet where you have no cube, if the values of **your ships in its orbital positions sum exactly** to the planet number. |
-| **Deploy** | 1 | Move a ship from your scrapyard (keeping its value) to an empty orbital position of a planet that holds one of your cubes. This is not that ship's move. |
-| **Move / Attack** | 1 | Move one ship orthogonally up to its value in spaces. Can't pass through planets or ships. To attack, move "halfway" into an enemy ship's space as part of the move; the move ends there. Engine: the attacker chooses the space it attacks from; spaces with the same outcome (odds, Interceptor ability, neighbouring planets and ships) are offered once, and a single option is taken without asking. |
-| **Reconfigure** | 1 | Re-roll one of your ships (on the map **or** in your scrapyard). Keep re-rolling until it shows a value it has not shown this turn. |
-| **Research** | 1 | +1 research (max 6). |
-
-After spending all 3 actions you may still use ship abilities and card effects.
-
-### Attack protocol
-
-1. Attacker rolls the **attack die**, defender rolls the **defence die**.
-2. Each adds their roll to their **ship's value**. **Lower total wins; attacker wins ties.**
-3. Anyone may spend a **missile** at any time to change **any player's** combat roll to 1.
-
-| Result | Effect |
-|---|---|
-| **Defender wins** | Attacker is repelled to the space it came from. No dominance change. |
-| **Attacker wins** | Attacker **+1 dominance** (max 6), defender **−1 dominance** (min 1). Defender re-rolls the destroyed ship and puts it in their scrapyard. Attacker may move into the defender's space or stay in its previous space. |
-
-### Infamy
-
-When your dominance reaches **6**, **immediately conquer any planet** that doesn't have
-your cube (ignore orbital positions; there must still be an empty cube location), then
-reset dominance to **1**. If there is nowhere to place the cube, dominance stays at 6.
-
-### Quantum Entanglement
-
-If **every** planet with an empty cube location already has one of your cubes, you may
-conquer planets that already have your cubes, but the target number rises by **+3 for
-each of your cubes already there**. Infamy may place a cube there too, on the same condition
-(add-on pack, [`reference/addon-pack-2014/`](../reference/addon-pack-2014/TRANSCRIPT.md)).
-
-### Phase 2 — Take cards
-
-- **Conqueror:** take 1 card for **each planet conquered this turn** (including via Infamy).
-- **Researcher:** if your research is at **6**, reset it to **1** and take 1 card.
-- Take the cards one at a time; each pick's slot is refilled before the next. A Tactic / Gambit
-  resolves as soon as it's taken, so a Momentum turn is played at once and any picks still owed
-  are taken in its card phase (designer, [BGG 1068669](https://boardgamegeek.com/thread/1068669)).
-- A player who placed a cube through Infamy on **someone else's turn** takes its card in that
-  turn's card phase, after the active player; several such players pick in turn order (designer,
-  [BGG 1087563](https://boardgamegeek.com/thread/1087563)).
-
-### Card protocol
-
-When you take a card, pick one of the face-up cards:
-
-| Type | Effect |
-|---|---|
-| **Skill** (light) | Keep it. It takes effect from the **next player's turn**. If you'd have more than 3, discard one immediately. |
-| **Tactic** (dark) | Resolve immediately, then discard. |
-| **Expansion** | Immediately roll a die from your reserve and put it in an orbital position on a planet with one of your cubes, or in your scrapyard. Discard. |
-
-After taking a face-up card, slide the remaining cards away from the deck and deal a
-new card into the slot **next to the deck** (card order = age).
-
-**Peek:** if you pick the face-up Skill/Tactic **farthest from its deck** (the oldest),
-you may first peek at the top card of that deck and take that instead. If the deck is empty,
-its discards are reshuffled first ([OPEN-QUESTIONS](OPEN-QUESTIONS.md) #51).
-
-**Empty decks:** when a deck runs out, shuffle its discards into a new deck (2013 rulebook p.9;
-the CE booklet doesn't say otherwise).
-
-*Original mode only:* instead of taking a card, you may spend the pick to discard all six
-face-up cards and deal six new ones ("each time you do this, you draw one card fewer that
-turn", 2013 rulebook p.9). An Expansion card can't be taken once both reserve ships are in play
-(p.9, p.15).
-
----
-
-## 6. Winning
-
-You win **immediately** when you place your final quantum cube — whether by
-conquering, Infamy, or a card effect.
-
----
-
-## 7. Missiles
-
-- Each player starts with **1 missile**.
-- Spend a missile **at any time** to change **any** player's combat roll to **1**.
-- Engine: only the attacker and defender may fire, each only on their own roll and only while
-  losing; players not in the battle may not ([OPEN-QUESTIONS](OPEN-QUESTIONS.md) #21).
-- The CE print booklet has no missile trading. Trading comes from the stolksdorf CE and is
-  not implemented (see [OPEN-QUESTIONS.md](OPEN-QUESTIONS.md) #23).
-- Extra missiles come from *Black Market* (tactic) and *Profiteering* (skill).
-
----
-
-## 8. Cards
-
-Full data (with categories, CE status and design notes) lives in
-[`data/cards.yaml`](../data/cards.yaml). Summary:
-
-### Skills (35, one copy each) — permanent
-
-| Skill | Subtitle | Effect |
+| Players read | Engine | Notes |
 |---|---|---|
-| Agile | Movement bonus | All of your ships have +1 movement. |
-| Ambitious | 3 extra actions | Once per turn you may take an additional action, then put a token on this card. If this card has three tokens on it, discard it. |
-| Brilliant | Research bonus | At the start of your turn, you may gain 2 Research. Engine: asked only with Pioneering, where the exact research number matters; otherwise gained automatically. |
-| Brutal | Combat with advantage | For Combat rolls, roll twice and use the lower number. |
-| Calculating | Controlled scrapping | When a ship is placed in your scrapyard, choose its ship number. Engine: applies to every way a ship reaches the scrapyard during play ([OPEN-QUESTIONS](OPEN-QUESTIONS.md) #39). |
-| Clever | Flexible modification | After reconfiguring, you may increase or decrease the ship number by 1. Engine: even onto a number already shown; no wrap ([OPEN-QUESTIONS](OPEN-QUESTIONS.md) #63). |
-| Composed | Reduce dominance for research | Once per turn, you may lose 1 Dominance and gain 3 Research. Engine: not usable under Righteous, where neither half has an effect ([RULE-SUGGESTIONS](RULE-SUGGESTIONS.md) #33). |
-| Cunning | Extra ship ability | Once per turn, you may use one ship ability a second time. |
-| Curious | Bonus peaceful move | At the end of your turn, if you did not Attack or Conquer, gain an additional Move or Research action. Engine: Attack includes Battlestation Strike; Infamy placement does not block Curious; no further actions or abilities may follow this action ([OPEN-QUESTIONS](OPEN-QUESTIONS.md) #36). |
-| Dangerous | Destroy your attacker | When you defend, before players roll combat dice, you can decide to destroy both ships (there is no dominance effect). |
-| Devious | Slingshot past enemies | You may move your ships through enemy ships. These spaces do not count towards your movement. Engine: normal moves only, not Transport or Tactical ([OPEN-QUESTIONS](OPEN-QUESTIONS.md) #65). |
-| Ferocious | Combat bonus | −1 to your Combat rolls. |
-| Flexible | Adjust a ship | Once per turn, you may increase or decrease one of your ship numbers by 1. Engine: ships on the map only; no wrap between 1 and 6 ([OPEN-QUESTIONS](OPEN-QUESTIONS.md) #59). |
-| Hostile | Extra action for destruction | The first time you destroy an enemy ship each turn, gain 1 action. |
-| Industrious | Extra deployment | Gain an additional Deploy action each turn. |
-| Ingenious | Conquer from corners | When Conquering, you may use spaces diagonal to a planet. |
-| Intelligent | Flexible conquering | When Conquering, you may add or subtract 1 from the planet number. |
-| Patient | Delayed tactics | Whenever you take a Tactic, you may instead store it. At the end of each of your turns, you may play a stored Tactic. When you take this Skill, you may take and store a Tactic. Engine: only Tactics may be stored; playable at the end of each turn even if ending with actions unused ([OPEN-QUESTIONS](OPEN-QUESTIONS.md) #37). The on-take Tactic comes from the face-up row, is optional and costs no card pick ([OPEN-QUESTIONS](OPEN-QUESTIONS.md) #67). |
-| Pioneering | Conquer with research | You may use your Research number in place of one of your ship numbers when Conquering. |
-| Plundering | Destruction is research | The first time you destroy an enemy ship each turn, gain 3 Research. |
-| Precocious | Accelerated breakthrough | Your Research resets at 4, 5, or 6. |
-| Prideful | Accelerated domination | Your Dominance resets at 4, 5, or 6. When a player destroys one of your ships, they may take this card from you. Engine: stolen card is active immediately; if exceeding skill limit, taker discards down at once but may not discard Prideful. Infamy is checked whenever Prideful takes effect ([OPEN-QUESTIONS](OPEN-QUESTIONS.md) #32). |
-| Profiteering | Missiles from conquering | When you take a card for Conquering, you may instead gain 1 Missile. Engine: Conquer-action picks only, not Infamy ([OPEN-QUESTIONS](OPEN-QUESTIONS.md) #64). |
-| Rational | Fixed combat | Your Combat rolls are 3. |
-| Ravenous | Dominance amplification | The first time you destroy an enemy ship each turn, gain 1 additional Dominance. |
-| Resourceful | Sacrifice for action | Once per turn, you may destroy one of your ships and gain 1 Action. |
-| Righteous | Irreducible dominance | You cannot lose Dominance. You cannot gain Research. |
-| Ruthless | Weaken your enemies | The first time you destroy an enemy ship each turn, you may disable one of the enemy's Skills until the start of your next turn. Engine: a Momentum turn does not end it ([OPEN-QUESTIONS](OPEN-QUESTIONS.md) #66). |
-| Steadfast | Move more than once | Your ships can move or move/attack more than once per turn (each move counts as an action). |
-| Stealthy | Isolated deployment | You may deploy to any space that is not adjacent to a ship. |
-| Strategic | Combat support bonus | During combat, if your ship is adjacent to one or more friendly ships, −2 to your Combat roll. |
-| Stubborn | Strong defence | When you are attacked, ties go in your favour and you destroy your attacker if you win (and gain dominance). |
-| Tactical | Bonus short move | Once per turn, you may move/attack 1 space with a ship even if it's already moved. |
-| Talented | Get more skills | You can have up to 5 Skills. Engine: the limit rises as soon as Talented is taken, so it never forces a discard on pickup ([RULE-SUGGESTIONS](RULE-SUGGESTIONS.md) #49). |
-| Tyrannical | Conquer with dominance | You may use your Dominance number as an additional ship number when Conquering. |
+| mech | ship, `Die` | A die on the map; its face is its kind (1–6) |
+| objective | planet | Numbered 7–10 |
+| perimeter | orbit, orbital spaces | The 6 spaces next to an objective |
+| claim | conquer | |
+| drop | deploy | |
+| refit | reconfigure | |
+| salvage yard | scrapyard | Destroyed mechs, waiting to drop |
+| Power | dominance | |
+| atomic | missile | |
+| Sinkhole | void | A tile with no objective |
+| Ice Tunnel | warp gate | Made by the Ice Tunnel tactic |
 
-### Tactics (9 × 2 copies = 18) — one-shot
+## Components
 
-| Tactic | Subtitle | Effect |
+Per player: 7 dice (3 mechs to start, 2 in reserve, one each to mark Power and Research), cubes (as many as the
+map says, usually 5), a player aid, 1 atomic. Shared: hex tiles (one objective or Sinkhole or blank ground
+each, laid as the map's setup sheet shows), barrier tokens, and in Regolith the Skill and Tactic decks and the
+Reinforcements pile.
+
+## The map
+
+Hex maps of 7-hex tiles ([`data/maps.yaml`](../data/maps.yaml), [HEX.md](HEX.md)). A tile is an objective with
+its six spaces, a Sinkhole, or blank ground. An objective may sit off the middle of its tile, and two perimeters
+may share a space: a mech there is on both.
+
+- An objective numbered *n* holds *n* − 6 cubes, at most one per player.
+- Objectives, mechs and barriers block movement. Mechs move out of a side of their space, never diagonally.
+- Starting objectives are marked on the map; each player's is their **home objective**.
+
+## Setup
+
+1. Lay out the map. In Regolith, shuffle each deck, deal 3 face up beside it, and put players + 1
+   Reinforcements cards in a face-up pile.
+2. Each player puts a die on 1 on their Power and Research tracks and 2 dice aside as their reserve.
+3. Regolith: each player draws 2 Skills, keeps 1 and puts the other at the bottom of the deck.
+4. Each player rolls 3 mechs and may re-roll all 3 once.
+5. Lowest total goes first; ties roll off. In turn order, each places a cube on a starting objective (their
+   home) and their 3 mechs on its perimeter.
+
+## A turn
+
+1. **Start.** Regolith: +1 Research for each of your mechs on a Sinkhole.
+2. **Up to 3 actions**, any order, any repeats. Each mech makes at most one move, attack or shot a turn.
+   Mech powers and cards may also be used after the last action.
+3. **Cards** (Regolith): take 1 for each objective you claimed this turn (Infamy included), and 1 if your
+   Research is at 6, which then resets to 1.
+
+### Actions
+
+| Action | Cost | |
 |---|---|---|
-| Aggression | Add dominance | Immediately add 2 to dominance. |
-| Black Market | Gain missiles | Gain 2 Missiles. |
-| Change of Heart | Choose a skill | Search the Skill deck and take a card of your choosing, then shuffle the deck. |
-| Momentum | Take a bonus turn | Immediately take another turn, but with 2 actions instead of 3 (treat it as a brand-new turn). |
-| Plan Ahead | Become the missile | Until the end of your next turn, all your combat rolls are 1. |
-| Sabotage | Limit enemy action | Every opponent's next turn has 1 fewer action. |
-| Show of Force | Target destroyed | Destroy any one ship. Gain 1 Dominance. Engine: on an enemy ship it fires "destroy" skills (Hostile, Plundering, Ravenous, so +2 dominance with Ravenous); the victim loses no dominance ([RULE-SUGGESTIONS](RULE-SUGGESTIONS.md) §5.2 #26). |
-| Unveil the Fleet | Destroy & reroll ships | Destroy all your ships. You may reroll any ships in your scrapyard once. Deploy any number of ships. |
-| Warp Gate | Teleportation system | Place the Warp Gate tokens on two different spaces on the board. Any player may consider those spaces adjacent. Engine: for movement, attacks, Strategic support and Stealthy's isolation test. Deploy targets, Flagship carry and Conquer are unaffected, since gates link spaces, not planets ([RULE-SUGGESTIONS](RULE-SUGGESTIONS.md) §5.2 #30). |
+| Move | 1 | Up to the mech's number of spaces, **at most 3**. Turning is free; nothing is passed through. |
+| Attack | 1 | A move whose last step goes into an enemy mech; it needs the movement to get there. |
+| Claim | 2 | Your mechs on the perimeter sum to **exactly** the objective's number: place a cube on it. |
+| Drop | 1 | A mech from your salvage yard, as rolled, onto an empty perimeter space of an objective holding your cube. |
+| Refit | 1 | Re-roll a mech, on the map or in the salvage yard, until it shows a number it hasn't shown this turn. |
+| Research | 1 | Regolith: +1 Research. |
 
-### Expansion (players + 1 in play; 6 printed)
+**Claim** counts every one of your mechs on the perimeter: none can be left out. The objective needs a free cube
+space and none of your cubes. Mechs off the perimeter, and barriers on it, never count.
 
-| Card | Effect |
-|---|---|
-| Expansion — *Expand your fleet* | Immediately roll a reserve ship and put it in orbital position on a planet with one of your quantum cubes, or in your scrapyard. |
+**Back to your own** (Quantum's Entanglement): once every objective with room holds one of your cubes, you may
+claim one you are already on. The sum needed rises by 3 for each of your cubes there.
 
----
+### Holding ground
 
-## 9. Maps
+- **Zones of control.** A mech that moves onto a space next to an enemy mech (a hex side, not a corner) stops
+  there. It may still attack from there, another enemy beside it included, but not with no steps left. A mech
+  that starts its move in a zone may leave it. Your own mechs never stop you. An Ice Tunnel exit in a zone
+  stops the mech there.
+- **Contested perimeters.** While an opponent's mech is on an objective's perimeter, nobody else may claim it
+  or drop onto it, by any route (Reinforcements and Infiltration included). A space two perimeters share is
+  closed if either is contested. Your home objective's perimeter is always open to your drops. Infamy ignores
+  contests.
 
-A map is a grid of tiles. In the diagrams below each number is a **tile** (planet
-number), `·` is an empty gap (no tile), `0` is a void tile, and `*` marks a
-**starting planet**.
+## The mechs
 
-### Basic maps (recommended first games)
+Each mech's kind is its die face ([`ships.ts`](../packages/engine/src/ships.ts), [`powers/`](../packages/engine/src/powers)).
+A power is used on your turn, on the map, once per die per turn, even if the die changes kind.
 
-```
-ALPHA SECTOR (2p)     BETA SECTOR (3p)      GAMMA SECTOR (4p)
- 7*  7   7             8*  9   8*            8*  9   8*
- 7   8   7             8   9   8             8  10   8
- 7   7   7*            8   7*  8             9*  8   9*
-5 cubes, 0 slack      5 cubes, +4 slack     5 cubes, +3 slack
-1/7 shared            4/8 shared            6/9 shared
-```
-
-### Map stats
-
-- **cubes** — starting cubes per player (more = longer game).
-- **slack** — spare cube locations if everyone placed all their cubes (higher = more choice).
-- **X/Y planets shared** — X of the Y planets must be shared if everyone placed all
-  cubes (higher = more contested).
-
-### Advanced maps
-
-The print booklet contains ~60 maps grouped by player count and style:
-
-| Players | Constant Contact | Shared Space | Open Frontier |
-|---|---|---|---|
-| 2 | Entanglement, Axiomatic, Asymptote, False Binary, Terra Minor, Precis | Null Hypothesis, Non Sequitur, Circular Logic, From Dust to Dust, Beyond, Matter and Antimatter | Parallax, Outer Fringe, The Great Plan, Wave Function, Rupture, Terra Major |
-| 3 | Gravitational Constant, Quandary, The Empty Centre | Origin of Thought, Crux, Pivot Point, String Theory, Critical Density, Space-Time Continuum, Aperture, Foundation, Ouroboros | Infamous, Edge of Oblivion, Einstein-Rosen Bridge, Lattice, Outer Reaches |
-| 4 | Singularity, Super Collider, Spiral Nebula | Brownian Motion, Doppler Effect, Event Horizon, Nexus | The Great Expanse, Galactic Rotation, Circumgyration, Gordian Knot, Helix, Barren Empire |
-| 5 | Omega Sector, Ad Hominem, False Dilemma, Reification, No True Scotsman, Anecdotal, Fallacy Fallacy, Bandwagon | Appeal to Authority, False Equivalence, Special Pleading, False Dichotomy, Ambiguity, Beg the Question | — |
-
-Layouts are in the [rules booklet PDF](../reference/community-edition-print/QCB-rules-booklet-A5.pdf)
-(pages 8–15). All are transcribed in [`data/maps.yaml`](../data/maps.yaml): the 2–4 player maps as
-group `advanced`, the 14 5-player maps as `ce`, alongside the add-on pack's (`addon`) and Board Game
-Arena's (`bga`). Five players need a `ce` map, so 5-player games use the Community Edition rules.
-
----
-
-## 10. Terminology
-
-| This doc (CE print) | stolksdorf CE | Original |
+| | Mech | Power |
 |---|---|---|
-| Skill card | Skill card | Command card |
-| Tactic card | Tactic card | Gambit card |
-| Quantum cube | Conquer marker | Quantum cube |
-| Conquer | Conquer | Construct |
-| Reserve | Reserve dice | Expansion ships |
-| Combat roll | Combat roll | Weapons/defences roll |
-| Warp Gate | Hypernet Gate | — |
-| Infamy | — | Infamy |
+| 1 | Breacher | **Free Attack:** attack an adjacent enemy without using its move. |
+| 2 | Behemoth | **Carry & Move:** carry one of your mechs next to it as part of its move, and set it down next to it. |
+| 3 | Tactician | **Swap:** swap places with any of your other mechs. |
+| 4 | Chameleon | **Change to 3 or 5:** refit as a Tactician or a Sniper, without rolling. |
+| 5 | Sniper | **Shoot:** for 1 action, attack the first mech down a straight line out of any side, at any distance, if the line is clear. This is the mech's one move, attack or shot of the turn. The shooter never advances. |
+| 6 | Wisp | **Barrier:** for no action, besides its move, fire a barrier onto any empty space down a clear straight line. |
 
----
+**Lines** (Shoot, Barrier) run straight out of a side of the mech's space. Mechs, objectives, barriers and the
+map's edge stop them; Sinkholes and Ice Tunnels don't, but a barrier can't land on a tunnel's space.
 
-## Ruleset divergences
+**Barriers** stay for good. No mech moves, drops or shoots through one. On a perimeter space a barrier holds
+it, as a mech would, but never counts towards a claim.
 
-Where the sources disagree. The **Baseline** column is what this project uses unless
-we decide otherwise (see [OPEN-QUESTIONS.md](OPEN-QUESTIONS.md)).
+## Combat
 
-| Topic | Original | stolksdorf CE | Print edition (baseline) |
-|---|---|---|---|
-| Aggression tactic | 4 copies | Removed (→ Show of Force) | Kept, 2 copies |
-| Expansion | 8 Gambit cards | Separate pool of reserve dice | Separate deck, players + 1 cards |
-| Black Market | — | "Gain 1/2 Missiles" (yaml says 1, Cards.md says 2) | Gain 2 Missiles |
-| Warp/Hypernet Gate | — | Only players who played it may use the link | **Any** player may use it |
-| Infamy timing | Immediately at 6 (confirmed on BGG) | End of turn (End Phase) | Immediately at 6 |
-| Starting skill | None | Draw 2, keep 1 | Draw 2, keep 1 |
-| Starting fleet re-roll | One optional re-roll | Re-roll any of the dice once | Once, must re-roll all 3 |
-| Reconfigure | Ship on map or scrapyard (rulebook p.5) | Ship on map | Ship on map or scrapyard; must show a value not yet seen this turn |
-| Tactic copies | Varies | All ×2 | All ×2 |
-| Deal 6 new face-up cards for a pick | ✓ (rulebook p.9) | — | — (Peek instead) |
-| Missile trading | — | ✓ | — |
-| Quantum Entanglement | Added in the second printing (designer errata) | — | Included |
-| 5 players | — | — | Added (maps only) |
+Attacker and defender each roll a die and add their mech's number. **Lower wins; ties go to the attacker.**
 
----
+- **Attacker wins:** the defender is destroyed (re-rolled into its owner's salvage yard). Attacker +1 Power,
+  defender −1. The attacker moves into the space or stays put; a Sniper always stays.
+- **Defender wins:** the attacker goes back to where it attacked from. Nothing else happens.
 
-## Sources
+**Infamy.** When your Power reaches 6, place a cube at once on any objective with room and none of your cubes,
+contested or not, then reset to 1. With nowhere to place it, Power stays at 6.
 
-- Original game: [BoardGameGeek #143519](https://boardgamegeek.com/boardgame/143519/quantum)
-- Original 2013 rulebook (FunForge, English): [BGG file 93188](https://boardgamegeek.com/filepage/93188/quantum-rules), mirrored in [`reference/original-2013/`](../reference/original-2013/)
-- Designer's errata for the second printing (maps, Quantum Entanglement, Curious): [BGG thread 1087563](https://boardgamegeek.com/thread/1087563)
-- Official add-on pack (FunForge, 2014), French edition: Entanglement rules, expert FAQ, command card tips, add-on maps, revised Curious. Scans and translation in [`reference/addon-pack-2014/`](../reference/addon-pack-2014/TRANSCRIPT.md)
-- Revised-edition card text, as on Board Game Arena: [card sheet](https://x.boardgamearena.net/data/themereleases/current/games/quantum/200826-0854/img/cards.jpg)
-- Designer rulings on the BGG rules forum, e.g. Flagship transport ([1074052](https://boardgamegeek.com/thread/1074052), [1113798](https://boardgamegeek.com/thread/1113798))
-- Board Game Arena rules help (void tile, Entanglement): [en.doc.boardgamearena.com/Gamehelpquantum](https://en.doc.boardgamearena.com/Gamehelpquantum); all official maps as BGA implements them: [`reference/bga/maps.json`](../reference/bga/maps.json)
-- Community Edition design notes: [github.com/stolksdorf/quantum](https://github.com/stolksdorf/quantum) (`New Rules.md`, `Cards.md`, `src/cards/*.yaml`)
-- Print-ready CE by WaterGoesRed: [BGG thread 3766725](https://boardgamegeek.com/thread/3766725/quantum-community-edition-ready-to-print) — PDFs mirrored in [`reference/community-edition-print/`](../reference/community-edition-print/)
-- Quantum (base game) is playable on [Board Game Arena](https://boardgamearena.com); CE rules are not, as BGA requires publisher endorsement for variants.
+**Atomics.** Spend one to make your own combat roll a 1 (ruling 2). Everyone starts with one.
+
+## Cards (Regolith)
+
+The decks are in [`data/regolith.yaml`](../data/regolith.yaml): Skills (kept, at most 3, working from the next
+player's turn; take a fourth and discard one), Tactics (happen when taken, then discarded) and the
+Reinforcements pile (*Roll a reserve mech. Put it on the perimeter of an objective with one of your cubes, or in
+your salvage yard.*). Each card's `effect` is its rule in the engine, named after the Community card it began as.
+
+Cards are taken one at a time from the face-up rows. After each pick the row slides along and refills next to
+the deck, so the card farthest from it is the oldest. **Peek:** taking the oldest card in a row, you may first
+look at the top of that deck and take that card instead. An empty deck is refilled by shuffling its discards.
+
+Cards earned on another player's turn (by Infamy) are taken after the active player's. A bonus turn (Forced
+March) is played at once; cards still owed are taken at its end.
+
+## Winning
+
+The moment your last cube is placed, you win.
+
+## Rulings
+
+Settled questions the card text or the rules above leave open. Each is cited from the code as
+*RULES.md ruling N*. Most were decided while these cards were Quantum's (in Cubic's `OPEN-QUESTIONS.md` and
+`RULE-SUGGESTIONS.md`, kept in this repo's history); the card names here are Regolith's, with their `effect`.
+
+1. **Combat roll order.** Roll (Paired Cannons, `brutal`: the lower of 2) → set (Drill Sergeant, `rational`: 3;
+   Kill Zone, `plan-ahead`: 1; both: 1) → an atomic's 1 → modifiers (Armour Piercing, `ferocious`: −1; Close
+   Protection, `strategic`: −2). A total may go to 0 or below.
+2. **When atomics are fired.** Once both combat dice are rolled and before the battle resolves, the attacker
+   and defender, in that order and again until both pass, may each fire at their own roll, and only while
+   losing. Nobody else may.
+3. **Stolen Flag** (`prideful`). A player who takes it from another discards down to their skill limit at once,
+   but not the Stolen Flag. A stolen one works at once. Whenever it starts working (stolen, at the end of the
+   turn it was taken, or back after Signal Jammer), a player with Power 4 or more gains Infamy at once.
+4. **Strategic Plan** (`patient`). Only Tactics can be stored. At the end of each turn a player may play one
+   stored Tactic, even when ending the turn with actions unused, which are lost.
+5. **Peek with an empty deck.** Taking the oldest face-up card first reshuffles the discards into a new deck,
+   as for any draw, and the peek goes ahead. No peek only when the deck and its discards are both empty.
+6. **Engineering** (`clever`). After any refit, ±1, even onto a number already shown this turn. No wrap
+   between 1 and 6 (as with Field Refit, `flexible`).
+7. **Arms Deal** (`profiteering`). Only picks earned by the Claim action (going back to your own included)
+   may become an atomic, not Infamy's or Research's. A card taken first uses a pick not from a claim when there
+   is one.
+8. **Sneak** (`devious`). Through enemy mechs on Move and Attack only, not on Behemoth carries or Advance's
+   (`tactical`) one-space move. A mech can't stop on an enemy's space or attack from one, and doesn't pass
+   through its own. Sneak ignores zones of control.
+9. **Signal Jammer** (`ruthless`). The disabled skill returns at the start of the jammer's next regular turn,
+   not a bonus turn (as with Sabotage). A disabled skill that changes hands works for its new owner at once.
+10. **Destroying by card** (Orbital Cannon, `show-of-force`). It counts as destroying a mech for Breakthrough
+    (`hostile`), Exploit (`plundering`), Trophy Hunters (`ravenous`) and Stolen Flag, on enemy mechs only. The
+    victim loses no Power: only combat and card text change Power.
+11. **Ice Tunnels** (`warp-gate`). The tunnel's two spaces are next to each other for moves and attacks,
+    Close Protection's support and Infiltration's (`stealthy`) "not next to a mech" (board.ts `linked`). A
+    tunnel never links an objective, so perimeters and claims are unchanged.
+12. **Fanatics** (`righteous`). Blocks every Research gain, not resets. Stand Down (`composed`), which costs
+    Power, isn't offered under it, and Infamy's reset to 1 isn't a loss.
+13. **Veteran Crew** (`talented`). It counts towards the skill limit, and raises it as soon as it's held, so
+    taking it as a fourth skill forces no discard.
+14. **Combat Power** is +1 to the winner and −1 to the loser of a combat only, unless Fanatics protects them.

@@ -1,7 +1,7 @@
 /**
  * Plays whole games on phone screen sizes by tapping, the way a player would, and lists every moment
  * something you had to tap was off screen or under something else. Step 3's "done when" in
- * docs/MOBILE.md: a 2p Basic and a 3p Classic game, setup to game over, without scrolling to act.
+ * docs/MOBILE.md: a 2p Basic and a 3p Regolith game, setup to game over, without scrolling to act.
  *
  *   npm run mobile:play                          # every device × game below
  *   npm run mobile:play -- --device moto-g55     # one device

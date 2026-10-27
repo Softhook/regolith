@@ -129,8 +129,8 @@ Expansion card (`expansionCard(state)`, which the market and card flights ask).
   needs a card-hook surface in the kit next to `ShipHooks` (PROTOTYPING.md §9 *Adding a New Hook*), built
   when the first reworked card needs it. An effect too tangled for a hook goes into the engine's effects
   like any card, registered in `IMPLEMENTED_EFFECTS`, and only Regolith's deck deals it.
-- Each new effect needs an AI value in `cardValues.ts`, a rule test, and a line in
-  [OPEN-QUESTIONS.md](../OPEN-QUESTIONS.md) for every ruling made while writing it.
+- Each new effect needs an AI value in `cardValues.ts`, a rule test, and a ruling in
+  [RULES.md](../RULES.md#rulings) for every question writing it settles.
 
 ## 5. Cards: art (screenprint)
 

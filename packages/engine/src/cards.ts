@@ -214,7 +214,7 @@ export const cardHandlers = {
     const row = a.deck === 'skill' ? s.market.skillRow : s.market.tacticRow;
     if (row[a.index] !== undefined && !canTakeCard(s, p, row[a.index])) fail('Your reserve is empty');
     // Peek: taking the oldest card lets you look at the top of the deck first. An empty deck is
-    // refilled from its discards first, as for a draw (OPEN-QUESTIONS #51).
+    // refilled from its discards first, as for a draw (RULES.md ruling 5).
     if (rulesOf(s).cards?.peek && a.index === row.length - 1 && row.length === 3) {
       const deck = refill(s, a.deck);
       if (deck.length) {
@@ -232,7 +232,7 @@ export const cardHandlers = {
     const id = a.takeTop ? (head.deck === 'skill' ? s.market.skillDeck : s.market.tacticDeck).shift()! : takeFromRow(s, head.deck, 2);
     takeOrStore(s, head.player, id, head.store);
   },
-  /** Profiteering: a pick earned by a Conquer action (not by Infamy; OPEN-QUESTIONS #64) becomes 1 missile. */
+  /** Profiteering: a pick earned by a Conquer action (not by Infamy; RULES.md ruling 7) becomes 1 missile. */
   profiteer(s) {
     const head = headOf(s, 'takeCard', 'Not taking a card');
     if (!canProfiteer(s)) fail('No card for claiming to trade');
@@ -279,7 +279,7 @@ export const cardHandlers = {
     s.pending.shift();
     log(s, `${name(s, head.player)} destroys ${name(s, d.owner)}'s ${shipName(s, d)}.`, head.player, 'shipDestroyed');
     destroyShip(s, d);
-    // The victim loses no dominance: only the attack protocol or card text changes it (RULE-SUGGESTIONS #26).
+    // The victim loses no dominance: only the attack protocol or card text changes it (RULES.md ruling 10).
     if (d.owner === head.player) gainDominance(s, head.player, 1);
     else destroyedEnemyShip(s, head.player, 1, d.owner);
   },
@@ -361,7 +361,7 @@ export const cardHandlers = {
     headOf(s, 'unveil', 'Not unveiling');
     s.pending.shift();
   },
-  /** Patient: ends the action phase by playing one stored Tactic; unused actions are forfeited (OPEN-QUESTIONS #37). */
+  /** Patient: ends the action phase by playing one stored Tactic; unused actions are forfeited (RULES.md ruling 4). */
   playStoredTactic(s, a) {
     const t = requireActionPhase(s, true);
     const p = t.player;

@@ -1,5 +1,9 @@
 # Hex Tiles
 
+*Since 2026-10-27 hexes are Regolith's only board: the square grid, its maps and the space look are gone
+(their code is in the history). This file records how the hex board was designed and measured against the
+squares, so it still compares the two; the lobby and modes it names are as they were then.*
+
 The game played on hexagonal tiles instead of 3×3 squares. The rules are unchanged; what changes
 is which spaces are next to each other, how far apart they are, and what counts as a diagonal. Pick a
 map from the **Hex tiles** group in the lobby with the **Regolith** rules (only those, while hexes are

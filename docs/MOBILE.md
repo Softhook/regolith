@@ -9,6 +9,10 @@ Status: **Steps 0, 1 and 2 done; Step 3 done in emulation (layout, every popup a
 portrait and landscape). On the real Moto G55 so far: the default map (fine) and Asymptote
 (broken, fixed since); see *Progress* below.
 
+Everything dated before 2026-10-27 was measured while this was Cubic, on Quantum's modes and square maps
+(Classic, Community, 3×3 to 7×7 tiles). Regolith plays hex maps only, in two modes, Basic and Regolith; the
+findings about layout hold, the map sizes and mode names in them are Cubic's.
+
 **Reference devices:**
 
 | Device | CSS viewport | Notes |
@@ -68,8 +72,8 @@ Chrome's address bar and Android's navigation bar, and changes as the address ba
   `npm run pwa:check` tests offline play and every update path on real builds; a reload during a
   game on this device (an update, pull to refresh) now brings the game back instead of the lobby.
 
-- **Whole games played in emulation:** `npm run mobile:play` (Step 0) taps through 2p Basic, 3p Classic and
-  4p Community games, setup to game over, on the G55 (both orientations) and the iPhone SE. It found:
+- **Whole games played in emulation:** `npm run mobile:play` (Step 0) taps through 2p Basic and 3p Regolith
+  games (until 2026-10-27, Cubic's 2p Basic, 3p Classic and 4p Community), setup to game over, on the G55 (both orientations) and the iPhone SE. It found:
   - **A card pick hid cards on phones:** the open market was one sideways-scrolling strip, so the third card
     of a row was off screen. Now each deck is a row of three cards sharing the width (Step 3). It was the same
     on the iPad (Community's seven cards): while you pick, a row that doesn't fit wraps. `mobile:shots` now
@@ -88,7 +92,7 @@ Chrome's address bar and Android's navigation bar, and changes as the address ba
     map to reach the ship, space or planet itself.
   - **Phone landscape: after taking a card lower in the column, the turn panel stayed scrolled out of view.**
     It now scrolls back into view when the pick ends.
-- **Next:** play Step 3 on the G55 (2p Basic and 3p Classic, setup to game over), then Step 4. Still to check from
+- **Next:** play Step 3 on the G55 (2p Basic and 3p Regolith, setup to game over), then Step 4. Still to check from
   Step 1: the board re-fit when the market opens/closes on screens ≥ 980px.
 
 ---
@@ -216,8 +220,8 @@ Steps 1–3 come first; Step 4 is the big one and can wait until they are in.
       *End turn* and the ship's buttons, and the turn bar must not cover the board (screenshot
       `-turn`). Devices run in parallel: about 2 minutes.
 - [x] **`npm run mobile:play`** ([scripts/mobile-play.ts](../scripts/mobile-play.ts), 2026-10-07): plays
-      whole games by tapping, on the G55 (both orientations) and the iPhone SE: 2p Basic, 3p Classic, 4p
-      Community. On your turn the level-1 AI chooses (so you conquer, research and take cards) and the script
+      whole games by tapping, on the G55 (both orientations) and the iPhone SE: 2p Basic and 3p Regolith
+      (Cubic's 2p Basic, 3p Classic and 4p Community when it was written). On your turn the level-1 AI chooses (so you conquer, research and take cards) and the script
       taps it out; every decision, popup and card pick is taken by a tap. Reports every tap on something off
       screen or covered, a game that stops moving (saving its state as `-stuck.json`), page errors, and a game
       that doesn't end. Screenshots of the first of each kind of decision in `test-results/mobile-play/`.
@@ -355,9 +359,9 @@ Keep the scrolling column, but pin what matters:
       four `backdrop-filter` blur layers, explosions. Its Dimensity 7025 is mid-range and the screen runs at 120 Hz.
       Only optimise what the profile shows.
 
-**Done when:** a 2p Basic game and a 3p Classic game, setup to game over, can be played on
+**Done when:** a 2p Basic game and a 3p Regolith game, setup to game over, can be played on
 the Moto G55 (and on an iPhone, through BrowserStack) without scrolling to act; a full 4p
-Classic game is comfortable on an iPad in both orientations. `mobile:shots` checks that *End
+Regolith game is comfortable on an iPad in both orientations. `mobile:shots` checks that *End
 turn* (or, on another player's turn, the turn panel's head) is on screen ✅.
 
 ### Step 4: Board zoom (brought forward 2026-10-07; built, real-device check to do)

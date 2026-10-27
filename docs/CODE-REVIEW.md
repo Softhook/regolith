@@ -57,7 +57,7 @@ would make it easier to find one.
 
 **Status: left as is.** The level-1 AI breaks ties by the order in which `legalActions` lists
 actions, so a registry must list them in exactly today's order. Otherwise the golden replays for
-Basic, Classic and Community change, which [PROTOTYPING.md](regolith/PROTOTYPING.md) rules out. That can be
+Basic and Regolith change, which a pure refactor mustn't do. That can be
 done, but it's fiddly, for a gain in maintainability only. The concrete risk, a handler and
 `legalActions` disagreeing, is caught by `consistency.test.ts`, which checks that `apply` accepts
 exactly what `legalActions` offers, decisions included.
@@ -78,7 +78,7 @@ anything after it disappears.
 What players will see when this happens: the game shows a "rejected" desync naming another player,
 which suggests that player did something wrong. If that confuses testers, a cheap step short of real
 versioning is to put the build id in the `create` post and show "this game was made with an older
-version of Cubic" instead.
+version of Regolith" instead.
 
 The local saved game ([savedGame.ts](../apps/web/src/game/savedGame.ts)) has the same trade-off. It
 loads any save that has `version === 1` and passes `checkInvariants`, even if an older engine wrote it.

@@ -34,7 +34,7 @@ export const skillHandlers = {
     const t = requireActionPhase(s);
     requireSkill(s, t.player, 'composed');
     if (s.players[t.player].dominance <= 1) fail('No power to lose');
-    // Under Righteous both halves would do nothing (RULE-SUGGESTIONS #33).
+    // Under Righteous both halves would do nothing (RULES.md ruling 12).
     if (!canGainResearch(s, t.player)) fail('You cannot gain research');
     oncePerTurn(s, 'composed');
     loseDominance(s, t.player, 1);

@@ -317,7 +317,7 @@ export function adjacent(board: Board, p: Cell): readonly Cell[] {
   return grid(board).orthoCells[p.r * board.cols + p.c];
 }
 
-/** The neighbours of p plus its Warp Gate partner: the two gate spaces count as adjacent (RULE-SUGGESTIONS #30). */
+/** The neighbours of p plus its Warp Gate partner: the two gate spaces count as adjacent (RULES.md ruling 11). */
 export function linked(state: GameState, p: Cell): Cell[] {
   return [...adjacent(state.board, p), ...gatePartner(state, p)];
 }

@@ -32,7 +32,7 @@ function startTurn(s: GameState, player: PlayerId, actions: number, bonus: boole
   for (const d of s.dice) if (d.owner === player) s.turn.seen[d.id] = [d.value];
 
   // Skills a Ruthless player disabled come back at the start of that player's next regular turn,
-  // not a Momentum turn, as with Sabotage (OPEN-QUESTIONS #66).
+  // not a Momentum turn, as with Sabotage (RULES.md ruling 9).
   if (!bonus) for (const o of s.players) activateSkills(s, o.id, (sk) => sk.disabledUntil === player);
 
   if (extra.research) gainResearch(s, player, extra.research);
@@ -112,7 +112,7 @@ function finishTurn(s: GameState) {
 
 /**
  * Puts the player's inactive skills that pass `which` into effect. A Prideful taking effect can
- * make the player's Dominance already enough for Infamy (OPEN-QUESTIONS #32).
+ * make the player's Dominance already enough for Infamy (RULES.md ruling 3).
  */
 function activateSkills(s: GameState, player: PlayerId, which: (sk: OwnedSkill) => boolean) {
   let threshold = false;
