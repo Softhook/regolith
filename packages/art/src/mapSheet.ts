@@ -59,7 +59,7 @@ function objective(cx: number, cy: number, r: number, t: Pick<MapSheetTile, 'num
     ? `<circle cx="${n(cx)}" cy="${n(cy)}" r="${n(r)}" fill="${INKS.amber}"/>`
     : `<circle cx="${n(cx)}" cy="${n(cy)}" r="${n(r)}" fill="none" stroke="${WHITE}" stroke-width=".5"/>`;
   if (!t.number) return disc;
-  return disc + text(cx, cy + r * 0.42, String(t.number), r * 1.15, { font: 'title', anchor: 'middle', fill: t.start ? GROUND : WHITE });
+  return disc + text(cx, cy + r * 0.45, String(t.number), r * 1.25, { font: 'bold', anchor: 'middle', fill: t.start ? GROUND : WHITE });
 }
 
 /** A flat-topped hex `r` across its corners, for the legend. */
