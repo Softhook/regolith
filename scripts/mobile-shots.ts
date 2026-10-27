@@ -230,7 +230,7 @@ async function checkPopups(newPage: () => Promise<Page>, base: string, device: s
   for (const pop of POPUPS) {
     const page = await newPage();
     await page.goto(playUrl(base, { play: pop.play, players: 2, scene: pop.scene }));
-    await page.waitForSelector('.board');
+    await page.waitForSelector('.board', { timeout: 120000 });
     if (pop.name === 'rules') await page.locator('.topbar button', { hasText: 'Rules' }).evaluate((b: HTMLElement) => b.click());
     const box = page.locator(pop.box ?? '.overlay .modal, .overlay .combat-card').first();
     if (!(await succeeds(box.waitFor({ timeout: 15000 })))) {
@@ -333,7 +333,8 @@ async function main() {
           const ctx = await browser.newContext({ ...options, ignoreHTTPSErrors: true, reducedMotion: 'reduce' });
           const page = await ctx.newPage();
           await page.goto(playUrl(base, g));
-          await page.waitForSelector('.board');
+          // Generous: on CI every device opens the cold dev server at once, and the grounds draw first.
+          await page.waitForSelector('.board', { timeout: 120000 });
           const name = `${device}-${g.map}`;
           const screen = options.viewport!;
           const issues: string[] = [];

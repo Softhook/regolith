@@ -34,8 +34,10 @@ export function Log({
   const wasPicked = useRef(picked);
   // Whether the list follows the newest entry: it does until the player scrolls away from the bottom,
   // and again once they scroll back. Known from scrolling, not measured when an entry comes: by then
-  // the entry is in the list, and the list no longer at its bottom.
+  // the entry is in the list, and the list no longer at its bottom. Except against its height before
+  // the entry: a scroll to the bottom whose event hasn't come yet still counts.
   const following = useRef(true);
+  const height = useRef(0);
   // When the list last scrolled itself to the newest entry: its own scrolling isn't the player's. A
   // wheel, touch or key on the list is, whenever it comes.
   const followedAt = useRef(-Infinity);
@@ -49,10 +51,12 @@ export function Log({
     const list = ref.current;
     const ended = wasPicked.current !== undefined && picked === undefined;
     wasPicked.current = picked;
+    const wasAtBottom = !!list && shouldAutoScroll(list.scrollTop, list.clientHeight, height.current);
+    if (list) height.current = list.scrollHeight;
     // While looking back, the log stays on the move shown (below), not on the newest; after, it is
     // back on the newest.
     if (!open || !list || picked !== undefined) return;
-    if (!ended && !following.current) return;
+    if (!ended && !following.current && !wasAtBottom) return;
     following.current = true;
     followedAt.current = performance.now();
     // Back from looking back it jumps: a smooth scroll that far could outlast FOLLOW_MS.
