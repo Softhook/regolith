@@ -52,17 +52,18 @@ function contested() {
 }
 
 /**
- * A Community battle in which player `attacker` (an AI) attacks `defender`. Player 0 is the only human.
- * Nobody has missiles, so nobody can respond and the battle only waits to be resolved.
+ * A battle in which player `attacker` (an AI) attacks `defender`. Player 0 is the only human.
+ * Nobody has atomics or skills, so nobody can respond and the battle only waits to be resolved.
  */
 function battle(attacker: number, defender: number): GameState {
   let s: GameState = quickStart(3);
   s.players.forEach((p) => {
     p.ai = p.id !== 0;
     p.missiles = 0;
+    p.skills = [];
   });
   s.turn.player = attacker;
-  s = arrange(s, { [`p${attacker}d0`]: [0, 0, 2], [`p${defender}d0`]: [0, 1, 5] });
+  s = arrange(s, { [`p${attacker}d0`]: [4, 4, 2], [`p${defender}d0`]: [4, 5, 5] });
   s = apply(s, { type: 'attack', die: `p${attacker}d0`, target: `p${defender}d0` });
   if (s.pending[0]?.kind !== 'combat') throw new Error('no battle');
   return s;
@@ -88,8 +89,8 @@ try {
       fail('the position does not offer two over-conquests');
     await load(page, s);
     await page.click(`.planet-hit[data-r="${planet.r}"][data-c="${planet.c}"]`);
-    const dialog = page.getByRole('dialog', { name: `Conquer planet ${planet.number}` });
-    await dialog.waitFor({ timeout: 5000 }).catch(() => fail('tapping the planet opens no "Conquer planet" dialog'));
+    const dialog = page.getByRole('dialog', { name: `Claim objective ${planet.number}` });
+    await dialog.waitFor({ timeout: 5000 }).catch(() => fail('tapping the objective opens no "Claim objective" dialog'));
     await page.waitForTimeout(400);
     await page.screenshot({ path: `${OUT}/conquer-choice.png` });
     const name = s.players[victim].name;
