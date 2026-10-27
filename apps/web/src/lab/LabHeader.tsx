@@ -4,6 +4,7 @@ const PAGES = [
   { id: 'tiles', name: 'Tiles', href: '#lab' },
   { id: 'cards', name: 'Cards', href: '#lab/cards' },
   { id: 'aid', name: 'Player aid', href: '#lab/aid' },
+  { id: 'maps', name: 'Maps', href: '#lab/maps' },
   { id: 'proof', name: 'Press test', href: '#lab/proof' },
 ];
 

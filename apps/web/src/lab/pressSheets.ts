@@ -3,14 +3,18 @@ import {
   REGOLITH_GROUND_PX,
   TILE_SET,
   WORLD_NAMES,
+  mapSheetSvg,
   playerAidSvg,
   tileGroundSvg,
+  tileSpec,
   tileSvg,
   type AidEdition,
   type TileOptions,
   type TileSpec,
   type World,
 } from '@regolith/art';
+import { MAPS, buildBoard, drawing, type MapDef } from '@regolith/engine';
+import { tileArt } from '../art/boardTiles';
 import { blobToDataUrl, rasterise } from '../files';
 import type { PressSheets } from '../print/exports';
 import { PIECES, slugOf, type Printable } from '../print/pieces';
@@ -119,6 +123,37 @@ export const printableAid = (edition: AidEdition, fontCss: string): Printable =>
   name: edition,
   svg: (bleed) => playerAidSvg({ edition, bleed, measure, fontCss }),
 });
+
+/** A map's setup sheet as a printable face: each tile where the map lays it, as the game draws it. */
+export function printableMap(map: MapDef, fontCss: string): Printable {
+  const board = buildBoard(map);
+  const { at, cols, rows } = drawing(board);
+  const starts = new Set(board.planets.filter((p) => p.start).map((p) => board.cells[p.r][p.c].tile));
+  const tiles = tileArt(board).map((t) => {
+    const middle = at(t);
+    return {
+      x: middle.c + 0.5,
+      y: middle.r + 0.5,
+      number: tileSpec(t.id).number,
+      at: t.at,
+      start: starts.has(t.tile),
+    };
+  });
+  const sheet = { name: map.name, players: map.players, cubes: map.cubes, world: board.world, cols, rows, tiles, fontCss };
+  return { name: map.id, svg: (bleed) => mapSheetSvg({ ...sheet, bleed }) };
+}
+
+/** Every map's setup sheet on press sheets of their own. */
+export const MAP_SHEETS: PressSheets = {
+  name: 'maps',
+  label: 'Maps',
+  contents: `the setup sheets of all ${MAPS.length} maps (${PIECES.map.cols * PIECES.map.rows} a page)`,
+  async groups() {
+    const card = await cardFontCss();
+    if (!card) throw new Error('the fonts didn’t load');
+    return [{ piece: PIECES.map, faces: MAPS.map((m) => printableMap(m, card)) }];
+  },
+};
 
 /** The player aids on the sheets: two of each edition. */
 const AIDS: AidEdition[] = ['regolith', 'regolith', 'basic', 'basic'];

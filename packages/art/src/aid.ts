@@ -88,7 +88,7 @@ interface TextStyle {
   upper?: boolean;
 }
 
-function text(x: number, y: number, s: string, size: number, o: TextStyle = {}): string {
+export function text(x: number, y: number, s: string, size: number, o: TextStyle = {}): string {
   const font = o.font ?? 'body';
   return (
     `<text x="${n(x)}" y="${n(y)}" font-family="${font === 'title' ? FONTS.title : FONTS.body}" font-weight="${font === 'title' ? 900 : font === 'bold' ? 700 : 400}" font-size="${n(size)}" fill="${o.fill ?? '#fff'}"` +
@@ -110,11 +110,11 @@ function line(x: number, y: number, s: string, size: number, width: number, meas
 
 /** The board's ground, the cards' night paper (the press test shows the pads on it). */
 export const GROUND = INKS.night;
-const WHITE = INKS.bone;
-const MUTED = '#B9B0A2';
-const HAIR = '#4A4540';
+export const WHITE = INKS.bone;
+export const MUTED = '#B9B0A2';
+export const HAIR = '#4A4540';
 /** The quiet fill of every pad on the aid: cubes and dice. */
-const PAD = '#2E2B28';
+export const PAD = '#2E2B28';
 
 /** One action: a yellow hexagon with the action bolt, as on the cards (`glow` is its soft halo's gradient id). */
 function hex(cx: number, cy: number, r: number, glow: string): string {

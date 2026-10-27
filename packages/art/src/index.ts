@@ -68,6 +68,7 @@ export {
 } from './card';
 export { SP_FONTS } from './screenprint/kit';
 export { AID, MIN_TEXT, playerAidSvg, type AidEdition, type AidOptions } from './aid';
+export { MAP_SHEET, mapSheetSvg, type MapSheetOptions, type MapSheetTile } from './mapSheet';
 export { PRESS_TEST, pressTestSvg } from './proof';
 export { missile } from './kit/effects';
 export { mechDie, mechDieSvg } from './screenprint/die';

@@ -16,6 +16,7 @@ at physical size. Nothing is drawn twice, so the printed game and the online gam
 | Map tiles, void, planets | `tileSvg` / `planet` / `starfield` in [`packages/art`](../packages/art), in mm and seeded. The game draws a map in layers (see *Tiles*): each tile's raster layers (`rasterLayerSvg`) drawn once to images kept in IndexedDB ([`tileImages.ts`](../apps/web/src/art/tileImages.ts)), the spaces and labels live ([`MapTiles.tsx`](../apps/web/src/components/board/MapTiles.tsx)) | Yes, from the Art Lab (`#lab`) |
 | Cards | `cardSvg` / `cardBackSvg` ([`card.ts`](../packages/art/src/card.ts)): poker size, SVG text, one illustration per card. The game's card pop-ups show the same drawing as an image ([`cardImages.ts`](../apps/web/src/art/cardImages.ts)); market cards are HTML with a band of the illustration, the same colours and icons, and the printed backs on the decks | Yes, from `#lab/cards` |
 | Player aid | `playerAidSvg` ([`aid.ts`](../packages/art/src/aid.ts)), A6 | Yes, from `#lab/aid` |
+| Map setup sheets | `mapSheetSvg` ([`mapSheet.ts`](../packages/art/src/mapSheet.ts)), 180 × 120 mm, one per map: which tile goes where | Yes, from `#lab/maps` |
 | Warp gates, spaces, planet numbers and cube slots | SVG in [`board/BoardArt.tsx`](../apps/web/src/components/board/BoardArt.tsx), in screen pixels | Gates no (a token in the physical game); numbers and cube slots are in the printed tiles |
 | Dice / ships | CSS 3D cube ([`Die3D.tsx`](../apps/web/src/components/Die3D.tsx)) | No, and doesn't need to be (physical dice) |
 | Explosions, highlights, hit areas | HTML/CSS overlay (`board-layer`) | Never printed, correctly kept separate |
@@ -639,6 +640,7 @@ Each phase leaves the game working and better-looking.
 - [ ] Choose card and tile vendor; set trim/bleed tokens to their specs.
 - [ ] Card art (procedural or illustrated) for every card, with licences.
 - [x] Player aid (A6, `#lab/aid`).
+- [x] Map setup sheets (`#lab/maps`).
 - [ ] Tile backs, box art, rulebook diagrams (rendered from engine states with the
       same components).
 - [ ] Physical proof, then fix colours.

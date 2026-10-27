@@ -1,4 +1,4 @@
-import { AID, CARD, HEX_TILE_CUT, TILE, hexTileShape } from '@regolith/art';
+import { AID, CARD, HEX_TILE_CUT, MAP_SHEET, TILE, hexTileShape } from '@regolith/art';
 import type { Line, Polygon } from './pdf';
 import { pressTag } from './press';
 import { gameFile } from '../appId';
@@ -43,7 +43,7 @@ export const dieAt = (die: Die, x: number, y: number): Die => ({
 
 /** A piece printed as a set: in ZIPs and on sheets. */
 export interface Piece extends Format {
-  id: 'card' | 'tile' | 'aid';
+  id: 'card' | 'tile' | 'aid' | 'map';
   /** For file names: `regolith-cards-…`. */
   plural: string;
   /** How many fit across and down a print sheet (A4). */
@@ -68,6 +68,7 @@ export const PIECES = {
     },
   },
   aid: { id: 'aid', plural: 'aids', w: AID.w, h: AID.h, bleed: AID.bleed, cols: 1, rows: 2, dpi: 600 },
+  map: { id: 'map', plural: 'maps', w: MAP_SHEET.w, h: MAP_SHEET.h, bleed: MAP_SHEET.bleed, cols: 1, rows: 2, dpi: 300 },
 } as const satisfies Record<string, Piece>;
 
 /** One printable face: a card front, a deck's back, a tile. */
