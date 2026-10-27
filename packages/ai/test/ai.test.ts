@@ -60,20 +60,29 @@ describe.each(LEVELS)('level %i', (level) => {
 });
 
 describe('full games', () => {
+  // Every level plays a whole game of each mode.
   it.each([
-    ['basic', [2, 3]],
-    ['regolith', [2, 2]],
-  ] as const)('%s: levels %j play to the end, keeping every invariant', (mode, levels) => {
-    const { state } = playAiGame({
-      mode,
-      players: 2,
-      seed: 3,
-      aiSeed: 4,
-      levels: [...levels],
-      after: (s, action, step) => expect(checkInvariants(s), `after step ${step}: ${JSON.stringify(action)}`).toEqual([]),
-    });
-    expect(state.phase).toBe('over');
-  });
+    ['basic', [1, 2]],
+    ['basic', [3, 4]],
+    ['basic', [5, 3]],
+    ['regolith', [1, 2]],
+    ['regolith', [3, 4]],
+    ['regolith', [5, 3]],
+  ] as const)(
+    '%s: levels %j play to the end, keeping every invariant',
+    (mode, levels) => {
+      const { state } = playAiGame({
+        mode,
+        players: 2,
+        seed: 3,
+        aiSeed: 4,
+        levels: [...levels],
+        after: (s, action, step) => expect(checkInvariants(s), `after step ${step}: ${JSON.stringify(action)}`).toEqual([]),
+      });
+      expect(state.phase).toBe('over');
+    },
+    60_000,
+  );
 
   it('scores positions cleanly when a player is stuck at dominance 6', () => {
     const s = scenario({ p0d0: [7, 2, 3], p1d0: [7, 3, 2] });

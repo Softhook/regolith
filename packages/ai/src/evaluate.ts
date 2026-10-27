@@ -29,7 +29,7 @@ import { skillValue } from './cardValues';
 import { storedTacticsValue } from './patient';
 
 /**
- * Position evaluation for levels 2 and up, in "cube points": one quantum cube is worth CUBE.
+ * Position evaluation for levels 2 and up, in "cube points": one cube is worth CUBE.
  *
  * Unlike the level-1 heuristic it knows whose turn comes next, measures reach with real
  * paths (planets and ships block), values dominance as progress towards Infamy, and counts

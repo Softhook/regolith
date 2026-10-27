@@ -1,7 +1,7 @@
 /**
  * AI benchmark: plays two AI levels against each other and reports wins and thinking time.
  *
- *   npm run ai:match -- <a> <b> [games=400] [mode=basic] [players=2] [jobs=fast cores] [margin=10] [seed=0]
+ *   npm run ai:match -- <a> <b> [games=400] [mode=regolith] [players=2] [jobs=fast cores] [margin=10] [seed=0]
  *
  * `a` and `b` are the two levels. Any argument may be given by name instead, in any order:
  * `npm run ai:match -- 3 4 --seed=1` (args.ts).
