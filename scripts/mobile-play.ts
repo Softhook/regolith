@@ -30,8 +30,11 @@ const GAMES: Record<string, { play: string; players: number; map?: string }> = {
   'regolith-4p': { play: 'regolith', players: 4, map: 'tesseract-hex' },
 };
 
-/** Turns after which a game counts as not finishing (Basic ends well before this). */
-const MAX_TURNS = 120;
+/**
+ * Rounds after which a game counts as not finishing (each player's turn is one turn, so a round is `players`
+ * turns). Regolith's 4p games on tesseract-hex end in 12 to 32 rounds with this script's human.
+ */
+const MAX_ROUNDS = 50;
 /** Taps of the human's on one turn before it ends the turn regardless (random targets can wander). */
 const TAPS_PER_TURN = 14;
 const OUT = 'test-results/mobile-play';
@@ -159,7 +162,12 @@ function look(page: Page, tapsThisTurn: number, tried: string[], want: Want | nu
           // meant for a planet); panels take them anywhere inside; a popup's own dice may overlap a little.
           const hit = document.elementFromPoint(x, y);
           const home = el.closest('.overlay .modal, .combat-card, .panel, .sheet') ?? el;
-          if (!hit || !home.contains(hit)) problem = `covered by .${(hit?.getAttribute('class') ?? '').split(' ').join('.')}`;
+          // A ship covers its own space to attack from, and a tap on it attacks from there (the controller's rule).
+          const ship = hit?.closest('.ship.selected');
+          const same = (a: Element, b: Element) =>
+            a.getAttribute('data-r') === b.getAttribute('data-r') && a.getAttribute('data-c') === b.getAttribute('data-c');
+          const onShip = !!ship && el.classList.contains('hl') && same(ship, el);
+          if (!onShip && (!hit || !home.contains(hit))) problem = `covered by .${(hit?.getAttribute('class') ?? '').split(' ').join('.')}`;
         }
         target = { label, x, y, problem };
       }
@@ -211,7 +219,7 @@ function tapsFor(s: GameState, a: Action): Want[] | null {
   return null;
 }
 
-async function playGame(page: Page, name: string): Promise<{ issues: string[]; summary: string }> {
+async function playGame(page: Page, name: string, players: number): Promise<{ issues: string[]; summary: string }> {
   const issues: string[] = [];
   const shots = new Set<string>();
   const report = async (key: string, text: string) => {
@@ -278,7 +286,8 @@ async function playGame(page: Page, name: string): Promise<{ issues: string[]; s
         summary: `${l.winner ?? '?'} won on turn ${l.turn}, ${Math.round((Date.now() - start) / 1000)} s; taps: ${tally()}`,
       };
     }
-    if (l.turn > MAX_TURNS) return { issues: [...issues, `still going after ${MAX_TURNS} turns`], summary: `stopped at turn ${l.turn}` };
+    if (l.turn > MAX_ROUNDS * players)
+      return { issues: [...issues, `still going after ${MAX_ROUNDS} rounds`], summary: `stopped at turn ${l.turn}` };
 
     // A new turn of the human's: forget the ships tried.
     const key = `${l.turn}:${l.kind === 'turn'}`;
@@ -349,7 +358,7 @@ async function main() {
         await page.waitForSelector('.board');
         await page.waitForFunction(() => '__game' in window);
         const name = `${device}-${game}`;
-        const { issues, summary } = await playGame(page, name);
+        const { issues, summary } = await playGame(page, name, g.players);
         problems += issues.length;
         await ctx.close();
         return `${name.padEnd(32)} ${issues.length ? '✗' : '✓'} ${summary}${issues.length ? '\n    ' + issues.join('\n    ') : ''}`;
