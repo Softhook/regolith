@@ -2,16 +2,7 @@ import type { GameState, LogEntry } from '@regolith/engine';
 import { lastLogId } from './useTransient';
 
 /** The decisions a Tactic leaves its player, where it lands: each step that settles one is the card's doing. */
-const LANDING = new Set([
-  'showOfForce',
-  'warpGate',
-  'placeBarrier',
-  'kineticShunt',
-  'relocation',
-  'placeExpansion',
-  'unveil',
-  'changeOfHeart',
-]);
+const LANDING = new Set(['showOfForce', 'warpGate', 'placeBarrier', 'kineticShunt', 'placeExpansion', 'unveil', 'changeOfHeart']);
 
 /**
  * The card whose effect the step from `before` to `game` is: the Tactic whose decision it settles (Show of

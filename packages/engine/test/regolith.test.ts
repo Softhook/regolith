@@ -26,7 +26,6 @@ import {
   orbitedPlanets,
   grid,
   attackLaunches,
-  card,
   cardKind,
   effectOf,
   expansionCard,
@@ -42,13 +41,10 @@ import {
   RULESETS,
   shipsByIndex,
   shuntTargets,
-  SKILLS,
   spaces,
   stopZone,
-  TACTICS,
   tryApply,
   type Action,
-  type CardDef,
   type GameMode,
   type GameState,
   MAPS,
@@ -97,15 +93,12 @@ describe('Regolith mode', () => {
     expect(MODES.map((m) => m.id)).toEqual(['basic', 'regolith'] satisfies GameMode[]);
     const regolith = rulesOf(BASE.regolith);
     expect(regolith.name).toBe('Regolith');
-    // Its own decks: each card a Community card's rules (`effect`) under its own id and name, unless reworked;
-    // Ingenious left out.
+    // Its own decks: each card plays by the rules (`effect`) of the Community card it started as (`from`) under
+    // its own id and name, unless reworked or new.
     const own = regolith.cards!;
     expect(own.skills).toBe(REGOLITH_DECKS.skills);
     expect(own.tactics).toBe(REGOLITH_DECKS.tactics);
     expect(own.expansion).toBe(REGOLITH_DECKS.expansion[0]);
-    const from = (c: CardDef) => card(c.from!);
-    expect(own.skills.map((c) => c.from)).toEqual(SKILLS.filter((c) => c.id !== 'ingenious').map((c) => c.id));
-    expect(own.tactics.filter((c) => c.from).map((c) => c.from)).toEqual(TACTICS.filter((c) => c.id !== 'relocation').map((c) => c.id));
     expect(own.tactics.filter((c) => !c.from).map((c) => c.id)).toEqual(['r-barricade', 'r-kinetic-shunt']);
     for (const c of [...own.skills, ...own.tactics, own.expansion!]) {
       if (c.status === 'new') {
@@ -123,9 +116,7 @@ describe('Regolith mode', () => {
         }
       } else {
         expect(c.id, c.id).toBe(`r-${c.from}`);
-        if (c.status !== 'reworked') expect(effectOf(c.id), c.id).toBe(effectOf(c.from!));
-        expect([c.count, c.category], c.id).toEqual([from(c).count, from(c).category]);
-        expect(cardKind(c.id), c.id).toBe(cardKind(c.from!));
+        if (c.status !== 'reworked') expect(effectOf(c.id), c.id).toBe(c.from);
       }
     }
     expect(expansionCard(BASE.regolith)).toBe(own.expansion);
@@ -844,40 +835,7 @@ describe.runIf(REGOLITH_CONTESTED_DEPLOY)('deploying to a contested planet', () 
   });
 
   describe('a home moves with the last cube on it', () => {
-    /** Player 1 to resolve a Relocation (a Classic card, lent here) of player 0's cube from `from` to `to`. */
-    const relocate = (s: GameState, from: number, to: number) => {
-      s.pending.unshift({ kind: 'relocation', player: 1 });
-      return apply(s, { type: 'relocate', planet: from, owner: 0, to });
-    };
     const elsewhere = (s: GameState) => s.board.planets.find((q) => !q.start && !q.cubes.length)!;
-
-    it('to the planet Relocation puts it on, and the shipyard there', () => {
-      const s = structuredClone(BASE.regolith);
-      const from = homePlanet(s, 0)!.id;
-      const to = elsewhere(s).id;
-      const after = relocate(s, from, to);
-      expect(homePlanet(after, 0)!.id).toBe(to);
-      expect(after.board.planets[from].cubes).not.toContain(0);
-    });
-
-    it('not while another of their cubes stays on it', () => {
-      const s = structuredClone(BASE.regolith);
-      const home = homePlanet(s, 0)!;
-      s.board.planets[home.id].capacity = 2;
-      s.board.planets[home.id].cubes.push(0);
-      expect(homePlanet(relocate(s, home.id, elsewhere(s).id), 0)!.id).toBe(home.id);
-    });
-
-    it('nor when a cube leaves another planet, and never becomes another player’s', () => {
-      const s = structuredClone(BASE.regolith);
-      const home = homePlanet(s, 0)!.id;
-      const other = elsewhere(s);
-      s.board.planets[other.id].cubes.push(0);
-      const after = relocate(s, other.id, s.board.planets.find((q) => q !== other && !q.start && !q.cubes.length)!.id);
-      expect(homePlanet(after, 0)!.id).toBe(home);
-      const moved = relocate(structuredClone(BASE.regolith), home, other.id);
-      expect(homePlanet(moved, 1)!.id).not.toBe(home);
-    });
 
     it('to another of their planets when over-conquest displaces it, or nowhere', () => {
       const s = structuredClone(BASE.regolith);

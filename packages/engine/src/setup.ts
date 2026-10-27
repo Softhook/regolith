@@ -78,7 +78,7 @@ export function createGame(opts: NewGameOptions): GameState {
     const deck = (defs: CardDef[]) =>
       shuffle(
         state,
-        defs.filter((c) => dealt(effectOf(c.id), state.board.hex)).flatMap((c) => Array.from({ length: c.count }, () => c.id)),
+        defs.filter((c) => dealt(effectOf(c.id))).flatMap((c) => Array.from({ length: c.count }, () => c.id)),
       );
     m.skillDeck = deck(rules.cards.skills);
     m.tacticDeck = deck(rules.cards.tactics);

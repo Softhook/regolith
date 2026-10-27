@@ -87,24 +87,12 @@ export function highlightsFor(game: GameState, sel: Sel, legal: Legal, actionPha
           );
         }
         break;
-      case 'relocation': {
-        const moves = legal.of('relocate');
-        if (sel.kind === 'relocate') {
-          h.planets.set(sel.planet, { tone: 'infamy', label: `${game.players[sel.owner].name}'s cube` });
-          for (const a of moves)
-            if (a.planet === sel.planet && a.owner === sel.owner) h.planets.set(a.to, { tone: 'conquer', label: 'Move here' });
-        } else for (const a of moves) h.planets.set(a.planet, { tone: 'infamy', label: 'Move cube' });
-        break;
-      }
       case 'unveil':
         if (sel.kind === 'scrap')
           addCells(
             legal.of('unveilDeploy', (a) => a.die === sel.die).map((a) => a.to),
             'deploy',
           );
-        if (head.reorganize) {
-          for (const a of legal.of('unveilReroll')) if (getDie(game, a.die).loc.zone === 'board') h.dice.set(a.die, 'swap');
-        }
         break;
     }
     return h;
@@ -157,12 +145,6 @@ export function highlightsFor(game: GameState, sel: Sel, legal: Legal, actionPha
     }
     case 'swap':
       for (const a of legal.of('swap', (a) => a.die === sel.die)) h.dice.set(a.other, 'swap');
-      break;
-    case 'nomadic':
-      addCells(
-        legal.of('nomadic', (a) => a.die === sel.die).map((a) => a.to),
-        'deploy',
-      );
       break;
     case 'freeAttack':
       for (const a of legal.of('freeAttack', (a) => a.die === sel.die)) h.dice.set(a.target, 'attack');

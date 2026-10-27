@@ -1,6 +1,6 @@
 import { useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode, type RefObject } from 'react';
 import { CARD_CATEGORIES, ICONS, cardPalette, missile } from '@regolith/art';
-import { card, cardKind, effectOf, isOriginalCard, type CardDef } from '@regolith/engine';
+import { card, cardKind, type CardDef } from '@regolith/engine';
 import { useCardImage } from '../art/useCardImages';
 import { useSay } from '../game/words';
 
@@ -73,12 +73,6 @@ export const categoryStyle = (category: string, light: boolean) => {
   return { '--cat': p.accent, '--cat-ink': light ? p.accentInk : p.accent } as CSSProperties;
 };
 
-/**
- * Soft hyphens for names too long for a narrow market card (browsers' automatic hyphenation skips them).
- * They only show when the name has to break.
- */
-const NAME_BREAKS: Record<string, string> = { Reorganisation: 'Reorgan\u00ADisation' };
-
 export interface CardViewProps {
   id: string;
   size?: 'sm' | 'md' | 'lg';
@@ -104,14 +98,12 @@ const sayCard = (def: CardDef, say: (text: string) => string): CardDef => ({
 export function CardView({ id, size = 'md', onClick, disabled, badge, inactive, className = '', index, art }: CardViewProps) {
   const say = useSay();
   const def = sayCard(card(id), say);
-  const original = isOriginalCard(id);
-  // The original Expansion is a Gambit card but looks like the CE Expansion card.
-  const kind = effectOf(id) === 'expansion' ? 'expansion' : cardKind(id);
+  const kind = cardKind(id);
   const category = say(CARD_CATEGORIES[def.category]?.label ?? def.category);
   // One-shot cards name their deck too, where it isn't their category already (Expansion).
-  const kindLabel = kind === 'skill' ? undefined : original ? 'Gambit' : kind === 'expansion' ? 'Expansion' : 'Tactic';
+  const kindLabel = kind === 'skill' ? undefined : kind === 'expansion' ? 'Expansion' : 'Tactic';
   const clickable = !!onClick && !disabled;
-  const name = NAME_BREAKS[def.name] ?? def.name;
+  const name = def.name;
   const text = useRef<HTMLDivElement>(null);
   const cut = useClipped(text, def.text);
   return (

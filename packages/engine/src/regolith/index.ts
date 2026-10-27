@@ -92,7 +92,6 @@ export const REGOLITH: RuleSet = {
     startingSkillDraft: true,
     peek: true,
     expansionPile: true,
-    refresh: false,
     // Printed in screenprint (docs/regolith/REGOLITH.md §5).
     look: 'screenprint',
     terms: { skill: 'skill', skills: 'skills', skillDeck: 'Skills', tacticDeck: 'Tactics' },

@@ -29,7 +29,7 @@ function hint(game: GameState, sel: Sel): string {
       case 'infamy':
         return 'Infamy! Seize any planet that does not have your cube yet.';
       case 'takeCard':
-        return `Take ${head.count} card${head.count > 1 ? 's' : ''} from the market below${rulesOf(game).cards?.refresh ? ', or spend a pick on dealing new cards' : ''}${canProfiteer(game) ? ', or take a missile instead of a card earned by conquering (Profiteering)' : ''}.`;
+        return `Take ${head.count} card${head.count > 1 ? 's' : ''} from the market below${canProfiteer(game) ? ', or take a missile instead of a card earned by conquering (Profiteering)' : ''}.`;
       case 'patientTactic':
         return 'Patient: you may take a face-up tactic from the market below and store it.';
       case 'placeExpansion':
@@ -45,17 +45,11 @@ function hint(game: GameState, sel: Sel): string {
           ? 'Kinetic Shunt: choose an empty space in a straight line to push the mech to.'
           : 'Kinetic Shunt: choose any mech on the map to push.';
       case 'unveil':
-        return head.reorganize
-          ? 'Reorganisation: click your ships to re-roll them, then place re-rolled ships from your scrapyard. Press Done when finished.'
-          : 'Unveil the Fleet: re-roll and deploy ships from your scrapyard, then press Done.';
+        return 'Unveil the Fleet: re-roll and deploy ships from your scrapyard, then press Done.';
       case 'discardSkill':
-        return head.reason === 'sabotage' ? 'Sabotage! Choose a card to discard.' : 'Choose a card to discard.';
+        return 'Choose a card to discard.';
       case 'advance':
         return `Victory! Advance your ${shipOf(game, die(game, head.die).value).name} into the destroyed ship’s space, or hold your position.`;
-      case 'relocation':
-        return sel.kind === 'relocate'
-          ? 'Relocation: choose the planet to move the cube to (click its planet again for another player’s cube there).'
-          : 'Relocation: choose a planet with another player’s cube to move.';
       default:
         return '';
     }
@@ -91,8 +85,6 @@ function hint(game: GameState, sel: Sel): string {
     }
     case 'tactical':
       return 'Tactical: move one space, or attack an adjacent enemy.';
-    case 'nomadic':
-      return 'Nomadic: choose an orbital position of a neighbouring planet.';
     case 'carryPassenger':
       return `Choose a ship next to your ${carrier(game, sel.die)} to carry.`;
     case 'carryDest':

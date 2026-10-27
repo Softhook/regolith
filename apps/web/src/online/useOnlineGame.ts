@@ -64,7 +64,7 @@ export function useOnlineGame(secret: string): OnlineGame {
         showError(text);
         return false;
       };
-      const seat = a.type === 'missile' || a.type === 'reroll' ? a.by : actor(head);
+      const seat = a.type === 'missile' ? a.by : actor(head);
       if (!mySeats.includes(seat)) return fail('Not your move');
       try {
         apply(head, a);

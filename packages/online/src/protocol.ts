@@ -13,7 +13,7 @@ export function isSecret(s: string): boolean {
 }
 
 /**
- * Whether a player's battles wait for them to respond (fire a missile, re-roll) before they resolve.
+ * Whether a player's battles wait for them to respond (fire a missile) before they resolve.
  * Only the attacker and defender may respond, so a player is only ever asked about their own battles.
  */
 export type AskMode = 'own' | 'never';
@@ -60,11 +60,11 @@ export interface Post {
 export const CHAINED: ReadonlySet<Body['t']> = new Set(['act', 'undo', 'ask']);
 
 /**
- * Identifies one stage of a battle: it changes whenever a missile or re-roll changes the battle,
- * so a pass only counts for the stage it was given in.
+ * Identifies one stage of a battle: it changes whenever a missile changes the battle, so a pass only
+ * counts for the stage it was given in.
  */
 export function combatStage(c: CombatPending): string {
-  return `${c.id}.${c.rerolls.length}.${+c.attacker.missile}${+c.defender.missile}`;
+  return `${c.id}.${+c.attacker.missile}${+c.defender.missile}`;
 }
 
 /** Earlier posts win; equal times are broken by id, so every browser picks the same one. */

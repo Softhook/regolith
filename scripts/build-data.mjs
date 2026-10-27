@@ -6,39 +6,24 @@ const root = new URL('..', import.meta.url);
 const out = new URL('packages/engine/src/data/', root);
 mkdirSync(out, { recursive: true });
 
-const cards = parse(readFileSync(new URL('data/cards.yaml', root), 'utf8'));
+// Regolith's decks. `from` names the Community Edition card each started as and `status` how far it has
+// moved since (data/regolith.yaml): notes of where a card came from, which the game doesn't read.
+const STATUSES = ['community', 'renamed', 'reworked', 'new'];
+const cards = parse(readFileSync(new URL('data/regolith.yaml', root), 'utf8'));
+const ids = new Set();
 for (const [deck, list] of Object.entries(cards)) {
-  for (const c of list) if (!c.category) throw new Error(`data/cards.yaml: ${deck} card ${c.id} has no category`);
-}
-const classicIds = new Set([...cards.original_command, ...cards.original_gambit].map((c) => c.id));
-for (const c of [...cards.skills, ...cards.tactics, ...cards.expansion])
-  if (c.classic !== undefined && !classicIds.has(c.classic))
-    throw new Error(`data/cards.yaml: ${c.id} has classic ${c.classic}, not a 2013 card`);
-writeFileSync(new URL('cards.json', out), JSON.stringify(cards, null, 2) + '\n');
-
-// Regolith's decks: each card names the Community card it started as (`from`), and `status` agrees with
-// how far it has moved. Built into the mode's own folder, which uses nothing else of the engine's data.
-const regolith = parse(readFileSync(new URL('data/regolith.yaml', root), 'utf8'));
-const community = new Map([...cards.skills, ...cards.tactics, ...cards.expansion].map((c) => [c.id, c]));
-const regolithIds = new Set();
-for (const [deck, list] of Object.entries(regolith)) {
   for (const c of list) {
     const where = `data/regolith.yaml: ${deck} card ${c.id}`;
     if (!c.id.startsWith('r-')) throw new Error(`${where}: ids start with r-`);
-    if (regolithIds.has(c.id)) throw new Error(`${where} is listed twice`);
-    regolithIds.add(c.id);
+    if (ids.has(c.id)) throw new Error(`${where} is listed twice`);
+    ids.add(c.id);
     for (const field of ['name', 'subtitle', 'text', 'category', 'count', 'status', 'effect'])
       if (c[field] === undefined) throw new Error(`${where} has no ${field}`);
-    const from = c.from === undefined ? undefined : community.get(c.from);
-    if (c.from !== undefined && !from) throw new Error(`${where} is from ${c.from}, not a Community card`);
-    const fromEffect = from && (from.effect ?? from.id);
-    const status = !from ? 'new' : c.effect !== fromEffect ? 'reworked' : c.name !== from.name ? 'renamed' : 'community';
-    if (c.status !== status) throw new Error(`${where} has status ${c.status}, but its name and effect make it ${status}`);
-    if (status !== 'new' && status !== 'reworked' && c.category !== from.category)
-      throw new Error(`${where}: same action as ${from.id}, so the same category (${from.category})`);
+    if (!STATUSES.includes(c.status)) throw new Error(`${where} has status ${c.status}, not one of ${STATUSES.join(', ')}`);
+    if ((c.status === 'new') !== (c.from === undefined)) throw new Error(`${where}: a new card has no \`from\`, and only a new card`);
   }
 }
-writeFileSync(new URL('packages/engine/src/regolith/cards.json', root), JSON.stringify(regolith, null, 2) + '\n');
+writeFileSync(new URL('packages/engine/src/regolith/cards.json', root), JSON.stringify(cards, null, 2) + '\n');
 
 const { maps } = parse(readFileSync(new URL('data/maps.yaml', root), 'utf8'));
 for (const m of maps)
@@ -64,7 +49,4 @@ const parsed = maps.map((m) => ({
 }));
 writeFileSync(new URL('maps.json', out), JSON.stringify(parsed, null, 2) + '\n');
 
-console.log(
-  `data: ${cards.skills.length} skills, ${cards.tactics.length} tactics, ` +
-    `${cards.original_command.length} command, ${cards.original_gambit.length} gambit, ${regolithIds.size} regolith, ${parsed.length} maps`,
-);
+console.log(`data: ${cards.skills.length} skills, ${cards.tactics.length} tactics, ${parsed.length} maps`);

@@ -28,11 +28,9 @@ import {
   createGame,
   effectOf,
   expansionCard,
-  EXPANSION,
   infamyTargets,
   isEmptySpace,
   legalActions,
-  relocationOptions,
   reserve,
   RuleError,
   RULESETS,
@@ -101,32 +99,22 @@ export const CHECKED_EFFECTS = new Set([
   'black-market',
   'momentum',
   'plan-ahead',
-  'sabotage',
-  'sabotage-original',
   'sabotage-double',
   'show-of-force',
   'warp-gate',
   'change-of-heart',
   'unveil-the-fleet',
-  'reorganization',
-  'relocation',
   'expansion',
   // skills
   'stubborn',
   'ravenous',
-  'ravenous-original',
   'righteous',
-  'righteous-original',
   'plundering',
-  'plundering-original',
   'hostile',
   'ruthless',
   'prideful',
   'calculating',
-  'arrogant',
-  'conformist',
   'curious',
-  'curious-original',
   'industrious',
   'brilliant',
   'precocious',
@@ -134,7 +122,6 @@ export const CHECKED_EFFECTS = new Set([
   'brutal',
   'dangerous',
   'clever',
-  'clever-original',
   'ambitious',
   'profiteering',
 ]);
@@ -142,7 +129,7 @@ export const CHECKED_EFFECTS = new Set([
 /** Every card of a card mode. */
 export function modeCards(mode: GameMode): CardDef[] {
   const cards = RULESETS[mode].cards;
-  return cards ? [...cards.skills, ...cards.tactics, cards.expansion ?? EXPANSION] : [];
+  return cards ? [...cards.skills, ...cards.tactics, cards.expansion] : [];
 }
 
 /** The skills a game deals from, in a fixed order. */
@@ -250,24 +237,19 @@ function destroyed(c: Step, w: PlayerId, v: PlayerId, inCombat: boolean) {
   const { before, after } = c;
   const first = !c.turn.destroyers.has(w);
   c.turn.destroyers.add(w);
-  const stakes = (p: PlayerId) => (inCombat && held(before, p, 'ravenous-original') ? 2 : 1);
 
-  // Winner: Dominance +1 (+2 with Original Ravenous; +1 more with Ravenous on the first destroy).
+  // Winner: Dominance +1 (+1 more with Ravenous on the first destroy).
   const ravenous = first ? held(before, w, 'ravenous') : undefined;
-  const ravenousO = inCombat ? held(before, w, 'ravenous-original') : undefined;
-  const dominance = Math.min(6, before.players[w].dominance + stakes(w) + (ravenous ? 1 : 0));
+  const dominance = Math.min(6, before.players[w].dominance + 1 + (ravenous ? 1 : 0));
   if (after.players[w].dominance !== dominance) {
-    c.fail(
-      ravenous ?? ravenousO,
-      `winner's Dominance ${before.players[w].dominance} → ${after.players[w].dominance}, expected ${dominance}`,
-    );
-  } else c.fire(ravenous ?? ravenousO);
+    c.fail(ravenous, `winner's Dominance ${before.players[w].dominance} → ${after.players[w].dominance}, expected ${dominance}`);
+  } else c.fire(ravenous);
 
-  // Loser (combat only, RULE-SUGGESTIONS #26): Dominance −1 (−2 with Original Ravenous), unless Righteous.
+  // Loser (combat only, RULE-SUGGESTIONS #26): Dominance −1, unless Righteous.
   if (inCombat) {
-    const keep = held(before, v, 'righteous', 'righteous-original');
+    const keep = held(before, v, 'righteous');
     const was = before.players[v].dominance;
-    const expected = keep ? was : Math.max(1, was - stakes(v));
+    const expected = keep ? was : Math.max(1, was - 1);
     if (after.players[v].dominance !== expected)
       c.fail(keep, `loser's Dominance ${was} → ${after.players[v].dominance}, expected ${expected}`);
     else if (keep && was > 1) c.fire(keep);
@@ -276,14 +258,14 @@ function destroyed(c: Step, w: PlayerId, v: PlayerId, inCombat: boolean) {
   const ownTurn = w === before.turn.player;
   // The winner's own next turn may have started in the same step (Brilliant, Void tiles, ...).
   if (turnChanged(c) && after.turn.player === w) return;
-  // Research: Plundering +3 on the first destroy of a turn (Original: on your own turn); Righteous gains none.
-  const plunder = first ? (held(before, w, 'plundering') ?? (ownTurn ? held(before, w, 'plundering-original') : undefined)) : undefined;
+  // Research: Plundering +3 on the first destroy of a turn; Righteous gains none.
+  const plunder = first ? held(before, w, 'plundering') : undefined;
   const research = held(before, w, 'righteous') ? before.players[w].research : Math.min(6, before.players[w].research + (plunder ? 3 : 0));
   if (after.players[w].research !== research)
     c.fail(plunder, `winner's research ${before.players[w].research} → ${after.players[w].research}, expected ${research}`);
   else c.fire(plunder);
 
-  // Actions: Hostile / Warlike +1 on the first destroy in your own action phase.
+  // Actions: Hostile +1 on the first destroy in your own action phase.
   if (!turnChanged(c)) {
     const hostile = first && ownTurn && before.turn.phase === 'actions' ? held(before, w, 'hostile') : undefined;
     const actions = before.turn.actionsLeft + (hostile ? 1 : 0);
@@ -399,40 +381,25 @@ const ORACLES: ((c: Step) => void)[] = [
     }
   },
 
-  // A new turn: actions (3, minus Sabotage; 2 on a Momentum turn; +1 each for Arrogant and Conformist),
-  // Industrious and Original Curious, Brilliant, skills coming into effect, Ruthless expiring.
+  // A new turn: actions (3, minus Sabotage; 2 on a Momentum turn), Industrious, Brilliant, skills coming
+  // into effect, Ruthless expiring.
   (c) => {
     if (!turnChanged(c)) return;
     const { before, after } = c;
     const p = after.turn.player;
     // A Sabotage played in this same step, by another player, already applies to this turn.
     const played = playedCard(c);
-    const sabotage = played && played.p !== p ? ({ sabotage: 1, 'sabotage-double': 2 } as Record<string, number>)[effectOf(played.id)] : 0;
+    const sabotage = played && played.p !== p ? ({ 'sabotage-double': 2 } as Record<string, number>)[effectOf(played.id)] : 0;
     const penalty = before.players[p].actionPenalty + (sabotage ?? 0);
     const base = after.turn.bonus ? 2 : Math.max(0, 3 - penalty);
-    const mine = shipsOnBoard(after, p);
-    const arrogant =
-      held(after, p, 'arrogant') && after.players.every((o) => o.id === p || shipsOnBoard(after, o.id).length < mine.length)
-        ? held(after, p, 'arrogant')
-        : undefined;
-    const conformist =
-      held(after, p, 'conformist') && new Set(mine.map((d) => d.value)).size < mine.length ? held(after, p, 'conformist') : undefined;
-    const actions = base + (arrogant ? 1 : 0) + (conformist ? 1 : 0);
-    const label = penalty ? 'sabotage' : (arrogant ?? conformist);
-    if (after.turn.actionsLeft !== actions) c.fail(label, `turn starts with ${after.turn.actionsLeft} actions, expected ${actions}`);
-    else {
-      c.fire(arrogant);
-      c.fire(conformist);
-    }
+    if (after.turn.actionsLeft !== base)
+      c.fail(penalty ? 'sabotage' : undefined, `turn starts with ${after.turn.actionsLeft} actions, expected ${base}`);
     const industrious = held(after, p, 'industrious');
     if (after.turn.freeDeploys !== (industrious ? 1 : 0))
       c.fail(industrious, `${after.turn.freeDeploys} free deploys at the start of the turn`);
     else c.fire(industrious);
-    const curious = held(after, p, 'curious-original');
-    if (after.turn.freeMoves !== (curious ? 1 : 0)) c.fail(curious, `${after.turn.freeMoves} free moves at the start of the turn`);
-    else c.fire(curious);
     const brilliant = held(after, p, 'brilliant');
-    if (brilliant && !held(after, p, 'righteous') && before.turn.player !== p && !after.pending.some((x) => x.kind === 'brilliant')) {
+    if (brilliant && !held(after, p, 'righteous') && before.turn.player !== p) {
       if (after.players[p].research < Math.min(6, before.players[p].research + 2))
         c.fail(brilliant, 'no research at the start of the turn');
       else c.fire(brilliant);
@@ -482,19 +449,11 @@ const ORACLES: ((c: Step) => void)[] = [
       case 'plan-ahead':
         if (now.planAhead < 1) bad('Plan Ahead not in effect');
         break;
-      case 'sabotage':
       case 'sabotage-double':
         for (const o of after.players) {
           if (o.id === p) continue;
           const started = turnChanged(c) && after.turn.player === o.id;
-          const lost = effectOf(id) === 'sabotage' ? 1 : 2;
-          if (o.actionPenalty !== before.players[o.id].actionPenalty + lost && !started) bad(`${o.name} not sabotaged`);
-        }
-        break;
-      case 'sabotage-original':
-        for (const o of before.players) {
-          if (o.id !== p && o.skills.length && !after.pending.some((x) => x.kind === 'discardSkill' && x.player === o.id))
-            bad(`${o.name} does not discard a skill`);
+          if (o.actionPenalty !== before.players[o.id].actionPenalty + 2 && !started) bad(`${o.name} not sabotaged`);
         }
         break;
       case 'show-of-force':
@@ -514,11 +473,7 @@ const ORACLES: ((c: Step) => void)[] = [
         if ((before.market.skillDeck.length || before.market.skillDiscard.length) && !pending('changeOfHeart')) bad('no skill to choose');
         break;
       case 'unveil-the-fleet':
-      case 'reorganization':
         if (!pending('unveil')) bad('no ships to re-roll and deploy');
-        break;
-      case 'relocation':
-        if (relocationOptions(before, p).length && !pending('relocation')) bad('no cube to relocate');
         break;
       case 'expansion':
         if (reserve(before, p).length && !pending('placeExpansion')) bad('no new ship to place');
@@ -567,7 +522,7 @@ const ORACLES: ((c: Step) => void)[] = [
     if (before.turn.actionsLeft > 0 || c.turn.attackedOrConquered || before.turn.storedTacticPlayed) return;
     const canResearch = before.players[p].research < 6 && !held(before, p, 'righteous');
     if (canResearch && !legal.some((a) => a.type === 'research')) c.fail(curious, 'no Curious Research offered');
-    if (action.type === 'research' || ((action.type === 'move' || action.type === 'carry') && before.turn.freeMoves === 0)) {
+    if (action.type === 'research' || action.type === 'move' || action.type === 'carry') {
       c.turn.curiousUsed = true;
       c.fire(curious);
     }
@@ -592,17 +547,16 @@ const ORACLES: ((c: Step) => void)[] = [
     if (c.action.type === 'dangerous' && c.action.destroy) c.fire(held(c.before, decider(c.before), 'dangerous'));
   },
 
-  // Clever: CE after a Reconfigure, keep or change by 1; Original, choose any ship number rolled.
+  // Clever: after a Reconfigure, keep or change by 1.
   (c) => {
     const a = c.action;
     if (a.type === 'clever') {
       const head = c.before.pending[0];
-      if (head?.kind === 'clever')
-        c.fire(head.source === 'calculating' ? undefined : held(c.before, head.player, 'clever', 'clever-original'));
+      if (head?.kind === 'clever') c.fire(head.source === 'calculating' ? undefined : held(c.before, head.player, 'clever'));
     }
     if (a.type !== 'reconfigure' && a.type !== 'freeReconfigure') return;
     const p = c.before.turn.player;
-    const clever = held(c.before, p, 'clever', 'clever-original');
+    const clever = held(c.before, p, 'clever');
     if (clever && !c.after.pending.some((x) => x.kind === 'clever' && x.die === a.die))
       c.fail(clever, 'no number choice after a Reconfigure');
   },
@@ -642,21 +596,16 @@ const USES: Partial<Record<Action['type'], string[]>> = {
   composed: ['composed'],
   flexible: ['flexible'],
   resourceful: ['resourceful'],
-  tactical: ['tactical', 'tactical-original'],
-  nomadic: ['nomadic'],
-  tyrannical: ['tyrannical-original'],
-  scrappy: ['scrappy'],
+  tactical: ['tactical'],
   ruthless: ['ruthless'],
 };
 /** Passive skills: the actions they can change count as firing (their effect is checked by the card scenarios). */
 const PASSIVE: Partial<Record<Action['type'], string[]>> = {
   move: ['agile', 'devious', 'steadfast'],
   carry: ['agile', 'steadfast'],
-  deploy: ['stealthy', 'eager'],
-  conquer: ['ingenious', 'intelligent', 'pioneering', 'science', 'tyrannical'],
+  deploy: ['stealthy'],
+  conquer: ['intelligent', 'science', 'tyrannical'],
 };
-/** Re-roll skills: each re-roll counts as firing. */
-const REROLL = ['cruel', 'relentless', 'scrappy'];
 
 /** The other firings without an oracle: combat skills that changed a roll or total, Cunning, Talented. */
 function otherFirings(c: Step): (string | undefined)[] {
@@ -671,7 +620,6 @@ function otherFirings(c: Step): (string | undefined)[] {
   if (action.type === 'prideful' && action.take && head?.kind === 'prideful') {
     out.push(before.players[head.victim].skills.find((sk) => effectOf(sk.id) === 'prideful')?.id);
   }
-  if (action.type === 'reroll') out.push(held(before, action.by, ...REROLL));
   if (action.type === 'resolveCombat' && head?.kind === 'combat') {
     for (const side of ['attacker', 'defender'] as const) {
       const { parts } = combatTotal(before, head, side);

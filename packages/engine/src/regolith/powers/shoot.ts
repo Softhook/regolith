@@ -35,8 +35,7 @@ export const shoot: PrototypePower = {
     threatens: shootTargets,
     action: {
       options(s, d) {
-        // An attack also pays for any Curious free moves taken (payForAttack).
-        if (!canMoveDie(s, d) || s.turn.actionsLeft < 1 + s.turn.freeMovesUsed) return [];
+        if (!canMoveDie(s, d) || s.turn.actionsLeft < 1) return [];
         return shootTargets(s, d).map((x) => ({ target: x.id }));
       },
       apply(s, d, { target }) {

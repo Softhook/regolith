@@ -10,7 +10,7 @@ import { SCENES } from './scenes';
  * The screenprint cards (docs/regolith/REGOLITH.md §5), after the CardStyles board's screenprint row: the scene
  * at the top in flat inks under a soft shade, a band in the card's colour plate, the name stencilled in the
  * paper's ink, the rules in condensed type, and a footer. Permanent cards are on paper in key ink;
- * one-shot cards on night paper in bone. Same size, bleed and safe area as the holo cards (card.ts).
+ * one-shot cards on night paper in bone. Size, bleed and safe area as card.ts.
  */
 
 const W = 63.5;
@@ -38,9 +38,7 @@ const PLATE: Record<string, string> = {
  */
 const DECK: Record<CardDeck, { name: string; mech: MechKind; size: number; dark: boolean }> = {
   skill: { name: 'Skill', mech: 'breacher', size: 0.13, dark: false },
-  command: { name: 'Command', mech: 'sniper', size: 0.14, dark: false },
   tactic: { name: 'Tactic', mech: 'tactician', size: 0.13, dark: true },
-  gambit: { name: 'Gambit', mech: 'wisp', size: 0.17, dark: true },
   expansion: { name: 'Reinforcements', mech: 'behemoth', size: 0.11, dark: true },
 };
 

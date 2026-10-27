@@ -19,7 +19,7 @@ import {
   rerollNew,
   aShip,
   shipName,
-  spendMove,
+  spendPeaceful,
   type Handlers,
 } from './core';
 import type { ShipPower } from './data';
@@ -68,7 +68,7 @@ export const abilityHandlers = {
     const d = ownShip(s, a.die, 'board');
     if (!canMoveDie(s, d)) fail('This ship already moved this turn');
     const fly = transport(s, d, a.passenger, a.to, a.drop);
-    spendMove(s); // a Transport is a move without an attack, so Curious can pay for it
+    spendPeaceful(s); // a Transport is a move without an attack, so Curious can pay for it
     useAbility(s, d, 'transport');
     fly();
     markMoved(s, d);

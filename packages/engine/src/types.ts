@@ -136,10 +136,6 @@ export interface TurnState {
   phase: 'actions' | 'cards';
   actionsLeft: number;
   freeDeploys: number;
-  /** Free moves left (original Curious: only on a turn without attacks). */
-  freeMoves: number;
-  /** Free moves taken so far; an attack later this turn must pay for them with actions. */
-  freeMovesUsed: number;
   moved: Record<string, number>;
   abilityUsed: Record<string, boolean>;
   /** Values each die has shown this turn (for Reconfigure). */
@@ -160,11 +156,6 @@ export interface TurnState {
   resume?: PlayerId;
   /** Other players who placed a cube through Infamy during this turn (one entry per cube). */
   offTurnCubes?: PlayerId[];
-  /**
-   * Scrappy: the player's ship rolled by the last action, which they may re-roll once. `avoid` is
-   * the number a Reconfigure started from (the re-roll must still show a new number).
-   */
-  scrappy?: { die: string; avoid?: number };
   /** CE Curious: whether the additional Move or Research action was used this turn. */
   curiousUsed?: boolean;
   /** Patient: whether a stored Tactic was played this turn. */
@@ -174,7 +165,7 @@ export interface TurnState {
 }
 
 /** Effects limited to once per turn. 'cunning' is the second use of a ship ability. */
-export type OncePerTurn = 'composed' | 'ambitious' | 'flexible' | 'resourceful' | 'tyrannical' | 'tactical' | 'cunning' | 'nomadic';
+export type OncePerTurn = 'composed' | 'ambitious' | 'flexible' | 'resourceful' | 'tactical' | 'cunning';
 
 /** The two sides of a battle. */
 export type CombatRole = 'attacker' | 'defender';
@@ -196,8 +187,6 @@ export interface CombatPending {
   from: Cell;
   /** The defender's space. */
   at: Cell;
-  /** Re-roll effects already used in this battle (Cruel, Relentless, Scrappy: once each). */
-  rerolls: string[];
   /** A ranged attack (a prototype power): the attacker fired from where it stands and doesn't advance if it wins. */
   ranged?: true;
 }
@@ -212,35 +201,31 @@ export type Pending =
   /** Dangerous: before the dice are rolled, the defender may destroy both ships. */
   | { kind: 'dangerous'; player: PlayerId; attacker: string; defender: string; from: Cell; ranged?: true }
   /**
-   * Clever: the player chooses the number of a ship that was just rolled (Original: any but `avoid`,
-   * for a Reconfigure; Community Edition: one of `options`, the reconfigured number ± 1).
+   * The player chooses the number of a ship that was just rolled: Clever, one of `options` (the reconfigured
+   * number ± 1); Calculating, any number for a ship going to the scrapyard.
    */
-  | { kind: 'clever'; player: PlayerId; die: string; avoid?: number; options?: number[]; source?: 'calculating' | 'clever' }
-  /** Relocation: move another player's cube. */
-  | { kind: 'relocation'; player: PlayerId }
+  | { kind: 'clever'; player: PlayerId; die: string; options?: number[]; source?: 'calculating' | 'clever' }
   | { kind: 'advance'; player: PlayerId; die: string; to: Cell }
   | { kind: 'infamy'; player: PlayerId }
   /** `conquer`: how many of the picks were earned by Conquer actions (Profiteering may take a missile instead). */
   | { kind: 'takeCard'; player: PlayerId; count: number; conquer?: number }
   | { kind: 'peek'; player: PlayerId; deck: DeckKind; top: string; store?: boolean }
   /** `cannotDiscard`: a card that must be kept (Prideful, just taken). */
-  | { kind: 'discardSkill'; player: PlayerId; reason?: 'limit' | 'sabotage'; cannotDiscard?: string }
+  | { kind: 'discardSkill'; player: PlayerId; reason?: 'limit'; cannotDiscard?: string }
   | { kind: 'placeExpansion'; player: PlayerId; die: string }
   | { kind: 'showOfForce'; player: PlayerId }
   | { kind: 'warpGate'; player: PlayerId; placed: Cell[] }
   | { kind: 'placeBarrier'; player: PlayerId; placed: Cell[] }
   | { kind: 'kineticShunt'; player: PlayerId }
   | { kind: 'changeOfHeart'; player: PlayerId }
-  /** CE Brilliant, at the start of the turn: gain 2 research or not (asked only with Pioneering). */
-  | { kind: 'brilliant'; player: PlayerId }
   /** Prideful: take Prideful from victim who lost a ship. */
   | { kind: 'prideful'; player: PlayerId; victim: PlayerId }
   /** Ruthless: disable one active skill of the victim. */
   | { kind: 'ruthless'; player: PlayerId; victim: PlayerId }
   /** Patient, when taken: may take a face-up Tactic and store it. */
   | { kind: 'patientTactic'; player: PlayerId }
-  /** Unveil the Fleet (CE) or, with `reorganize`, Reorganization (original). */
-  | { kind: 'unveil'; player: PlayerId; rerolled: string[]; reorganize?: boolean };
+  /** Unveil the Fleet. */
+  | { kind: 'unveil'; player: PlayerId; rerolled: string[] };
 
 /** What a log entry reports, so the UI can react (sounds, toasts) without parsing its text. */
 export type LogEvent =
@@ -342,27 +327,17 @@ export type Action =
   | { type: 'ambitious' }
   | { type: 'flexible'; die: string; delta: 1 | -1 }
   | { type: 'resourceful'; die: string }
-  | { type: 'tyrannical' }
-  /** Nomadic: relocate a ship from one planet's orbit to an orbital position of a neighbouring planet. */
-  | { type: 'nomadic'; die: string; to: Cell }
-  /** Scrappy: re-roll the ship rolled by the last action. */
-  | { type: 'scrappy' }
   /** Tactical's 1-space move (`to`) or attack (`target`); with `passenger` + `drop` it is a Flagship transport. */
   | { type: 'tactical'; die: string; to?: Cell; target?: string; passenger?: string; drop?: Cell }
   // combat & decisions
   | { type: 'missile'; by: PlayerId; side: CombatRole }
-  /** Cruel, Relentless or Scrappy: re-roll one side's combat dice. */
-  | { type: 'reroll'; by: PlayerId; side: CombatRole }
   | { type: 'dangerous'; destroy: boolean }
   | { type: 'clever'; value: number }
-  | { type: 'brilliant'; gain: boolean }
-  | { type: 'relocate'; planet: number; owner: PlayerId; to: number }
   | { type: 'resolveCombat' }
   | { type: 'advance'; move: boolean }
   | { type: 'infamy'; planet: number }
   | { type: 'takeCard'; deck: DeckKind | 'expansion'; index: number; store?: boolean }
   | { type: 'peekChoice'; takeTop: boolean }
-  | { type: 'refreshMarket' }
   /** Profiteering: take 1 missile instead of a card earned by conquering. */
   | { type: 'profiteer' }
   | { type: 'discardSkill'; skill: string }

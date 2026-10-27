@@ -9,7 +9,6 @@ import {
   logTo,
   loseDominance,
   name,
-  payForAttack,
   placeCube,
   shipName,
   tally,
@@ -18,10 +17,10 @@ import {
 } from './core';
 import { card } from './data';
 import { boardLoc, cellOf, die, dieAt } from './lookups';
-import { combatDice, combatOutcome, combatReroll, infamyTargets, missileRefusal, skillLimit } from './queries';
+import { combatDice, combatOutcome, infamyTargets, missileRefusal, skillLimit } from './queries';
 import { d6 } from './rng';
 import { rulesOf } from './rules';
-import { anySkill, skillRules, stealableSkill } from './skillRules';
+import { anySkill, stealableSkill } from './skillRules';
 import type { Cell, Die, GameState, PlayerId } from './types';
 
 /**
@@ -29,7 +28,6 @@ import type { Cell, Die, GameState, PlayerId } from './types';
  * A defender with Dangerous may first destroy both ships; otherwise both combat dice are rolled now.
  */
 export function startCombat(s: GameState, attacker: Die, defender: Die, from: Cell, ranged = false) {
-  if (attacker.owner === s.turn.player) payForAttack(s);
   attacker.loc = boardLoc(from);
   s.turn.attacked = true;
   log(
@@ -58,20 +56,14 @@ function rollCombat(s: GameState, attacker: Die, defender: Die, from: Cell, rang
     defender: { player: defender.owner, die: defender.id, ship: defender.value, dice: rollFor(defender.owner), missile: false },
     from,
     at: cellOf(defender)!,
-    rerolls: [],
     ...(ranged && { ranged: true as const }),
   });
 }
 
-/** Dominance a player gains or loses when a ship is destroyed in combat. */
-function dominanceStakes(s: GameState, p: PlayerId): number {
-  return Math.max(1, ...skillRules(s, p).map((r) => r.dominanceStakes ?? 1));
-}
-
 /** Effects of `winner` destroying one of `loser`'s ships in combat. */
 function onDestroy(s: GameState, winner: PlayerId, loser: PlayerId) {
-  loseDominance(s, loser, dominanceStakes(s, loser), true);
-  destroyedEnemyShip(s, winner, dominanceStakes(s, winner), loser);
+  loseDominance(s, loser, 1);
+  destroyedEnemyShip(s, winner, 1, loser);
 }
 
 function resolveCombat(s: GameState, combat: PendingOf<'combat'>) {
@@ -113,17 +105,6 @@ export const combatHandlers = {
     pl.missiles--;
     side.missile = true;
     log(s, `${pl.name} fires a missile: ${name(s, side.player)}'s combat roll becomes 1.`, a.by, 'missile');
-  },
-  reroll(s, a) {
-    const head = headOf(s, 'combat', 'No combat to re-roll');
-    const skill = combatReroll(s, head, a.by, a.side);
-    if (!skill) fail('No re-roll available');
-    head.rerolls.push(skill.effect);
-    const side = head[a.side];
-    side.dice = side.dice.map(() => d6(s));
-    const via = card(skill.card).name;
-    const whose = a.by === side.player ? `re-rolls` : `makes ${name(s, side.player)} re-roll`;
-    log(s, `${name(s, a.by)} ${whose} (${via}): ${side.dice.join(' & ')}.`, a.by);
   },
   /** Dangerous: destroy both ships (no dominance change, no "when you destroy" effects), or fight. */
   dangerous(s, a) {

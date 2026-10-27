@@ -58,7 +58,7 @@ export function DecisionOverlay({ game, dispatch, human }: { game: GameState; di
       const p = game.players[head.player];
       return (
         <Modal
-          title={head.reason === 'sabotage' ? 'Sabotage!' : `Too many ${rulesOf(game).cards?.terms.skills ?? 'skills'}`}
+          title={`Too many ${rulesOf(game).cards?.terms.skills ?? 'skills'}`}
           subtitle={`${p.name}, choose a card to discard.`}
           pc={p.color}
         >
@@ -97,46 +97,19 @@ export function DecisionOverlay({ game, dispatch, human }: { game: GameState; di
         </Modal>
       );
     }
-    case 'brilliant': {
-      const p = game.players[head.player];
-      return (
-        <Modal
-          title="Brilliant"
-          subtitle={`${p.name}, you may gain 2 Research (now ${p.research}). With Pioneering you may want to keep the number you have.`}
-          pc={p.color}
-        >
-          <div className="modal-actions">
-            <button className="btn" onClick={() => dispatch({ type: 'brilliant', gain: false })}>
-              Keep {p.research}
-            </button>
-            <button className="btn btn-primary" onClick={() => dispatch({ type: 'brilliant', gain: true })}>
-              Gain 2 → {Math.min(6, p.research + 2)}
-            </button>
-          </div>
-        </Modal>
-      );
-    }
     case 'clever': {
       const p = game.players[head.player];
       const d = die(game, head.die);
       const isCalculating = head.source === 'calculating';
       const title = isCalculating ? 'Calculating' : 'Clever';
-      const subtitle = head.options
-        ? `${p.name}, keep this ship’s number or change it by 1.`
-        : isCalculating
-          ? `${p.name}, choose this ship’s number (1–6) for the scrapyard.`
-          : `${p.name}, choose this ship’s number instead of rolling it.`;
+      const subtitle = isCalculating
+        ? `${p.name}, choose this ship’s number (1–6) for the scrapyard.`
+        : `${p.name}, keep this ship’s number or change it by 1.`;
       return (
         <Modal title={title} subtitle={subtitle} pc={p.color}>
           <div className="fleet-roll clever-row">
             {(head.options ?? [1, 2, 3, 4, 5, 6]).map((value) => (
-              <button
-                key={value}
-                className="fleet-die clever-choice"
-                disabled={value === head.avoid}
-                title={value === head.avoid ? say(game, 'A reconfigured ship must change its number') : undefined}
-                onClick={() => dispatch({ type: 'clever', value })}
-              >
+              <button key={value} className="fleet-die clever-choice" onClick={() => dispatch({ type: 'clever', value })}>
                 <Die3D value={value} size={54} color={p.color} sound={false} />
                 <span className="show">{shipOf(game, value).name}</span>
               </button>

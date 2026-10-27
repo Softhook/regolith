@@ -1,5 +1,5 @@
-import { FONTS, SP_FONTS, type CardDeck, type CardFace, type CardLook, type Measure } from '@regolith/art';
-import { EXPANSION, MODES, ORIGINAL_COMMAND, ORIGINAL_GAMBIT, SKILLS, TACTICS, type CardDef } from '@regolith/engine';
+import { FONTS, SP_FONTS, type CardDeck, type CardFace, type Measure } from '@regolith/art';
+import { MODES, type CardDef } from '@regolith/engine';
 import { blobToDataUrl } from '../files';
 
 /** Every printed card, by deck, from the game's card data, and the fonts cards and tiles are set in. */
@@ -7,66 +7,32 @@ import { blobToDataUrl } from '../files';
 export interface Deck {
   id: CardDeck;
   name: string;
-  /** The printed editions ('community', 'original'), or the id of a mode with decks of its own. */
-  edition: string;
   cards: CardFace[];
 }
 
-/** Every edition's names in the Art Lab: the two printed editions, then each mode with decks of its own. */
-export interface Edition {
-  id: string;
-  label: string;
-  title: string;
-}
-
-const faces = (deck: CardDeck, defs: CardDef[], look?: CardLook): CardFace[] =>
+const faces = (deck: CardDeck, defs: CardDef[]): CardFace[] =>
   defs.map((c, i) => ({
     id: c.id,
     name: c.name,
     subtitle: c.subtitle,
     text: c.text,
     category: c.category,
-    // A mode's card shows the card it started as until it has art of its own.
-    scene: c.from,
     deck,
-    look,
     copies: c.count,
     index: i + 1,
     deckSize: defs.length,
   }));
 
-export const DECKS: Deck[] = [
-  { id: 'skill', name: 'Skills', edition: 'community', cards: faces('skill', SKILLS) },
-  { id: 'tactic', name: 'Tactics', edition: 'community', cards: faces('tactic', TACTICS) },
-  { id: 'expansion', name: 'Expansion', edition: 'community', cards: faces('expansion', [EXPANSION]) },
-  { id: 'command', name: 'Command', edition: 'original', cards: faces('command', ORIGINAL_COMMAND) },
-  { id: 'gambit', name: 'Gambit', edition: 'original', cards: faces('gambit', ORIGINAL_GAMBIT) },
-  // Modes that deal decks of their own, read from their rule sets.
-  ...MODES.flatMap((m): Deck[] => {
-    const c = m.cards;
-    if (!c || [SKILLS, ORIGINAL_COMMAND].includes(c.skills)) return [];
-    return [
-      { id: 'skill', name: `${m.name} ${c.terms.skillDeck}`, edition: m.id, cards: faces('skill', c.skills, c.look) },
-      { id: 'tactic', name: `${m.name} ${c.terms.tacticDeck}`, edition: m.id, cards: faces('tactic', c.tactics, c.look) },
-      ...(c.expansion
-        ? [
-            {
-              id: 'expansion' as const,
-              name: `${m.name} ${c.expansion.name}`,
-              edition: m.id,
-              cards: faces('expansion', [c.expansion], c.look),
-            },
-          ]
-        : []),
-    ];
-  }),
-];
-
-export const EDITIONS: Edition[] = [
-  { id: 'community', label: 'Community', title: 'Community Edition' },
-  { id: 'original', label: 'Classic', title: 'Classic' },
-  ...MODES.filter((m) => DECKS.some((d) => d.edition === m.id)).map((m) => ({ id: m.id, label: m.name, title: m.title })),
-];
+/** Regolith's decks, read from the rule set that deals them (Basic deals none). */
+export const DECKS: Deck[] = MODES.flatMap((m): Deck[] => {
+  const c = m.cards;
+  if (!c) return [];
+  return [
+    { id: 'skill', name: c.terms.skillDeck, cards: faces('skill', c.skills) },
+    { id: 'tactic', name: c.terms.tacticDeck, cards: faces('tactic', c.tactics) },
+    { id: 'expansion', name: c.expansion.name, cards: faces('expansion', [c.expansion]) },
+  ];
+});
 
 const byId = new Map(DECKS.flatMap((d) => d.cards.map((c) => [c.id, c])));
 
@@ -77,7 +43,7 @@ export function faceOf(id: string): CardFace {
   return face;
 }
 
-/** The fonts cards are set in, as the page loads them (index.html): the holo cards' and the screenprint cards'. */
+/** The fonts cards and the player aid are set in, as the page loads them (index.html). */
 const FAMILIES = {
   title: ['900', 'Orbitron'],
   body: ['400', 'Inter'],

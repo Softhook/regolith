@@ -1,5 +1,5 @@
 /**
- * Advance cards: the market (taking, peeking, refilling), one-shot Tactic / Gambit effects and
+ * Advance cards: the market (taking, peeking, refilling), one-shot Tactic effects and
  * the decisions they open, and the skill limit.
  *
  * To add a Tactic: list its effect in TACTIC_EFFECT_IDS (effects.ts); the compiler then asks for
@@ -22,7 +22,6 @@ import {
   aShip,
   shipName,
   tally,
-  cubeLeft,
   type Handlers,
   type PendingOf,
 } from './core';
@@ -35,11 +34,8 @@ import {
   canShunt,
   canPlayStoredTactic,
   canProfiteer,
-  canRefreshMarket,
-  canRelocate,
   canTakeCard,
   deployTargets,
-  relocationOptions,
   shuntPaths,
   skillLimit,
 } from './queries';
@@ -53,7 +49,7 @@ import type { DeckKind, GameState, PlayerId, PlayerState } from './types';
 
 type TacticEffectFn = (s: GameState, p: PlayerId) => void;
 
-/** What each Tactic / Gambit does when taken. Effects that need a choice push a pending decision. */
+/** What each Tactic does when taken. Effects that need a choice push a pending decision. */
 const TACTIC_EFFECTS: Record<TacticEffect, TacticEffectFn> = {
   aggression: (s, p) => gainDominance(s, p, 2),
   'black-market': (s, p) => {
@@ -82,10 +78,7 @@ const TACTIC_EFFECTS: Record<TacticEffect, TacticEffectFn> = {
     // "Until the end of your next turn": taken off-turn, that is the player's coming turn.
     s.players[p].planAhead = p === s.turn.player ? 2 : 1;
   },
-  sabotage: (s, p) => {
-    for (const o of s.players) if (o.id !== p) o.actionPenalty++;
-  },
-  // Regolith's Sabotage: two actions instead of one.
+  // Regolith's Sabotage: two actions, where the Community Edition's took one.
   'sabotage-double': (s, p) => {
     for (const o of s.players) if (o.id !== p) o.actionPenalty += 2;
   },
@@ -114,17 +107,6 @@ const TACTIC_EFFECTS: Record<TacticEffect, TacticEffectFn> = {
     // Placed after the roll is final (a Clever choice comes first).
     s.pending.unshift({ kind: 'placeExpansion', player: p, die: res[0].id });
     rollShip(s, res[0]);
-  },
-  relocation: (s, p) => {
-    if (relocationOptions(s, p).length) s.pending.unshift({ kind: 'relocation', player: p });
-  },
-  reorganization: (s, p) => {
-    s.pending.unshift({ kind: 'unveil', player: p, rerolled: [], reorganize: true });
-  },
-  'sabotage-original': (s, p) => {
-    for (const o of s.players) {
-      if (o.id !== p && o.skills.length) s.pending.unshift({ kind: 'discardSkill', player: o.id, reason: 'sabotage' });
-    }
   },
 };
 
@@ -258,22 +240,6 @@ export const cardHandlers = {
     log(s, `${name(s, head.player)} takes a missile instead of a card (Profiteering).`, head.player);
     consumeCardPick(s);
   },
-  /** Original (2013 rulebook p.9): spend a card pick to discard all face-up cards and deal new ones. */
-  refreshMarket(s) {
-    const head = headOf(s, 'takeCard', 'Not taking a card');
-    if (!canRefreshMarket(s)) fail('You cannot deal new cards');
-    const m = s.market;
-    m.skillDiscard.push(...m.skillRow.splice(0));
-    m.tacticDiscard.push(...m.tacticRow.splice(0));
-    for (let i = 0; i < 3; i++) {
-      const skill = draw(s, 'skill');
-      if (skill) m.skillRow.push(skill);
-      const tactic = draw(s, 'tactic');
-      if (tactic) m.tacticRow.push(tactic);
-    }
-    consumeCardPick(s);
-    log(s, `${name(s, head.player)} discards the face-up cards and deals new ones.`, head.player, 'discard');
-  },
   discardSkill(s, a) {
     const head = headOf(s, 'discardSkill', 'Not discarding');
     if (a.skill === head.cannotDiscard) fail(`Cannot discard ${card(a.skill).name}`);
@@ -372,32 +338,12 @@ export const cardHandlers = {
     s.pending.shift();
     gainCard(s, head.player, a.skill);
   },
-  relocate(s, a) {
-    const head = headOf(s, 'relocation', 'No Relocation to resolve');
-    if (!canRelocate(s, head.player, a)) fail("Move another player's cube to a planet without one of their cubes");
-    s.pending.shift();
-    const from = s.board.planets[a.planet];
-    const to = s.board.planets[a.to];
-    from.cubes.splice(from.cubes.lastIndexOf(a.owner), 1);
-    to.cubes.push(a.owner);
-    cubeLeft(s, a.owner, from.id, to.id);
-    log(
-      s,
-      `${name(s, head.player)} relocates ${name(s, a.owner)}'s cube from planet ${from.number} to planet ${to.number}.`,
-      head.player,
-      undefined,
-      [from.id, to.id],
-    );
-  },
   unveilReroll(s, a) {
     const head = headOf(s, 'unveil', 'Not unveiling');
     const d = die(s, a.die);
-    const zones = head.reorganize ? ['board', 'scrapyard'] : ['scrapyard'];
-    if (d.owner !== head.player || !zones.includes(d.loc.zone)) fail('Choose one of your ships');
+    if (d.owner !== head.player || d.loc.zone !== 'scrapyard') fail('Choose one of your ships');
     if (head.rerolled.includes(d.id)) fail('Already re-rolled');
     head.rerolled.push(d.id);
-    // Reorganization: a re-rolled ship leaves the map and is placed again (or scrapped).
-    if (head.reorganize) d.loc = { zone: 'scrapyard' };
     const was = shipName(s, d);
     rollShip(s, d);
     note(s, `${name(s, head.player)} re-rolls their ${was}: ${shipName(s, d)}.`, head.player);
@@ -406,7 +352,6 @@ export const cardHandlers = {
     const head = headOf(s, 'unveil', 'Not unveiling');
     const d = die(s, a.die);
     if (d.owner !== head.player || d.loc.zone !== 'scrapyard') fail('Choose a ship in your scrapyard');
-    if (head.reorganize && !head.rerolled.includes(d.id)) fail('Only re-rolled ships can be placed');
     if (!deployTargets(s, head.player).some((p) => same(p, a.to))) fail('Not a deploy space');
     d.loc = boardLoc(a.to);
     logTo(s, head.player, `${name(s, head.player)} deploys ${aShip(s, d)}`, a.to);

@@ -356,12 +356,6 @@ describe('card market', () => {
     return s;
   }
 
-  it('has no refresh (the 2013 rulebook’s, p.9)', () => {
-    const s = picking();
-    expect(legalActions(s).some((a) => a.type === 'refreshMarket')).toBe(false);
-    expect(() => apply(s, { type: 'refreshMarket' })).toThrow();
-  });
-
   it('an Expansion cannot be taken once both expansion ships are in the game', () => {
     const s = picking();
     for (const d of s.dice) if (d.owner === s.turn.player && d.loc.zone === 'reserve') d.loc = { zone: 'scrapyard' };

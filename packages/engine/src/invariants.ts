@@ -74,7 +74,7 @@ export function checkInvariants(s: GameState): string[] {
   if (cards) {
     const expected = new Map<string, number>();
     for (const c of [...cards.skills, ...cards.tactics]) {
-      if (dealt(effectOf(c.id), s.board.hex)) expected.set(c.id, (expected.get(c.id) ?? 0) + c.count);
+      if (dealt(effectOf(c.id))) expected.set(c.id, (expected.get(c.id) ?? 0) + c.count);
     }
     const actual = new Map<string, number>();
     const count = (id: string) => actual.set(id, (actual.get(id) ?? 0) + 1);
@@ -105,7 +105,7 @@ export function checkInvariants(s: GameState): string[] {
   // Turn
   const t = s.turn;
   check(isPlayer(t.player), `turn of unknown player ${t.player}`);
-  check(t.actionsLeft >= 0 && t.freeDeploys >= 0 && t.freeMoves >= 0 && t.freeMovesUsed >= 0, 'negative action count');
+  check(t.actionsLeft >= 0 && t.freeDeploys >= 0, 'negative action count');
   check(s.gates.length === 0 || s.gates.length === 2, `${s.gates.length} warp gates`);
 
   // Phase and decisions

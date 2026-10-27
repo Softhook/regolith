@@ -73,7 +73,7 @@ export async function think(state: GameState, level: AiLevel): Promise<AiMove> {
   }
 }
 
-/** Whether `player` fires a missile or re-rolls in the current battle; if the AI fails, it passes. */
+/** Whether `player` fires a missile in the current battle; if the AI fails, it passes. */
 export function combatResponse(state: GameState, player: PlayerId, level: AiLevel): AiMove {
   try {
     return { action: chooseCombatResponse(state, player, { level }) };

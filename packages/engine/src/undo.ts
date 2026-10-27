@@ -11,10 +11,8 @@ const UNDOABLE = new Set<Action['type']>([
   'change',
   'flexible',
   'composed',
-  'tyrannical',
   'ambitious',
   'tactical',
-  'nomadic',
 ]);
 
 /**

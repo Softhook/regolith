@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react';
-import { canCurious, say, shipOf, card, die, rulesOf, skillCard, type GameState, type SkillEffect } from '@regolith/engine';
+import { canCurious, say, card, rulesOf, skillCard, type GameState, type SkillEffect } from '@regolith/engine';
 import type { Controller } from '../game/controller';
 import { hintFor } from '../game/hints';
 import type { Dispatch } from '../game/useGame';
@@ -42,11 +42,6 @@ export function TurnPanel({ game, ctl, dispatch, undo }: { game: GameState; ctl:
                 +1 deploy
               </Tip>
             )}
-            {t.freeMoves > 0 && (
-              <Tip as="em" tip="Free move (Curious): only if you don't attack this turn; attacking afterwards costs an action for it">
-                +1 move
-              </Tip>
-            )}
             {canAct && t.actionsLeft === 0 && canCurious(game, t.player) && (
               <Tip as="em" tip="Curious: peaceful Move or Research available">
                 +1 curious
@@ -87,26 +82,11 @@ export function TurnPanel({ game, ctl, dispatch, undo }: { game: GameState; ctl:
           <SkillButton game={game} effect="composed" disabled={!legal.can('composed')} onClick={() => dispatch({ type: 'composed' })} />
           <SkillButton
             game={game}
-            effect="tyrannical-original"
-            disabled={!legal.can('tyrannical')}
-            onClick={() => dispatch({ type: 'tyrannical' })}
-          />
-          <SkillButton
-            game={game}
             effect="ambitious"
             label="Ambitious +1"
             disabled={!legal.can('ambitious')}
             onClick={() => dispatch({ type: 'ambitious' })}
           />
-          {legal.can('scrappy') && (
-            <SkillButton
-              game={game}
-              effect="scrappy"
-              label={`Re-roll ${shipOf(game, die(game, game.turn.scrappy!.die).value).name} (Scrappy)`}
-              disabled={false}
-              onClick={() => dispatch({ type: 'scrappy' })}
-            />
-          )}
           <button
             className="btn btn-ghost undo-btn"
             aria-label="Undo"

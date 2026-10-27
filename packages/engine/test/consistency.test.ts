@@ -55,14 +55,7 @@ function bruteForce(s: GameState, withCarry: boolean): Action[] {
   const cells = spaces(s.board);
   const mine = s.dice.filter((d) => d.owner === me);
   const onBoard = s.dice.filter((d) => d.loc.zone === 'board');
-  const out: Action[] = [
-    { type: 'endTurn' },
-    { type: 'research' },
-    { type: 'composed' },
-    { type: 'ambitious' },
-    { type: 'tyrannical' },
-    { type: 'scrappy' },
-  ];
+  const out: Action[] = [{ type: 'endTurn' }, { type: 'research' }, { type: 'composed' }, { type: 'ambitious' }];
   for (const p of s.board.planets) {
     out.push({ type: 'conquer', planet: p.id });
     for (const pl of s.players) if (pl.id !== me) out.push({ type: 'conquer', planet: p.id, replace: pl.id });
@@ -83,7 +76,6 @@ function bruteForce(s: GameState, withCarry: boolean): Action[] {
         { type: 'move', die: d.id, to },
         { type: 'deploy', die: d.id, to },
         { type: 'tactical', die: d.id, to },
-        { type: 'nomadic', die: d.id, to },
         { type: 'power', die: d.id, to },
       );
     for (const o of onBoard) {
@@ -133,7 +125,7 @@ function playChecked(mode: GameMode, players: number, seed: number, mapId?: stri
       const legal = legalActions(s, { includeCarry: true });
       for (const a of legal) expect(tryApply(s, a), `${where}: legal but refused: ${keyOf(a)}`).not.toBeNull();
 
-      const tried = decisionCandidates(s).filter((a) => a.type === 'scrappy' || tryApply(s, a));
+      const tried = decisionCandidates(s).filter((a) => tryApply(s, a));
       expect(tried.map(keyOf), `${where}: decisionCandidates`).toEqual(legalActions(s).map(keyOf));
       const at = shipsByIndex(s);
       for (const d of shipsOnBoard(s)) {

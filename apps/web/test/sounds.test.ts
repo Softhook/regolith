@@ -70,17 +70,10 @@ describe('soundsFor', () => {
     expect(destroyed).toBe(2);
   });
 
-  it('hears no explosion for a ship Reorganization, Unveil the Fleet or Resourceful takes off the map', () => {
-    const reorg = step(
-      (s) => void (die(s, 'p0d0').loc = { zone: 'scrapyard' }),
-      (s) => void s.pending.unshift({ kind: 'unveil', player: 0, rerolled: [], reorganize: true }),
-    );
-    expect(reorg.first).toEqual([]);
-    expect(reorg.destroyed).toBe(0);
-
+  it('hears no explosion for a ship Unveil the Fleet or Resourceful takes off the map', () => {
     const unveil = step((s) => {
       die(s, 'p0d0').loc = { zone: 'scrapyard' };
-      const e: LogEntry = { id: ++s.logCounter, player: 0, text: '', event: 'cardPlayed', card: 'unveil-the-fleet' };
+      const e: LogEntry = { id: ++s.logCounter, player: 0, text: '', event: 'cardPlayed', card: 'r-unveil-the-fleet' };
       s.log.push(e);
       return [e];
     });
@@ -91,7 +84,7 @@ describe('soundsFor', () => {
     const resourceful = step((s) => {
       die(s, 'p0d0').loc = { zone: 'scrapyard' };
       s.turn.oncePerTurn.push('resourceful');
-      const e: LogEntry = { id: ++s.logCounter, player: 0, text: '', card: 'resourceful' };
+      const e: LogEntry = { id: ++s.logCounter, player: 0, text: '', card: 'r-resourceful' };
       s.log.push(e);
       return [e];
     });
@@ -101,7 +94,7 @@ describe('soundsFor', () => {
 
   it('still hears a card played when its discards were shuffled back into the deck', () => {
     expect(step((s) => [entry(s, 'cardPlayed')]).first).toEqual(['card']);
-    expect(step((s) => [{ ...entry(s, 'cardPlayed'), card: 'change-of-heart' }]).first).toEqual(['shuffle']);
+    expect(step((s) => [{ ...entry(s, 'cardPlayed'), card: 'r-change-of-heart' }]).first).toEqual(['shuffle']);
   });
 
   it('hears a ship renumbered without a roll', () => {
@@ -110,7 +103,7 @@ describe('soundsFor', () => {
 
   it('plays a Tactic’s own sound first, then its effect', () => {
     const { first, then } = step((s) => {
-      s.market.tacticDiscard.push('black-market');
+      s.market.tacticDiscard.push('r-black-market');
       s.players[0].missiles += 2;
       return [entry(s, 'cardPlayed')];
     });

@@ -17,7 +17,6 @@ import {
   aShip,
   shipName,
   spend,
-  spendMove,
   spendPeaceful,
   tally,
   cubeLeft,
@@ -31,7 +30,6 @@ import {
   canReconfigure,
   conquerCheck,
   deployTargets,
-  deploysFree,
   moveIndexes,
   moveOptions,
 } from './queries';
@@ -45,7 +43,7 @@ export const actionHandlers = {
     if (!canMoveDie(s, d)) fail('This ship already moved this turn');
     const opt = moveIndexes(s, d).moves.get(cellIndex(s.board, a.to));
     if (!opt) fail('Out of range');
-    spendMove(s);
+    spendPeaceful(s);
     if (opt.diagonal) markAbility(s, d); // Interceptor manoeuvre
     d.loc = boardLoc(a.to);
     markMoved(s, d);
@@ -69,9 +67,7 @@ export const actionHandlers = {
     const t = requireActionPhase(s);
     const d = ownShip(s, a.die, 'scrapyard');
     if (!deployTargets(s, t.player).some((p) => same(p, a.to))) fail('Deploy into orbit of a planet with your cube');
-    if (deploysFree(s, t.player)) {
-      /* Eager: deploying is free */
-    } else if (t.freeDeploys > 0) t.freeDeploys--;
+    if (t.freeDeploys > 0) t.freeDeploys--;
     else spend(s, 1);
     d.loc = boardLoc(a.to);
     logTo(s, d.owner, `${name(s, d.owner)} deploys ${aShip(s, d)}`, a.to);

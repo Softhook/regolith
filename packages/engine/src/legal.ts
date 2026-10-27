@@ -1,6 +1,6 @@
 /** Legal action enumeration, used by the AI and for UI hints. */
 import { same, spaces } from './board';
-import { actor, tryApply } from './engine';
+import { tryApply } from './engine';
 import type { PendingOf } from './core';
 import { barrierAt, reserve, scrapyard, shipsOnBoard } from './lookups';
 import {
@@ -12,20 +12,15 @@ import {
   canMoveDie,
   canPlayStoredTactic,
   canReconfigure,
-  canScrappy,
   canUseAbility,
   carryOptions,
   carryPassengers,
-  combatRerolls,
   conquerCheck,
-  deploysFree,
   deployTargets,
   freeAttackTargets,
   infamyTargets,
   missileOffered,
   moveOptions,
-  nomadicTargets,
-  relocationOptions,
   shuntTargets,
   startSlots,
   tacticalOptions,
@@ -52,21 +47,13 @@ const DECISION_CANDIDATES: { [K in Pending['kind']]: (s: GameState, head: Pendin
         if (missileOffered(s, head, pl.id, side)) out.push({ type: 'missile', by: pl.id, side });
       }
     }
-    for (const by of [head.attacker.player, head.defender.player]) {
-      for (const { side } of combatRerolls(s, head, by)) out.push({ type: 'reroll', by, side });
-    }
     return out;
   },
   dangerous: () => [
     { type: 'dangerous', destroy: false },
     { type: 'dangerous', destroy: true },
   ],
-  brilliant: () => [
-    { type: 'brilliant', gain: true },
-    { type: 'brilliant', gain: false },
-  ],
-  clever: (_, head) => (head.options ?? [1, 2, 3, 4, 5, 6].filter((v) => v !== head.avoid)).map((value) => ({ type: 'clever', value })),
-  relocation: (s, head) => relocationOptions(s, head.player).map((o) => ({ type: 'relocate', ...o })),
+  clever: (_, head) => (head.options ?? [1, 2, 3, 4, 5, 6]).map((value) => ({ type: 'clever', value })),
   advance: () => [
     { type: 'advance', move: true },
     { type: 'advance', move: false },
@@ -82,7 +69,7 @@ const DECISION_CANDIDATES: { [K in Pending['kind']]: (s: GameState, head: Pendin
       if (patient) out.push({ type: 'takeCard', deck: 'tactic', index, store: true });
     });
     if (m.expansions > 0 && reserve(s, head.player).length) out.push({ type: 'takeCard', deck: 'expansion', index: 0 });
-    out.push({ type: 'refreshMarket' }, { type: 'profiteer' });
+    out.push({ type: 'profiteer' });
     return out;
   },
   peek: () => [
@@ -118,14 +105,8 @@ const DECISION_CANDIDATES: { [K in Pending['kind']]: (s: GameState, head: Pendin
   unveil: (s, head) => {
     const out: Action[] = [{ type: 'unveilDone' }];
     const targets = deployTargets(s, head.player);
-    const rerollable = head.reorganize
-      ? s.dice.filter((d) => d.owner === head.player && d.loc.zone !== 'reserve')
-      : scrapyard(s, head.player);
-    for (const d of rerollable) if (!head.rerolled.includes(d.id)) out.push({ type: 'unveilReroll', die: d.id });
-    for (const d of scrapyard(s, head.player)) {
-      if (head.reorganize && !head.rerolled.includes(d.id)) continue;
-      for (const to of targets) out.push({ type: 'unveilDeploy', die: d.id, to });
-    }
+    for (const d of scrapyard(s, head.player)) if (!head.rerolled.includes(d.id)) out.push({ type: 'unveilReroll', die: d.id });
+    for (const d of scrapyard(s, head.player)) for (const to of targets) out.push({ type: 'unveilDeploy', die: d.id, to });
     return out;
   },
 };
@@ -153,12 +134,10 @@ function actionPhaseOptions(s: GameState, opts: { includeCarry?: boolean }): Act
   if (actionsClosed(t)) return out;
 
   const actions = t.actionsLeft;
-  // A move is paid with an action, an Original Curious free move, or the CE Curious extra action (spendMove).
+  // A move is paid with an action, or Curious's extra action (spendPeaceful).
   const curious = actions === 0 && canCurious(s, me);
-  const canPayMove = actions > 0 || t.freeMoves > 0 || curious;
-  // Attacking makes you pay for any Curious free moves already taken (payForAttack).
-  const canAttack = (cost: number) => actions >= cost + t.freeMovesUsed;
-  const nomadic = actions > 0 && hasSkill(s, me, 'nomadic') && !usedThisTurn(s, 'nomadic');
+  const canPayMove = actions > 0 || curious;
+  const canAttack = (cost: number) => actions >= cost;
 
   for (const d of shipsOnBoard(s, me)) {
     if (canPayMove && canMoveDie(s, d)) {
@@ -173,7 +152,7 @@ function actionPhaseOptions(s: GameState, opts: { includeCarry?: boolean }): Act
     const action = hooksOf(s, d)?.action;
     if (action) for (const c of action.options(s, d)) out.push({ type: 'power', die: d.id, ...c });
     if (actions > 0 && canReconfigure(s, d)) out.push({ type: 'reconfigure', die: d.id });
-    if ((hasSkill(s, me, 'tactical') || (hasSkill(s, me, 'tactical-original') && canMoveDie(s, d))) && !usedThisTurn(s, 'tactical')) {
+    if (hasSkill(s, me, 'tactical') && !usedThisTurn(s, 'tactical')) {
       const tac = tacticalOptions(s, d.id);
       for (const m of tac.moves) out.push({ type: 'tactical', die: d.id, to: m.cell });
       if (canAttack(0)) for (const x of tac.attacks) out.push({ type: 'tactical', die: d.id, target: x.die.id });
@@ -199,17 +178,14 @@ function actionPhaseOptions(s: GameState, opts: { includeCarry?: boolean }): Act
     if (hasSkill(s, me, 'resourceful') && !usedThisTurn(s, 'resourceful')) {
       out.push({ type: 'resourceful', die: d.id });
     }
-    if (nomadic) for (const to of nomadicTargets(s, d.id)) out.push({ type: 'nomadic', die: d.id, to });
   }
-  const freeDeploy = deploysFree(s, me);
   const targets = deployTargets(s, me);
   for (const d of scrapyard(s, me)) {
-    if (actions > 0 || t.freeDeploys > 0 || freeDeploy) for (const to of targets) out.push({ type: 'deploy', die: d.id, to });
+    if (actions > 0 || t.freeDeploys > 0) for (const to of targets) out.push({ type: 'deploy', die: d.id, to });
     if (actions > 0 && canReconfigure(s, d)) out.push({ type: 'reconfigure', die: d.id });
   }
   if (rulesOf(s).cards && (actions > 0 || curious) && pl.research < rulesOf(s).researchLimit && canGainResearch(s, me))
     out.push({ type: 'research' });
-  if (hasSkill(s, me, 'tyrannical-original') && !usedThisTurn(s, 'tyrannical') && pl.research > 1) out.push({ type: 'tyrannical' });
   if (actions >= 2)
     for (const p of s.board.planets) {
       const c = conquerCheck(s, me, p.id);
@@ -227,24 +203,14 @@ function actionPhaseOptions(s: GameState, opts: { includeCarry?: boolean }): Act
 export function legalActions(s: GameState, opts: { includeCarry?: boolean } = {}): Action[] {
   if (s.phase === 'over') return [];
   const head = s.pending[0];
-  if (head)
-    return withScrappy(
-      s,
-      answers(s, head).filter((a) => tryApply(s, a) !== null),
-    );
-  if (s.phase === 'play' && s.turn.phase === 'actions') return withScrappy(s, actionPhaseOptions(s, opts));
+  if (head) return answers(s, head).filter((a) => tryApply(s, a) !== null);
+  if (s.phase === 'play' && s.turn.phase === 'actions') return actionPhaseOptions(s, opts);
   return [];
 }
 
 /** The answers DECISION_CANDIDATES lists for a pending decision, not yet tried. */
 function answers(s: GameState, head: Pending): Action[] {
   return (DECISION_CANDIDATES[head.kind] as (s: GameState, h: Pending) => Action[])(s, head);
-}
-
-/** Scrappy's re-roll is open to the player whose turn it is, whatever they are deciding. */
-function withScrappy(s: GameState, out: Action[]): Action[] {
-  if (canScrappy(s) && actor(s) === s.turn.player) out.push({ type: 'scrappy' });
-  return out;
 }
 
 /**
@@ -255,5 +221,5 @@ function withScrappy(s: GameState, out: Action[]): Action[] {
 export function decisionCandidates(s: GameState): Action[] {
   const head = s.pending[0];
   if (!head || s.phase === 'over') return legalActions(s);
-  return withScrappy(s, answers(s, head));
+  return answers(s, head);
 }

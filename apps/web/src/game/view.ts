@@ -28,7 +28,7 @@ export interface GameView {
   jumps?: number;
   toasts: Toast[];
   error: { id: number; text: string } | null;
-  /** On this device: the AI about to fire a missile or re-roll in the battle on screen. */
+  /** On this device: the AI about to fire a missile in the battle on screen. */
   aiResponder?: PlayerId | null;
   /**
    * Online only: a battle waits for the players who may respond to say they are done, and once

@@ -9,7 +9,7 @@ import { die } from './lookups';
 import { actionsClosed, canCurious, canGainResearch, canUseAbility, infamyAt, usedThisTurn } from './queries';
 import { d6 } from './rng';
 import { rulesOf, shipOf } from './rules';
-import { activeSkills, anySkill, hasSkill, skillRules, stealableSkill } from './skillRules';
+import { activeSkills, anySkill, hasSkill, stealableSkill } from './skillRules';
 import {
   RuleError,
   type Action,
@@ -122,15 +122,10 @@ export function markSeen(s: GameState, d: Die) {
 
 /**
  * Rolls one of a player's ships during play (Reconfigure, a destroyed ship, an expansion ship…).
- * Clever then lets the owner choose the number instead; Scrappy lets the player whose turn it is
- * re-roll it once, right away. `avoid` is the number a Reconfigure must move away from.
+ * `avoid` is the number a Reconfigure must move away from.
  */
 export function rollShip(s: GameState, d: Die, avoid?: number) {
   roll(s, d, avoid);
-  if (s.phase !== 'play') return;
-  if (anySkill(s, d.owner, (r) => r.chooseShipNumbers))
-    s.pending.unshift({ kind: 'clever', player: d.owner, die: d.id, avoid, source: 'clever' });
-  else if (d.owner === s.turn.player && anySkill(s, d.owner, (r) => r.rerollShips)) s.turn.scrappy = { die: d.id, avoid };
 }
 
 /** Reconfigure: re-roll until the number changes (see RuleSet.reconfigure). */
@@ -174,8 +169,6 @@ export function emptyTurn(player: PlayerId, number: number): TurnState {
     phase: 'actions',
     actionsLeft: 0,
     freeDeploys: 0,
-    freeMoves: 0,
-    freeMovesUsed: 0,
     moved: {},
     abilityUsed: {},
     seen: {},
@@ -215,28 +208,6 @@ export function spendPeaceful(s: GameState) {
   if (t.actionsLeft > 0) spend(s, 1);
   else if (canCurious(s, t.player)) t.curiousUsed = true;
   else fail('No actions left');
-}
-
-/** Pays for a move: an Original Curious free move if there is one, otherwise as `spendPeaceful`. */
-export function spendMove(s: GameState) {
-  const t = s.turn;
-  if (t.freeMoves > 0) {
-    t.freeMoves--;
-    t.freeMovesUsed++;
-  } else spendPeaceful(s);
-}
-
-/**
- * Original Curious (2nd-printing errata, BGG thread 1087563): the free move is only allowed on a
- * turn without attacks. Attacking forfeits it, and any free move already taken this turn is paid
- * for with an action, as if it had been an ordinary move.
- */
-export function payForAttack(s: GameState) {
-  const t = s.turn;
-  if (t.actionsLeft < t.freeMovesUsed) fail('Curious: you took a free move, so attacking this turn costs 1 more action');
-  t.actionsLeft -= t.freeMovesUsed;
-  t.freeMovesUsed = 0;
-  t.freeMoves = 0;
 }
 
 export function ownShip(s: GameState, id: string, zone?: Die['loc']['zone']): Die {
@@ -359,21 +330,20 @@ export function destroyedEnemyShip(s: GameState, winner: PlayerId, dominance: nu
   }
 }
 
-export function loseDominance(s: GameState, p: PlayerId, n: number, destroyed = false) {
-  const keep = skillRules(s, p).map((r) => r.keepDominance);
-  if (keep.includes('always') || (destroyed && keep.includes('destroyed'))) return;
+export function loseDominance(s: GameState, p: PlayerId, n: number) {
+  if (anySkill(s, p, (r) => r.keepDominance)) return;
   const pl = s.players[p];
   pl.dominance = Math.max(1, pl.dominance - n);
 }
 
 /**
- * After `owner`'s cube left planet `from`: if that was their last cube on their home planet, the home
- * moves with it to `to` (Relocation) or, the cube gone back to supply, to their first other planet.
+ * After `owner`'s cube left planet `from` (over-conquest): if that was their last cube on their home planet,
+ * the home moves to their first other planet.
  */
-export function cubeLeft(s: GameState, owner: PlayerId, from: number, to?: number) {
+export function cubeLeft(s: GameState, owner: PlayerId, from: number) {
   const pl = s.players[owner];
   if (pl.home !== from || s.board.planets[from].cubes.includes(owner)) return;
-  pl.home = to ?? s.board.planets.find((p) => p.cubes.includes(owner))?.id;
+  pl.home = s.board.planets.find((p) => p.cubes.includes(owner))?.id;
 }
 
 /** Places a cube; the game ends the moment a player places their last one. */

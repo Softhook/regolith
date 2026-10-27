@@ -18,7 +18,7 @@ function aiDelay(s: GameState): number {
   return 800;
 }
 
-/** Pause before an AI fires a missile or re-rolls in combat. */
+/** Pause before an AI fires a missile in combat. */
 const COMBAT_RESPONSE_MS = 1700;
 /** Pause before a battle no human fights in resolves (a human dismisses their own battles). */
 export const COMBAT_RESOLVE_MS = 2600;
@@ -33,8 +33,8 @@ export function humanFights(game: GameState, combat: CombatPending): boolean {
 
 /**
  * Plays for the AI players: whenever it is an AI's turn or decision, asks it for an action and
- * dispatches it after a short delay. During combat, gives every AI that may respond (missile,
- * re-roll) its chance; a human fighting in the battle then resolves it (CombatOverlay), and a
+ * dispatches it after a short delay. During combat, gives every AI that may respond with a missile
+ * its chance; a human fighting in the battle then resolves it (CombatOverlay), and a
  * battle between AIs resolves by itself after a pause.
  *
  * Returns the AI that is about to respond to the battle on screen, if any, so a human doesn't
@@ -54,7 +54,7 @@ export function useAiDriver(game: GameState, dispatch: Dispatch, onError: (text:
 
     if (head?.kind === 'combat' && stage) {
       const shot = shotWait(head);
-      // Asked again after anything changes the battle (a re-roll or a missile).
+      // Asked again after anything changes the battle (a missile).
       for (const p of game.players) {
         const k = `${stage}:${p.id}`;
         if (!p.ai || !canRespondToCombat(game, head, p.id) || asked.current.has(k)) continue;

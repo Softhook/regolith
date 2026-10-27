@@ -5,7 +5,6 @@ import { startCombat } from './combat';
 import {
   destroyShip,
   fail,
-  gainDominance,
   gainResearch,
   headOf,
   log,
@@ -13,24 +12,21 @@ import {
   logTo,
   loseDominance,
   markAbility,
-  markMoved,
   markSeen,
   name,
   oncePerTurn,
   ownShip,
   requireActionPhase,
   requireSkill,
-  roll,
   aShip,
   shipName,
-  spend,
   type Handlers,
 } from './core';
 import { card } from './data';
 import { boardLoc, cellOf, die } from './lookups';
-import { canGainResearch, canMoveDie, canScrappy, combatReroll, nomadicTargets, tacticalOptions } from './queries';
+import { canGainResearch, tacticalOptions } from './queries';
 import { hasPower } from './rules';
-import { hasSkill, ruleOf, skillCard, type SkillRule } from './skillRules';
+import { ruleOf, skillCard, type SkillRule } from './skillRules';
 import type { Action, GameState, PlayerId } from './types';
 
 export const skillHandlers = {
@@ -72,26 +68,12 @@ export const skillHandlers = {
     markSeen(s, d);
     note(s, `${name(s, d.owner)} adjusts their ${was} to ${aShip(s, d)} (Flexible).`, d.owner);
   },
-  tyrannical(s) {
-    const t = requireActionPhase(s);
-    requireSkill(s, t.player, 'tyrannical-original');
-    const pl = s.players[t.player];
-    if (pl.research <= 1) fail('No research to convert');
-    oncePerTurn(s, 'tyrannical');
-    pl.research--;
-    gainDominance(s, t.player, 1);
-  },
   tactical(s, a) {
     const t = requireActionPhase(s);
-    const original = hasSkill(s, t.player, 'tactical-original');
-    if (!original) requireSkill(s, t.player, 'tactical');
+    requireSkill(s, t.player, 'tactical');
     const d = ownShip(s, a.die, 'board');
-    if (original && !canMoveDie(s, d)) fail('This ship already moved this turn');
-    // Tactical moves the ship; the Original card counts it as the ship's one move for the turn.
-    const use = () => {
-      oncePerTurn(s, 'tactical');
-      if (original) markMoved(s, d);
-    };
+    // Tactical moves the ship, and leaves it its own move for the turn.
+    const use = () => oncePerTurn(s, 'tactical');
     if (a.passenger) {
       // Flagship Transport over the 1 space (forum consensus, BGG thread 1093051).
       if (!hasPower(s, d, 'transport')) fail('Only a ship with Carry & Move can transport');
@@ -125,31 +107,10 @@ export const skillHandlers = {
     d.loc = boardLoc(opt.cell);
     logTo(s, d.owner, `${name(s, d.owner)} moves their ${shipName(s, d)} one space`, opt.cell, ' (Tactical)');
   },
-  nomadic(s, a) {
-    const t = requireActionPhase(s);
-    requireSkill(s, t.player, 'nomadic');
-    const d = ownShip(s, a.die, 'board');
-    if (!nomadicTargets(s, d.id).some((p) => same(p, a.to))) fail('Relocate to an empty orbital position of a neighbouring planet');
-    oncePerTurn(s, 'nomadic');
-    spend(s, 1);
-    // A relocation, not a move: the ship may still move this turn (forum consensus, BGG thread 1636855).
-    d.loc = boardLoc(a.to);
-    logTo(s, d.owner, `${name(s, d.owner)} relocates their ${shipName(s, d)}`, a.to, ' (Nomadic)');
-  },
-  scrappy(s) {
-    if (!canScrappy(s)) fail('Nothing to re-roll');
-    const { die: id, avoid } = s.turn.scrappy!;
-    delete s.turn.scrappy;
-    const d = die(s, id);
-    roll(s, d, avoid);
-    markSeen(s, d);
-    log(s, `${name(s, d.owner)} re-rolls their ship (Scrappy): ${d.value}.`, d.owner);
-  },
   clever(s, a) {
     const head = headOf(s, 'clever', 'No ship number to choose');
     if (a.value < 1 || a.value > 6) fail('Ship numbers range from 1 to 6');
     if (head.options && !head.options.includes(a.value)) fail('Clever changes the number by at most 1');
-    if (a.value === head.avoid) fail('A reconfigured ship must change its number');
     s.pending.shift();
     const d = die(s, head.die);
     d.value = a.value;
@@ -160,12 +121,6 @@ export const skillHandlers = {
       `${name(s, head.player)} makes ${d.loc.zone === 'board' ? 'it' : 'their scrapped ship'} ${aShip(s, d)} (${skill}).`,
       head.player,
     );
-  },
-  brilliant(s, a) {
-    const head = headOf(s, 'brilliant', 'No Brilliant research to take');
-    s.pending.shift();
-    if (a.gain) gainResearch(s, head.player, 2);
-    else log(s, `${name(s, head.player)} declines Brilliant's research.`, head.player);
   },
   resourceful(s, a) {
     const t = requireActionPhase(s);
@@ -196,19 +151,10 @@ export function skillUsed(s: GameState, a: Action): { player: PlayerId; card: st
     return card ? { player, card } : undefined;
   };
   switch (a.type) {
-    case 'reroll': {
-      const skill = head?.kind === 'combat' ? combatReroll(s, head, a.by, a.side) : undefined;
-      return skill && { player: a.by, card: skill.card };
-    }
-    case 'scrappy':
-      return s.turn.scrappy && find(die(s, s.turn.scrappy.die).owner, (r) => r.rerollShips);
     case 'clever':
       return head?.kind === 'clever'
-        ? find(head.player, (r) => (head.source === 'calculating' ? r.chooseScrapyardNumber : r.adjustReconfigure || r.chooseShipNumbers))
+        ? find(head.player, (r) => (head.source === 'calculating' ? r.chooseScrapyardNumber : r.adjustReconfigure))
         : undefined;
-    case 'brilliant':
-      if (!a.gain || head?.kind !== 'brilliant') return undefined;
-      return { player: head.player, card: skillCard(s, head.player, 'brilliant') ?? 'brilliant' };
     case 'dangerous':
       return a.destroy && head?.kind === 'dangerous' ? find(head.player, (r) => r.combat?.destroyBoth) : undefined;
     case 'ruthless':

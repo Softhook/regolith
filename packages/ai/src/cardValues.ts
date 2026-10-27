@@ -5,9 +5,9 @@ import { effectOf } from '@regolith/engine';
  * after the turn it is taken in, so the search can't see the difference between skills; with one
  * value for all of them the draft went to whichever came first in the row.
  *
- * Community skills: from the skill value test (docs/card-benchmark.md), 3 points per percentage
- * point a skill wins above holding none, around the old flat value. Skills whose worth that test
- * can't show (Talented, Patient, Prideful) and Original cards keep the flat value.
+ * Skills, by the Community card each started as (its effect): from the skill value test (docs/card-benchmark.md),
+ * 3 points per percentage point a skill wins above holding none, around the old flat value. Skills whose worth
+ * that test can't show (Talented, Patient, Prideful) keep the flat value.
  */
 const SKILL = 110;
 
@@ -30,12 +30,10 @@ const SKILL_WIN_RATE: Record<string, number> = {
   hostile: 66,
   ravenous: 66,
   resourceful: 65.5,
-  ingenious: 63,
   plundering: 61.5,
   rational: 61,
   cunning: 58,
   strategic: 58,
-  pioneering: 57.5,
   composed: 56,
   clever: 55,
   devious: 53,
@@ -65,7 +63,7 @@ const TACTIC_VALUE: Record<string, number> = {
   'black-market': 65,
   momentum: 60,
   'change-of-heart': 55,
-  sabotage: 50,
+  'sabotage-double': 50,
   'warp-gate': 45,
   barrier: 45,
   'kinetic-shunt': 50,

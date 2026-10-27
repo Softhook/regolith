@@ -3,9 +3,7 @@ import {
   say,
   shipOf,
   canRespondToCombat,
-  card,
   combatOutcome,
-  combatReroll,
   missileOffered,
   signed,
   tryApply,
@@ -160,10 +158,6 @@ function Battle({
         </ul>
         <div className={`combat-total ${revealed ? 'show' : ''}`}>{revealed ? total.total : '?'}</div>
         {revealed &&
-          humans.map((p) => (
-            <RerollButton key={p.id} game={game} combat={combat} role={role} by={p} named={humans.length > 1} dispatch={dispatch} />
-          ))}
-        {revealed &&
           shooters.map((sh) => (
             <MissileButton key={sh.id} game={game} combat={combat} role={role} shooter={sh} named={humans.length > 1} dispatch={dispatch} />
           ))}
@@ -206,7 +200,7 @@ function Battle({
               OK
             </button>
           ) : online || timed ? (
-            // The battle moves on by itself shortly; restarts when a missile or re-roll changes it.
+            // The battle moves on by itself shortly; restarts when a missile changes it.
             <div className="autobar" key={combatStage(combat)}>
               <span style={{ animationDuration: `${online ? COMBAT_MS : COMBAT_RESOLVE_MS}ms` }} />
             </div>
@@ -236,37 +230,6 @@ function close(f: (() => void) | undefined): (() => void) | undefined {
     window.setTimeout(() => window.removeEventListener('click', stop, true), 400);
     f();
   };
-}
-
-/** Cruel, Relentless or Scrappy: re-roll this side's combat dice (each card once per battle). */
-function RerollButton({
-  game,
-  combat,
-  role,
-  by,
-  named,
-  dispatch,
-}: {
-  game: GameState;
-  combat: CombatPending;
-  role: CombatRole;
-  by: PlayerState;
-  named: boolean;
-  dispatch: Dispatch;
-}) {
-  const skill = combatReroll(game, combat, by.id, role);
-  if (!skill) return null;
-  const via = card(skill.card).name;
-  const own = combat[role].player === by.id;
-  return (
-    <button className="btn btn-missile" onClick={() => dispatch({ type: 'reroll', by: by.id, side: role })}>
-      <span>
-        🎲 {named ? `${by.name}: ` : ''}
-        {own ? `Re-roll (${via})` : `Make ${game.players[combat[role].player].name} re-roll (${via})`}
-      </span>
-      <small>You must keep the new roll</small>
-    </button>
-  );
 }
 
 /**

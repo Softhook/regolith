@@ -2,8 +2,6 @@ import {
   actor,
   attackOdds,
   cellOf,
-  combatOutcome,
-  combatRerolls,
   conquerCheck,
   die,
   dieAt,
@@ -45,10 +43,8 @@ const RANDOM_ACTIONS = new Set<Action['type']>([
   'reconfigure',
   'freeReconfigure',
   'resourceful',
-  'scrappy',
   'takeCard',
   'peekChoice',
-  'refreshMarket',
 ]);
 
 export interface GreedyOptions {
@@ -81,19 +77,6 @@ function hidden(state: GameState): GameState {
   const s = { ...state, market: { ...market, skillDeck: [...market.skillDeck], tacticDeck: [...market.tacticDeck] } };
   shuffleUnseen(s, random);
   return withRandomSeed(s, random);
-}
-
-/**
- * A free combat re-roll (Cruel, Relentless, Scrappy) for `player`, if they are losing the battle.
- * Re-rolling can turn a lost battle into a won one but never the reverse, so this is exact.
- */
-export function chooseReroll(state: GameState, player: PlayerId): Action | null {
-  const head = state.pending[0];
-  if (head?.kind !== 'combat') return null;
-  const mine = head.attacker.player === player ? 'attacker' : head.defender.player === player ? 'defender' : null;
-  if (!mine || (mine === 'attacker') === combatOutcome(state, head).attackerWins) return null;
-  const [first] = combatRerolls(state, head, player);
-  return first ? { type: 'reroll', by: player, side: first.side } : null;
 }
 
 /**

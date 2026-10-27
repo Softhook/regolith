@@ -34,33 +34,19 @@ const DECISION_BRUTE_FORCE: { [K in Pending['kind']]: (s: GameState) => Action[]
   placeShips: (s) => s.dice.flatMap((d) => allCells(s).map((to) => ({ type: 'placeShip', die: d.id, to }) as const)),
   combat: (s) => [
     { type: 'resolveCombat' },
-    ...s.players.flatMap((p) =>
-      (['attacker', 'defender'] as const).flatMap((side) => [
-        { type: 'missile', by: p.id, side } as const,
-        { type: 'reroll', by: p.id, side } as const,
-      ]),
-    ),
+    ...s.players.flatMap((p) => (['attacker', 'defender'] as const).map((side) => ({ type: 'missile', by: p.id, side }) as const)),
   ],
   dangerous: () => [
     { type: 'dangerous', destroy: true },
     { type: 'dangerous', destroy: false },
   ],
-  brilliant: () => [
-    { type: 'brilliant', gain: true },
-    { type: 'brilliant', gain: false },
-  ],
   clever: () => [0, 1, 2, 3, 4, 5, 6, 7].map((value) => ({ type: 'clever', value })),
-  relocation: (s) =>
-    s.board.planets.flatMap((p) =>
-      s.players.flatMap((o) => s.board.planets.map((to) => ({ type: 'relocate', planet: p.id, owner: o.id, to: to.id }) as const)),
-    ),
   advance: () => [
     { type: 'advance', move: true },
     { type: 'advance', move: false },
   ],
   infamy: (s) => s.board.planets.map((p) => ({ type: 'infamy', planet: p.id })),
   takeCard: () => [
-    { type: 'refreshMarket' },
     { type: 'profiteer' },
     ...(['skill', 'tactic', 'expansion'] as const).flatMap((deck) =>
       ROW_INDEXES.flatMap((index) => [{ type: 'takeCard', deck, index } as const, { type: 'takeCard', deck, index, store: true } as const]),
@@ -99,10 +85,9 @@ function allCells(s: GameState): Cell[] {
   return out;
 }
 
-/** Every answer worth trying to the pending decision, legal or not, plus Scrappy. */
+/** Every answer worth trying to the pending decision, legal or not. */
 export function bruteForceDecision(s: GameState): Action[] {
-  const head = s.pending[0];
-  return [...DECISION_BRUTE_FORCE[head.kind](s), { type: 'scrappy' }];
+  return DECISION_BRUTE_FORCE[s.pending[0].kind](s);
 }
 
 /** Answers to the open decision that apply() accepts but legalActions() doesn't offer (none, if they agree). */

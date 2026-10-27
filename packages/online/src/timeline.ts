@@ -156,7 +156,7 @@ export class Timeline {
           if (this.chain.at(-1)?.body.t === 'ask') this.dirty = true;
           else this.extend();
         }
-        // The game moved on from this stage (a missile or re-roll) before this pass arrived. If the
+        // The game moved on from this stage (a missile) before this pass arrived. If the
         // pass completed the stage, the battle was decided there and what followed was too late:
         // replaying from the start finds out (passes are rare this late, so it costs little).
         else if (this.stages.has(b.stage)) this.dirty = true;
@@ -293,18 +293,18 @@ export class Timeline {
     const prev = r.steps.at(-1)!.state;
     let next: GameState | null = null;
     if (b.t === 'act') {
-      // While a battle waits for passes, only a missile or re-roll is for the battle itself; any
+      // While a battle waits for passes, only a missile is for the battle itself; any
       // post-combat move is chained to this same tip and waits until the last pass arrives.
       if (r.combat) {
-        if (b.action.type !== 'missile' && b.action.type !== 'reroll') return false;
+        if (b.action.type !== 'missile') return false;
         if (r.combat.passed.includes(b.seat)) return false;
       }
       // The poster's browser checked the move against this same position before sending it, so
       // the engine refusing it here means the two browsers don't agree on the rules.
-      // Except a missile or re-roll: it races the last pass, and arriving after the battle was
-      // decided is a race lost, not a disagreement.
+      // Except a missile: it races the last pass, and arriving after the battle was decided is a
+      // race lost, not a disagreement.
       const refused = () => {
-        const racy = b.action.type === 'missile' || b.action.type === 'reroll';
+        const racy = b.action.type === 'missile';
         if (!seat.ai && !racy) r.desync ??= { seat: b.seat, author: p.author, why: 'rejected' };
         return false;
       };

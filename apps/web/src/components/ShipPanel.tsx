@@ -15,7 +15,7 @@ export function ShipPanel({ game, ctl, dispatch }: { game: GameState; ctl: Contr
   const onBoard = d.loc.zone === 'board';
   const used = !canUseAbility(game, d);
   const secondUse = !used && !!t.abilityUsed[d.id];
-  const tacticalId = skillCard(game, me, 'tactical') ?? skillCard(game, me, 'tactical-original');
+  const tacticalId = skillCard(game, me, 'tactical');
   const mine = (a: { die: string }) => a.die === d.id;
   const ship = shipOf(game, d.value);
   const words = (text: string) => say(game, text);
@@ -183,20 +183,11 @@ export function ShipPanel({ game, ctl, dispatch }: { game: GameState; ctl: Contr
             </button>
           </>
         )}
-        {legal.can('nomadic', mine) && (
-          <button
-            className="btn"
-            onClick={() => ctl.select({ kind: 'nomadic', die: d.id })}
-            title={words(card(skillCard(game, me, 'nomadic')!).text)}
-          >
-            Nomadic
-          </button>
-        )}
         {legal.can('resourceful', mine) && (
           <button
             className="btn"
             onClick={() => dispatch({ type: 'resourceful', die: d.id })}
-            title={words(card('resourceful').text)}
+            title={words(card(skillCard(game, me, 'resourceful')!).text)}
             aria-label="Sacrifice +1 action"
           >
             <Label long="Sacrifice +1 action" short="Sacrifice" />

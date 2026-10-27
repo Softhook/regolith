@@ -6,15 +6,13 @@ import { EffectBox, type MapEffect } from './EffectBox';
 
 /**
  * A card's mark on the map, over the plain action effects (ActionEffects): Show of Force striking a ship,
- * Warp Gates linked and the old pair closed (the board draws the gates themselves), a cube relocated,
- * an expansion ship arriving, a fleet cloaked and unveiled, a ship number nudged (Flexible, Clever) or
- * re-rolled (Scrappy), a ship scrapped (Resourceful) or jumping to another planet (Nomadic), and the
- * two ships Dangerous destroys. `replaces` names what the effect stands in for an action's effect on
+ * Warp Gates linked and the old pair closed (the board draws the gates themselves), an expansion ship
+ * arriving, a fleet cloaked and unveiled, a ship number nudged (Flexible, Clever), a ship scrapped
+ * (Resourceful), and the two ships Dangerous destroys. `replaces` names what the effect stands in for an action's effect on
  * (ActionEffects): a ship, or `planet:<id>` for the planet a cube was relocated to.
  */
 type CardEffect = MapEffect & { replaces?: string } & (
-    | { kind: 'strike' | 'expansion' | 'cloak' | 'decloak' | 'implode' | 'raise' | 'lower' | 'reroll' | 'blink' }
-    | { kind: 'beam' | 'arc'; to: Cell }
+    { kind: 'strike' | 'expansion' | 'cloak' | 'decloak' | 'implode' | 'raise' | 'lower' | 'blink' } | { kind: 'beam' | 'arc'; to: Cell }
   );
 
 /** Longer than a plain action's effect: cards are rare, and worth a moment. */
@@ -32,8 +30,8 @@ export function cardEffectsOf(before: GameState, game: GameState): CardEffect[] 
   // The cards this step played or used (the engine names each on the entry its owner logged).
   const used = new Set(game.log.filter((e) => e.id > lastLogId(before) && e.card).map((e) => effectOf(e.card!)));
   // Unveil the Fleet takes the player's ships off the map as it is played (a Clever choice for each
-  // may come before the unveil itself); Reorganization each one it re-rolls.
-  const unveiling = (head?.kind === 'unveil' && head.reorganize) || used.has('unveil-the-fleet');
+  // may come before the unveil itself).
+  const unveiling = used.has('unveil-the-fleet');
 
   for (const d of game.dice) {
     const p = was.get(d.id);
@@ -51,13 +49,7 @@ export function cardEffectsOf(before: GameState, game: GameState): CardEffect[] 
       if (head?.kind === 'placeExpansion') out.push({ kind: 'expansion', ...fx, at: to });
       else if (head?.kind === 'unveil') out.push({ kind: 'decloak', ...fx, at: to });
     } else if (from && to) {
-      // Nomadic relocates the ship, it doesn't fly there: it folds away and opens again at the planet.
-      if (!same(from, to) && used.has('nomadic')) {
-        out.push({ kind: 'implode', ...fx, at: from });
-        out.push({ kind: 'blink', ...fx, at: to });
-      }
-      if (d.rolls !== p.rolls && used.has('scrappy')) out.push({ kind: 'reroll', ...fx, at: to });
-      else if (d.value !== p.value && d.rolls === p.rolls && (head?.kind === 'clever' || used.has('flexible'))) {
+      if (d.value !== p.value && d.rolls === p.rolls && (head?.kind === 'clever' || used.has('flexible'))) {
         out.push({ kind: d.value > p.value ? 'raise' : 'lower', ...fx, at: to });
       }
     }
@@ -71,19 +63,6 @@ export function cardEffectsOf(before: GameState, game: GameState): CardEffect[] 
     const gone = (id: string) => !cellOf(game.dice.find((d) => d.id === id)!);
     if (a && b && gone(head.attacker) && gone(head.defender)) {
       out.push({ kind: 'arc', id: `dangerous:${step}`, at: b, to: a, color: colorOf(head.player) });
-    }
-  }
-
-  if (head?.kind === 'relocation') {
-    // Another player's cube left one planet and landed on another.
-    const old = new Map(before.board.planets.map((pl) => [pl.id, pl.cubes]));
-    const delta = (pl: (typeof game.board.planets)[number]) => pl.cubes.length - (old.get(pl.id)?.length ?? 0);
-    const src = game.board.planets.find((pl) => delta(pl) < 0);
-    const dst = game.board.planets.find((pl) => delta(pl) > 0);
-    if (src && dst) {
-      const color = colorOf(dst.cubes.at(-1) ?? head.player);
-      out.push({ kind: 'implode', id: `relocation:${step}`, at: src, color });
-      out.push({ kind: 'beam', id: `relocation:${step}`, at: src, to: dst, color, replaces: `planet:${dst.id}` });
     }
   }
 
@@ -143,12 +122,6 @@ const PARTS: Record<CardEffect['kind'], ReactNode> = {
   ),
   raise: chevrons,
   lower: chevrons,
-  reroll: (
-    <>
-      <span className="cfx-spin" />
-      <span className="cfx-spin late" />
-    </>
-  ),
   blink: (
     <>
       <span className="cfx-halo" />

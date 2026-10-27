@@ -332,7 +332,7 @@ function quickSettle(state: GameState): GameState {
 }
 
 /**
- * Settling Unveil the Fleet (and Reorganization): the next ship onto the first space it may take, or Done when
+ * Settling Unveil the Fleet: the next ship onto the first space it may take, or Done when
  * none is left, so every option at the root is played out alike and cheaply. Unveil is many steps, each with up to
  * a hundred spaces (a skill that deploys anywhere isolated): trying them all at each step made one AI decision
  * take minutes. Where each ship goes is still chosen properly, one ship per decision, at the root (`choose`).
@@ -342,10 +342,8 @@ function unveilPlacements(s: GameState): Action[] {
   const head = s.pending[0] as Extract<Pending, { kind: 'unveil' }>;
   const targets = deployTargets(s, head.player);
   if (!targets.length) return [{ type: 'unveilDone' }];
-  const die = scrapyard(s, head.player).find((d) => !head.reorganize || head.rerolled.includes(d.id));
-  if (die) return [{ type: 'unveilDeploy', die: die.id, to: targets[0] }];
-  const unrerolled = head.reorganize ? scrapyard(s, head.player).find((d) => !head.rerolled.includes(d.id)) : undefined;
-  return [unrerolled ? { type: 'unveilReroll', die: unrerolled.id } : { type: 'unveilDone' }];
+  const die = scrapyard(s, head.player)[0];
+  return [die ? { type: 'unveilDeploy', die: die.id, to: targets[0] } : { type: 'unveilDone' }];
 }
 
 function seed(random: () => number): number {

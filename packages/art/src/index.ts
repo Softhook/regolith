@@ -68,7 +68,6 @@ export {
   estimateWidth,
   type CardDeck,
   type CardFace,
-  type CardLook,
   type CardOptions,
   type CardPalette,
   type Measure,

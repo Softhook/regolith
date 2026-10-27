@@ -19,11 +19,9 @@ import { CUBE_PAD } from '../src/tokens';
 import { boxGap } from '../src/tile/geometry';
 import maps from '../../engine/src/data/maps.json';
 import { parseToken } from '../../engine/src/board';
-import cards from '../../engine/src/data/cards.json';
 import { cardBackSvg, cardSvg, type CardDeck } from '../src/card';
 import { ICONS } from '../src/icons';
 import { CARD_CATEGORIES } from '../src/tokens';
-import { ILLUSTRATIONS } from '../src/illustrations';
 import { rng } from '../src/rng';
 import { MIN_TEXT, playerAidSvg } from '../src/aid';
 import { shipDie } from '../src/kit/starships';
@@ -210,61 +208,6 @@ describe('tiles off the square', () => {
   });
 });
 
-describe('card art', () => {
-  type Def = { id: string; name: string; subtitle: string; text: string; category: string; count: number };
-  const decks: [CardDeck, Def[]][] = [
-    ['skill', cards.skills],
-    ['tactic', cards.tactics],
-    ['expansion', cards.expansion],
-    ['command', cards.original_command],
-    ['gambit', cards.original_gambit],
-  ];
-  const faces = decks.flatMap(([deck, list]) => list.map((c, i) => ({ ...c, deck, copies: c.count, index: i + 1, deckSize: list.length })));
-
-  it('renders every card and back without bad numbers or broken references', () => {
-    for (const f of faces) {
-      for (const svg of [cardSvg(f, { bleed: true }), cardSvg(f, { rounded: true })]) {
-        checkSvg(svg, f.id);
-      }
-    }
-    for (const [deck] of decks) checkSvg(cardBackSvg(deck, { bleed: true }), `back-${deck}`);
-  });
-
-  it('is the same every time for the same card, and differs between cards', () => {
-    const [a, b] = faces;
-    expect(cardSvg(a)).toBe(cardSvg({ ...a }));
-    expect(cardSvg(a)).not.toBe(cardSvg(b));
-  });
-
-  it('gives every card its own illustration, and no two cards the same picture unless they are the same card', () => {
-    for (const f of faces) expect(ILLUSTRATIONS[f.id], f.id).toBeDefined();
-    expect(Object.keys(ILLUSTRATIONS).sort()).toEqual(faces.map((f) => f.id).sort());
-    // Each scene drawn with the same seed, box and colours: two cards sharing a drawing would match.
-    const box = { x: 0, y: 0, w: 63.5, h: 43 };
-    const seen = new Map<string, string>();
-    // An original card may reuse the picture of the same card in the Community Edition (o-x → x).
-    const shared = (id: string) => id.startsWith('o-') && ILLUSTRATIONS[id] === ILLUSTRATIONS[id.slice(2)];
-    for (const f of faces) {
-      const out = ILLUSTRATIONS[f.id].draw({ id: 'x', r: rng(1), hue: 200, box, p1: 196, p2: 328 });
-      const svg = out.map((p) => p.defs + p.body).join('');
-      expect(svg, f.id).not.toMatch(/NaN|undefined|Infinity/);
-      if (shared(f.id)) continue;
-      expect(seen.get(svg), `${f.id} draws the same as ${seen.get(svg)}`).toBeUndefined();
-      seen.set(svg, f.id);
-    }
-  });
-
-  it('gives every card a known category, so it has a colour and an icon', () => {
-    for (const f of faces) expect(CARD_CATEGORIES[f.category], f.id).toBeDefined();
-    for (const c of Object.keys(CARD_CATEGORIES)) expect(ICONS[c], c).toBeDefined();
-  });
-
-  it('is poker size, with bleed when asked', () => {
-    expect(cardSvg(faces[0])).toContain('width="63.5mm" height="88.9mm"');
-    expect(cardSvg(faces[0], { bleed: true })).toContain('width="69.5mm" height="94.9mm"');
-  });
-});
-
 describe('player aid', () => {
   it('renders both editions without bad numbers or broken references', () => {
     for (const edition of ['community', 'classic'] as const) {
@@ -329,9 +272,17 @@ describe('screenprint cards', () => {
     ['tactic', regolithCards.tactics],
     ['expansion', regolithCards.expansion],
   ];
-  const faces = decks.flatMap(([deck, list]) =>
-    list.map((c, i) => ({ ...c, deck, copies: c.count, index: i + 1, deckSize: list.length, look: 'screenprint' as const })),
-  );
+  const faces = decks.flatMap(([deck, list]) => list.map((c, i) => ({ ...c, deck, copies: c.count, index: i + 1, deckSize: list.length })));
+
+  it('gives every card a known category, so it has a colour and an icon', () => {
+    for (const f of faces) expect(CARD_CATEGORIES[f.category], f.id).toBeDefined();
+    for (const c of Object.keys(CARD_CATEGORIES)) expect(ICONS[c], c).toBeDefined();
+  });
+
+  it('is poker size, with bleed when asked', () => {
+    expect(cardSvg(faces[0])).toContain('width="63.5mm" height="88.9mm"');
+    expect(cardSvg(faces[0], { bleed: true })).toContain('width="69.5mm" height="94.9mm"');
+  });
 
   it('has a scene for every Regolith card, and none for a card it lacks', () => {
     expect(Object.keys(SCENES).sort()).toEqual(faces.map((f) => f.id).sort());
@@ -350,7 +301,7 @@ describe('screenprint cards', () => {
     const fronts = faces.map((f) => cardSvg(f, { bleed: true, rounded: true }));
     fronts.forEach((svg, i) => checkSvg(svg, faces[i].id));
     expect(cardSvg(faces[0])).toBe(cardSvg({ ...faces[0] }));
-    for (const [deck] of decks) checkSvg(cardBackSvg(deck, { bleed: true, look: 'screenprint' }), `back-${deck}`);
+    for (const [deck] of decks) checkSvg(cardBackSvg(deck, { bleed: true }), `back-${deck}`);
     // Each card's own scene: no two draw the same.
     const scenes = faces.map((f) =>
       SCENES[f.id].draw({

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ALL_CARDS, IMPLEMENTED_EFFECTS, ORIGINAL_COMMAND, ORIGINAL_GAMBIT, SKILL_RULES, type CardDef } from '../src';
+import { ALL_CARDS, IMPLEMENTED_EFFECTS, RULESETS, SKILL_RULES, type CardDef } from '../src';
 
 const effect = (c: CardDef) => c.effect ?? c.id;
 
@@ -30,51 +30,13 @@ describe('card data', () => {
     expect([...IMPLEMENTED_EFFECTS].filter((e) => !used.has(e))).toEqual([]);
   });
 
-  it('has the 2013 Original deck: 22 black Gambits and 31 white Commands, 1 of each', () => {
-    const counts = Object.fromEntries(ORIGINAL_GAMBIT.map((c) => [c.name, c.count]));
-    expect(counts).toEqual({
-      Expansion: 8,
-      Momentum: 4,
-      Aggression: 4,
-      Relocation: 2,
-      Reorganisation: 2,
-      Sabotage: 2,
-    });
-    expect(ORIGINAL_GAMBIT.reduce((n, c) => n + c.count, 0)).toBe(22);
-
-    expect(ORIGINAL_COMMAND.every((c) => c.count === 1)).toBe(true);
-    expect(ORIGINAL_COMMAND.map((c) => c.name).sort()).toEqual([
-      'Agile',
-      'Arrogant',
-      'Brilliant',
-      'Cerebral',
-      'Clever',
-      'Conformist',
-      'Cruel',
-      'Cunning',
-      'Curious',
-      'Dangerous',
-      'Eager',
-      'Energetic',
-      'Ferocious',
-      'Flexible',
-      'Ingenious',
-      'Intelligent',
-      'Nomadic',
-      'Plundering',
-      'Precocious',
-      'Rational',
-      'Ravenous',
-      'Relentless',
-      'Resourceful',
-      'Righteous',
-      'Scrappy',
-      'Stealthy',
-      'Strategic',
-      'Stubborn',
-      'Tactical',
-      'Tyrannical',
-      'Warlike',
-    ]);
+  it('has Regolith’s decks: 34 Skills, 1 of each; 11 Tactics, 2 of each; 6 Reinforcements', () => {
+    const { skills, tactics, expansion } = RULESETS.regolith.cards!;
+    expect(skills).toHaveLength(34);
+    expect(skills.every((c) => c.count === 1)).toBe(true);
+    expect(tactics).toHaveLength(11);
+    expect(tactics.every((c) => c.count === 2)).toBe(true);
+    expect([expansion.name, expansion.count]).toEqual(['Reinforcements', 6]);
+    expect(RULESETS.basic.cards).toBeNull();
   });
 });

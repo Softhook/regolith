@@ -58,10 +58,8 @@ export function chooseAction(state: GameState, opts: AiOptions = {}): Action | n
   return new Search(actor(state), SEARCH[level], opts.random ?? Math.random).choose(state);
 }
 
-/** Should `player` re-roll (Cruel, Relentless, Scrappy; free, so first) or fire a missile in the current combat? */
+/** Should `player` fire a missile in the current combat? */
 export function chooseCombatResponse(state: GameState, player: PlayerId, opts: AiOptions = {}): Action | null {
-  const reroll = greedy.chooseReroll(state, player);
-  if (reroll) return reroll;
   const level = opts.level ?? 1;
   if (level === 1) return greedy.chooseMissile(state, player);
   return new Search(player, SEARCH[level], opts.random ?? Math.random).missile(state, player);

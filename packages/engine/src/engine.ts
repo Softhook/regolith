@@ -33,7 +33,6 @@ import type { Handlers } from './core';
 import { setupHandlers } from './setup';
 import { card } from './data';
 import { log, name } from './core';
-import { die } from './lookups';
 import { curiousUsed, skillHandlers, skillUsed } from './skillActions';
 import { settle } from './turn';
 import { RuleError, type Action, type GameState, type PlayerId } from './types';
@@ -54,18 +53,7 @@ export function apply(prev: GameState, action: Action): GameState {
   if (!isWellFormed(prev, action)) throw new RuleError(`Malformed action ${JSON.stringify(action)?.slice(0, 200)}`);
   const handler = HANDLERS[action.type] as (s: GameState, a: Action) => void;
   const s = copyState(prev);
-  // Scrappy's re-roll must come right after the roll: any other action by its owner gives it up. It
-  // waits while another player answers first (legal.ts offers it only to the player whose turn it is).
-  if (action.type === 'scrappy' && actor(prev) !== prev.turn.player) throw new RuleError('Another player must answer first');
-  if (action.type !== 'scrappy' && actor(prev) === prev.turn.player) delete s.turn.scrappy;
-  const kept = s.turn.scrappy;
   handler(s, action);
-  // Another player's action that moved or re-rolled the ship meanwhile gives it up too.
-  if (kept && s.turn.scrappy === kept && action.type !== 'scrappy') {
-    const was = die(prev, kept.die);
-    const now = die(s, kept.die);
-    if (now.value !== was.value || now.rolls !== was.rolls || JSON.stringify(now.loc) !== JSON.stringify(was.loc)) delete s.turn.scrappy;
-  }
   const used = skillUsed(prev, action) ?? curiousUsed(prev, s);
   if (used) showSkill(s, prev.logCounter, used.player, used.card);
   settle(s);
@@ -133,7 +121,6 @@ export function mayAct(state: GameState, seat: PlayerId, action: Action): boolea
     case 'resolveCombat':
       return false;
     case 'missile':
-    case 'reroll':
       return action.by === seat;
     default:
       return actor(state) === seat;

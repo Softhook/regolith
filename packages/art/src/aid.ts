@@ -1,6 +1,6 @@
 import { estimateWidth, type Measure } from './card';
 import { icon } from './icons';
-import { poly } from './kit/props';
+import { poly } from './kit/effects';
 import { shipDie } from './kit/starships';
 import { rng } from './rng';
 import { starfield } from './starfield';

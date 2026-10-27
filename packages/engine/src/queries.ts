@@ -1,13 +1,11 @@
 /** Read-only questions about a state: movement, deploying, conquering, combat totals… */
 import {
   cellAt,
-  diagonals,
   grid,
   type Grid,
   key,
   linked,
   orbitals,
-  orbitedPlanets,
   otherGate,
   planetFreeSlots,
   same,
@@ -15,12 +13,11 @@ import {
   stepNeighbours,
   straightLines,
   surrounding,
-  tilesTouch,
 } from './board';
 import { card, effectOf } from './data';
 import { barrierAt, cellOf, die, dieAt, isEmptySpace, reserve, shipsOnBoard } from './lookups';
 import { hasPower, hooksOf, modeHasHook, rulesOf } from './rules';
-import { activeSkills, anySkill, ruleOf, skillRules, type ActiveSkill, type CombatPart, type SkillRule } from './skillRules';
+import { activeSkills, anySkill, ruleOf, skillRules, type CombatPart, type SkillRule } from './skillRules';
 import type { Barrier, Cell, CombatPending, CombatRole, Die, GameState, OncePerTurn, Planet, PlayerId, TurnState } from './types';
 
 export type { CombatPart } from './skillRules';
@@ -113,16 +110,6 @@ export function canProfiteer(state: GameState): boolean {
 /** Whether the player can gain research at all. */
 export function canGainResearch(state: GameState, player: PlayerId): boolean {
   return !anySkill(state, player, (r) => r.noResearch);
-}
-
-/** Whether deploying is free for the player. */
-export function deploysFree(state: GameState, player: PlayerId): boolean {
-  return anySkill(state, player, (r) => r.freeDeploy);
-}
-
-/** Scrappy: whether the player whose turn it is may re-roll the ship rolled by the last action (core.ts rollShip). */
-export function canScrappy(state: GameState): boolean {
-  return !!state.turn.scrappy;
 }
 
 // ---------------------------------------------------------------------------
@@ -280,9 +267,8 @@ export function moveOptions(state: GameState, dieId: string): MoveOptions {
 /**
  * The spaces worth choosing between to attack `target` from (moveOptions launches), nearest first:
  * the nearest of each outcome. Where the attack goes in from is where a repelled ship, or a winner
- * that stays, ends up, so spaces differ when the chance to win, the use of the interceptor ability,
- * the planets it would orbit (with Ingenious, the corners too) or the ships next to it (zones of
- * control, support; through a Warp Gate too) differ.
+ * that stays, ends up, so spaces differ when the chance to win, the planets it would orbit or the ships
+ * next to it (zones of control, support; through a Warp Gate too) differ.
  */
 export function attackLaunches(state: GameState, dieId: string, target: string, opts = moveOptions(state, dieId)): AttackLaunch[] {
   const launches = opts.attacks.get(target)?.launches ?? [];
@@ -292,12 +278,11 @@ export function attackLaunches(state: GameState, dieId: string, target: string, 
   const g = grid(state.board);
   const at = shipsByIndex(state);
   const gate = gates(state, g);
-  const corners = skillRules(state, attacker.owner).some((r) => r.conquer?.diagonals);
   const seen = new Set<string>();
   return launches.filter(({ from, diagonal }) => {
     const i = from.r * g.cols + from.c;
     const near: string[] = [];
-    for (const p of (corners ? g.around : g.ortho)[i]) {
+    for (const p of g.ortho[i]) {
       const planet = cellAt(state.board, g.cells[p])?.planet;
       if (planet !== undefined) near.push(`planet ${planet}`);
     }
@@ -565,26 +550,6 @@ export function tacticalOptions(state: GameState, dieId: string): TacticalOption
   return result;
 }
 
-/**
- * Nomadic (Original): empty orbital positions of the planets on the tiles next to the planet the
- * ship orbits (any of them, where orbits overlap). "Next to" means the 4 orthogonally adjacent tiles
- * (designer, BGG thread 1182319), or a hex flower's 6. A planet the ship already orbits isn't a
- * neighbour, even on a touching tile. Its orbit's spaces count only where a neighbour's orbit overlaps
- * it, as they are then a neighbour's orbital positions too.
- */
-export function nomadicTargets(state: GameState, dieId: string): Cell[] {
-  const at = cellOf(die(state, dieId));
-  if (!at) return [];
-  const { board } = state;
-  const tileOf = (p: Planet) => cellAt(board, p)!.tile;
-  const homes = orbitedPlanets(board, at);
-  if (!homes.length) return [];
-  const near = board.planets.filter((p) => !homes.includes(p) && homes.some((h) => tilesTouch(board, tileOf(h), tileOf(p))));
-  const out = new Map<string, Cell>();
-  for (const p of near) for (const q of orbitals(board, p)) if (isEmptySpace(state, q)) out.set(key(q), q);
-  return [...out.values()];
-}
-
 // ---------------------------------------------------------------------------
 // Setup and cards
 
@@ -602,19 +567,11 @@ export function canTakeCard(state: GameState, player: PlayerId, id: string): boo
   return effectOf(id) !== 'expansion' || reserve(state, player).length > 0;
 }
 
-/** Whether the player may spend a card pick on dealing new face-up cards (Original). */
-export function canRefreshMarket(state: GameState): boolean {
-  const m = state.market;
-  return !!rulesOf(state).cards?.refresh && m.skillRow.length + m.tacticRow.length > 0;
-}
-
 /** Whether there is anything the player could do with a card pick. */
 export function canTakeAnyCard(state: GameState, player: PlayerId): boolean {
   const m = state.market;
   return (
-    [...m.skillRow, ...m.tacticRow].some((id) => canTakeCard(state, player, id)) ||
-    (m.expansions > 0 && reserve(state, player).length > 0) ||
-    canRefreshMarket(state)
+    [...m.skillRow, ...m.tacticRow].some((id) => canTakeCard(state, player, id)) || (m.expansions > 0 && reserve(state, player).length > 0)
   );
 }
 
@@ -718,9 +675,7 @@ export function conquerCheck(state: GameState, player: PlayerId, planetId: numbe
 
   const rules = skillRules(state, player).flatMap((r) => (r.conquer ? [r.conquer] : []));
   const mine = (spaces: readonly Cell[]) => spaces.map((p) => dieAt(state, p)).filter((d): d is Die => !!d && d.owner === player);
-  const orbit = mine(orbitals(state.board, planet));
-  const corners = rules.some((r) => r.diagonals) ? mine(diagonals(state.board, planet)) : [];
-  const all = [...orbit, ...corners];
+  const all = mine(orbitals(state.board, planet));
   const total = (ships: Die[]) => ships.reduce((a, d) => a + d.value, 0);
   // Contested orbit: named in every refusal, though the sum is checked first, so a blocked orbit still says how far it is from it.
   const blockers = orbitBlockers(state, player, planet);
@@ -731,24 +686,16 @@ export function conquerCheck(state: GameState, player: PlayerId, planetId: numbe
   const tolerance = Math.max(0, ...rules.map((r) => r.tolerance ?? 0));
   // Science: Research above 1 (the die's lowest face) moves the sum up or down, as little as needed.
   const spendable = rules.some((r) => r.spendResearch) ? Math.max(0, p.research - 1) : 0;
-  let found: { ships: Die[]; sum: number; research: number } | undefined;
-  // Every orbital ship counts; Ingenious lets each diagonal ship count or not ("may be counted").
-  for (let mask = 0; mask < 1 << corners.length && found?.research !== 0; mask++) {
-    const ships = [...orbit, ...corners.filter((_, i) => mask & (1 << i))];
-    if (!ships.length) continue;
-    const sum = total(ships);
-    const ctx = { sum, ships, dominance: p.dominance, research: p.research };
-    const sums = [sum, ...rules.flatMap((r) => r.sums?.(ctx) ?? [])];
-    const research = Math.min(...sums.map((s) => Math.max(0, Math.abs(s - target) - tolerance)));
-    if (research <= spendable && research < (found?.research ?? Infinity)) found = { ships, sum, research };
-  }
-  if (found) {
-    const { ships, sum, research } = found;
-    if (blockers.length)
-      return { ...fail(`Enemy ships in orbit block it (${blockers.map((d) => d.value).join(', ')})`, ships, sum), blocked: true };
-    return { ok: true, sum, target, ships, replace, ...(research && { research }) };
-  }
+  // Every orbital ship counts.
   const sum = total(all);
+  const ctx = { sum, ships: all, dominance: p.dominance, research: p.research };
+  const sums = [sum, ...rules.flatMap((r) => r.sums?.(ctx) ?? [])];
+  const research = Math.min(...sums.map((s) => Math.max(0, Math.abs(s - target) - tolerance)));
+  if (research <= spendable) {
+    if (blockers.length)
+      return { ...fail(`Enemy ships in orbit block it (${blockers.map((d) => d.value).join(', ')})`, all, sum), blocked: true };
+    return { ok: true, sum, target, ships: all, replace, ...(research && { research }) };
+  }
   return fail(`Orbit totals ${sum}, needs ${target}${blockade}`, all, sum);
 }
 
@@ -757,39 +704,6 @@ export function infamyTargets(state: GameState, player: PlayerId): Planet[] {
   const open = state.board.planets.filter((p) => planetFreeSlots(p) > 0);
   const fresh = open.filter((p) => !p.cubes.includes(player));
   return fresh.length ? fresh : open;
-}
-
-export interface RelocationOption {
-  /** The planet the cube leaves. */
-  planet: number;
-  owner: PlayerId;
-  to: number;
-}
-
-/**
- * Relocation (Original): move another player's cube to a planet with room and none of their
- * cubes. Revised-edition text: the 1st printing's "cannot have a higher planet number" was
- * dropped (BGG thread 2465215).
- */
-export function relocationOptions(state: GameState, player: PlayerId): RelocationOption[] {
-  const out: RelocationOption[] = [];
-  for (const from of state.board.planets) {
-    for (const owner of new Set(from.cubes)) {
-      for (const to of state.board.planets) {
-        const option = { planet: from.id, owner, to: to.id };
-        if (canRelocate(state, player, option)) out.push(option);
-      }
-    }
-  }
-  return out;
-}
-
-/** Whether `player` may make this Relocation move. */
-export function canRelocate(state: GameState, player: PlayerId, { planet, owner, to }: RelocationOption): boolean {
-  const from = state.board.planets[planet];
-  const dest = state.board.planets[to];
-  if (!from || !dest || owner === player || to === planet || !from.cubes.includes(owner)) return false;
-  return planetFreeSlots(dest) > 0 && !dest.cubes.includes(owner);
 }
 
 // ---------------------------------------------------------------------------
@@ -844,32 +758,6 @@ export function combatOutcome(state: GameState, combat: CombatPending) {
 }
 
 /**
- * The skill that lets `by` re-roll `side`'s combat dice now, if any: their own (Relentless;
- * Scrappy on their turn) or their opponent's (Cruel). Each is usable once per battle, and not on a
- * roll a missile, Plan Ahead or Rational has set.
- */
-export function combatReroll(state: GameState, combat: CombatPending, by: PlayerId, side: CombatRole): ActiveSkill | undefined {
-  const target = combat[side].player;
-  const opponent = side === 'attacker' ? combat.defender.player : combat.attacker.player;
-  if (by !== target && by !== opponent) return undefined;
-  if (rollOverride(state, combat, side)) return undefined;
-  return activeSkills(state, by).find(({ effect, rule }) => {
-    const r = rule.combat?.reroll;
-    if (!r || combat.rerolls.includes(effect)) return false;
-    if (r.ownTurnOnly && by !== state.turn.player) return false;
-    return r.whose === 'own' ? by === target : by === opponent;
-  });
-}
-
-/** Every combat re-roll `by` could make now, on either side. */
-export function combatRerolls(state: GameState, combat: CombatPending, by: PlayerId): { side: CombatRole; skill: ActiveSkill }[] {
-  return (['attacker', 'defender'] as const).flatMap((side) => {
-    const skill = combatReroll(state, combat, by, side);
-    return skill ? [{ side, skill }] : [];
-  });
-}
-
-/**
  * Whether `by` is offered a missile on `side`'s combat roll. A combatant is only offered their own
  * roll (a lower roll for the opponent only helps them), and not while already winning. Players not
  * in the battle may not fire. A roll that is already 1 is never offered.
@@ -888,12 +776,9 @@ export function missileRefusal(state: GameState, combat: CombatPending, by: Play
   return null;
 }
 
-/** Whether `player` can still respond to the battle: a missile, or a re-roll card. */
+/** Whether `player` can still respond to the battle with a missile. */
 export function canRespondToCombat(state: GameState, combat: CombatPending, player: PlayerId): boolean {
-  return (
-    (['attacker', 'defender'] as const).some((side) => missileOffered(state, combat, player, side)) ||
-    combatRerolls(state, combat, player).length > 0
-  );
+  return (['attacker', 'defender'] as const).some((side) => missileOffered(state, combat, player, side));
 }
 
 /** How many combat dice the player rolls (the lowest counts). */
@@ -911,7 +796,7 @@ export function attackOdds(a: number, d: number): number {
 /** The battle `attacker` would start against `defender` from `from`, every die rolling a 6 (a placeholder). */
 function previewCombat(attacker: Die, defender: Die, from: Cell): CombatPending {
   const side = (d: Die) => ({ player: d.owner, die: d.id, ship: d.value, dice: [6], missile: false });
-  return { kind: 'combat', id: 0, attacker: side(attacker), defender: side(defender), from, at: cellOf(defender)!, rerolls: [] };
+  return { kind: 'combat', id: 0, attacker: side(attacker), defender: side(defender), from, at: cellOf(defender)! };
 }
 
 /**

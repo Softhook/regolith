@@ -5,7 +5,6 @@
  */
 import { describe, expect, it } from 'vitest';
 import { apply, createGame, legalActions, type GameState } from '../src';
-import { unofferedAnswers } from './decisions';
 import { players, quickStart } from './helpers';
 
 /** The current turn's card phase, where only `picker` still has `count` picks to take. */
@@ -25,16 +24,16 @@ describe('cards taken off-turn', () => {
     let s = quickStart();
     const foe = 1 - s.turn.player;
     s = offTurnPick(s, foe);
-    s.market.skillRow[0] = 'brilliant';
+    s.market.skillRow[0] = 'r-brilliant';
     s = apply(s, { type: 'takeCard', deck: 'skill', index: 0 });
     expect(s.turn.player).toBe(foe);
-    expect(s.players[foe].skills).toContainEqual({ id: 'brilliant', active: true });
+    expect(s.players[foe].skills).toContainEqual({ id: 'r-brilliant', active: true });
   });
 
   it('Plan Ahead lasts until the end of the player’s coming turn', () => {
     let s = quickStart();
     const foe = 1 - s.turn.player;
-    s = takeTactic(offTurnPick(s, foe), 'plan-ahead');
+    s = takeTactic(offTurnPick(s, foe), 'r-plan-ahead');
     expect(s.turn.player).toBe(foe);
     expect(s.players[foe].planAhead).toBe(1);
     s = apply(s, { type: 'endTurn' });
@@ -46,11 +45,11 @@ describe('cards taken off-turn', () => {
     const me = s.turn.player;
     const next = (me + 1) % 3;
     const last = (me + 2) % 3;
-    s = takeTactic(offTurnPick(s, last, 2), 'momentum');
+    s = takeTactic(offTurnPick(s, last, 2), 'r-momentum');
     expect(s.turn).toMatchObject({ player: last, actionsLeft: 2, bonus: true, phase: 'actions' });
     s = apply(s, { type: 'endTurn' });
     expect(s.pending).toEqual([{ kind: 'takeCard', player: last, count: 1 }]); // the pick still owed
-    s.market.skillRow[0] = 'brilliant';
+    s.market.skillRow[0] = 'r-brilliant';
     s = apply(s, { type: 'takeCard', deck: 'skill', index: 0 });
     expect(s.turn).toMatchObject({ player: next, actionsLeft: 3, bonus: false });
   });
@@ -64,7 +63,7 @@ describe('cards taken off-turn', () => {
       { kind: 'takeCard', player: b, count: 1 },
       { kind: 'takeCard', player: c, count: 1 },
     ];
-    s = takeTactic(s, 'momentum');
+    s = takeTactic(s, 'r-momentum');
     expect(s.turn.player).toBe(me);
     expect(s.pending).toEqual([{ kind: 'takeCard', player: c, count: 1 }]);
   });
@@ -74,7 +73,7 @@ describe('card edge cases', () => {
   it('Warp Gate may go on an occupied space, but not on a planet', () => {
     let s = quickStart();
     const me = s.turn.player;
-    s = takeTactic(offTurnPick(s, me), 'warp-gate');
+    s = takeTactic(offTurnPick(s, me), 'r-warp-gate');
     const ship = s.dice.find((d) => d.loc.zone === 'board')!;
     if (ship.loc.zone !== 'board') throw new Error('no ship on the map');
     const cell = { r: ship.loc.r, c: ship.loc.c };
@@ -90,7 +89,7 @@ describe('card edge cases', () => {
     const me = s.turn.player;
     s.market.skillDiscard = [...s.market.skillDeck];
     s.market.skillDeck = [];
-    s = takeTactic(offTurnPick(s, me), 'change-of-heart');
+    s = takeTactic(offTurnPick(s, me), 'r-change-of-heart');
     expect(s.pending[0]).toMatchObject({ kind: 'changeOfHeart', player: me });
     expect(s.market.skillDiscard).toEqual([]);
   });
@@ -98,10 +97,10 @@ describe('card edge cases', () => {
   it('Ambitious tokens are cleared when the card is discarded', () => {
     let s = quickStart();
     const me = s.turn.player;
-    s.players[me].skills.push({ id: 'ambitious', active: true });
+    s.players[me].skills.push({ id: 'r-ambitious', active: true });
     s.players[me].ambitionTokens = 2;
     s.pending = [{ kind: 'discardSkill', player: me, reason: 'limit' }];
-    s = apply(s, { type: 'discardSkill', skill: 'ambitious' });
+    s = apply(s, { type: 'discardSkill', skill: 'r-ambitious' });
     expect(s.players[me].ambitionTokens).toBe(0);
   });
 
@@ -113,34 +112,14 @@ describe('card edge cases', () => {
   });
 });
 
-describe('Brilliant (CE: "you may gain 2 Research")', () => {
-  /** Ends the current turn, so `foe` starts theirs with these skills and research. */
-  function foeTurn(skills: string[], research: number) {
+describe('Brilliant (Science Survey): 2 Research at the start of your turn', () => {
+  it('is gained without asking', () => {
     let s = quickStart();
     const foe = 1 - s.turn.player;
-    s.players[foe].skills = skills.map((id) => ({ id, active: true }));
-    s.players[foe].research = research;
+    s.players[foe].skills = [{ id: 'r-brilliant', active: true }];
+    s.players[foe].research = 2;
     s = apply(s, { type: 'endTurn' });
-    return { s, foe };
-  }
-
-  it('is gained without asking when the research number does not matter', () => {
-    const { s, foe } = foeTurn(['brilliant'], 2);
     expect(s.pending).toEqual([]);
     expect(s.players[foe].research).toBe(4);
-  });
-
-  it('with Pioneering the player may keep their research number', () => {
-    const { s, foe } = foeTurn(['brilliant', 'pioneering'], 2);
-    expect(s.pending).toEqual([{ kind: 'brilliant', player: foe }]);
-    // The decision the AI games of consistency.test.ts never reach: the engine and legalActions agree on it.
-    expect(unofferedAnswers(s)).toEqual([]);
-    expect(s.players[foe].research).toBe(2);
-    expect(apply(s, { type: 'brilliant', gain: false }).players[foe].research).toBe(2);
-    expect(apply(s, { type: 'brilliant', gain: true }).players[foe].research).toBe(4);
-  });
-
-  it('does not ask when there is nothing to gain', () => {
-    expect(foeTurn(['brilliant', 'pioneering'], 6).s.pending).toEqual([]);
   });
 });

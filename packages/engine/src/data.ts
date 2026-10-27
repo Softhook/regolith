@@ -1,4 +1,3 @@
-import cardsJson from './data/cards.json';
 import mapsJson from './data/maps.json';
 import type { ShipHooks } from './prototype';
 import type { World } from './types';
@@ -8,20 +7,16 @@ export interface CardDef {
   name: string;
   subtitle: string;
   text: string;
-  /** Sets the card's accent colour and icon (data/cards.yaml). */
+  /** Sets the card's accent colour and icon (data/regolith.yaml). */
   category: string;
-  /** Community and Classic cards: how the Community Edition changed it (data/cards.yaml). */
-  ce_status?: string;
   count: number;
   notes?: string;
-  /** Rule implementation this card uses; defaults to its id. Shared when two editions' cards behave the same. */
+  /** The rules it plays by (effects.ts): the Community Edition card it started as, or its own; defaults to its id. */
   effect?: string;
-  /** Community cards: the 2013 card this one redesigns (data/cards.yaml). */
-  classic?: string;
-  /** A mode's own card: the Community card it started as, and how far it has moved (community, renamed, reworked, new). */
+  /** Notes of where it came from: the Community card it started as, and how far it has moved (community, renamed, reworked, new). */
   from?: string;
   status?: string;
-  /** A mode's own card: the brief its art is drawn from (data/regolith.yaml). */
+  /** The brief its art is drawn from (data/regolith.yaml). */
   art?: { title: string; brief: string };
 }
 
@@ -43,11 +38,6 @@ export interface MapDef {
   layout: string[][];
 }
 
-export const SKILLS: CardDef[] = cardsJson.skills;
-export const TACTICS: CardDef[] = cardsJson.tactics;
-export const EXPANSION: CardDef = cardsJson.expansion[0];
-export const ORIGINAL_COMMAND: CardDef[] = cardsJson.original_command;
-export const ORIGINAL_GAMBIT: CardDef[] = cardsJson.original_gambit;
 // build-data.mjs checks `wrap` is one of the allowed values.
 export const MAPS: MapDef[] = mapsJson as MapDef[];
 
@@ -56,15 +46,14 @@ export function defaultMap(players: number): MapDef | undefined {
   return MAPS.find((m) => m.players === players && m.group === 'basic') ?? MAPS.find((m) => m.players === players);
 }
 
-/** Every card of every deck: the two editions' here, and a mode's own decks once its rule set is defined (addCards). */
-export const ALL_CARDS: CardDef[] = [...SKILLS, ...TACTICS, EXPANSION, ...ORIGINAL_COMMAND, ...ORIGINAL_GAMBIT];
+/** Every card of every deck, once the rule sets are defined (addCards). */
+export const ALL_CARDS: CardDef[] = [];
 
-const byId = new Map(ALL_CARDS.map((c) => [c.id, c]));
-const skillIds = new Set([...SKILLS, ...ORIGINAL_COMMAND].map((c) => c.id));
-const expansionIds = new Set([EXPANSION.id]);
-const originalIds = new Set([...ORIGINAL_COMMAND, ...ORIGINAL_GAMBIT].map((c) => c.id));
+const byId = new Map<string, CardDef>();
+const skillIds = new Set<string>();
+const expansionIds = new Set<string>();
 
-/** Adds a mode's own cards to the ones `card` knows (rules.ts, as the rule sets are defined); cards already known are skipped. */
+/** Adds a mode's decks to the cards `card` knows (rules.ts, as the rule sets are defined); cards already known are skipped. */
 export function addCards(defs: readonly CardDef[], kind: 'skill' | 'tactic' | 'expansion') {
   for (const c of defs) {
     if (byId.has(c.id)) continue;
@@ -85,19 +74,15 @@ export function effectOf(id: string): string {
   return card(id).effect ?? id;
 }
 
-/** A card with this effect, for naming it (several editions' cards may share one effect). */
+/** A card with this effect, for naming it. */
 export function cardWithEffect(effect: string): CardDef | undefined {
   return byId.get(effect) ?? [...byId.values()].find((c) => c.effect === effect);
 }
 
-/** Skill (CE) / Command (original) cards are permanent; everything else is one-shot. */
+/** Skills are permanent; everything else is one-shot. */
 export function cardKind(id: string): 'skill' | 'tactic' | 'expansion' {
   if (expansionIds.has(id)) return 'expansion';
   return skillIds.has(id) ? 'skill' : 'tactic';
-}
-
-export function isOriginalCard(id: string): boolean {
-  return originalIds.has(id);
 }
 
 /**

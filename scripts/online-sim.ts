@@ -99,9 +99,9 @@ const step = (p: Page) =>
     const head = s.pending[0];
     const actor = !head ? s.turn.player : head.kind === 'combat' ? head.attacker.player : head.player;
     const mine = q.mySeats();
-    const ok = q.legal().filter((a) => mine.includes(a.type === 'missile' || a.type === 'reroll' ? a.by : actor));
+    const ok = q.legal().filter((a) => mine.includes(a.type === 'missile' ? a.by : actor));
     const pick = (as: Action[]) => as[Math.floor(Math.random() * as.length)];
-    const responds = (a: Action) => a.type === 'missile' || a.type === 'reroll';
+    const responds = (a: Action) => a.type === 'missile';
     const responses = ok.filter(responds);
     if (v.combat?.mustAnswer) {
       if (responses.length && Math.random() < 0.3) {

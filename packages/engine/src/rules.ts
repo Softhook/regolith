@@ -1,15 +1,4 @@
-import {
-  addCards,
-  defaultMap,
-  EXPANSION,
-  MAPS,
-  type CardDef,
-  type GameMode,
-  type MapDef,
-  type ShipDef,
-  type ShipPower,
-  type ShipTable,
-} from './data';
+import { addCards, defaultMap, MAPS, type CardDef, type GameMode, type MapDef, type ShipDef, type ShipPower, type ShipTable } from './data';
 import type { ShipHooks } from './prototype';
 import type { Die, GameState } from './types';
 import { reword, type Words } from './words';
@@ -68,14 +57,12 @@ export interface CardRules {
   startingSkillDraft: boolean;
   /** Taking the oldest face-up card lets you peek at the top of its deck instead. */
   peek: boolean;
-  /** Expansion cards form a separate face-up pile of players + 1 (otherwise they are Gambit cards). */
+  /** Expansion cards form a separate face-up pile of players + 1. */
   expansionPile: boolean;
-  /** The card that pile is, when the mode has its own (default: the Community Expansion card); see expansionCard. */
-  expansion?: CardDef;
-  /** How the mode's cards are printed (the art package's `CardLook`): the holo cards when absent. */
-  look?: 'holo' | 'screenprint';
-  /** A card pick may be spent to discard every face-up card and deal new ones (2013 rulebook p.9). */
-  refresh: boolean;
+  /** The card that pile is; see expansionCard. */
+  expansion: CardDef;
+  /** How the mode's cards are printed (the art package's `CardLook`). */
+  look?: 'screenprint';
   terms: {
     skill: string;
     skills: string;
@@ -100,13 +87,15 @@ export function defineRuleSets(table: Record<GameMode, RuleSet>) {
     if (!cards) continue;
     addCards(cards.skills, 'skill');
     addCards(cards.tactics, 'tactic');
-    if (cards.expansion) addCards([cards.expansion], 'expansion');
+    addCards([cards.expansion], 'expansion');
   }
 }
 
-/** The Expansion card of this game's rules: the mode's own, or the Community Edition's. */
+/** The Expansion card of this game's rules (Regolith's Reinforcements). */
 export function expansionCard(state: GameState): CardDef {
-  return rulesOf(state).cards?.expansion ?? EXPANSION;
+  const cards = rulesOf(state).cards;
+  if (!cards) throw new Error(`${rulesOf(state).name} has no cards`);
+  return cards.expansion;
 }
 
 /** The rule set a game is played with. */
@@ -152,9 +141,7 @@ export function cardNamesOf(rules: RuleSet): readonly string[] {
   let names = CARD_NAMES.get(rules);
   if (!names) {
     const cards = rules.cards;
-    names = cards
-      ? [...cards.skills.map((c) => c.name), ...cards.tactics.map((c) => c.name), ...(cards.expansion ? [cards.expansion.name] : [])]
-      : [];
+    names = cards ? [...cards.skills.map((c) => c.name), ...cards.tactics.map((c) => c.name), cards.expansion.name] : [];
     CARD_NAMES.set(rules, names);
   }
   return names;

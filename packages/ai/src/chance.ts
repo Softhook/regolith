@@ -15,15 +15,7 @@ export interface Outcome {
 }
 
 /** Actions with a random result that is not enumerated exactly. */
-const SAMPLED = new Set<Action['type']>([
-  'takeCard',
-  'peekChoice',
-  'patientTactic',
-  'refreshMarket',
-  'resourceful',
-  'unveilReroll',
-  'scrappy',
-]);
+const SAMPLED = new Set<Action['type']>(['takeCard', 'peekChoice', 'patientTactic', 'resourceful', 'unveilReroll']);
 
 /** Outcomes of `a` in `s`, or null if it is illegal. `seeds` are used for sampled actions. */
 export function outcomes(s: GameState, a: Action, seeds: number[]): Outcome[] | null {

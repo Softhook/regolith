@@ -32,10 +32,7 @@ export type Sel =
   /** A prototype ship power's action (ShipHooks.action). */
   | { kind: 'power'; die: string }
   | { kind: 'tactical'; die: string }
-  | { kind: 'nomadic'; die: string }
   | { kind: 'kineticShunt'; die: string }
-  // Relocation: the cube chosen to move (planet it leaves, and its owner).
-  | { kind: 'relocate'; planet: number; owner: number }
   // A planet that can be conquered in more than one way, waiting for the player to choose how.
   | { kind: 'conquer'; planet: number }
   // `tactical`: a 1-space transport using the Tactical skill instead of a Move action.
@@ -58,7 +55,7 @@ export function useController(game: GameState, dispatch: Dispatch, mine: (p: Pla
   useEffect(() => setSel(NONE), [pendingSig]);
   // Drop a selection that is no longer valid (ship destroyed, already moved…).
   useEffect(() => {
-    if (sel.kind === 'none' || sel.kind === 'relocate' || sel.kind === 'conquer') return;
+    if (sel.kind === 'none' || sel.kind === 'conquer') return;
     const d = game.dice.find((x) => x.id === sel.die);
     if (!d || d.loc.zone !== (sel.kind === 'scrap' ? 'scrapyard' : 'board')) setSel(NONE);
   }, [game, sel]);
@@ -94,7 +91,6 @@ export function useController(game: GameState, dispatch: Dispatch, mine: (p: Pla
       if (head?.kind === 'showOfForce' && tone) return void dispatch({ type: 'showOfForce', die: id });
       if (head?.kind === 'kineticShunt' && tone)
         return select(sel.kind === 'kineticShunt' && sel.die === id ? NONE : { kind: 'kineticShunt', die: id });
-      if (head?.kind === 'unveil' && head.reorganize && tone === 'swap') return void dispatch({ type: 'unveilReroll', die: id });
       if (head) return false;
       if (sel.kind === 'swap' && tone === 'swap') return void (dispatch({ type: 'swap', die: sel.die, other: id }) && setSel(NONE));
       if (sel.kind === 'freeAttack' && tone === 'attack') return void dispatch({ type: 'freeAttack', die: sel.die, target: id });
@@ -161,7 +157,6 @@ export function useController(game: GameState, dispatch: Dispatch, mine: (p: Pla
         case 'scrap':
           return place({ type: 'deploy', die: sel.die, to: cell });
         case 'tactical':
-        case 'nomadic':
           return place({ type: sel.kind, die: sel.die, to: cell });
         case 'power':
           return place({ type: 'power', die: sel.die, to: cell });
@@ -181,14 +176,6 @@ export function useController(game: GameState, dispatch: Dispatch, mine: (p: Pla
       const hl = highlights.planets.get(id);
       // A blocked planet (contested orbit) shows its info, which says why.
       if (!hl || hl.tone === 'blocked') return false;
-      if (head?.kind === 'relocation') {
-        if (sel.kind === 'relocate' && id !== sel.planet)
-          return void dispatch({ type: 'relocate', planet: sel.planet, owner: sel.owner, to: id });
-        // Choose the cube; clicking its planet again picks another player's cube there, if any.
-        const owners = [...new Set(legal.of('relocate', (a) => a.planet === id).map((a) => a.owner))];
-        const next = sel.kind === 'relocate' && sel.planet === id ? owners[(owners.indexOf(sel.owner) + 1) % owners.length] : owners[0];
-        return select({ kind: 'relocate', planet: id, owner: next });
-      }
       if (hl.tone === 'start') dispatch({ type: 'placeStart', planet: id });
       else if (hl.tone === 'infamy') dispatch({ type: 'infamy', planet: id });
       else if (hl.tone === 'conquer') {
@@ -197,7 +184,7 @@ export function useController(game: GameState, dispatch: Dispatch, mine: (p: Pla
         else if (tap) dispatch(tap);
       }
     },
-    [human, highlights, head, sel, legal, dispatch, select],
+    [human, highlights, legal, dispatch, select],
   );
 
   return { sel, select, highlights, legal, attacks, routes, onDie, onCell, onPlanet, human, actionPhase, mine };
