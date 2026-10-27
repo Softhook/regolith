@@ -10,7 +10,6 @@
       "shared": 1,
       "planets": 7
     },
-    "grid": "hex",
     "world": "phobos",
     "layout": [
       [
@@ -47,7 +46,6 @@
       "shared": 4,
       "planets": 10
     },
-    "grid": "hex",
     "world": "deimos",
     "layout": [
       [
@@ -83,7 +81,6 @@
       "shared": 5,
       "planets": 9
     },
-    "grid": "hex",
     "world": "phobos",
     "layout": [
       [
@@ -120,7 +117,6 @@
       "shared": 6,
       "planets": 6
     },
-    "grid": "hex",
     "world": "mars",
     "layout": [
       [
@@ -151,7 +147,6 @@
       "shared": 4,
       "planets": 6
     },
-    "grid": "hex",
     "world": "phobos",
     "layout": [
       [
@@ -185,7 +180,6 @@
       "shared": 2,
       "planets": 10
     },
-    "grid": "hex",
     "world": "deimos",
     "layout": [
       [
@@ -224,7 +218,6 @@
       "shared": 5,
       "planets": 7
     },
-    "grid": "hex",
     "world": "phobos",
     "layout": [
       [
@@ -253,7 +246,6 @@
       "shared": 3,
       "planets": 12
     },
-    "grid": "hex",
     "world": "mars",
     "layout": [
       [
@@ -298,7 +290,6 @@
       "shared": 5,
       "planets": 12
     },
-    "grid": "hex",
     "world": "phobos",
     "layout": [
       [
@@ -339,7 +330,6 @@
       "shared": 5,
       "planets": 9
     },
-    "grid": "hex",
     "world": "deimos",
     "layout": [
       [
@@ -392,7 +382,6 @@
       "shared": 2,
       "planets": 10
     },
-    "grid": "hex",
     "world": "deimos",
     "layout": [
       [
@@ -436,7 +425,6 @@
       "shared": 4,
       "planets": 8
     },
-    "grid": "hex",
     "world": "mars",
     "layout": [
       [
@@ -483,7 +471,6 @@
       "shared": 4,
       "planets": 10
     },
-    "grid": "hex",
     "world": "mars",
     "layout": [
       [
@@ -528,7 +515,6 @@
       "shared": 3,
       "planets": 9
     },
-    "grid": "hex",
     "world": "phobos",
     "layout": [
       [
@@ -587,7 +573,6 @@
       "shared": 4,
       "planets": 10
     },
-    "grid": "hex",
     "world": "mars",
     "layout": [
       [
@@ -643,7 +628,6 @@
       "shared": 4,
       "planets": 14
     },
-    "grid": "hex",
     "world": "mars",
     "layout": [
       [
@@ -704,7 +688,6 @@
       "shared": 4,
       "planets": 14
     },
-    "grid": "hex",
     "world": "phobos",
     "layout": [
       [

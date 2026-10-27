@@ -25,8 +25,8 @@ const problem = (what: string) => {
   console.log(`  ✗ ${what}`);
 };
 
-// Every hex map, with Regolith's rules.
-for (const map of MAPS.filter((m) => m.grid === 'hex')) {
+// Every map, with Regolith's rules.
+for (const map of MAPS) {
   console.log(`${map.name}`);
   const page = await browser.newPage({ viewport: { width: 900, height: 900 } });
   page.on('pageerror', (e) => problem(`page error: ${e.message}`));
@@ -68,12 +68,11 @@ for (const map of MAPS.filter((m) => m.grid === 'hex')) {
     await page.close();
     continue;
   }
-  const hex = !!board.hex;
-  const { r, c } = (hex && spots.find((p) => spots.some((q) => q.r === p.r - 1 && q.c === p.c + 1))) || spots[0];
+  const { r, c } = spots.find((p) => spots.some((q) => q.r === p.r - 1 && q.c === p.c + 1)) ?? spots[0];
   const box = (await page.locator(`.hl[data-r="${r}"][data-c="${c}"]`).boundingBox())!;
   await page.screenshot({ path: `${OUT}/${map.id}-reach.png` });
   // About as far from the hex's side as from the edges of the next hex's box (0.075 spaces), so rounding can't tip it.
-  const [dx, dy] = hex ? [0.44, -0.08] : [0, 0];
+  const [dx, dy] = [0.44, -0.08];
   await page.mouse.click(box.x + box.width * (0.5 + dx), box.y + box.height * (0.5 + dy));
   await page.waitForTimeout(800);
   const after = await state();

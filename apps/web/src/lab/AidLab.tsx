@@ -4,7 +4,7 @@ import { cardFontCss, useFontCss, useSvgUrl } from './cards';
 import { PIECES } from '../print/pieces';
 import { PrintPanel } from '../print/PrintPanel';
 import { LabHeader } from './LabHeader';
-import { TILES_AND_AIDS, printableAid } from './pressSheets';
+import { AID_SHEETS, printableAid } from './pressSheets';
 import { Segmented } from '../components/Segmented';
 
 /** How many boards "All copies" prints: one per player, for the largest player count. */
@@ -13,7 +13,7 @@ const PLAYERS = 4;
 /**
  * Art Lab, player aid page (#lab/aid): the A6 board every player gets, with the dominance and research
  * die pads, the turn, and what each mech can do. Exports for print: the board, print sheets (two to a
- * page), and the CMYK press sheets it shares with the tiles.
+ * page), and its CMYK press sheets.
  */
 export function AidLab() {
   const [edition, setEdition] = useState<AidEdition>('regolith');
@@ -56,7 +56,7 @@ export function AidLab() {
             part={part}
             notes={`The same board for every player: print one each (${PLAYERS} for a full table).\n`}
             sheets={(copies) => Array(copies ? PLAYERS : 1).fill({ front: board })}
-            cmyk={TILES_AND_AIDS}
+            cmyk={AID_SHEETS}
             copies
             ready={fonts !== null}
             fontsMissing={fonts === ''}

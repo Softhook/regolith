@@ -21,7 +21,7 @@ export function candidates(s: GameState, opts?: { includeCarry?: boolean }): Act
   // Kinetic Shunt: enemy mechs first, pushed furthest first.
   if (head?.kind === 'kineticShunt') {
     const rank = (a: Action) =>
-      a.type === 'kineticShunt' ? (die(s, a.die).owner !== head.player ? 100 : 0) + distance(cellOf(die(s, a.die))!, a.to, s.board) : 0;
+      a.type === 'kineticShunt' ? (die(s, a.die).owner !== head.player ? 100 : 0) + distance(cellOf(die(s, a.die))!, a.to) : 0;
     all.sort((a, b) => rank(b) - rank(a));
   }
   const options = nearestAttacks(all);

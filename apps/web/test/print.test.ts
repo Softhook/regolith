@@ -90,8 +90,10 @@ describe('print sheets', () => {
 });
 
 describe('press sheets', () => {
-  const { w, h, bleed: b } = PIECES.tile;
-  const pages = pressPages(PIECES.tile, [0, 1, 2, 3, 4]);
+  /** A square piece cut at its trim, four to a page. */
+  const SQUARE: Piece = { id: 'tile', plural: 'tiles', w: 96, h: 96, bleed: 3, cols: 2, rows: 2, dpi: 300 };
+  const { w, h, bleed: b } = SQUARE;
+  const pages = pressPages(SQUARE, [0, 1, 2, 3, 4]);
 
   it('fills each page of the grid and starts a new one when it is full', () => {
     expect(pages.map((p) => p.images.length)).toEqual([4, 1]);
@@ -131,8 +133,8 @@ describe('press sheets', () => {
   });
 });
 
-describe('hex tiles', () => {
-  const p = PIECES.hexTile;
+describe('tiles', () => {
+  const p = PIECES.tile;
 
   it('are die-cut along their flower: 18 sides joining into one loop inside the trim', () => {
     const cut = p.die!.line;
@@ -150,7 +152,7 @@ describe('hex tiles', () => {
     const x0 = (A4.w - 2 * p.w) / 2;
     const [x1] = page.cuts![18];
     expect(x1).toBeCloseTo(x0 + p.w + p.die!.line[0][0]);
-    expect(pressPages(PIECES.tile, [0])[0].cuts).toBeUndefined();
+    expect(pressPages(PIECES.aid, [0])[0].cuts).toBeUndefined();
   });
 
   it('show only their flower with its bleed on the press sheets, so no neighbour covers it', () => {
@@ -170,11 +172,10 @@ describe('hex tiles', () => {
     expect(sheetsHtml(p, [{ front: 'a' }])).not.toMatch(/<svg|stroke/);
   });
 
-  it('are named as hex tiles', () => {
-    expect(fileName(p, { name: 'p7-01-ne', svg: () => '' }, { bleed: true, dpi: 300, ext: 'png' })).toBe(
-      'regolith-hex-tile-p7-01-ne-bleed-300dpi.png',
+  it('are named as tiles', () => {
+    expect(fileName(p, { name: 'habitat-01-ne-mars', svg: () => '' }, { bleed: true, dpi: 300, ext: 'png' })).toBe(
+      'regolith-tile-habitat-01-ne-mars-bleed-300dpi.png',
     );
-    expect(setName(p, {})).toBe('regolith-hex-tiles.zip');
   });
 });
 
@@ -185,8 +186,8 @@ describe('print file names', () => {
     expect(fileName(PIECES.tile, { name: 'p7-01', svg: () => '' }, { bleed: false, ext: 'svg' })).toBe('regolith-tile-p7-01.svg');
     expect(setName(PIECES.card, { part: 'community', tag: 'bleed' })).toBe('regolith-cards-community-bleed.zip');
     expect(setName(PIECES.tile, {})).toBe('regolith-tiles.zip');
-    expect(sheetName('tiles-aids', false)).toBe('regolith-tiles-aids-a4-fogra39.pdf');
-    expect(sheetName('tiles-aids', true)).toBe('regolith-tiles-aids-a4-fogra39-deep.pdf');
+    expect(sheetName('tiles-mars', false)).toBe('regolith-tiles-mars-a4-fogra39.pdf');
+    expect(sheetName('tiles-mars', true)).toBe('regolith-tiles-mars-a4-fogra39-deep.pdf');
   });
 
   it('size pieces with their bleed on every side', () => {

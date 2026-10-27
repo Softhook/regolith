@@ -1,12 +1,12 @@
 import { CUBE_PAD, FONTS, HEX_EDGE, PLANET_FAMILY, TILE, WELL, type WellStyle } from '../tokens';
 import { icon } from '../icons';
 import { hex, n, type Fragment } from '../svg';
-import { MID, TILE_SPOTS, cubePadCentres, hexCorners, numberCorner, numberPlacement, type Spot, type TileShape } from './geometry';
+import { MID, TILE_SPOTS, cubePadCentres, hexCorners, numberCorner, numberPlacement, type Spot } from './geometry';
 import type { TileSpec } from './set';
 
 /**
- * A tile's print markings: the spaces as wells etched into it, and the planet's cube pads and number. Plain
- * vectors, so they stay editable in Illustrator; the game draws its spaces and empty cube slots with them too.
+ * A tile's print markings: the spaces' outlines, and the planet's cube pads and number. Plain vectors, so
+ * they stay editable in Illustrator; the game draws its spaces and empty cube slots with them too.
  */
 
 /** The research flask on each Void space (mm). */
@@ -14,7 +14,7 @@ const VOID_ICON = 8;
 
 /** The faint research flask on a Void space centred on (x, y): ships there gain Research. */
 export const voidFlask = (x: number, y: number) =>
-  `<g stroke-opacity=".15">${icon('research', x, y, VOID_ICON, HATCH.ink, (0.3 * 24) / VOID_ICON)}</g>`;
+  `<g stroke-opacity=".15">${icon('research', x, y, VOID_ICON, FLASK, (0.3 * 24) / VOID_ICON)}</g>`;
 
 /**
  * The edges of a well: a rounded square of side `size` with its top left at (x, y), sunk into the
@@ -30,27 +30,8 @@ function wellEdges(x: number, y: number, size: number, rx: number): { shade: str
   };
 }
 
-/**
- * The conquer spaces' hatching: the lines' gap along a pad's side and their inset from its edge, inside
- * its rounded corners (mm), and their colour.
- */
-export const HATCH = { gap: 3, inset: 1.5, ink: hex(222, 80, 82) };
-
-/**
- * Diagonal hatching across the pad centred on (cx, cy): plain line segments, clipped by hand to a
- * square inset from the pad, so they stay editable vectors without a clip path.
- */
-export function hatch(cx: number, cy: number): string {
-  const h = TILE.pad / 2 - HATCH.inset;
-  let out = '';
-  // Lines u + v = c across the square |u|, |v| ≤ h (u right, v down from the centre): bottom left to top right.
-  for (let c = -2 * h + HATCH.gap; c < 2 * h - 0.01; c += HATCH.gap) {
-    const u1 = Math.max(-h, c - h);
-    const u2 = Math.min(h, c + h);
-    out += `<line x1="${n(cx + u1)}" y1="${n(cy + c - u1)}" x2="${n(cx + u2)}" y2="${n(cy + c - u2)}" stroke="${HATCH.ink}" stroke-opacity=".14" stroke-width=".25"/>`;
-  }
-  return out;
-}
+/** The Void flask's ink. */
+const FLASK = hex(222, 80, 82);
 
 /**
  * A hex space's outline centred on (cx, cy): a solid line along its edge, a space tall. Draw a set of them
@@ -80,34 +61,28 @@ export function well(cx: number, cy: number, size: number, rx: number, style: We
 }
 
 /**
- * Print markings, the spaces' or the planet's (`part`): each space a well etched into the tile, the ones beside a
- * planet (where dice go to conquer it) faintly hatched; or wells for the cubes on the planet with its number in
- * the corner `numberCorner` picks. The planet sits at `at` (spaces from the middle). Plain SVG only (hex colours, no
- * `paint-order` or `dominant-baseline`), so they import into Illustrator as editable vectors.
+ * Print markings, the spaces' or the planet's (`part`): each space's outline; or wells for the cubes on the
+ * planet with its number in the corner `numberCorner` picks. The planet sits at `at` (spaces from the middle).
+ * Plain SVG only (hex colours, no `paint-order` or `dominant-baseline`), so they import into Illustrator as
+ * editable vectors.
  */
-export function markings(spec: TileSpec, part: 'spaces' | 'planet', shape: TileShape, at: Spot): Fragment {
+export function markings(spec: TileSpec, part: 'spaces' | 'planet', at: Spot): Fragment {
   const mm = (p: Spot) => ({ x: MID + p.x * TILE.cell, y: MID + p.y * TILE.cell });
   const hasPlanet = spec.number > 0;
   let body = '';
   let edges = '';
-  for (const spot of part === 'spaces' ? Object.values(TILE_SPOTS[shape]) : []) {
-    const away = Math.hypot(spot.x - at.x, spot.y - at.y);
-    if (hasPlanet && away < 1e-6) continue;
+  for (const spot of part === 'spaces' ? Object.values(TILE_SPOTS) : []) {
+    if (hasPlanet && Math.hypot(spot.x - at.x, spot.y - at.y) < 1e-6) continue;
     const { x, y } = mm(spot);
-    const conquer = hasPlanet && Math.abs(away - 1) < 1e-6;
-    const style = conquer ? WELL.conquer : WELL.space;
-    if (shape === 'hex') edges += hexEdge(x, y);
-    else body += well(x, y, TILE.pad, 4, style);
-    // The spaces beside a planet are where dice go to conquer it: on a square tile, very faint diagonal hatching marks them.
-    if (conquer && shape === 'square') body += hatch(x, y);
+    edges += hexEdge(x, y);
     // Ships on the Void gain Research: a faint flask on each space.
     if (spec.number === 0) body += voidFlask(x, y);
   }
   if (hasPlanet && part === 'planet') {
     const p = mm(at);
     for (const q of cubePadCentres(spec.number - 6, p.x, p.y)) body += well(q.x, q.y, CUBE_PAD.size, CUBE_PAD.corner, WELL.cube);
-    const num = numberPlacement(spec.number, shape);
-    const k = numberCorner(at, shape);
+    const num = numberPlacement(spec.number);
+    const k = numberCorner(at);
     const hue = PLANET_FAMILY[spec.number].hue;
     // White with a dark outline reads on any planet surface and on the space around it. The outline
     // is a second copy underneath; the baseline sits 0.4 em below the centre so the digits are centred.

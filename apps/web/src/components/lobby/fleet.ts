@@ -1,7 +1,7 @@
 // The lobby backdrop's quiet game (Backdrop.tsx shows it): fleets around their home planets, a ship at a time
 // re-rolling, moving space to space as in the game (along rows and columns, or hex to hex), or attacking an enemy in reach.
 
-import { adjacent, distance, surrounding, type Board } from '@regolith/engine';
+import { adjacent, distance, type Board } from '@regolith/engine';
 import { PLAYER_COLORS } from '../../theme';
 import { pick } from '../../random';
 
@@ -38,8 +38,8 @@ export interface Travel {
 
 export const roll = () => 1 + Math.floor(Math.random() * 6);
 export const at = (s: Spot) => `${s.r},${s.c}`;
-/** The open spaces touching a planet: the 8 around a square tile's, the 6 around a hex tile's. */
-export const around = (board: Board, open: Set<string>, home: Spot) => surrounding(board, home).filter((s) => open.has(at(s)));
+/** The open spaces touching a planet: the 6 around it. */
+export const around = (board: Board, open: Set<string>, home: Spot) => adjacent(board, home).filter((s) => open.has(at(s)));
 /** The spaces taken: where each ship (not destroyed) stands, and where each moving one is headed. */
 export const taken = (ships: Ship[]) => new Set(ships.filter((s) => !s.down).flatMap((s) => (s.to ? [at(s), at(s.to)] : [at(s)])));
 
@@ -113,7 +113,7 @@ export function step(board: Board, ships: Ship[], open: Set<string>, busy: Set<n
   if (!reach.length) return { ships };
   // Half the time it closes in on the nearest enemy, so the fleets meet; otherwise it wanders.
   const enemies = ships.filter((s) => !s.down && s.color !== ship.color);
-  const gap = (path: Spot[]) => Math.min(...enemies.map((e) => distance(e, path.at(-1)!, board)));
+  const gap = (path: Spot[]) => Math.min(...enemies.map((e) => distance(e, path.at(-1)!)));
   const path = enemies.length && Math.random() < HUNT_CHANCE ? reach.reduce((best, p) => (gap(p) < gap(best) ? p : best)) : pick(reach);
   return { ships: update({ to: path.at(-1) }), travel: { id: ship.id, path } };
 }

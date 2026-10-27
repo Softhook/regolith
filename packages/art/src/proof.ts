@@ -1,13 +1,14 @@
 import { GROUND, cubePad, diePad } from './aid';
 import { CARD, cardPalette } from './card';
 import { document, esc, hsl, hslToRgb, n } from './svg';
-import { hatch, well } from './tile/markings';
-import { CARD_CATEGORIES, CUBE_PAD, DOMINANCE, FONTS, INK, LABEL_TEXT, SPACE_BASE, SPACE_BASE_CSS, TILE, WELL } from './tokens';
+import { INKS } from './screenprint/inks';
+import { hexEdge, hexEdges, well } from './tile/markings';
+import { CARD_CATEGORIES, CUBE_PAD, DOMINANCE, FONTS, INK, TILE, WELL } from './tokens';
 
 /**
  * The press test: one A4 page to print on the real press and stock before a run, to check what the
- * screen can't show. It has a tile and a dark card at 100 %, the dark ramps the space art lives in,
- * the wells, every category colour on both card looks, the text sizes the pieces use, and hairlines.
+ * screen can't show. It has a tile and a dark card at 100 %, the ramp the ground art lives in,
+ * the markings, every category colour on both card looks, the text sizes the pieces use, and hairlines.
  * See docs/GRAPHICS.md §4.
  */
 
@@ -36,6 +37,9 @@ function grey(l: number): string {
   return hsl(0, 0, v * 100);
 }
 
+/** Mars's rust (screenprint `INKS.rust`) as hue and saturation, for the ground ramp. */
+const GROUND_HUE = [24, 44] as const;
+
 const M = 8;
 const WIDTH = PRESS_TEST.w - 2 * M;
 const PAPER = cardPalette(true, 0).paper;
@@ -56,7 +60,7 @@ export function pressTestSvg(o: PressTestOptions = {}): string {
   body += text(
     M,
     17,
-    'Print at 100 % on the real stock. Check: ramp steps stay apart, wells and nebula show, text is clean, colours tell apart.',
+    'Print at 100 % on the real stock. Check: ramp steps stay apart, outlines and wells show, text is clean, colours tell apart.',
     2.1,
     MUTED_LIGHT,
   );
@@ -82,19 +86,19 @@ export function pressTestSvg(o: PressTestOptions = {}): string {
     }
   });
 
-  // Ramps: the space hue from black to L 30 %, where the tile art lives, and a neutral one in L* steps.
+  // Ramps: Mars's rust from dark to light, where the tile art lives, and a neutral one in L* steps.
   let y = top + TILE.size + 6;
-  body += heading(y, 'Space ramp: hsl(228 52% L), labelled L* · the press should keep every step apart');
+  body += heading(y, `Ground ramp: hsl(${GROUND_HUE[0]} ${GROUND_HUE[1]}% L), labelled L* · the press should keep every step apart`);
   const steps = 16;
   const pw = WIDTH / steps;
   for (let i = 0; i < steps; i++) {
-    const l = i * 2;
+    const l = 10 + i * 4;
     const x = M + i * pw;
-    body += rect(x, y + 1.5, pw, 13, hsl(SPACE_BASE[0], SPACE_BASE[1], l));
+    body += rect(x, y + 1.5, pw, 13, hsl(GROUND_HUE[0], GROUND_HUE[1], l));
     body += text(
       x + pw / 2,
       y + 13,
-      lightnessOf(SPACE_BASE[0], SPACE_BASE[1], l).toFixed(1),
+      lightnessOf(GROUND_HUE[0], GROUND_HUE[1], l).toFixed(1),
       1.8,
       '#fff',
       'text-anchor="middle" fill-opacity=".8"',
@@ -110,30 +114,21 @@ export function pressTestSvg(o: PressTestOptions = {}): string {
     body += text(M + i * gw + gw / 2, y + 10, String(l), 1.8, l < 55 ? '#fff' : INK, 'text-anchor="middle"');
   }
 
-  // Wells as on the tiles, on the tiles' base colour, and the player aid's pads on its ground.
+  // The tiles' markings on Mars's ground, and the player aid's pads on its ground.
   y += 16.5;
-  body += heading(y, 'Wells on the tile base, pads on the player aid ground');
+  body += heading(y, 'Markings on the ground, pads on the player aid ground');
   const strip = y + 1.5;
   const h = 34;
-  body += rect(M, strip, WIDTH, h, SPACE_BASE_CSS);
+  body += rect(M, strip, WIDTH, h, INKS.rust);
   const cy = strip + 15;
   const label = (x: number, s: string, fill = MUTED_DARK) => text(x, strip + h - 2, s, 1.8, fill, 'text-anchor="middle"');
-  body += well(M + 16, cy, TILE.pad, 4, WELL.space) + label(M + 16, 'space');
-  body += well(M + 44, cy, TILE.pad, 4, WELL.conquer) + hatch(M + 44, cy) + label(M + 44, 'conquer space');
-  body += well(M + 68, cy, CUBE_PAD.size, CUBE_PAD.corner, WELL.cube) + label(M + 68, 'cube pad');
+  body += hexEdges(hexEdge(M + 20, cy)) + label(M + 20, 'space');
+  body += well(M + 56, cy, CUBE_PAD.size, CUBE_PAD.corner, WELL.cube) + label(M + 56, 'cube pad');
   // The aid's own pads, on its ground.
   const aidX = M + 84;
   body += rect(aidX, strip, M + WIDTH - aidX, h, GROUND);
   body += diePad(aidX + 18, cy, DOMINANCE, 'dominance') + label(aidX + 18, 'aid die pad');
   body += cubePad(aidX + 36, cy - CUBE_PAD.size / 2) + label(aidX + 36 + CUBE_PAD.size / 2, 'aid cube pad');
-  // Faint stars, as small as the starfield draws them.
-  for (let i = 0; i < 12; i++)
-    body += `<circle cx="${n(aidX + 56 + (i % 4) * 4)}" cy="${n(cy - 6 + Math.floor(i / 4) * 5)}" r=".09" fill="#fff" opacity="${n(0.25 + (i % 4) * 0.25)}"/>`;
-  body += label(aidX + 62, 'faint stars');
-  // The tile's flavour label, at its size and opacity.
-  body += `<text x="${n(aidX + 100)}" y="${n(cy - 2)}" font-family="${LABEL_TEXT.font}" font-size="${LABEL_TEXT.name}" font-weight="700" letter-spacing=".35" fill="#e6eeff" fill-opacity=".75" text-anchor="end">ARTHEX</text>`;
-  body += `<text x="${n(aidX + 100)}" y="${n(cy + 0.5)}" font-family="${LABEL_TEXT.font}" font-size="${LABEL_TEXT.line}" fill="#c7d6ff" fill-opacity=".55" text-anchor="end">CLASS M OCEANIC · 6.33 AU</text>`;
-  body += label(aidX + 92, 'tile label');
 
   // Type: the sizes the pieces use, on the light and the dark card paper.
   y = strip + h + 5;

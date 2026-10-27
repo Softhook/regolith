@@ -3,7 +3,6 @@ import { createRoot } from 'react-dom/client';
 import { App } from './App';
 import { setBeatVars } from './beats';
 import { ErrorBoundary } from './components/ErrorBoundary';
-import { warmTileImages } from './art/tileImages';
 import { startServiceWorker } from './pwa';
 import './styles.css';
 
@@ -19,7 +18,6 @@ window.addEventListener('hashchange', () => {
 setBeatVars();
 
 // Draw the map tiles in the background while the player is in the lobby.
-if (page === 'game') void warmTileImages();
 
 // Production builds only: in dev it would cache what the dev server serves.
 if (import.meta.env.PROD) startServiceWorker();

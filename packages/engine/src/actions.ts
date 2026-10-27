@@ -7,7 +7,6 @@ import {
   log,
   note,
   logTo,
-  markAbility,
   markMoved,
   name,
   ownShip,
@@ -44,7 +43,6 @@ export const actionHandlers = {
     const opt = moveIndexes(s, d).moves.get(cellIndex(s.board, a.to));
     if (!opt) fail('Out of range');
     spendPeaceful(s);
-    if (opt.diagonal) markAbility(s, d); // Interceptor manoeuvre
     d.loc = boardLoc(a.to);
     markMoved(s, d);
     logTo(s, d.owner, `${name(s, d.owner)} moves their ${shipName(s, d)}`, a.to);
@@ -59,7 +57,6 @@ export const actionHandlers = {
     const opt = a.from ? attackLaunches(s, d.id, a.target, opts).find((x) => same(x.from, a.from!)) : opts.attacks.get(a.target)!;
     if (!opt) fail('Cannot attack from there');
     spend(s, 1);
-    if (opt.diagonal) markAbility(s, d);
     markMoved(s, d);
     startCombat(s, d, die(s, a.target), opt.from);
   },

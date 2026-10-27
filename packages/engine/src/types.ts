@@ -28,7 +28,7 @@ export interface Planet {
   c: number;
 }
 
-/** The surface a hex map lies on: Mars or one of its moons, Phobos and Deimos. */
+/** The surface a map lies on: Mars or one of its moons, Phobos and Deimos. */
 export type World = 'phobos' | 'deimos' | 'mars';
 
 export interface Board {
@@ -36,10 +36,8 @@ export interface Board {
   mapName: string;
   rows: number;
   cols: number;
-  /** A hex board: cells are flat-topped hexes in axial coordinates (board.ts). Absent on square boards. */
-  hex?: boolean;
-  /** The world a hex board is on, which its artwork shows (MapDef.world). Absent on square boards. */
-  world?: World;
+  /** The world the board is on, which its artwork shows (MapDef.world). Its cells are flat-topped hexes in axial coordinates (board.ts). */
+  world: World;
   cells: BoardCell[][];
   planets: Planet[];
 }

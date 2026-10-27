@@ -3,7 +3,7 @@ import { BLED, REGOLITH_GROUND_PX, TILE_SPOTS, rasterLayerSvg, tileGroundSvg, ti
 import { LIT, SCALE } from '../src/regolith/core';
 
 /**
- * How a hex tile on a world's ground prints with smooth ground (regolith/core.ts `LIT`): its lit ground
+ * How a tile on a world's ground prints with smooth ground (regolith/core.ts `LIT`): its lit ground
  * drawn at the pixel its light is made for, as a bitmap, with what stands on it drawn over it as vectors.
  * How it looks is checked in Chrome: npm run ground:check.
  */
@@ -11,7 +11,7 @@ import { LIT, SCALE } from '../src/regolith/core';
 const spec = tileSpec('p7-01');
 const IMAGE = 'data:image/png;base64,AAAA';
 /** A tile's lit ground alone, with its planet `at` a space. */
-const groundOf = (world: World, planetAt?: string) => tileGroundSvg(spec, { look: world, planetAt })!;
+const groundOf = (world: World, planetAt?: string) => tileGroundSvg(spec, { world, planetAt });
 /** The ids of the filters a document draws with. */
 const filters = (svg: string) => new Set([...svg.matchAll(/filter="url\(#([\w-]+)\)"/g)].map((m) => m[1]));
 
@@ -32,16 +32,16 @@ describe('regolith ground in print', () => {
     for (const standing of ['rg-built', 'rg-cast', 'rg-dust']) expect(used.has(standing)).toBe(false);
   });
 
-  it.each(Object.keys(TILE_SPOTS.hex))("is the tile's own ground, levelled round its planet's space (%s)", (at) => {
+  it.each(Object.keys(TILE_SPOTS))("is the tile's own ground, levelled round its planet's space (%s)", (at) => {
     const ground = groundOf('mars', at);
     // Up to the end of the lit ground, the tile's ground starts the same: what stands on it follows.
     const lit = ground.slice(0, ground.lastIndexOf('</g></g>'));
-    expect(rasterLayerSvg(spec, 'mars', 'ground', TILE_SPOTS.hex[at]).startsWith(lit)).toBe(true);
+    expect(rasterLayerSvg(spec, 'mars', TILE_SPOTS[at]).startsWith(lit)).toBe(true);
     if (at) expect(ground).not.toBe(groundOf('mars'));
   });
 
   it.each(['phobos', 'deimos', 'mars'] as const)('goes in a tile as a bitmap, over its trim and bleed, under what stands (%s)', (world) => {
-    const svg = tileSvg(spec, { look: world, bleed: true, markings: true, ground: IMAGE });
+    const svg = tileSvg(spec, { world, bleed: true, markings: true, ground: IMAGE });
     expect(filters(svg).has('rg-ground')).toBe(false);
     expect(filters(svg).has('rg-built')).toBe(true);
     const image = svg.match(/<image href="([^"]*)" x="([-\d.]+)" y="([-\d.]+)" width="([\d.]+)" height="([\d.]+)"/);
@@ -61,10 +61,6 @@ describe('regolith ground in print', () => {
   });
 
   it('is lit by its filter when no bitmap is given', () => {
-    expect(filters(tileSvg(spec, { look: 'phobos', bleed: true })).has('rg-ground')).toBe(true);
-  });
-
-  it('is nothing in space', () => {
-    expect(tileGroundSvg(spec, { look: 'hex' })).toBeUndefined();
+    expect(filters(tileSvg(spec, { world: 'phobos', bleed: true })).has('rg-ground')).toBe(true);
   });
 });

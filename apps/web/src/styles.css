@@ -421,7 +421,6 @@ input { font: inherit; }
   animation: hl-in .25s ease-out both;
 }
 @media (hover: hover) { .hl:hover span { transform: scale(1.5); opacity: 1; } }
-.hl-diagonal span { background: var(--violet); box-shadow: 0 0 12px var(--violet); }
 .hl-deploy span, .hl-drop span {
   width: 70%; height: 70%;
   border-radius: 22%;
@@ -461,25 +460,17 @@ input { font: inherit; }
 .route-hit { fill: none; stroke: transparent; stroke-width: calc(var(--cell) * .45); stroke-linecap: round; pointer-events: stroke; cursor: pointer; }
 @media (hover: hover) { .route-alt:hover { opacity: 1; } }
 @keyframes route-in { from { opacity: 0; } }
-/* On a hex map, a space's highlight and a ship take taps on their hex only, not on the corners of their
-   square box, which lie in the neighbouring hexes. The hex reaches 1/√3 − 1/2 of a space past the box on
-   either side. */
-.board.hex .hl, .board.hex .ship { pointer-events: none; }
-.board.hex .hl::before, .board.hex .ship::before {
+/* A space's highlight and a ship take taps on their hex only, not on the corners of their square box,
+   which lie in the neighbouring hexes. The hex reaches 1/√3 − 1/2 of a space past the box on either side. */
+.board .hl, .board .ship { pointer-events: none; }
+.board .hl::before, .board .ship::before {
   content: ''; position: absolute; top: 0; bottom: 0; left: -7.735%; right: -7.735%;
   clip-path: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%);
   pointer-events: auto;
 }
-.board.hex .ship.struck::before { pointer-events: none; }
-/* Enemy zones of control, with a ship selected (Regolith): a faint amber tint, under the highlights. */
+.board .ship.struck::before { pointer-events: none; }
+/* Enemy zones of control, with a ship selected: a faint amber hatching on each hex, under the highlights, its edge as a stroke. */
 .zones { position: absolute; inset: 0; pointer-events: none; }
-.zones > span {
-  position: absolute;
-  background: repeating-linear-gradient(135deg, rgba(255, 200, 87, .14) 0 4px, transparent 4px 9px);
-  box-shadow: inset 0 0 0 1px rgba(255, 200, 87, .22);
-  animation: route-in .2s ease-out both;
-}
-/* On a hex map, hexes: the same hatching as an SVG pattern, and the edge as a stroke. */
 svg.zones { overflow: visible; }
 svg.zones pattern rect { fill: rgba(255, 200, 87, .14); }
 svg.zones polygon {
@@ -1604,8 +1595,8 @@ svg.zones polygon {
   transform-style: preserve-3d;
   transform: translate(-50%, -50%) rotateX(54deg);
 }
-/* The map turns on itself; the planets turn back as much (.backdrop-planet), starting in the same frame, so
-   they keep facing the camera. */
+/* The map turns on itself; an explosion's flash turns back as much (.backdrop-blast), starting in the same frame,
+   so it keeps facing the camera. */
 .backdrop-plane {
   --half: calc(var(--cell) * .28);
   position: relative; transform-style: preserve-3d;
@@ -1619,34 +1610,12 @@ svg.zones polygon {
 }
 @keyframes backdrop-in { from { opacity: 0; } }
 @keyframes backdrop-turn { to { transform: rotateZ(360deg); } }
-/* A planet as a sphere: its disc cut from the tile's artwork (shaded as a sphere already), raised off the board by
-   its radius and turned to face the camera, against the map's tilt and turn. The canvas paints its shadow below. */
-.backdrop-planet {
-  --d: calc(var(--size) * var(--cell));
-  --up: translateZ(calc(var(--d) / 2));
-  position: absolute;
-  left: calc((var(--c) + .5) * var(--cell) - var(--d) / 2); top: calc((var(--r) + .5) * var(--cell) - var(--d) / 2);
-  width: var(--d); height: var(--d); border-radius: 50%;
-  /* The tile's body as the canvas would draw it, a whole tile (3 cells) wide, centred on the planet. */
-  background: center / calc(var(--cell) * 3) no-repeat;
-  box-shadow: 0 0 calc(var(--cell) * .14) rgba(143, 211, 255, .4);
-  transform: var(--up) rotateZ(0deg) rotateX(-54deg);
-  animation: backdrop-in 1.4s ease-out both, backdrop-face 360s linear infinite;
-}
 @keyframes backdrop-face {
   from { transform: var(--up) rotateZ(0deg) rotateX(-54deg); }
   to { transform: var(--up) rotateZ(-360deg) rotateX(-54deg); }
 }
-/* A rim of atmosphere and a deeper night side, so the disc reads as a ball. */
-.backdrop-planet::after {
-  content: ''; position: absolute; inset: 0; border-radius: inherit;
-  background:
-    radial-gradient(circle at 32% 28%, rgba(255, 255, 255, .16), transparent 42%),
-    radial-gradient(circle at 38% 34%, transparent 52%, rgb(var(--shade) / .55) 100%);
-  box-shadow: inset 0 0 calc(var(--d) * .06) rgba(160, 215, 255, .5);
-}
 /* An explosion's shock waves lie on the board; its flash and sparks stand up at die height, larger, facing the
-   camera as the planets do (.backdrop-blast). The sparks are sized by --cell. */
+   camera (.backdrop-blast). The sparks are sized by --cell. */
 .backdrop-plane .explosion { z-index: auto; }
 .backdrop-plane > .explosion > :not(.boom-wave) { display: none; }
 /* Raised by more than its half-size × sin 54° (.53 of a cell), so tilted to the camera it clears the board. */
@@ -1727,7 +1696,6 @@ svg.zones polygon {
     radial-gradient(ellipse 90% 80% at 50% 40%, transparent 45%, rgb(var(--shade) / .75));
 }
 .lobby-backdrop.still .backdrop-plane { animation: none; transform: rotateZ(-18deg); }
-.lobby-backdrop.still .backdrop-planet { animation: none; transform: var(--up) rotateZ(18deg) rotateX(-54deg); }
 .lobby-backdrop.still .backdrop-map, .lobby-backdrop.still .backdrop-cube, .lobby-backdrop.still .backdrop-cube-spin { animation: none; }
 
 .lobby-hero { text-align: center; }
@@ -1853,17 +1821,16 @@ svg.zones polygon {
 .map-select .btn-icon { padding: 4px 8px; font-size: 16px; line-height: 1; }
 .muted { color: var(--muted); }
 .small { font-size: 12px; }
-.mini-map { display: grid; gap: 3px; flex-shrink: 0; }
+.mini-map { display: block; position: relative; flex-shrink: 0; }
 .mini-tile { width: var(--tile, 26px); height: var(--tile, 26px); border-radius: 6px; display: grid; place-items: center; font-size: 12px; font-weight: 700; background: #18223f; border: 1px solid var(--line); }
 .mini-tile.n7 { color: #7ef0d0; } .mini-tile.n8 { color: #7fb2ff; } .mini-tile.n9 { color: #c59bff; } .mini-tile.n10 { color: #ffb27a; }
 .mini-tile.gap { background: transparent; border-color: transparent; }
 .mini-tile.n0 { background: repeating-linear-gradient(45deg, #18223f 0 3px, #0d1428 3px 6px); }
 .mini-tile.blank { background: #111a33; }
 .mini-tile.start { box-shadow: inset 0 0 0 1.5px rgba(255,255,255,.7); }
-/* Hex maps' preview: a hex for each tile, placed, sized and clipped by NewGameFields' HexMiniMap. A start shows as a brighter hex (no inset ring on a clip). */
-.mini-map.hex { display: block; position: relative; }
-.mini-map.hex .mini-tile { position: absolute; border: 0; border-radius: 0; }
-.mini-map.hex .mini-tile.start { background: #33416e; box-shadow: none; }
+/* A map's preview: a hex for each tile, placed, sized and clipped by NewGameFields' MiniMap. A start shows as a brighter hex (no inset ring on a clip). */
+.mini-map .mini-tile { position: absolute; border: 0; border-radius: 0; }
+.mini-map .mini-tile.start { background: #33416e; box-shadow: none; }
 .credits { color: var(--muted); font-size: 12px; text-align: center; max-width: 480px; }
 .version { display: flex; flex-wrap: wrap; gap: 4px 12px; justify-content: center; margin: -8px 0 0; color: var(--muted); font-size: 11.5px; font-variant-numeric: tabular-nums; }
 .version button { color: var(--accent); background: none; border: 0; padding: 0; font: inherit; cursor: pointer; }

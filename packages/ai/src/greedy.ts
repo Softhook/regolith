@@ -235,7 +235,7 @@ function conquerPotential(s: GameState, p: PlayerId): number {
       for (const d of myShips) {
         if (inOrbit.includes(d)) continue;
         const c = cellOf(d)!;
-        const near = slots.some((q) => isEmptySpace(s, q) && distance(q, c, s.board) <= movementRange(s, d));
+        const near = slots.some((q) => isEmptySpace(s, q) && distance(q, c) <= movementRange(s, d));
         if (near) v += 6;
       }
     }
@@ -253,7 +253,7 @@ function danger(s: GameState, p: PlayerId): number {
     const c = cellOf(mine)!;
     let worst = 0;
     for (const e of enemies) {
-      const dist = distance(cellOf(e)!, c, s.board);
+      const dist = distance(cellOf(e)!, c);
       if (dist <= movementRange(s, e) + 1 && dist > 0) worst = Math.max(worst, attackOdds(e.value, mine.value));
     }
     total += worst * 45;

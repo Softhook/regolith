@@ -15,7 +15,6 @@ import { OffscreenHints, ZoomControls, useFollowMoves, useZoomIntro } from './bo
 import { Die3D, DieShadow } from './Die3D';
 import { PIECE_SHADOW_OPACITY } from './board/shadows';
 import { REGOLITH_SHADOW, TILE } from '@regolith/art';
-import { useOnGround } from '../art/mapLook';
 import { planetNames } from '../art/boardTiles';
 import { InfoPop, useAnchorName } from './InfoPop';
 
@@ -52,8 +51,8 @@ export function Board({
   const zoom = useBoardZoom(wrap, boardRef, rows, cols);
   const { cell } = zoom;
   const { box } = placement(game.board, cell);
-  // On a world's ground the dice cast hard shadows, as its buildings do: blurred as much, in pixels.
-  const cast = useOnGround(game.board) ? REGOLITH_SHADOW.blur * (cell / TILE.cell) : undefined;
+  // On the ground the dice cast hard shadows, as its buildings do: blurred as much, in pixels.
+  const cast = REGOLITH_SHADOW.blur * (cell / TILE.cell);
   const spots = shipSpots(game);
   const staging = useStaging(game, scene);
   const tip = useZoomIntro(game, ctl, zoom, !!introduce);
@@ -90,7 +89,7 @@ export function Board({
     <div className={`board-wrap ${zoom.zoomed ? 'zoomed' : ''}`} ref={wrap}>
       <div
         ref={boardRef}
-        className={`board${game.board.hex ? ' hex' : ''}`}
+        className="board"
         style={{ left: zoom.x, top: zoom.y, width: cols * cell, height: rows * cell, '--cell': `${cell}px` } as CSSProperties}
       >
         <BoardArt game={game} cell={cell} lateCube={staging.cube} />
@@ -188,7 +187,7 @@ const yoursOf = (game: GameState, ctl: Controller) => (owner: number) =>
 
 /**
  * The spaces another player's ship could move to with a plain move: its movement (with its owner's
- * skills), diagonally too for an Interceptor with its ability. Every ship it could reach to attack
+ * skills). Every ship it could reach to attack
  * gets a ring, above the ships. Only shown, not clickable.
  */
 function Reach({ game, id, cell, spots }: { game: GameState; id: string; cell: number; spots: ShipSpots }) {
@@ -245,8 +244,7 @@ function ShipShadows({
   cell: number;
   blur: number;
 }) {
-  // Only a hex map is ever on the ground.
-  const edge = game.board.hex ? hexMapPath(game.board, cell, tileArtOf(game.board)) : undefined;
+  const edge = hexMapPath(game.board, cell, tileArtOf(game.board));
   const struck = staging.struck.map(({ die: d, r, c, ms }) => (
     <div key={`struck:${d.id}`} className="ship-shadow struck" style={{ ...placeAt(r, c, cell), '--late': `${ms}ms` } as CSSProperties}>
       <DieShadow size={cell * DIE_SIZE} blur={blur} color={game.players[d.owner].color} />

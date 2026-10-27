@@ -5,6 +5,7 @@ import type { World } from '../tile/look';
 import type { TileSpec } from '../tile/set';
 import { SPACE, SCALE, SIZE, LIT, DRAWN } from './core';
 import { ground, built, cast, dust, SHADOW } from './light';
+export { GROUND_BASE } from './light';
 import { GRADIENTS, CRATERS, BURIED, RIDGE, DUNES, terrain, weathering } from './terrain';
 import { BUILDING_GRADIENTS } from './parts';
 import { base } from './base';

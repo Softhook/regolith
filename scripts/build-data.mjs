@@ -27,9 +27,8 @@ writeFileSync(new URL('packages/engine/src/data/cards.json', root), JSON.stringi
 
 const { maps } = parse(readFileSync(new URL('data/maps.yaml', root), 'utf8'));
 for (const m of maps) {
-  if (m.grid !== undefined && m.grid !== 'hex') throw new Error(`data/maps.yaml: ${m.id} has grid ${m.grid}`);
-  if ((m.grid || m.world !== undefined) && !(m.grid && ['phobos', 'deimos', 'mars'].includes(m.world)))
-    throw new Error(`data/maps.yaml: ${m.id} has world ${m.world}: every hex map has one, Phobos, Deimos or Mars, and only they do`);
+  if (!['phobos', 'deimos', 'mars'].includes(m.world))
+    throw new Error(`data/maps.yaml: ${m.id} has world ${m.world}: every map has one, Phobos, Deimos or Mars`);
 }
 const parsed = maps.map((m) => ({
   id: m.id,
@@ -38,8 +37,7 @@ const parsed = maps.map((m) => ({
   group: m.group,
   cubes: m.cubes,
   stats: m.stats,
-  ...(m.grid && { grid: m.grid }),
-  ...(m.world && { world: m.world }),
+  world: m.world,
   layout: m.layout.map((row) => row.trim().split(/\s+/)),
 }));
 writeFileSync(new URL('maps.json', out), JSON.stringify(parsed, null, 2) + '\n');

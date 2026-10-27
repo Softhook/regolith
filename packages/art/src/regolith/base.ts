@@ -31,7 +31,7 @@ import { landingPad, rover, crates, beacon, probe, tyreTracks } from './craft';
  * hexes (flat-topped, so they meet it at 30° + k·60°) that are on the tile, and not past the number's corner.
  */
 function exits(r: Rng, at: Spot, numbered: boolean): number[] {
-  const k = numberCorner(at, 'hex');
+  const k = numberCorner(at);
   const corner = (Math.atan2(k.y * 0.5, (k.x * 0.5) / Math.sqrt(3)) * 180) / Math.PI;
   return [-90, -30, 30, 90, 150, 210]
     .filter((a) => {

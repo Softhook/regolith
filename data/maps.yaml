@@ -21,8 +21,6 @@
 # Groups: hex (Quantum's maps adapted to hex tiles), open (maps spread out with blank tiles),
 #         drift (planets off the middle of their tiles).
 #
-# grid: hex, on every map.
-#
 # world: phobos | deimos | mars, on every map. The surface the map lies on, which its tiles show. Phobos is
 #   grey and cratered; Deimos, the outer moon, redder and smoother, its craters buried under dust; Mars has
 #   dunes and dust devils' tracks.
@@ -37,7 +35,6 @@ maps:
     name: Alpha Sector (hex)
     players: 2
     group: hex
-    grid: hex
     world: phobos
     cubes: 5
     stats: { slack: 0, shared: 1, planets: 7 }
@@ -52,7 +49,6 @@ maps:
     name: Beta Sector (hex)
     players: 3
     group: hex
-    grid: hex
     world: deimos
     cubes: 5
     stats: { slack: 4, shared: 4, planets: 10 }
@@ -66,7 +62,6 @@ maps:
     name: Gamma Sector (hex)
     players: 4
     group: hex
-    grid: hex
     world: phobos
     cubes: 5
     stats: { slack: 4, shared: 5, planets: 9 }
@@ -85,7 +80,6 @@ maps:
     name: Terra Minor (hex)
     players: 2
     group: hex
-    grid: hex
     world: mars
     cubes: 7
     stats: { slack: 0, shared: 6, planets: 6 }
@@ -99,7 +93,6 @@ maps:
     name: Circular Logic (hex)
     players: 2
     group: hex
-    grid: hex
     world: phobos
     cubes: 6
     stats: { slack: 2, shared: 4, planets: 6 }
@@ -113,7 +106,6 @@ maps:
     name: The Great Plan (hex)
     players: 2
     group: hex
-    grid: hex
     world: deimos
     cubes: 7
     stats: { slack: 2, shared: 2, planets: 10 }
@@ -129,7 +121,6 @@ maps:
     name: Critical Density (hex)
     players: 3
     group: hex
-    grid: hex
     world: phobos
     cubes: 5
     stats: { slack: 2, shared: 5, planets: 7 }
@@ -143,7 +134,6 @@ maps:
     name: Edge of Oblivion (hex)
     players: 3
     group: hex
-    grid: hex
     world: mars
     cubes: 7
     stats: { slack: 6, shared: 3, planets: 12 }
@@ -159,7 +149,6 @@ maps:
     name: Nexus (hex)
     players: 4
     group: hex
-    grid: hex
     world: phobos
     cubes: 6
     stats: { slack: 6, shared: 5, planets: 12 }
@@ -175,7 +164,6 @@ maps:
     name: Tesseract (hex)
     players: 4
     group: hex
-    grid: hex
     world: deimos
     cubes: 6
     stats: { slack: 4, shared: 5, planets: 9 }
@@ -199,7 +187,6 @@ maps:
     name: Twin Drift (hex)
     players: 2
     group: drift
-    grid: hex
     world: deimos
     cubes: 6
     stats: { slack: 6, shared: 2, planets: 10 }
@@ -220,7 +207,6 @@ maps:
     name: Arcadia Planitia
     players: 2
     group: open
-    grid: hex
     world: mars
     cubes: 6
     stats: { slack: 2, shared: 4, planets: 8 }
@@ -236,7 +222,6 @@ maps:
     name: Valles Marineris
     players: 2
     group: open
-    grid: hex
     world: mars
     cubes: 7
     stats: { slack: 6, shared: 4, planets: 10 }
@@ -250,7 +235,6 @@ maps:
     name: Stickney Crater
     players: 3
     group: open
-    grid: hex
     world: phobos
     cubes: 6
     stats: { slack: 3, shared: 3, planets: 9 }
@@ -267,7 +251,6 @@ maps:
     name: Tharsis Rise
     players: 3
     group: open
-    grid: hex
     world: mars
     cubes: 6
     stats: { slack: 4, shared: 4, planets: 10 }
@@ -284,7 +267,6 @@ maps:
     name: Utopia Planitia
     players: 4
     group: open
-    grid: hex
     world: mars
     cubes: 6
     stats: { slack: 6, shared: 4, planets: 14 }
@@ -303,7 +285,6 @@ maps:
     name: Limtoc
     players: 4
     group: open
-    grid: hex
     world: phobos
     cubes: 6
     stats: { slack: 6, shared: 4, planets: 14 }

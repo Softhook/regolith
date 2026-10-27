@@ -1,37 +1,34 @@
 import {
-  HEX_TILE_SET,
   OBJECTIVE_NAMES,
   REGOLITH_GROUND_PX,
   TILE_SET,
   WORLD_NAMES,
-  lookWorld,
   playerAidSvg,
   tileGroundSvg,
   tileSvg,
   type AidEdition,
-  type TileLook,
   type TileOptions,
   type TileSpec,
+  type World,
 } from '@regolith/art';
 import { blobToDataUrl, rasterise } from '../files';
 import type { PressSheets } from '../print/exports';
-import { PIECES, slugOf, type Piece, type Printable } from '../print/pieces';
+import { PIECES, slugOf, type Printable } from '../print/pieces';
 import { cardFontCss, measure, tileFontCss } from './cards';
 
-/** How a tile is shown and printed: its look, and where its planet sits (art `TileOptions`). */
-export type TileView = Pick<TileOptions, 'look' | 'planetAt'>;
+/** How a tile is shown and printed: its world, and where its planet sits (art `TileOptions`). */
+export type TileView = Pick<TileOptions, 'world' | 'planetAt'>;
 
 /**
- * A tile as an SVG document to print (art `tileSvg`): on a world's ground, its light drawn first at the size
- * it's made for and scaled up (art `tileGroundSvg`), since drawn at a print's resolution it falls into contour lines.
+ * A tile as an SVG document to print (art `tileSvg`): its ground's light drawn first at the size it's made for
+ * and scaled up (art `tileGroundSvg`), since drawn at a print's resolution it falls into contour lines.
  */
 export async function printedTileSvg(t: TileSpec, o: Omit<TileOptions, 'ground'>): Promise<string> {
-  return lookWorld(o.look) ? tileSvg(t, { ...o, ground: await litGround(t, o) }) : tileSvg(t, o);
+  return tileSvg(t, { ...o, ground: await litGround(t, o) });
 }
 
 /** `printedTileSvg` straight away, once the tile's ground is drawn (`litGround`): undefined until then. */
 export function printedTileSvgNow(t: TileSpec, o: Omit<TileOptions, 'ground'>): string | undefined {
-  if (!lookWorld(o.look)) return tileSvg(t, o);
   const ground = grounds.get(groundKey(t, o))?.drawn;
   return ground && tileSvg(t, { ...o, ground });
 }
@@ -49,8 +46,8 @@ const KEEP_GROUNDS = 32;
 /** Whether a tile's ground is drawn, so `printedTileSvgNow` has it. */
 export const groundDrawn = (t: TileSpec, o: TileView) => !!grounds.get(groundKey(t, o))?.drawn;
 
-/** What a tile's ground is drawn from: the tile (its seed, type and rings) and its look and planet's spot. */
-const groundKey = (t: TileSpec, o: TileView) => JSON.stringify([t, o.look, o.planetAt ?? '']);
+/** What a tile's ground is drawn from: the tile (its seed) and its world and planet's spot. */
+const groundKey = (t: TileSpec, o: TileView) => JSON.stringify([t, o.world, o.planetAt ?? '']);
 
 /** A tile's lit ground on its world (art `tileGroundSvg`), drawn at the size its light is made for, once. */
 export function litGround(t: TileSpec, o: TileView): Promise<string> {
@@ -59,7 +56,7 @@ export function litGround(t: TileSpec, o: TileView): Promise<string> {
   if (ground) grounds.delete(key);
   else {
     const px = REGOLITH_GROUND_PX;
-    const drawing: Ground = { url: rasterise(tileGroundSvg(t, o)!, px, px).then(blobToDataUrl) };
+    const drawing: Ground = { url: rasterise(tileGroundSvg(t, o), px, px).then(blobToDataUrl) };
     drawing.url.then((u) => (drawing.drawn = u)).catch(() => grounds.delete(key));
     ground = drawing;
   }
@@ -71,13 +68,13 @@ export function litGround(t: TileSpec, o: TileView): Promise<string> {
 
 /** Thumbnails of tiles as they print, as image URLs, by the tile and how it's shown (`thumbnail`). */
 const thumbnails = new Map<string, Promise<string>>();
-/** A tile's latest thumbnail in each look, to show while its next is drawn (a reroll, markings on or off). */
+/** A tile's latest thumbnail on each world, to show while its next is drawn (a reroll, markings on or off). */
 const latestThumbnails = new Map<string, string>();
-const latestKey = (t: TileSpec, look: TileOptions['look']) => `${t.id}:${look}`;
+const latestKey = (t: TileSpec, world: TileOptions['world']) => `${t.id}:${world}`;
 
 /**
- * A tile as it prints, drawn small (`px` across) for a thumbnail: on a world's ground, its own ground drawn
- * once at full size (`litGround`) and the tile drawn down from it. Kept, so each is drawn once.
+ * A tile as it prints, drawn small (`px` across) for a thumbnail: its own ground drawn once at full size
+ * (`litGround`) and the tile drawn down from it. Kept, so each is drawn once.
  */
 export function thumbnail(t: TileSpec, o: Omit<TileOptions, 'ground'>, px: number): Promise<string> {
   const key = JSON.stringify([t, o, px]);
@@ -86,24 +83,23 @@ export function thumbnail(t: TileSpec, o: Omit<TileOptions, 'ground'>, px: numbe
     url = printedTileSvg(t, o)
       .then((svg) => rasterise(svg, px, px))
       .then((blob) => URL.createObjectURL(blob));
-    url.then((u) => latestThumbnails.set(latestKey(t, o.look), u)).catch(() => thumbnails.delete(key));
+    url.then((u) => latestThumbnails.set(latestKey(t, o.world), u)).catch(() => thumbnails.delete(key));
     thumbnails.set(key, url);
   }
   return url;
 }
 
-/** The latest thumbnail drawn of a tile in a look (`thumbnail`), if any. */
-export const latestThumbnail = (t: TileSpec, look: TileOptions['look']) => latestThumbnails.get(latestKey(t, look));
+/** The latest thumbnail drawn of a tile on a world (`thumbnail`), if any. */
+export const latestThumbnail = (t: TileSpec, world: TileOptions['world']) => latestThumbnails.get(latestKey(t, world));
 
 /**
- * A tile as a printable face, named for where its planet sits when that's not the middle, and for the
- * world when it's on one, where its planet is an objective: `p7-01`, `p7-01-ne`, `habitat-01-phobos`,
- * `sinkhole-02-mars` (a Void has no spot).
+ * A tile as a printable face, named for its objective, where its planet sits when that's not the middle, and
+ * its world: `habitat-01-phobos`, `habitat-01-ne-mars`, `sinkhole-02-mars` (a Void has no spot).
  */
 export const printableTile = (t: TileSpec, fontCss: string, markings = true, view: TileView = {}): Printable => {
-  const id = lookWorld(view.look) ? objectiveId(t) : t.id;
+  const id = objectiveId(t);
   return {
-    name: (view.planetAt && t.number > 0 ? `${id}-${view.planetAt}` : id) + (lookWorld(view.look) ? `-${view.look}` : ''),
+    name: (view.planetAt && t.number > 0 ? `${id}-${view.planetAt}` : id) + `-${view.world ?? 'mars'}`,
     svg: (bleed) => tileSvg(t, { ...view, markings, bleed, fontCss }),
     print: (bleed) => printedTileSvg(t, { ...view, markings, bleed, fontCss }),
   };
@@ -127,47 +123,33 @@ export const printableAid = (edition: AidEdition, fontCss: string): Printable =>
 /** The player aids on the sheets: two of each edition. */
 const AIDS: AidEdition[] = ['regolith', 'regolith', 'basic', 'basic'];
 
-/**
- * The tiles and the player aids print together, on the same stock, from the tile and the aid page alike:
- * the set as it ships (not seeds being explored), with print markings.
- */
-export const TILES_AND_AIDS: PressSheets = {
-  name: 'tiles-aids',
-  label: 'Tiles + aids',
-  contents:
-    `all ${TILE_SET.length} tiles (${PIECES.tile.cols * PIECES.tile.rows} a page) and ${AIDS.length} player aids, ` +
-    `2 Community and 2 Classic (${PIECES.aid.cols * PIECES.aid.rows} a page)`,
+/** The player aids on press sheets of their own. */
+export const AID_SHEETS: PressSheets = {
+  name: 'aids',
+  label: 'Aids',
+  contents: `${AIDS.length} player aids, 2 Regolith and 2 Basic (${PIECES.aid.cols * PIECES.aid.rows} a page)`,
   async groups() {
-    const [tile, card] = await Promise.all([tileFontCss(), cardFontCss()]);
-    if (!tile || !card) throw new Error('the fonts didn’t load');
-    return [
-      { piece: PIECES.tile, faces: TILE_SET.map((t) => printableTile(t, tile)) },
-      { piece: PIECES.aid, faces: AIDS.map((edition) => printableAid(edition, card)) },
-    ];
+    const card = await cardFontCss();
+    if (!card) throw new Error('the fonts didn’t load');
+    return [{ piece: PIECES.aid, faces: AIDS.map((edition) => printableAid(edition, card)) }];
   },
 };
 
-/** The set as hex tiles, blanks too, in space or on Phobos, Deimos or Mars, planets in the middle, on press sheets of their own with each tile's die-cut line. */
-const hexTiles = (look: Exclude<TileLook, 'square'>): PressSheets => {
-  const world = lookWorld(look);
-  const on = world ? ` on ${WORLD_NAMES[world]}` : '';
-  return {
-    name: world ? `hex-tiles-${world}` : 'hex-tiles',
-    label: world ? `${WORLD_NAMES[world]} hex tiles` : 'Hex tiles',
-    contents: `all ${HEX_TILE_SET.length} tiles as hex tiles${on} (${PIECES.hexTile.cols * PIECES.hexTile.rows} a page), each with its die-cut line in a CutContour spot colour`,
-    async groups() {
-      const tile = await tileFontCss();
-      if (!tile) throw new Error('the fonts didn’t load');
-      return [{ piece: PIECES.hexTile, faces: HEX_TILE_SET.map((t) => printableTile(t, tile, true, { look })) }];
-    },
-  };
-};
+/** The set, blanks too, on a world, planets in the middle, on press sheets of their own with each tile's die-cut line. */
+const worldTiles = (world: World): PressSheets => ({
+  name: `tiles-${world}`,
+  label: `${WORLD_NAMES[world]} tiles`,
+  contents: `all ${TILE_SET.length} tiles on ${WORLD_NAMES[world]} (${PIECES.tile.cols * PIECES.tile.rows} a page), each with its die-cut line in a CutContour spot colour`,
+  async groups() {
+    const tile = await tileFontCss();
+    if (!tile) throw new Error('the fonts didn’t load');
+    return [{ piece: PIECES.tile, faces: TILE_SET.map((t) => printableTile(t, tile, true, { world })) }];
+  },
+});
 
-/** How each look of tile prints: its piece, and the press sheets its set goes on. */
-export const TILE_PRINT: Record<TileLook, { piece: Piece; cmyk: PressSheets }> = {
-  square: { piece: PIECES.tile, cmyk: TILES_AND_AIDS },
-  hex: { piece: PIECES.hexTile, cmyk: hexTiles('hex') },
-  phobos: { piece: PIECES.hexTile, cmyk: hexTiles('phobos') },
-  deimos: { piece: PIECES.hexTile, cmyk: hexTiles('deimos') },
-  mars: { piece: PIECES.hexTile, cmyk: hexTiles('mars') },
+/** The press sheets each world's set of tiles goes on. */
+export const TILE_SHEETS: Record<World, PressSheets> = {
+  phobos: worldTiles('phobos'),
+  deimos: worldTiles('deimos'),
+  mars: worldTiles('mars'),
 };

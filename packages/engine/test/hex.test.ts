@@ -1,7 +1,6 @@
 /**
- * Hex maps (docs/HEX.md) on 7-hex tiles. The rules are the square game's; what changes is which spaces
- * are next to each other, how far apart they are, and what a diagonal is. The geometry is pinned down
- * here with Basic's rules, Regolith without its cards.
+ * Hex maps (docs/HEX.md) on 7-hex tiles: which spaces are next to each other and how far apart they are.
+ * The geometry is pinned down here with Basic's rules, Regolith without its cards.
  */
 import { describe, expect, it } from 'vitest';
 import {
@@ -18,14 +17,11 @@ import {
   effectOf,
   distance,
   drawing,
-  geometry,
   grid,
-  isDiagonalStep,
   mapStats,
   moveOptions,
   orbitals,
   spaces,
-  surrounding,
   tileCentres,
   type Cell,
   type GameState,
@@ -62,20 +58,19 @@ describe('hex maps', () => {
   });
 
   it('are built of 7-hex tiles: each planet with its 6 orbital spaces, the planets of touching tiles 3 apart', () => {
-    for (const m of MAPS.filter((x) => x.grid === 'hex' && x.group !== 'drift')) {
+    for (const m of MAPS.filter((x) => x.group !== 'drift')) {
       const b = buildBoard(m);
-      expect(b.hex).toBe(true);
       for (const p of b.planets) {
         expect(orbitals(b, p)).toHaveLength(6);
         // Each orbital space is next to its own planet only.
-        for (const q of orbitals(b, p)) expect(b.planets.filter((x) => distance(x, q, b) === 1)).toEqual([p]);
+        for (const q of orbitals(b, p)) expect(b.planets.filter((x) => distance(x, q) === 1)).toEqual([p]);
       }
       // A void or blank tile is 7 spaces and no planet.
       const empty = m.layout.flat().filter((t) => t === '0' || t === '-').length;
       expect(spaces(b)).toHaveLength(b.planets.length * 6 + empty * 7);
     }
     const b = BASE.board;
-    expect(b.planets.filter((p) => distance(p, CENTRE, b) === 3)).toHaveLength(6);
+    expect(b.planets.filter((p) => distance(p, CENTRE) === 3)).toHaveLength(6);
   });
 
   it('finds each tile’s middle: its planet', () => {
@@ -87,32 +82,28 @@ describe('hex maps', () => {
     }
   });
 
-  it('touches only a hex’s 6 sides', () => {
-    expect(geometry(BASE.board).touching).toHaveLength(6);
-    const p = orbitals(BASE.board, CENTRE)[0];
-    expect(surrounding(BASE.board, p)).toEqual(adjacent(BASE.board, p));
-  });
-
   it('measures distance in hexes', () => {
     const b = BASE.board;
     const p = orbitals(b, CENTRE)[0];
-    for (const q of adjacent(b, p)) expect(distance(p, q, b)).toBe(1);
+    for (const q of adjacent(b, p)) expect(distance(p, q)).toBe(1);
     expect(adjacent(b, CENTRE)).toHaveLength(6);
     // Two steps straight on, or a diagonal: both 2 away.
-    expect(distance({ r: 0, c: 0 }, { r: 2, c: 0 }, b)).toBe(2);
-    expect(distance({ r: 0, c: 0 }, { r: 1, c: 1 }, b)).toBe(2);
-    expect(distance({ r: 0, c: 0 }, { r: 3, c: -3 }, b)).toBe(3);
+    expect(distance({ r: 0, c: 0 }, { r: 2, c: 0 })).toBe(2);
+    expect(distance({ r: 0, c: 0 }, { r: 1, c: 1 })).toBe(2);
+    expect(distance({ r: 0, c: 0 }, { r: 3, c: -3 })).toBe(3);
   });
 
-  it('draws flat-topped hexes: neighbours one space apart, diagonals √3', () => {
+  it('draws flat-topped hexes: neighbours one space apart, two hexes away 2 or √3', () => {
     const b = BASE.board;
     const { at } = drawing(b);
     const g = grid(b);
     for (const p of spaces(b)) {
       const i = p.r * b.cols + p.c;
       for (const q of g.orthoCells[i]) expect(Math.hypot(at(p).r - at(q).r, at(p).c - at(q).c)).toBeCloseTo(1);
-      for (const q of g.aroundCells[i].filter((x) => isDiagonalStep(p, x, b)))
-        expect(Math.hypot(at(p).r - at(q).r, at(p).c - at(q).c)).toBeCloseTo(Math.sqrt(3));
+      for (const q of spaces(b).filter((x) => distance(p, x) === 2)) {
+        const d = Math.hypot(at(p).r - at(q).r, at(p).c - at(q).c);
+        expect(Math.abs(d - 2) < 1e-9 || Math.abs(d - Math.sqrt(3)) < 1e-9).toBe(true);
+      }
       // A tap on a space's middle finds it.
       expect(cellAtPoint(b, at(p).r + 0.5, at(p).c + 0.5)).toEqual(p);
     }
@@ -128,14 +119,13 @@ describe('hex maps', () => {
     }
   });
 
-  // Through the spaces touching each other: on a square map that takes in the corners, which is all that joins Rupture's halves.
   it('joins every space of a map to every other, with no tile cut off', () => {
     for (const m of MAPS) {
       const b = buildBoard(m);
       const all = spaces(b).filter((p) => b.cells[p.r][p.c].kind === 'space');
       const seen = new Set([`${all[0].r},${all[0].c}`]);
       for (const queue = [all[0]]; queue.length;)
-        for (const q of surrounding(b, queue.pop()!)) {
+        for (const q of adjacent(b, queue.pop()!)) {
           if (b.cells[q.r][q.c].kind !== 'space' || seen.has(`${q.r},${q.c}`)) continue;
           seen.add(`${q.r},${q.c}`);
           queue.push(q);
@@ -150,9 +140,9 @@ describe('hex maps', () => {
     const moves = [...moveOptions(s, 'p0d0').moves.values()].map((m) => m.cell);
     // Next to the planet, a Battlestation (moves 1) has the 5 spaces around it that aren't the planet.
     expect(moves).toHaveLength(5);
-    for (const q of moves) expect(distance(from, q, s.board)).toBe(1);
+    for (const q of moves) expect(distance(from, q)).toBe(1);
     const s3 = scenario({ p0d0: [from, 3] });
-    for (const m of moveOptions(s3, 'p0d0').moves.values()) expect(distance(from, m.cell, s3.board)).toBeLessThanOrEqual(3);
+    for (const m of moveOptions(s3, 'p0d0').moves.values()) expect(distance(from, m.cell)).toBeLessThanOrEqual(3);
   });
 
   it('counts ships on any of a planet’s six orbital hexes towards a conquest', () => {
@@ -163,13 +153,11 @@ describe('hex maps', () => {
     expect(after.board.planets[CENTRE.id].cubes).toContain(0);
   });
 
-  it('carries only ships on the six touching hexes, not diagonal ones', () => {
+  it('carries only ships on the six touching hexes, not ones further off', () => {
     const b = BASE.board;
     const from = orbitals(b, CENTRE)[0];
     const side = adjacent(b, from).find((q) => b.cells[q.r][q.c].kind === 'space')!;
-    const diagonal = grid(b).aroundCells[from.r * b.cols + from.c].find(
-      (q) => isDiagonalStep(from, q, b) && b.cells[q.r][q.c].kind === 'space',
-    )!;
+    const diagonal = spaces(b).find((q) => distance(from, q) === 2)!;
     expect(carryPassengers(scenario({ p0d0: [from, 2], p0d1: [side, 3] }), 'p0d0').map((d) => d.id)).toEqual(['p0d1']);
     expect(carryPassengers(scenario({ p0d0: [from, 2], p0d1: [diagonal, 3] }), 'p0d0')).toEqual([]);
   });

@@ -1,4 +1,4 @@
-import { hsl, type Hsl } from './svg';
+import type { Hsl } from './svg';
 
 /** Physical sizes (mm) and colours shared by the game and print. See docs/GRAPHICS.md §2a. */
 
@@ -59,9 +59,6 @@ export const WELL: Record<'space' | 'conquer' | 'cube', WellStyle> = {
  * also the game's background behind them.
  */
 export const SPACE_BASE: [number, number, number] = [228, 52, 9];
-/** SPACE_BASE as a CSS colour. */
-export const SPACE_BASE_CSS = hsl(...SPACE_BASE);
-
 export type PlanetType = 'gas' | 'rocky' | 'ice' | 'lava' | 'ocean';
 
 export interface PlanetFamily {
@@ -94,14 +91,8 @@ export const PLANET_FAMILY: Record<number, PlanetFamily> = {
 /** Nebula hues stay between blue and pink-purple, so every tile's sky belongs to one set. */
 export const NEBULA_HUES: [number, number] = [215, 330];
 
-/** The Void tile's nebula colours (planet tiles get random, subtle ones). */
-export const VOID_NEBULA_HUES: [number, number] = [316, 336];
-
 /** The printed planet number (font size, mm), drawn where the spaces meet at the planet's bottom right. */
 export const NUMBER_TEXT = { size: 14, sizeTwoDigits: 12.5 } as const;
-
-/** The flavour label at the planet's top left (font sizes, mm): tiny, like a star atlas. */
-export const LABEL_TEXT = { name: 1.7, line: 1.2, font: "'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace" } as const;
 
 /** Display and text faces for cards and illustrations (the game UI loads the same two, index.html). */
 export const FONTS = {

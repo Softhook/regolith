@@ -96,14 +96,12 @@ export const skillHandlers = {
       const opt = opts.attacks.find((x) => x.die.id === a.target);
       if (!opt) fail('Target must be adjacent');
       use();
-      if (opt.diagonal) markAbility(s, d); // Interceptor manoeuvre
       startCombat(s, d, opt.die, cellOf(d)!);
       return;
     }
     const opt = a.to && opts.moves.find((x) => same(x.cell, a.to!));
     if (!opt) fail('Move one space to an empty space');
     use();
-    if (opt.diagonal) markAbility(s, d);
     d.loc = boardLoc(opt.cell);
     logTo(s, d.owner, `${name(s, d.owner)} moves their ${shipName(s, d)} one space`, opt.cell, ` (${cardName('tactical')})`);
   },

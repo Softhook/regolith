@@ -92,9 +92,9 @@ export function logTo(s: GameState, player: PlayerId, text: string, to: Cell, af
 }
 
 export const name = (s: GameState, p: PlayerId) => s.players[p].name;
-/** A ship's name in this game's rules, with its value: "Interceptor (5)". */
+/** A ship's name in this game's rules, with its value: "Sniper (5)". */
 export const shipName = (s: GameState, d: Die) => `${shipOf(s, d.value).name} (${d.value})`;
-/** A ship's name with its article: "an Interceptor (5)". */
+/** A ship's name with its article: "a Sniper (5)". */
 export const aShip = (s: GameState, d: Die) => `${/^[AEIOU]/.test(shipOf(s, d.value).name) ? 'an' : 'a'} ${shipName(s, d)}`;
 
 /** The pending decision at the head of the queue, if it is of the given kind. */

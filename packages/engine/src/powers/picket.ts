@@ -1,6 +1,6 @@
 /**
  * Picket: an enemy ship that moves into a space next to this one must stop there. Next to is a side away
- * (adjacent): up, down, left or right on squares, any of a hex's 6 sides; never diagonally.
+ * (adjacent): any of a hex's 6 sides.
  */
 import { grid } from '../board';
 import { type Power } from '../ships';

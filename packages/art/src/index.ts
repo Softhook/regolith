@@ -7,21 +7,17 @@ export {
   PLAYER_HUES,
   FONTS,
   NEBULA_HUES,
-  VOID_NEBULA_HUES,
   WELL,
   HEX_EDGE,
   NUMBER_TEXT,
   PLANET_DIAMETER,
   PLANET_FAMILY,
   SPACE_BASE,
-  SPACE_BASE_CSS,
   TILE,
   type PlanetType,
 } from './tokens';
 export { ICONS, icon } from './icons';
-export { starfield, type StarfieldOptions } from './starfield';
-export { REGOLITH_GROUND_PX, REGOLITH_SHADOW } from './regolith';
-export { planet, type PlanetOptions } from './planet';
+export { GROUND_BASE, REGOLITH_GROUND_PX, REGOLITH_SHADOW } from './regolith';
 export {
   BLED,
   HEX_TILE_CUT,
@@ -36,20 +32,17 @@ export {
   type NumberPlacement,
   type Segment,
   type Spot,
-  type TileShape,
 } from './tile/geometry';
-export { OBJECTIVE_NAMES, WORLD_NAMES, lookShape, lookWorld, type TileLook, type World } from './tile/look';
-export { HATCH, hexEdges, hexEdge, voidFlask, well } from './tile/markings';
-export { tileFlavour, tileLabel, tileLabelFits } from './tile/label';
-export { tileHasRings } from './tile/space';
+export { OBJECTIVE_NAMES, WORLD_NAMES, type World } from './tile/look';
+export { hexEdges, hexEdge, voidFlask, well } from './tile/markings';
 export {
   editableTileSvg,
   RASTER_AREA,
+  TILE_LAYERS,
   isRaster,
   rasterLayerSvg,
   standingMaskSvg,
   tileGroundSvg,
-  tileLayerNames,
   tileLayers,
   tileSvg,
   type RasterLayer,
@@ -57,7 +50,7 @@ export {
   type TileLayerName,
   type TileOptions,
 } from './tile';
-export { BLANK, HEX_TILE_SET, SET_COUNTS, TILE_SET, assignTiles, tileSpec, type TileSpec } from './tile/set';
+export { BLANK, SET_COUNTS, TILE_SET, assignTiles, tileFlavour, tileSpec, type TileSpec } from './tile/set';
 export {
   CARD,
   cardBackSvg,

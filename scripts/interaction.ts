@@ -143,7 +143,7 @@ function play(setup: string, g: number): Game {
       const ships = shipsOnBoard(s);
       let closest = 12;
       for (const x of ships)
-        for (const y of ships) if (x.owner === p && y.owner !== p) closest = Math.min(closest, distance(cellOf(x)!, cellOf(y)!, s.board));
+        for (const y of ships) if (x.owner === p && y.owner !== p) closest = Math.min(closest, distance(cellOf(x)!, cellOf(y)!));
       r.closest += closest;
       if (closest <= 2) r.contact++;
       let shared = false;

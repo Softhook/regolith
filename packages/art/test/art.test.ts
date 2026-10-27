@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
   BLANK,
-  HEX_TILE_SET,
   PLANET_DIAMETER,
   SET_COUNTS,
   TILE_SET,
@@ -68,30 +67,32 @@ describe('tile art', () => {
     }
   });
 
-  it("exports for Illustrator with nothing it can't read: art as one image, markings as plain vectors", () => {
+  it("exports for Illustrator with nothing it can't read: art as one image, markings as plain vectors, and the cut", () => {
     for (const t of TILE_SET) {
       const svg = editableTileSvg(t, 'data:image/png;base64,AAAA', { markings: true, bleed: true });
       expect(svg).not.toMatch(/<filter|<mask|clip-path|hsl\(|paint-order|dominant-baseline|NaN|undefined/);
       expect(svg).toContain('xlink:href="data:image/png');
       expect(svg).toContain('<g id="markings">');
+      expect(svg).toContain('<g id="cut">');
     }
   });
 
-  it('includes the bleed only when asked, without shifting any stars or artwork', () => {
+  it('includes the bleed only when asked, without shifting any artwork', () => {
     const trim = tileSvg(tileSpec('p8-01'));
     const bled = tileSvg(tileSpec('p8-01'), { bleed: true });
     expect(trim).toContain('viewBox="0 0 96 96"');
     expect(bled).toContain('viewBox="-3 -3 102 102"');
-    expect(trim.slice(trim.indexOf('>') + 1)).toBe(bled.slice(bled.indexOf('>') + 1));
+    // Only the flower's clip grows, by the bleed.
+    const art = (svg: string) => svg.slice(svg.indexOf('>') + 1).replace(/<clipPath id="[^"]*-flower">.*?<\/clipPath>/, '');
+    expect(art(trim)).toBe(art(bled));
   });
 });
 
 describe('tile set', () => {
   it('has unique ids and the counts the set needs', () => {
-    expect(new Set(HEX_TILE_SET.map((t) => t.id)).size).toBe(HEX_TILE_SET.length);
-    expect(HEX_TILE_SET.length).toBe(Object.values(SET_COUNTS).reduce((a, b) => a + b, 0));
-    // Square maps have no blanks, so their set has none.
-    expect(TILE_SET).toEqual(HEX_TILE_SET.filter((t) => t.number !== BLANK));
+    expect(new Set(TILE_SET.map((t) => t.id)).size).toBe(TILE_SET.length);
+    expect(TILE_SET.length).toBe(Object.values(SET_COUNTS).reduce((a, b) => a + b, 0));
+    expect(TILE_SET.some((t) => t.number === BLANK)).toBe(true);
   });
 
   it('rejects unknown or malformed tile ids', () => {
@@ -101,8 +102,8 @@ describe('tile set', () => {
   });
 
   it('covers every map without running out of tiles', () => {
+    const ids = new Set(TILE_SET.map((t) => t.id));
     for (const map of maps) {
-      const ids = new Set(('grid' in map ? HEX_TILE_SET : TILE_SET).map((t) => t.id));
       const tiles = map.layout
         .flat()
         .filter((x) => x !== '.')
@@ -126,85 +127,52 @@ describe('cube pads', () => {
 });
 
 describe('planet number', () => {
-  it('sits on the bottom-right diagonal, at the corner where the spaces meet unless its pads push it out', () => {
-    for (const num of [7, 8, 9, 10]) {
-      const at = numberPlacement(num);
-      expect(at.x, `planet ${num}`).toBe(at.y);
-      expect(at.x, `planet ${num}`).toBeGreaterThanOrEqual(TILE.cell / 2);
-      expect(at.x, `planet ${num}`).toBeLessThan(TILE.cell / 2 + 1.5);
+  it('sits at the vertex three hexes share, a third of a space right and half a space down, unless its pads push it out', () => {
+    for (const k of [7, 8, 9, 10]) {
+      const at = numberPlacement(k);
+      expect(at.y / at.x, `planet ${k}`).toBeCloseTo(Math.sqrt(3));
+      expect(at.y, `planet ${k}`).toBeGreaterThanOrEqual(TILE.cell / 2);
     }
   });
 
-  it('stays clear of the cube pads and of 19 mm dice in the spaces around the planet', () => {
+  it('stays clear of the cube pads', () => {
     for (const num of [7, 8, 9, 10]) {
       const at = numberPlacement(num);
       for (const p of cubePadCentres(num - 6, 0, 0)) {
         expect(boxGap(at.x, at.y, at.halfW, at.halfH, p.x, p.y, CUBE_PAD.size / 2), `planet ${num} pad`).toBeGreaterThan(0.5);
       }
-      for (const [dx, dy] of [
-        [1, 0],
-        [0, 1],
-        [1, 1],
-      ]) {
-        expect(boxGap(at.x, at.y, at.halfW, at.halfH, dx * TILE.cell, dy * TILE.cell, DIE / 2), `planet ${num} die`).toBeGreaterThan(0);
-      }
     }
+  });
+
+  it('goes in the corner nearest the middle', () => {
+    expect(numberCorner({ x: 0, y: 0 })).toEqual({ x: 1, y: 1 });
+    expect(numberCorner(TILE_SPOTS.sw)).toEqual({ x: 1, y: -1 });
+    expect(numberCorner(TILE_SPOTS.n)).toEqual({ x: 1, y: 1 });
   });
 });
 
-describe('tiles off the square', () => {
+describe('tile shape', () => {
   const seven = TILE_SET.find((t) => t.number === 7)!;
-  const wells = (svg: string) => (svg.match(/<polygon /g) ?? []).length;
-  const hatched = (svg: string) => (svg.match(/stroke-opacity=".14"/g) ?? []).length;
+  const outlines = (svg: string) => (svg.match(/<polygon /g) ?? []).length;
 
-  it('name the same planet spots as the engine reads from a layout token', () => {
-    expect(Object.keys(TILE_SPOTS.square).sort()).toEqual(['', 'e', 'n', 'ne', 'nw', 's', 'se', 'sw', 'w']);
-    expect(Object.keys(TILE_SPOTS.hex).sort()).toEqual(['', 'n', 'ne', 'nw', 's', 'se', 'sw']);
-    for (const [dir, p] of Object.entries(TILE_SPOTS.hex)) expect(Math.hypot(p.x, p.y)).toBeCloseTo(dir ? 1 : 0);
+  it('names the same planet spots as the engine reads from a layout token', () => {
+    expect(Object.keys(TILE_SPOTS).sort()).toEqual(['', 'n', 'ne', 'nw', 's', 'se', 'sw']);
+    for (const [dir, p] of Object.entries(TILE_SPOTS)) expect(Math.hypot(p.x, p.y)).toBeCloseTo(dir ? 1 : 0);
   });
 
-  it('draw a hex tile as six unhatched hex wells round its planet, cut to the flower', () => {
-    const svg = tileSvg(seven, { look: 'hex', markings: true, rounded: true });
-    expect(wells(svg)).toBe(6);
+  it('draws six hex outlines round its planet, cut to the flower', () => {
+    const svg = tileSvg(seven, { markings: true, rounded: true });
+    expect(outlines(svg)).toBe(6);
     expect(svg).toContain(`${seven.id}-flower`);
-    expect(hatched(svg)).toBe(0);
-    const outer = tileSvg(seven, { look: 'hex', markings: true, planetAt: 'n' });
-    expect(wells(outer)).toBe(6);
-    expect(hatched(outer)).toBe(0);
+    expect(outlines(tileSvg(seven, { markings: true, planetAt: 'n' }))).toBe(6);
   });
 
-  it('knock a hex tile out past its flower: at the cut, or past it by the bleed', () => {
+  it('is knocked out past its flower: at the cut, or past it by the bleed', () => {
     const clip = (o: Parameters<typeof tileSvg>[1]) => /<clipPath id="[^"]*-flower"><path d="M([\d.]+) /.exec(tileSvg(seven, o))?.[1];
     // The first hex's right corner: 1/√3 of a space right of its middle, and 3 mm further (over cos 30°) with the bleed.
-    expect(Number(clip({ look: 'hex', rounded: true }))).toBeCloseTo(48 + 32 / Math.sqrt(3), 1);
-    expect(Number(clip({ look: 'hex', bleed: true }))).toBeCloseTo(48 + (32 + 6) / Math.sqrt(3), 1);
-    expect(Number(clip({ look: 'hex' }))).toBeCloseTo(48 + 32 / Math.sqrt(3), 1);
-    expect(clip({})).toBeUndefined();
-  });
-
-  it('give the Illustrator file a cut layer on hex tiles only', () => {
-    expect(editableTileSvg(seven, 'x', { look: 'hex', planetAt: 'ne', markings: true })).toContain('<g id="cut">');
-    expect(editableTileSvg(seven, 'x', { markings: true })).not.toContain('<g id="cut">');
-  });
-
-  it('put the number in the corner nearest the middle, and the label only where it has room', () => {
-    expect(numberCorner({ x: 0, y: 0 })).toEqual({ x: 1, y: 1 });
-    expect(numberCorner(TILE_SPOTS.square.n)).toEqual({ x: 1, y: 1 });
-    expect(numberCorner(TILE_SPOTS.square.e)).toEqual({ x: -1, y: 1 });
-    expect(numberCorner(TILE_SPOTS.square.se)).toEqual({ x: -1, y: -1 });
-    expect(numberCorner(TILE_SPOTS.hex.sw, 'hex')).toEqual({ x: 1, y: -1 });
-    expect(numberCorner(TILE_SPOTS.hex.n, 'hex')).toEqual({ x: 1, y: 1 });
-    // On hexes it sits at the vertex three hexes share, a third of a space right and half a space down.
-    for (const k of [7, 8, 9, 10]) {
-      const hex = numberPlacement(k, 'hex');
-      expect(hex.y / hex.x).toBeCloseTo(Math.sqrt(3));
-      expect(hex.y).toBeGreaterThanOrEqual(TILE.cell / 2);
-    }
-    const named = (o: Parameters<typeof tileSvg>[1]) => tileSvg(seven, { markings: true, ...o }).includes('font-weight="700"');
-    expect(named({})).toBe(true);
-    expect(named({ planetAt: 's' })).toBe(true);
-    expect(named({ planetAt: 'w' })).toBe(false);
-    expect(named({ look: 'hex' })).toBe(false);
+    expect(Number(clip({ rounded: true }))).toBeCloseTo(48 + 32 / Math.sqrt(3), 1);
+    expect(Number(clip({ bleed: true }))).toBeCloseTo(48 + (32 + 6) / Math.sqrt(3), 1);
+    expect(Number(clip({}))).toBeCloseTo(48 + 32 / Math.sqrt(3), 1);
   });
 });
 

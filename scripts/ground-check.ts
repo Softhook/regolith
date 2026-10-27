@@ -41,7 +41,7 @@ try {
     const { printableTile } = await load<typeof import('../apps/web/src/lab/pressSheets')>(`${base}src/lab/pressSheets.ts`);
     const { PIECES, pieceSize } = await load<typeof import('../apps/web/src/print/pieces')>(`${base}src/print/pieces.ts`);
     const { svgToPng } = await load<typeof import('../apps/web/src/print/exports')>(`${base}src/print/exports.ts`);
-    const piece = PIECES.hexTile;
+    const piece = PIECES.tile;
     const { w, h } = pieceSize(piece, true);
 
     /** A PNG's grey levels, 0–255, and its width and height. */
@@ -88,9 +88,9 @@ try {
     // A tile of each number, a Void among them, on each world.
     const tiles = [7, 8, 9, 10, 0].map((num) => TILE_SET.find((t) => t.number === num)!);
     const results = [];
-    for (const look of ['phobos', 'deimos', 'mars'] as const)
+    for (const world of ['phobos', 'deimos', 'mars'] as const)
       for (const t of tiles) {
-        const item = printableTile(t, '', false, { look });
+        const item = printableTile(t, '', false, { world });
         const printed = await svgToPng(await item.print!(true), w, h, piece.dpi);
         const contoured = await svgToPng(item.svg(true), w, h, piece.dpi);
         results.push({

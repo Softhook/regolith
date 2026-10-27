@@ -51,6 +51,9 @@ const MARS_RAMP =
 
 const RAMPS: Record<World, string> = { phobos: PHOBOS_RAMP, deimos: DEIMOS_RAMP, mars: MARS_RAMP };
 
+/** Each world's ground at its middle lightness (its ramp's middle step): what shows where a tile isn't drawn yet. */
+export const GROUND_BASE: Record<World, string> = { phobos: '#6f6a60', deimos: '#786454', mars: '#a04a2a' };
+
 /** How much the fine noise roughens the ground: less on Deimos, whose deep dust smooths it over. */
 const FINE: Record<World, number> = { phobos: 1, deimos: 0.85, mars: 1 };
 

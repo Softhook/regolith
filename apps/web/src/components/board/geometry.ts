@@ -1,4 +1,4 @@
-import { adjacent, cellAt, cellOf, delta, drawing, geometry, type Board, type Cell, type GameState } from '@regolith/engine';
+import { SIDES, adjacent, cellAt, cellOf, delta, drawing, type Board, type Cell, type GameState } from '@regolith/engine';
 
 /** Where each ship on the map is drawn, by id, in cell units from the map's top left (engine drawing). */
 export type ShipSpots = Map<string, { r: number; c: number }>;
@@ -7,7 +7,7 @@ export type ShipSpots = Map<string, { r: number; c: number }>;
 export const spotBox = (spot: Cell, cell: number) => ({ left: spot.c * cell, top: spot.r * cell, width: cell, height: cell });
 
 /**
- * Where board spaces are drawn on the map, in pixels (engine `drawing`, so square and hex boards alike):
+ * Where board spaces are drawn on the map, in pixels (engine `drawing`):
  * `box` a space's box (one space square), `mid` its middle.
  */
 export function placement(board: Board, cell: number) {
@@ -20,9 +20,6 @@ export function placement(board: Board, cell: number) {
     },
   };
 }
-
-/** The gap each side of a square tile, in spaces: tiles stand a little apart, as on the table. */
-export const SQUARE_TILE_GAP = 0.015;
 
 /** A flat-topped hex one space tall has corners this far from its centre (1 / √3 spaces), and sides as long. */
 const HEX_CORNER = 1 / Math.sqrt(3);
@@ -64,8 +61,7 @@ export function hexSeams(board: Board, cell: number, tiles: readonly Cell[]): nu
   return tiles
     .flatMap((t) => hexFlower(board, t))
     .flatMap((p) =>
-      geometry(board)
-        .sides.map((d) => ({ r: p.r + d.r, c: p.c + d.c }))
+      SIDES.map((d) => ({ r: p.r + d.r, c: p.c + d.c }))
         .filter((q) => tileOf(q) !== tileOf(p))
         .map((q) => {
           // Across the middle of the line between the two centres (one space long), half a side each way.

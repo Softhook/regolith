@@ -13,7 +13,6 @@ import {
   buildBoard,
   cellAt,
   conquerCheck,
-  diagonals,
   drawing,
   mapStats,
   orbitals,
@@ -21,19 +20,18 @@ import {
   parseToken,
   spaces,
   tileCentres,
-  tilesTouch,
   type Board,
   type Cell,
   type GameState,
   type MapDef,
 } from '../src';
 import { playAiGame, quickStart } from './helpers';
-import { OFFSET_HEX, OFFSET_SQUARE, registerOffsetMaps } from './offsetMaps';
+import { OFFSET_HEX, registerOffsetMaps } from './offsetMaps';
 
 registerOffsetMaps();
 const ALPHA_HEX = MAPS.find((m) => m.id === 'alpha-hex')!;
 
-const map = (layout: string[][], grid?: 'hex'): MapDef => ({
+const map = (layout: string[][]): MapDef => ({
   id: 'test',
   name: 'Test',
   players: 2,
@@ -41,7 +39,6 @@ const map = (layout: string[][], grid?: 'hex'): MapDef => ({
   cubes: 5,
   stats: { slack: 0, shared: null, planets: 0 },
   layout,
-  ...(grid ? { grid } : {}),
 });
 const at = (b: Board, number: number, nth = 0) => b.planets.filter((p) => p.number === number)[nth];
 const tilesOf = (b: Board, cells: readonly Cell[]) => cells.map((p) => cellAt(b, p)!.tile);
@@ -84,88 +81,24 @@ describe('tile tokens', () => {
 
   it('put the planet that way from the middle as the map is drawn, north up', () => {
     // Degrees anticlockwise from east; the drawing's y runs down.
-    const square = { e: 0, ne: 45, n: 90, nw: 135, w: 180, sw: -135, s: -90, se: -45 };
-    const hex = { ne: 30, n: 90, nw: 150, sw: -150, s: -90, se: -30 };
-    for (const [grid, angles] of [
-      [undefined, square],
-      ['hex', hex],
-    ] as const)
-      for (const [dir, angle] of Object.entries(angles)) {
-        const b = buildBoard(map([[`7${dir}`]], grid));
-        const { at } = drawing(b);
-        const [p, m] = [at(b.planets[0]), at(tileCentres(b).get(0)!)];
-        const drawn = (Math.atan2(m.r - p.r, p.c - m.c) * 180) / Math.PI;
-        expect(drawn, `${grid ?? 'square'} ${dir}`).toBeCloseTo(angle, 6);
-      }
+    const angles = { ne: 30, n: 90, nw: 150, sw: -150, s: -90, se: -30 };
+    for (const [dir, angle] of Object.entries(angles)) {
+      const b = buildBoard(map([[`7${dir}`]]));
+      const { at } = drawing(b);
+      const [p, m] = [at(b.planets[0]), at(tileCentres(b).get(0)!)];
+      const drawn = (Math.atan2(m.r - p.r, p.c - m.c) * 180) / Math.PI;
+      expect(drawn, dir).toBeCloseTo(angle, 6);
+    }
   });
 
-  it('refuse east and west on hexes, which have no side that way', () => {
-    expect(() => buildBoard(map([['7e']], 'hex'))).toThrow(/hex tile/);
-    expect(() => buildBoard(map([['7w']], 'hex'))).toThrow(/hex tile/);
+  it('refuse east and west, which a hex has no side towards', () => {
+    expect(() => parseToken('7e')).toThrow(/Bad tile token/);
+    expect(() => parseToken('7w')).toThrow(/Bad tile token/);
   });
 
   it("don't change a map's stats", () => {
     const plain = (m: MapDef) => ({ ...m, layout: m.layout.map((row) => row.map((t) => (t === '.' ? t : t.replace(/[nsew]/g, '')))) });
-    for (const m of [OFFSET_SQUARE, OFFSET_HEX]) expect(mapStats(m)).toEqual(mapStats(plain(m)));
-  });
-});
-
-describe('an off-centre planet on squares', () => {
-  it('sits next to the middle, which becomes a space; the middle is still the tile centre', () => {
-    const b = buildBoard(map([['7'], ['8n']]));
-    expect(at(b, 8)).toMatchObject({ r: 3, c: 1 });
-    expect(cellAt(b, { r: 4, c: 1 })).toMatchObject({ kind: 'space', tile: 1 });
-    expect(tileCentres(b).get(1)).toEqual({ r: 4, c: 1 });
-  });
-
-  it('orbits three spaces of its own tile and one of the tile it faces', () => {
-    const b = buildBoard(map([['7'], ['8n']]));
-    const orbit = orbitals(b, at(b, 8));
-    expect(sorted(orbit)).toEqual(
-      sorted([
-        { r: 4, c: 1 },
-        { r: 3, c: 0 },
-        { r: 3, c: 2 },
-        { r: 2, c: 1 },
-      ]),
-    );
-    expect(tilesOf(b, orbit).sort()).toEqual([0, 1, 1, 1]);
-  });
-
-  it('shares an orbital space with the planet it faces', () => {
-    const b = buildBoard(map([['7'], ['8n']]));
-    expect(orbitedPlanets(b, { r: 2, c: 1 }).map((p) => p.number)).toEqual([7, 8]);
-    expect(orbitedPlanets(b, { r: 0, c: 1 }).map((p) => p.number)).toEqual([7]);
-    expect(orbitedPlanets(b, { r: 5, c: 1 })).toEqual([]);
-  });
-
-  it('in a corner, orbits two spaces of its own tile and one each of two others', () => {
-    const b = buildBoard(
-      map([
-        ['7', '7'],
-        ['7', '8nw'],
-      ]),
-    );
-    const orbit = orbitals(b, at(b, 8));
-    expect(at(b, 8)).toMatchObject({ r: 3, c: 3 });
-    expect(tilesOf(b, orbit).sort()).toEqual([1, 2, 3, 3]);
-    // Its diagonal on the tile across the corner is that tile's corner space.
-    expect(diagonals(b, at(b, 8))).toContainEqual({ r: 2, c: 2 });
-  });
-
-  it("facing the map's edge, orbits only three spaces; in a corner of the map, two", () => {
-    const edge = buildBoard(map([['7n']]));
-    expect(orbitals(edge, edge.planets[0])).toHaveLength(3);
-    const corner = buildBoard(map([['7nw']]));
-    expect(orbitals(corner, corner.planets[0])).toHaveLength(2);
-  });
-
-  it("doesn't orbit a planet next to it", () => {
-    const b = buildBoard(map([['7e', '7w']]));
-    for (const p of b.planets) {
-      expect(orbitals(b, p)).toHaveLength(3);
-      expect(orbitals(b, p).every((q) => cellAt(b, q)!.kind === 'space')).toBe(true);
-    }
+    expect(mapStats(OFFSET_HEX)).toEqual(mapStats(plain(OFFSET_HEX)));
   });
 });
 
@@ -173,7 +106,7 @@ describe('an off-centre planet on hexes', () => {
   it('sits on any of the six outer hexes, orbiting three of its own tile and three of two others', () => {
     for (const dir of ['n', 'ne', 'se', 's', 'sw', 'nw']) {
       const layout = ALPHA_HEX.layout.map((row) => row.map((t) => (t === '8' ? `8${dir}` : t)));
-      const b = buildBoard(map(layout, 'hex'));
+      const b = buildBoard(map(layout));
       const eight = at(b, 8);
       const own = cellAt(b, eight)!.tile;
       const centre = tileCentres(b).get(own)!;
@@ -198,7 +131,7 @@ describe('an off-centre planet on hexes', () => {
   });
 
   it('leaves three hexes of its tile in no orbit (all hexes orbit a planet on centred hex maps)', () => {
-    const b = buildBoard(map([['7n']], 'hex'));
+    const b = buildBoard(map([['7n']]));
     const flower = [...tileCentres(b).values()];
     expect(flower).toHaveLength(1);
     const free = b.cells.flat().filter((x) => x.kind === 'space').length - orbitals(b, b.planets[0]).length;
@@ -208,8 +141,9 @@ describe('an off-centre planet on hexes', () => {
 
 describe('starting planets', () => {
   it('need room for the 3 starting ships in orbital spaces no other start shares', () => {
-    expect(() => buildBoard(map([['7nw*']]))).toThrow(/starting objective 7 has 2/);
-    expect(() => buildBoard(map([['7n*', '7nw*']]))).toThrow(/has 2 perimeter spaces of its own/);
+    // Alone, a start has room wherever it sits on its tile; two leaning together share too much.
+    for (const dir of ['', 'n', 'ne', 'se', 's', 'sw', 'nw']) expect(() => buildBoard(map([[`7${dir}*`]]))).not.toThrow();
+    expect(() => buildBoard(map([['7n*', '7nw*']]))).toThrow(/starting objective 7 has 2 perimeter spaces of its own/);
     expect(() => buildBoard(map([['7n*', '7nw']]))).not.toThrow();
   });
 });
@@ -248,13 +182,6 @@ describe('playing with off-centre planets', () => {
     expect(entry.planets).toEqual([leaning.id, eight.id]);
   });
 
-  it('diagonal tiles on squares do not touch', () => {
-    const square = buildBoard(OFFSET_SQUARE);
-    expect(tilesTouch(square, 0, 4)).toBe(false);
-    expect(tilesTouch(square, 0, 1)).toBe(true);
-    expect(tilesTouch(square, 1, 4)).toBe(true);
-  });
-
   for (const { id: mode } of MODES)
     it(`AI plays a ${mode} game on Offset Hex to the end`, () => {
       const { state } = playAiGame({ mode, players: 2, seed: 5, aiSeed: 7, mapId: 'offset-hex' });
@@ -263,10 +190,10 @@ describe('playing with off-centre planets', () => {
 });
 
 describe('the drift maps', () => {
-  const drift = MAPS.filter((m) => m.group === 'drift' && m !== OFFSET_HEX && m !== OFFSET_SQUARE);
+  const drift = MAPS.filter((m) => m.group === 'drift' && m !== OFFSET_HEX);
 
-  it('are one hex map, which both modes play', () => {
-    expect(drift.map((m) => [m.id, m.grid])).toEqual([['twin-drift', 'hex']]);
+  it('are one map, which both modes play', () => {
+    expect(drift.map((m) => m.id)).toEqual(['twin-drift']);
     expect(
       Object.values(RULESETS)
         .filter((r) => r.mapGroups.includes('drift'))

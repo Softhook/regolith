@@ -1,14 +1,4 @@
-import {
-  CUBE_PAD,
-  PLANET_FAMILY,
-  REGOLITH_SHADOW,
-  WELL,
-  cubePadCentres,
-  numberPlacement,
-  well,
-  type Corner,
-  type TileShape,
-} from '@regolith/art';
+import { CUBE_PAD, PLANET_FAMILY, REGOLITH_SHADOW, WELL, cubePadCentres, numberPlacement, well, type Corner } from '@regolith/art';
 import type { CSSProperties } from 'react';
 import { PIECE_SHADOW_LENGTH, PIECE_SHADOW_OPACITY, castShadow } from './shadows';
 
@@ -38,7 +28,7 @@ function PlanetNumber({ n, x, y, size, className }: { n: number; x: number; y: n
  * A planet's live markings over its tile art, placed and sized as on the printed tile: its number and
  * cube spaces. `cubes[i]` is the colour of the cube in space i. Used by the board and the manual alike.
  * `cast`: on a world's ground, each cube casts a hard shadow with a hint of its colour, as the dice do (shadows.ts),
- * its glow gone. `corner` moves the number from the printed bottom right to another corner, as on a tile whose planet is off its middle (art `numberCorner`). `shape` places it for a hex map.
+ * its glow gone. `corner` moves the number from the printed bottom right to another corner, as on a tile whose planet is off its middle (art `numberCorner`).
  */
 export function PlanetMarkings({
   cx,
@@ -51,7 +41,6 @@ export function PlanetMarkings({
   cubeClass,
   cast,
   corner = { x: 1, y: 1 },
-  shape = 'square',
 }: {
   cx: number;
   cy: number;
@@ -65,10 +54,8 @@ export function PlanetMarkings({
   /** Cast the cubes' shadows, each with this class (it drops in with its cube). */
   cast?: string;
   corner?: Corner;
-  /** Where the number sits on a hex map: at the vertex three hexes share (art `numberPlacement`). */
-  shape?: TileShape;
 }) {
-  const at = numberPlacement(n, shape);
+  const at = numberPlacement(n);
   const slot = CUBE_PAD.size * mm;
   const pads = cubePadCentres(capacity, 0, 0);
   // The empty spaces are wells in the planet, drawn by the same code as print, in printed millimetres.

@@ -1,12 +1,4 @@
-import {
-  isRaster,
-  numberCorner as tileNumberCorner,
-  tileLabelFits,
-  type Corner,
-  type RasterLayer,
-  type Spot,
-  type TileLayerName,
-} from '@regolith/art';
+import { isRaster, numberCorner as tileNumberCorner, type Corner, type RasterLayer, type Spot, type TileLayerName } from '@regolith/art';
 import { cellAt, drawing, orbitedPlanets, spaces, tileCentres, type Board, type Cell, type Planet } from '@regolith/engine';
 
 /*
@@ -56,14 +48,5 @@ function spotOnTile(board: Board, planet: Planet): Spot {
  * nearest its tile's middle, so on its own tile, clear of the map's edge and of the next tile's planet.
  */
 export function numberCorner(board: Board, planet: Planet): Corner {
-  return tileNumberCorner(spotOnTile(board, planet), board.hex ? 'hex' : 'square');
-}
-
-/**
- * Whether a planet's flavour label fits beside it, as on its printed tile (art `tileLabelFits`): on a square
- * map, where the spaces up and to the left of it meet, so both those spaces must be on its own tile, and
- * its number not there. The label then stays on its tile, which no other planet reaches.
- */
-export function labelFits(board: Board, planet: Planet): boolean {
-  return !board.hex && tileLabelFits('square', spotOnTile(board, planet));
+  return tileNumberCorner(spotOnTile(board, planet));
 }

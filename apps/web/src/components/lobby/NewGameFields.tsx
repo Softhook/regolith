@@ -38,8 +38,8 @@ const TILE_CLIP = `polygon(${Array.from({ length: 6 }, (_, i) => {
   return `${(50 + 46 * Math.cos(a)).toFixed(1)}% ${(50 + 46 * Math.sin(a)).toFixed(1)}%`;
 }).join(', ')})`;
 
-/** A hex map's preview: a hex for each tile, placed and turned as the map draws them (engine `drawing`). */
-function HexMiniMap({ map }: { map: MapDef }) {
+/** A map's preview: a hex for each tile, placed and turned as the map draws them (engine `drawing`). */
+function MiniMap({ map }: { map: MapDef }) {
   const board = useMemo(() => buildBoard(map), [map]);
   const { at } = drawing(board);
   const centres = tileCentres(board);
@@ -53,11 +53,11 @@ function HexMiniMap({ map }: { map: MapDef }) {
   const [xs, ys] = [tiles.map((t) => t.x), tiles.map((t) => t.y)];
   const [left, top] = [Math.min(...xs) - TILE_CORNER, Math.min(...ys) - TILE_CORNER];
   const [w, h] = [Math.max(...xs) + TILE_CORNER - left, Math.max(...ys) + TILE_CORNER - top];
-  // Pixels per space: a tile at most 26 px across, as a square map's, and the map within 150.
+  // Pixels per space: a tile at most 26 px across, and the map within 150.
   const px = Math.min(26 / TILE_SPAN, 150 / w, 150 / h);
   const size = 2 * TILE_CORNER * px;
   return (
-    <div className="mini-map hex" style={{ width: w * px, height: h * px } as CSSProperties}>
+    <div className="mini-map" style={{ width: w * px, height: h * px } as CSSProperties}>
       {tiles.map((t) => (
         <MiniTile
           key={t.key}
@@ -71,17 +71,6 @@ function HexMiniMap({ map }: { map: MapDef }) {
           }}
         />
       ))}
-    </div>
-  );
-}
-
-function MiniMap({ map }: { map: MapDef }) {
-  if (map.grid === 'hex') return <HexMiniMap map={map} />;
-  const cols = Math.max(...map.layout.map((r) => r.length));
-  const size = Math.min(26, Math.floor(150 / Math.max(cols, map.layout.length)));
-  return (
-    <div className="mini-map" style={{ gridTemplateColumns: `repeat(${cols}, ${size}px)`, '--tile': `${size}px` } as CSSProperties}>
-      {map.layout.flatMap((row, r) => Array.from({ length: cols }, (_, c) => <MiniTile key={`${r},${c}`} token={row[c] ?? '.'} />))}
     </div>
   );
 }

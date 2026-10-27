@@ -238,9 +238,9 @@ function attackRoutes(game: GameState, sel: Sel): Route[] {
   if (sel.kind !== 'attackFrom') return [];
   const attacker = getDie(game, sel.die);
   const defender = getDie(game, sel.target);
-  const routes = attackLaunches(game, sel.die, sel.target).map(({ from, at, diagonal }, i): Route => ({
+  const routes = attackLaunches(game, sel.die, sel.target).map(({ from, at }, i): Route => ({
     from,
-    cells: movePath(game, sel.die, from, diagonal),
+    cells: movePath(game, sel.die, from),
     strike: at,
     main: i === 0,
     odds: attackChance(game, attacker, defender, from),

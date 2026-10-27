@@ -1,6 +1,6 @@
 import { memo, type CSSProperties } from 'react';
 import { drawing, type Board, type GameState } from '@regolith/engine';
-import { PLANET_DIAMETER, TILE, lookWorld } from '@regolith/art';
+import { PLANET_DIAMETER, TILE } from '@regolith/art';
 import { BarrierBubble } from './BarrierBubble';
 import { tileArt, type TileArt } from '../../art/boardTiles';
 import { GATE_COLOR } from '../../theme';
@@ -8,7 +8,6 @@ import { placement } from './geometry';
 import { PlanetMarkings } from './PlanetMarkings';
 import { MapTiles } from './MapTiles';
 import { numberCorner } from './layers';
-import { useMapLook } from '../../art/mapLook';
 
 // A map's tile art, worked out once: a map id always names the same layout.
 const tileArtByMap = new Map<string, TileArt[]>();
@@ -40,9 +39,7 @@ export const BoardArt = memo(function BoardArt({
   const { box, mid } = placement(game.board, cell);
   // Print millimetres to screen pixels: the tile art and everything drawn over it use the printed geometry.
   const mm = cell / TILE.cell;
-  // On a world's ground the cubes cast hard shadows, as its buildings do.
-  const world = lookWorld(useMapLook(game.board));
-  const ground = !!world;
+  const { world } = game.board;
   // The open gates, then any of a Warp Gate pair placed so far: faint until the pair is complete.
   const head = game.pending[0];
   const placing = head?.kind === 'warpGate' ? head.placed : [];
@@ -66,7 +63,7 @@ export const BoardArt = memo(function BoardArt({
 
         {/* Barriers (a power): soft glass bubbles on the planet's surface (BarrierBubble). */}
         {(game.barriers ?? []).map((b) => (
-          <BarrierBubble key={`b${b.r},${b.c}`} r={b.r} c={b.c} x={mid(b).x} y={mid(b).y} cell={cell} mm={mm} cast={ground} world={world} />
+          <BarrierBubble key={`b${b.r},${b.c}`} r={b.r} c={b.c} x={mid(b).x} y={mid(b).y} cell={cell} mm={mm} cast world={world} />
         ))}
 
         {planets.map((p) => {
@@ -95,10 +92,9 @@ export const BoardArt = memo(function BoardArt({
                 capacity={p.capacity}
                 cubes={p.cubes.map((o) => game.players[o].color)}
                 corner={numberCorner(game.board, p)}
-                shape={game.board.hex ? 'hex' : 'square'}
                 numberClass="planet-num"
                 cubeClass="cube"
-                cast={ground ? 'cube-shadow' : undefined}
+                cast="cube-shadow"
               />
             </g>
           );

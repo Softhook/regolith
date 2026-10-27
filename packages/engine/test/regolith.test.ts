@@ -117,10 +117,7 @@ describe('Regolith mode', () => {
     expect(expansionCard(BASE.regolith)).toBe(own.expansion);
     expect(regolith.mapGroups).toEqual(['hex', 'open', 'drift']);
     const played = MAPS.filter((m) => ['hex', 'open', 'drift'].includes(m.group));
-    for (const m of played) {
-      expect(m.grid, m.id).toBe('hex');
-      expect(m.world, m.id).toBeDefined();
-    }
+    for (const m of played) expect(m.world, m.id).toBeDefined();
     expect(played.map((m) => m.id)).toContain('twin-drift');
     expect(regolith.overConquest).toBe(REGOLITH_OVER_CONQUEST);
     expect(regolith.ships[5].hooks).toEqual({ ...shootPower.hooks, ...picket.hooks });
@@ -379,11 +376,6 @@ describe('classic 5 and 6 abilities are gone, the 4 is kept', () => {
   it('a Chameleon (4) can change, as in Community', () => {
     const s = scenario({ p0d0: [7, 2, 4], p0d1: [0, 5, 6] });
     expect(offered(s, 'change').length).toBeGreaterThan(0);
-  });
-
-  it('a Sniper (5) never moves diagonally, as a Community Interceptor does', () => {
-    const s = scenario({ p0d0: [7, 3, 5] });
-    expect([...moveOptions(s, 'p0d0').moves.values()].every((m) => !m.diagonal)).toBe(true);
   });
 
   it('the 1, 2 and 3 keep theirs', () => {

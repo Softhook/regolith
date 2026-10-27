@@ -10,7 +10,7 @@ import { gameFile } from '../appId';
 
 /** What a single-face export needs: a name for files, the size and the resolution. */
 export interface Format {
-  /** For file names: `cubic-card-…`. */
+  /** For file names: `regolith-card-…`. */
   id: string;
   /** Trim size, mm. */
   w: number;
@@ -43,8 +43,8 @@ export const dieAt = (die: Die, x: number, y: number): Die => ({
 
 /** A piece printed as a set: in ZIPs and on sheets. */
 export interface Piece extends Format {
-  id: 'card' | 'tile' | 'hex-tile' | 'aid';
-  /** For file names: `cubic-cards-…`. */
+  id: 'card' | 'tile' | 'aid';
+  /** For file names: `regolith-cards-…`. */
   plural: string;
   /** How many fit across and down a print sheet (A4). */
   cols: number;
@@ -53,10 +53,9 @@ export interface Piece extends Format {
 
 export const PIECES = {
   card: { id: 'card', plural: 'cards', w: CARD.w, h: CARD.h, bleed: CARD.bleed, cols: 3, rows: 3, dpi: 600 },
-  tile: { id: 'tile', plural: 'tiles', w: TILE.size, h: TILE.size, bleed: TILE.bleed, cols: 2, rows: 2, dpi: 300 },
-  hexTile: {
-    id: 'hex-tile',
-    plural: 'hex-tiles',
+  tile: {
+    id: 'tile',
+    plural: 'tiles',
     w: TILE.size,
     h: TILE.size,
     bleed: TILE.bleed,
@@ -103,17 +102,17 @@ export const slugOf = (name: string) =>
 
 const slug = (item: Printable) => item.name.replaceAll('/', '-');
 
-/** A single export's file name: `cubic-card-skill-07-agile-bleed-300dpi.png`, `cubic-tile-p7-01.svg`. */
+/** A single export's file name: `regolith-card-skill-07-agile-bleed-300dpi.png`, `regolith-tile-p7-01.svg`. */
 export function fileName(p: Format, item: Printable, o: { bleed: boolean; dpi?: number; ext: string }): string {
   return gameFile(`${p.id}-${slug(item)}${o.bleed ? '-bleed' : ''}${o.dpi ? `-${o.dpi}dpi` : ''}.${o.ext}`);
 }
 
-/** One face's CMYK PDF: `cubic-proof-a4-fogra39.pdf`, `…-fogra39-deep.pdf` with the deep black (always with the bleed). */
+/** One face's CMYK PDF: `regolith-proof-a4-fogra39.pdf`, `…-fogra39-deep.pdf` with the deep black (always with the bleed). */
 export const cmykName = (p: Format, item: Printable, deep: boolean) => gameFile(`${p.id}-${slug(item)}-${pressTag(deep)}.pdf`);
 
-/** A whole set's ZIP: `cubic-cards-community-bleed.zip`, `cubic-cards-community-fogra39.zip`. */
+/** A whole set's ZIP: `regolith-cards-community-bleed.zip`, `regolith-cards-community-fogra39.zip`. */
 export const setName = (p: Piece, o: { part?: string; tag?: string }) =>
   gameFile(`${p.plural}${o.part ? `-${o.part}` : ''}${o.tag ? `-${o.tag}` : ''}.zip`);
 
-/** Press sheets of pieces printed together: `cubic-tiles-aids-a4-fogra39.pdf`, `…-fogra39-deep.pdf` with the deep black. */
+/** Press sheets of pieces printed together: `regolith-tiles-aids-a4-fogra39.pdf`, `…-fogra39-deep.pdf` with the deep black. */
 export const sheetName = (name: string, deep: boolean) => gameFile(`${name}-a4-${pressTag(deep)}.pdf`);

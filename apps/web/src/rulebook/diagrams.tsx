@@ -77,7 +77,7 @@ const cached = (key: string, make: () => string) => {
 
 /** A hex tile's artwork (its ground, the objective's building, the spaces' outlines), cut to its flower, as on the board. */
 const tileUrl = (id: string) =>
-  cached(`tile:${id}`, () => dataUrl(tileSvg(tileSpec(id), { look: WORLD, rounded: true, markings: 'spaces' })));
+  cached(`tile:${id}`, () => dataUrl(tileSvg(tileSpec(id), { world: WORLD, rounded: true, markings: 'spaces' })));
 
 export const cardBackUrl = (deck: CardDeck) => cached(`back:${deck}`, () => dataUrl(cardBackSvg(deck)));
 
@@ -163,16 +163,7 @@ export function PlanetMarks({ at, n, cubes = [] }: { at: At; n: number; cubes?: 
 
 function Marks({ cx, cy, n, cubes, mm }: { cx: number; cy: number; n: number; cubes: Who[]; mm: number }) {
   return (
-    <PlanetMarkings
-      cx={cx}
-      cy={cy}
-      mm={mm}
-      n={n}
-      capacity={n - 6}
-      cubes={cubes.map((w) => COLOURS[w].face)}
-      shape="hex"
-      numberClass="mn-planet-num"
-    />
+    <PlanetMarkings cx={cx} cy={cy} mm={mm} n={n} capacity={n - 6} cubes={cubes.map((w) => COLOURS[w].face)} numberClass="mn-planet-num" />
   );
 }
 
@@ -182,7 +173,7 @@ function Marks({ cx, cy, n, cubes, mm }: { cx: number; cy: number; n: number; cu
  */
 export function PlanetIcon({ n, size = 34, cubes = [] }: { n: number; size?: number; cubes?: Who[] }) {
   const id = useSvgId();
-  const place = numberPlacement(n, 'hex');
+  const place = numberPlacement(n);
   // Room for the number past the hex, at the vertex below right.
   const right = Math.max(HALF_WIDTH, (place.x + place.halfW) * MM + 1);
   const bottom = Math.max(S / 2, (place.y + place.halfH * 2) * MM + 1);

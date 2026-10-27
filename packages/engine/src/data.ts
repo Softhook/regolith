@@ -29,9 +29,7 @@ export interface MapDef {
   group: string;
   cubes: number;
   stats: { slack: number; shared: number | null; planets: number };
-  /** Hex tiles (7-hex flowers) instead of 3×3 squares: data/maps.yaml says how a hex layout reads. */
-  grid?: 'hex';
-  /** A hex map's world, Phobos, Deimos or Mars: every hex map in data/maps.yaml names one (Mars for a test's map that doesn't). */
+  /** The map's world, Phobos, Deimos or Mars: every map in data/maps.yaml names one (Mars for a test's map that doesn't). */
   world?: World;
   layout: string[][];
 }

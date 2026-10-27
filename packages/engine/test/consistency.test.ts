@@ -15,6 +15,7 @@
  */
 import { describe, expect, it } from 'vitest';
 import {
+  adjacent,
   cellOf,
   checkInvariants,
   decisionCandidates,
@@ -29,7 +30,6 @@ import {
   shipsOnBoard,
   spaces,
   stepNeighbours,
-  surrounding,
   tryApply,
   type Action,
   type GameMode,
@@ -83,9 +83,8 @@ function bruteForce(s: GameState, withCarry: boolean): Action[] {
       else
         out.push(
           { type: 'attack', die: d.id, target: o.id },
-          // Next to the target or diagonal to it (a hex's diagonals don't touch it), or on a Warp Gate:
-          // an attack through the gate goes in from the other end.
-          ...[...surrounding(s.board, cellOf(o)!), ...stepNeighbours(s, cellOf(o)!, true), ...s.gates].map((from) => ({
+          // Next to the target, or on a Warp Gate: an attack through the gate goes in from the other end.
+          ...[...stepNeighbours(s, cellOf(o)!), ...s.gates].map((from) => ({
             type: 'attack' as const,
             die: d.id,
             target: o.id,
@@ -98,11 +97,11 @@ function bruteForce(s: GameState, withCarry: boolean): Action[] {
     const at = d.loc;
     if (withCarry && d.value === 2 && at.zone === 'board') {
       // Only spaces within reach can be destinations or drops (range 2, +1 for Agile, +1 to drop).
-      const near = cells.filter((c) => distance(c, at, s.board) <= 4);
+      const near = cells.filter((c) => distance(c, at) <= 4);
       for (const p of mine) {
         if (p.id === d.id || p.loc.zone !== 'board') continue;
         for (const to of near)
-          for (const drop of surrounding(s.board, to)) {
+          for (const drop of adjacent(s.board, to)) {
             out.push({ type: 'carry', die: d.id, passenger: p.id, to, drop });
             out.push({ type: 'tactical', die: d.id, passenger: p.id, to, drop });
           }
@@ -138,10 +137,9 @@ function playChecked(mode: GameMode, players: number, seed: number, mapId?: stri
         // Moves too, which ask the same search. Sampled, like the brute force below.
         if (!DEEP && step % 4) continue;
         const opts = moveOptions(s, d.id);
-        const ends = [...opts.moves.values()].map((m) => ({ to: m.cell, diagonal: m.diagonal }));
-        for (const x of opts.attacks.values()) for (const l of x.launches) ends.push({ to: l.from, diagonal: l.diagonal });
-        for (const { to, diagonal } of ends)
-          expect(movePath(s, d.id, to, diagonal).length, `${where}: movePath of ${d.id} to ${to.r},${to.c}`).toBeGreaterThan(0);
+        const ends = [...opts.moves.values()].map((m) => m.cell);
+        for (const x of opts.attacks.values()) for (const l of x.launches) ends.push(l.from);
+        for (const to of ends) expect(movePath(s, d.id, to).length, `${where}: movePath of ${d.id} to ${to.r},${to.c}`).toBeGreaterThan(0);
       }
 
       // Decisions are cheap to brute-force, so every one is. Phase-1 actions are slow, so their states

@@ -345,7 +345,7 @@ function planetPotential(ctx: Ctx, p: PlayerId, planet: Planet): number {
     for (const d of outside) {
       const from = cellOf(d);
       if (!from) continue;
-      const far = steps ? steps[from.r * cols + from.c] : Math.min(...empty.map((i) => distance(from, cells[i], s.board)));
+      const far = steps ? steps[from.r * cols + from.c] : Math.min(...empty.map((i) => distance(from, cells[i])));
       if (far < 0) continue;
       const moves = Math.ceil(far / Math.max(1, movementRange(s, d)));
       approach = Math.max(approach, APPROACH / Math.max(2, moves));

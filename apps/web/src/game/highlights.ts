@@ -8,14 +8,13 @@ import {
   scrapyard,
   shipsByIndex,
   stopZone,
-  tacticalOptions,
   type Cell,
   type GameState,
 } from '@regolith/engine';
 import type { Sel } from './controller';
 import type { Legal } from './legal';
 
-type CellTone = 'move' | 'diagonal' | 'deploy' | 'gate' | 'drop' | 'launch';
+type CellTone = 'move' | 'deploy' | 'gate' | 'drop' | 'launch';
 type DieTone = 'attack' | 'swap' | 'target' | 'passenger';
 type PlanetTone = 'conquer' | 'infamy' | 'start' | 'blocked';
 
@@ -116,7 +115,7 @@ export function highlightsFor(game: GameState, sel: Sel, legal: Legal, actionPha
       // The zones only while the ship may still go somewhere.
       if (moves.length || legal.can('attack', (a) => a.die === sel.die)) h.zones = zonesFor(game, sel.die, opts);
       // A space in a zone of control looks like any other move: the zone's hatching already shows it.
-      for (const a of moves) h.cells.set(key(a.to), { cell: a.to, tone: opts.moves.get(key(a.to))?.diagonal ? 'diagonal' : 'move' });
+      for (const a of moves) h.cells.set(key(a.to), { cell: a.to, tone: 'move' });
       for (const a of legal.of('attack', (a) => a.die === sel.die)) h.dice.set(a.target, 'attack');
       break;
     }
@@ -136,10 +135,9 @@ export function highlightsFor(game: GameState, sel: Sel, legal: Legal, actionPha
       );
       break;
     case 'tactical': {
-      const steps = tacticalOptions(game, sel.die).moves;
       for (const a of legal.of('tactical', (a) => a.die === sel.die && !a.passenger)) {
         if (a.target) h.dice.set(a.target, 'attack');
-        else if (a.to) h.cells.set(key(a.to), { cell: a.to, tone: steps.find((m) => same(m.cell, a.to!))?.diagonal ? 'diagonal' : 'move' });
+        else if (a.to) h.cells.set(key(a.to), { cell: a.to, tone: 'move' });
       }
       break;
     }

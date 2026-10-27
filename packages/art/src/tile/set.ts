@@ -1,4 +1,5 @@
-import { hash } from '../rng';
+import { planetFlavour, type PlanetFlavour } from '../flavour';
+import { hash, rng } from '../rng';
 import { PLANET_FAMILY, type PlanetType } from '../tokens';
 
 /** One physical tile: which planet it carries and the seed its look comes from. */
@@ -8,15 +9,9 @@ export interface TileSpec {
   /** Planet number, 0 for a Void tile, or BLANK. */
   number: number;
   seed: number;
+  /** The kind of planet it was in Quantum's space, which still picks its made-up name (`tileFlavour`). */
   type?: PlanetType;
-  rings?: boolean;
-  /** What sits at a Void tile's centre. */
-  heart?: VoidHeart;
 }
-
-/** A Void tile's centrepiece: a full set has one of each, in this order. */
-export type VoidHeart = 'blackHole' | 'rift' | 'supernova';
-const VOID_HEARTS: VoidHeart[] = ['blackHole', 'rift', 'supernova'];
 
 /** A blank tile's number: open ground, with no planet and no Void (a map's `-`). */
 export const BLANK = -1;
@@ -24,16 +19,12 @@ export const BLANK = -1;
 /**
  * How many of each tile a set needs: for planets and blanks, the most any map in data/maps.yaml uses at once
  * (docs/GRAPHICS.md §2a); three Voids. Start planets use a separate token, so they need no tiles of their own.
- * Only hex maps have blanks (`HEX_TILE_SET`).
  */
 export const SET_COUNTS: Record<number, number> = { 7: 8, 8: 8, 9: 6, 10: 5, 0: 3, [BLANK]: 10 };
 
 /** The look of one tile, from its id. Ids past the set's count (a map larger than the set) still work. */
 export function tileSpec(id: string): TileSpec {
-  if (id === 'void' || /^void-[1-9]\d*$/.test(id)) {
-    const index = id === 'void' ? 0 : Number(id.slice(5)) - 1;
-    return { id, number: 0, seed: hash(id), heart: VOID_HEARTS[index % VOID_HEARTS.length] ?? 'blackHole' };
-  }
+  if (id === 'void' || /^void-[1-9]\d*$/.test(id)) return { id, number: 0, seed: hash(id) };
   if (/^blank-([1-9]\d*|0[1-9]\d*)$/.test(id)) return { id, number: BLANK, seed: hash(id) };
   const m = /^p(\d+)-([1-9]\d*|0[1-9]\d*)$/.exec(id);
   const number = m ? Number(m[1]) : 0;
@@ -50,11 +41,8 @@ const tileId = (number: number, i: number) => {
 
 const tilesOf = (num: number) => Array.from({ length: SET_COUNTS[num] }, (_, i) => tileSpec(tileId(num, i)));
 
-/** Every tile in a full set, in order: the planets and Voids, all a square map can use. */
-export const TILE_SET: TileSpec[] = [7, 8, 9, 10, 0].flatMap(tilesOf);
-
-/** The set as hex tiles: TILE_SET and the blanks the open-ground maps spread out with. */
-export const HEX_TILE_SET: TileSpec[] = [...TILE_SET, ...tilesOf(BLANK)];
+/** Every tile in a full set, in order: the planets, the Voids, and the blanks the open-ground maps spread out with. */
+export const TILE_SET: TileSpec[] = [7, 8, 9, 10, 0, BLANK].flatMap(tilesOf);
 
 /**
  * Which physical tile goes where on a map: the k-th planet of a number gets that number's k-th tile.
@@ -72,4 +60,9 @@ export function assignTiles(tiles: { index: number; number: number }[]): Map<num
 }
 
 /** A tile's kind of planet: its spec's, or its number's first. */
-export const planetType = (spec: TileSpec): PlanetType => spec.type ?? PLANET_FAMILY[spec.number].types[0];
+const planetType = (spec: TileSpec): PlanetType => spec.type ?? PLANET_FAMILY[spec.number].types[0];
+
+/** The made-up name and survey data of a tile's planet, which the game names it by. */
+export function tileFlavour(spec: TileSpec): PlanetFlavour {
+  return planetFlavour(rng(spec.seed).fork('name'), planetType(spec), spec.number);
+}
