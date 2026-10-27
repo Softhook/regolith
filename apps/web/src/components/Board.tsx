@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useRef, useState, type CSSProperties, type MouseEvent, type ReactNode } from 'react';
-import { cellAtPoint, die, dieAt, drawing, key, moveOptions, orbitals, rulesOf, same, say, shipOf, type GameState } from '@regolith/engine';
+import { cellAtPoint, die, dieAt, drawing, key, moveOptions, orbitals, same, say, shipOf, type GameState } from '@regolith/engine';
 import type { Controller } from '../game/controller';
 import { BoardArt, tileArtOf } from './board/BoardArt';
 import { ActionEffects } from './board/ActionEffects';
@@ -464,11 +464,8 @@ function PlanetInfo({ game, id }: { game: GameState; id: number }) {
   const p = game.board.planets.find((x) => x.id === id)!;
   const free = p.capacity - p.cubes.length;
   const homeOf = game.players.find((pl) => pl.home === id);
-  const rules = rulesOf(game);
-  const holders = rules.contestedOrbit
-    ? [...new Set(orbitals(game.board, p).flatMap((c) => dieAt(game, c)?.owner ?? []))].map((o) => game.players[o].name)
-    : [];
-  const blocked = `conquer it${rules.contestedDeploy ? ' or deploy to it' : ''}`;
+  const holders = [...new Set(orbitals(game.board, p).flatMap((c) => dieAt(game, c)?.owner ?? []))].map((o) => game.players[o].name);
+  const blocked = 'conquer it or deploy to it';
   return (
     <>
       <div className="info-title">{planetLabel(game, id)}</div>

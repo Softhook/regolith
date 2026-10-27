@@ -1,15 +1,4 @@
-import {
-  canProfiteer,
-  say,
-  conquerCheck,
-  deployTargets,
-  die,
-  homePlanet,
-  orbitBlockers,
-  rulesOf,
-  shipOf,
-  type GameState,
-} from '@regolith/engine';
+import { canProfiteer, say, conquerCheck, deployTargets, die, homePlanet, orbitBlockers, shipOf, type GameState } from '@regolith/engine';
 import type { Sel } from './controller';
 
 /** The carrying ship's name in this game's rules, as a common noun: "flagship", or "behemoth" in Regolith. */
@@ -62,13 +51,10 @@ function hint(game: GameState, sel: Sel): string {
     case 'scrap': {
       // Contested deploy: say which of your planets an enemy ship in orbit keeps you from.
       const me = game.turn.player;
-      const rules = rulesOf(game);
-      const home = rules.homeShipyard ? homePlanet(game, me) : undefined;
-      const barred = rules.contestedDeploy
-        ? game.board.planets
-            .filter((p) => p !== home && p.cubes.includes(me) && orbitBlockers(game, me, p).length)
-            .map((p) => `planet ${p.number}`)
-        : [];
+      const home = homePlanet(game, me);
+      const barred = game.board.planets
+        .filter((p) => p !== home && p.cubes.includes(me) && orbitBlockers(game, me, p).length)
+        .map((p) => `planet ${p.number}`);
       if (!barred.length) return 'Click a highlighted orbital space to deploy this ship.';
       const why = `enemy ships in orbit of ${barred.join(' and ')} keep you from deploying there`;
       return deployTargets(game, me).length

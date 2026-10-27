@@ -18,7 +18,7 @@ import {
   logTo,
   name,
   requireActionPhase,
-  rollShip,
+  roll,
   aShip,
   shipName,
   tally,
@@ -106,7 +106,7 @@ const TACTIC_EFFECTS: Record<TacticEffect, TacticEffectFn> = {
     }
     // Placed after the roll is final (a Clever choice comes first).
     s.pending.unshift({ kind: 'placeExpansion', player: p, die: res[0].id });
-    rollShip(s, res[0]);
+    roll(s, res[0]);
   },
 };
 
@@ -205,7 +205,7 @@ export const cardHandlers = {
       consumeCardPick(s);
       s.market.expansions--;
       s.pending.unshift({ kind: 'placeExpansion', player: p, die: res[0].id });
-      rollShip(s, res[0]);
+      roll(s, res[0]);
       log(s, `${name(s, p)} expands their fleet.`, p, 'expansion');
       tally(s, p, 'cardsTaken');
       return;
@@ -345,7 +345,7 @@ export const cardHandlers = {
     if (head.rerolled.includes(d.id)) fail('Already re-rolled');
     head.rerolled.push(d.id);
     const was = shipName(s, d);
-    rollShip(s, d);
+    roll(s, d);
     note(s, `${name(s, head.player)} re-rolls their ${was}: ${shipName(s, d)}.`, head.player);
   },
   unveilDeploy(s, a) {

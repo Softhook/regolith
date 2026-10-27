@@ -51,7 +51,7 @@ import {
 } from '../src';
 import { cubeLeft } from '../src/core';
 import { beginPlay, settle } from '../src/turn';
-import { REGOLITH_DECKS, REGOLITH_CONTESTED_DEPLOY, REGOLITH_HOME_SHIPYARD, REGOLITH_OVER_CONQUEST } from '../src/regolith';
+import { REGOLITH_DECKS, REGOLITH_OVER_CONQUEST } from '../src/regolith';
 import { barrier as barrierPower, barrierTargets } from '../src/regolith/powers/barrier';
 import { picket } from '../src/regolith/powers/picket';
 import { shoot as shootPower, shootTargets } from '../src/regolith/powers/shoot';
@@ -127,12 +127,7 @@ describe('Regolith mode', () => {
       expect(m.world, m.id).toBeDefined();
     }
     expect(played.map((m) => m.id)).toContain('twin-drift');
-    expect(regolith.startingMissiles).toBe(1);
-    expect(regolith.maxMovement).toBe(3);
     expect(regolith.overConquest).toBe(REGOLITH_OVER_CONQUEST);
-    expect(regolith.contestedOrbit).toBe(true);
-    expect(regolith.contestedDeploy).toBe(REGOLITH_CONTESTED_DEPLOY);
-    expect(regolith.homeShipyard).toBe(REGOLITH_HOME_SHIPYARD);
     expect(regolith.ships[5].hooks).toEqual({ ...shootPower.hooks, ...picket.hooks });
     expect(regolith.ships[5].power).toBeUndefined();
     expect(regolith.ships[6].hooks).toEqual({ ...barrierPower.hooks, ...picket.hooks });
@@ -773,7 +768,7 @@ describe('contested orbit', () => {
   });
 });
 
-describe.runIf(REGOLITH_CONTESTED_DEPLOY)('deploying to a contested planet', () => {
+describe('deploying to a contested planet', () => {
   const deploys = (s: GameState) => offered(s, 'deploy').map((a) => (a.type === 'deploy' ? `${a.to.r},${a.to.c}` : ''));
   const ring = (s: GameState, planet: { id: number }) => orbitals(s.board, s.board.planets[planet.id]).map((c) => `${c.r},${c.c}`);
   const into = (s: GameState, planet: { id: number }) => new Set(deploys(s).filter((c) => ring(s, planet).includes(c))).size;
@@ -788,17 +783,6 @@ describe.runIf(REGOLITH_CONTESTED_DEPLOY)('deploying to a contested planet', () 
     const s = scenario(enemy ? { ...ships, p1d0: [a.r, a.c, 6] } : ships);
     s.board.planets[planet.id].cubes = [0];
     return { s, planet };
-  };
-  /** Runs `f` with the home shipyard on or off. */
-  const shipyard = (s: GameState, on: boolean, f: () => void) => {
-    const rules = rulesOf(s) as { homeShipyard?: boolean };
-    const was = rules.homeShipyard;
-    rules.homeShipyard = on;
-    try {
-      f();
-    } finally {
-      rules.homeShipyard = was;
-    }
   };
 
   it('keeps a player out of the orbit of their planet while an enemy ship is in it', () => {
@@ -857,13 +841,12 @@ describe.runIf(REGOLITH_CONTESTED_DEPLOY)('deploying to a contested planet', () 
     // Player 0 holds only its home, its whole fleet is in the scrapyard, and an enemy sits in that orbit.
     const s = scenario({ p1d0: [a.r, a.c, 6] });
     for (const q of s.board.planets) q.cubes = q.cubes.filter((x) => x !== 0 || q.id === planet.id);
-    shipyard(s, true, () => expect(into(s, planet)).toBe(ring(s, planet).length - 1));
-    shipyard(s, false, () => expect(offered(s, 'deploy')).toEqual([]));
+    expect(into(s, planet)).toBe(ring(s, planet).length - 1);
   });
 
   it('a home shipyard doesn’t open a player’s other planets, nor a rival’s home', () => {
     const { s, planet } = colony();
-    shipyard(s, true, () => expect(into(s, planet)).toBe(0));
+    expect(into(s, planet)).toBe(0);
     const theirs = homePlanet(s, 1)!;
     expect(conquerCheck(s, 0, theirs.id).ok).toBe(false);
   });

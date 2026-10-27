@@ -730,10 +730,8 @@ function RuleSetTable() {
         m.cards ? `${m.cards.terms.skillDeck} & ${m.cards.terms.tacticDeck}${m.cards.expansionPile ? ' + Expansion pile' : ''}` : <No />,
     ],
     ['Research action', (m) => (m.cards ? <Yes /> : <No />)],
-    ['Missiles', (m) => (m.startingMissiles ? `${m.startingMissiles} each` : <No />)],
     ['Starting card', (m) => (m.cards?.startingSkillDraft ? 'Keep 1 of 2' : <No />)],
     ['Peek at the deck', (m) => (m.cards?.peek ? <Yes /> : <No />)],
-    ['Reconfigure until', (m) => (m.reconfigure === 'unseen' ? 'a number not shown this turn' : 'any different number')],
   ];
   return (
     <div className="mn-table-wrap">

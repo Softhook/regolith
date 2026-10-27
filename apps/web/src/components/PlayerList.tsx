@@ -110,12 +110,10 @@ function PlayerCard({
         {rules.cards && <Track label="Research" value={p.research} tone="res" spot="research" fx={effectAt(fx, 'research')} />}
       </div>
       <div className="player-row">
-        {rules.startingMissiles > 0 && (
-          <Tip className="stat" data-fx="missiles" tip={say(game, 'Missiles: in a battle you are losing, set your own combat roll to 1')}>
-            <MissileIcon size={14} /> {p.missiles}
-            <Flash e={effectAt(fx, 'missiles')} />
-          </Tip>
-        )}
+        <Tip className="stat" data-fx="missiles" tip={say(game, 'Missiles: in a battle you are losing, set your own combat roll to 1')}>
+          <MissileIcon size={14} /> {p.missiles}
+          <Flash e={effectAt(fx, 'missiles')} />
+        </Tip>
         {p.planAhead > 0 && (
           <Tip className="stat gold" data-fx="planAhead" tip="Plan Ahead: all your combat rolls are 1">
             Plan Ahead

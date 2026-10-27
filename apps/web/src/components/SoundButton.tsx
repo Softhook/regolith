@@ -32,7 +32,7 @@ function AudioSwitch({ which, name, children: icon }: { which: 'sound' | 'music'
 }
 
 /** A top bar switch: `icon`, with a slash across it while off. */
-export function Switch({
+function Switch({
   which,
   label,
   on,

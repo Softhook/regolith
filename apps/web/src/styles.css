@@ -1,3 +1,6 @@
+/* The ground palette (the Regolith mood board's Main palette): printed matter, not a lit screen. Basalt, dust
+   and paper inks, flat fills and hard edges instead of gradients and glows, stencil type for titles. The chrome
+   takes no hue of its own (paper is its accent), so colour on screen means a player, or good and bad. */
 :root {
   --topbar-h: 52px;
   /* Room for the status bar and camera cutout at the top; none in full screen (below). */
@@ -7,38 +10,39 @@
   /* A strip above the map for the game's news (.toasts), so it doesn't cover the map's top row. None on short
      screens (phones on their side), where the map needs every pixel of height and the news goes over it. */
   --toast-lane: 40px;
-  --bg: #050813;
-  --bg-2: #0a1022;
-  --panel: rgba(14, 20, 40, 0.78);
-  --panel-solid: #0f1630;
+  --bg: #141311;
+  --bg-2: #1e1c1a;
+  --panel: #1e1c1a;
+  --panel-solid: #1e1c1a;
   /* Shades as bare RGB channels, for rgb(var(--shade) / alpha): deep scrims, then panels. */
-  --shade: 5 8 19;
-  --shade-2: 12 18 38;
-  --accent-rgb: 122 162 255;
-  --line-rgb: 140 170 255;
+  --shade: 12 11 10;
+  --shade-2: 30 28 26;
+  --accent-rgb: 237 231 219;
+  --line-rgb: 214 196 168;
   --line: rgb(var(--line-rgb) / 0.14);
   --line-2: rgb(var(--line-rgb) / 0.26);
-  --text: #e8edff;
-  --text-2: #c3cbea;
-  --muted: #8b96b9;
-  --accent: #7aa2ff;
-  --on-accent: #07102a;
-  --primary-1: #8fb0ff;
-  --primary-2: #5b7fe8;
-  --brand: linear-gradient(90deg, #8fd3ff, #b98cff);
+  --text: #ede7db;
+  --text-2: #cfc8bc;
+  --muted: #a69e91;
+  --accent: #ede7db;
+  --on-accent: #1e1c1a;
+  /* One colour each: the gradients they fill are flat. */
+  --primary-1: #ede7db;
+  --primary-2: #ede7db;
+  --brand: #ede7db;
   /* Dialogs and card placeholders. */
-  --sheet-1: #121a36;
-  --sheet-2: #0b1126;
+  --sheet-1: #1e1c1a;
+  --sheet-2: #1e1c1a;
   /* Card faces by type: a light skill, dark tactic and expansion. */
-  --card-skill-1: #f5f7fd;
-  --card-skill-2: #dfe5f5;
-  --card-skill-ink: #111830;
-  --card-tactic-1: #241a3d;
-  --card-tactic-2: #130d24;
-  --card-tactic-ink: #f1eaff;
-  --card-expansion-1: #0f3b3a;
-  --card-expansion-2: #082222;
-  --card-expansion-ink: #dffcf4;
+  --card-skill-1: #ede7db;
+  --card-skill-2: #ede7db;
+  --card-skill-ink: #1e1c1a;
+  --card-tactic-1: #3a2219;
+  --card-tactic-2: #3a2219;
+  --card-tactic-ink: #f3e3d6;
+  --card-expansion-1: #163a3f;
+  --card-expansion-2: #163a3f;
+  --card-expansion-ink: #dcf1f3;
   --pc: var(--accent);
   --good: #5ef0b0;
   --bad: #ff5d73;
@@ -49,67 +53,29 @@
   --dom-2: #ff5d73;
   --res-1: hsl(278 90% 72%);
   --res-2: hsl(290 90% 66%);
-  --radius: 14px;
-  --display: 'Orbitron', 'Inter', system-ui, sans-serif;
-  /* Titles too small for the display face to read (card names over art). */
-  --display-small: var(--display);
-  --body: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  color-scheme: dark;
-}
-/* On the ground (RuleSet.look, the Regolith mood board's Main palette): printed matter, not a lit screen. Basalt,
-   dust and paper inks, flat fills and hard edges instead of gradients and glows, stencil type for titles. The
-   chrome takes no hue of its own (paper is its accent), so colour on screen means a player, or good and bad.
-   GameScreen sets data-look on <html> while such a game is on screen. */
-:root[data-look='ground'] {
-  --bg: #141311;
-  --bg-2: #1e1c1a;
-  --panel: #1e1c1a;
-  --panel-solid: #1e1c1a;
-  --shade: 12 11 10;
-  --shade-2: 30 28 26;
-  --accent-rgb: 237 231 219;
-  --line-rgb: 214 196 168;
-  --text: #ede7db;
-  --text-2: #cfc8bc;
-  --muted: #a69e91;
-  --accent: #ede7db;
-  --on-accent: #1e1c1a;
-  /* One colour each: the gradients they fill are flat. */
-  --primary-1: #ede7db;
-  --primary-2: #ede7db;
-  --brand: #ede7db;
-  --sheet-1: #1e1c1a;
-  --sheet-2: #1e1c1a;
-  /* Work-order paper, then rust and teal inks. */
-  --card-skill-1: #ede7db;
-  --card-skill-2: #ede7db;
-  --card-skill-ink: #1e1c1a;
-  --card-tactic-1: #3a2219;
-  --card-tactic-2: #3a2219;
-  --card-tactic-ink: #f3e3d6;
-  --card-expansion-1: #163a3f;
-  --card-expansion-2: #163a3f;
-  --card-expansion-ink: #dcf1f3;
   --radius: 6px;
   --display: 'Saira Stencil One', 'Barlow Condensed', 'Inter', system-ui, sans-serif;
+  /* Titles too small for the display face to read (card names over art). */
   --display-small: 'Barlow Condensed', 'Inter', system-ui, sans-serif;
+  --body: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  color-scheme: dark;
   /* The stencil face has one weight; a faked bold fills in its gaps. */
   font-synthesis-weight: none;
 }
-:root[data-look='ground'] body { background: var(--bg); }
+:root body { background: var(--bg); }
 /* Dust, not stars. */
-:root[data-look='ground'] body::before { opacity: 0.12; }
+:root body::before { opacity: 0.12; }
 /* Ink on paper casts no light: panels sit on hard shadows, and a player's colour is a border, not a glow. */
-:root[data-look='ground'] .turn-panel { background: var(--panel-solid); box-shadow: 4px 4px 0 rgb(var(--shade) / .8); }
-:root[data-look='ground'] .modal { box-shadow: 6px 6px 0 rgb(var(--shade) / .8); border-radius: var(--radius); }
-:root[data-look='ground'] .combat-card { box-shadow: 6px 6px 0 rgb(var(--shade) / .8); border-radius: var(--radius); }
-:root[data-look='ground'] .combat-side.winning { box-shadow: inset 0 0 0 1px var(--pc); }
-:root[data-look='ground'] .combat-side.winning .combat-total { text-shadow: none; }
-:root[data-look='ground'] .market { background: rgb(var(--shade) / .6); }
-:root[data-look='ground'] .market.picking { background: rgb(var(--shade) / .6); }
-:root[data-look='ground'] .track-cells span.on { box-shadow: none; }
-:root[data-look='ground'] .track-dom .track-cells span.on { background: var(--dom-2); }
-:root[data-look='ground'] .track-res .track-cells span.on { background: var(--res-2); }
+:root .turn-panel { background: var(--panel-solid); box-shadow: 4px 4px 0 rgb(var(--shade) / .8); }
+:root .modal { box-shadow: 6px 6px 0 rgb(var(--shade) / .8); border-radius: var(--radius); }
+:root .combat-card { box-shadow: 6px 6px 0 rgb(var(--shade) / .8); border-radius: var(--radius); }
+:root .combat-side.winning { box-shadow: inset 0 0 0 1px var(--pc); }
+:root .combat-side.winning .combat-total { text-shadow: none; }
+:root .market { background: rgb(var(--shade) / .6); }
+:root .market.picking { background: rgb(var(--shade) / .6); }
+:root .track-cells span.on { box-shadow: none; }
+:root .track-dom .track-cells span.on { background: var(--dom-2); }
+:root .track-res .track-cells span.on { background: var(--res-2); }
 /* Full screen hides the status bar, but Android still reports its height as the inset, which left an
    empty strip at the top. Separate rules: an unknown prefixed pseudo-class would void a shared list. */
 :root:fullscreen { --safe-top: 0px; }
@@ -1848,7 +1814,7 @@ svg.zones polygon {
   background: rgb(var(--accent-rgb) / .15); color: var(--accent);
 }
 .mode-badge.mode-basic { background: rgba(94,240,176,.13); color: var(--good); }
-[data-look='ground'] .mode-badge { background: rgb(var(--accent-rgb) / .12); color: var(--accent); }
+:root .mode-badge { background: rgb(var(--accent-rgb) / .12); color: var(--accent); }
 .field { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: var(--muted); font-size: 13px; }
 .segmented { display: inline-flex; padding: 3px; border-radius: 10px; background: rgba(255,255,255,.05); border: 1px solid var(--line); }
 .segmented button { border: 0; background: transparent; padding: 6px 14px; border-radius: 7px; cursor: pointer; color: var(--muted); font-weight: 600; font-size: 13px; }

@@ -40,12 +40,11 @@ export function canUseAbility(state: GameState, d: Die): boolean {
 }
 
 /**
- * Reconfigure targets one of your ships on the map or in your scrapyard (2013 rulebook p.5).
- * The Community Edition additionally requires a value the die has not shown this turn.
+ * Reconfigure targets one of your ships on the map or in your scrapyard (2013 rulebook p.5), which still
+ * has a number it hasn't shown this turn (Community Edition).
  */
 export function canReconfigure(state: GameState, d: Die): boolean {
-  if (d.loc.zone === 'reserve') return false;
-  return rulesOf(state).reconfigure === 'different' || (state.turn.seen[d.id]?.length ?? 1) < 6;
+  return d.loc.zone !== 'reserve' && (state.turn.seen[d.id]?.length ?? 1) < 6;
 }
 
 /**
@@ -115,9 +114,12 @@ export function canGainResearch(state: GameState, player: PlayerId): boolean {
 // ---------------------------------------------------------------------------
 // Movement
 
-/** The die value counts up to the mode's cap (RuleSet.maxMovement); skill bonuses add to that. */
+/** The most a ship's die value counts for movement; skill bonuses add to it (ruling 2026-10-08, PROTOTYPING.md §2). */
+export const MAX_MOVEMENT = 3;
+
+/** The die value counts up to MAX_MOVEMENT; skill bonuses add to that. */
 export function movementRange(state: GameState, d: Die): number {
-  const base = Math.min(rulesOf(state).maxMovement ?? 6, d.value);
+  const base = Math.min(MAX_MOVEMENT, d.value);
   return base + skillRules(state, d.owner).reduce((n, r) => n + (r.movement ?? 0), 0);
 }
 
@@ -597,15 +599,13 @@ export function deployTargets(state: GameState, player: PlayerId): Cell[] {
       if (isEmptySpace(state, p) && !linked(state, p).some((q) => dieAt(state, q))) targets.set(key(p), p);
     }
   }
-  // Every way of deploying (Expansion, Stealthy, Beacon too) stays out of a contested orbit, except a home shipyard's.
-  const rules = rulesOf(state);
-  if (rules.contestedDeploy) {
-    const home = rules.homeShipyard ? homePlanet(state, player) : undefined;
-    for (const planet of state.board.planets) {
-      if (planet !== home && orbitBlockers(state, player, planet).length)
-        for (const p of orbitals(state.board, planet))
-          if (!(home && orbitals(state.board, home).some((h) => same(h, p)))) targets.delete(key(p));
-    }
+  // Contested deploy (PROTOTYPING.md §6.8): every way of deploying (Expansion, Stealthy, Beacon too) stays out of
+  // a contested orbit, except a home shipyard's, so nobody is shut out.
+  const home = homePlanet(state, player);
+  for (const planet of state.board.planets) {
+    if (planet !== home && orbitBlockers(state, player, planet).length)
+      for (const p of orbitals(state.board, planet))
+        if (!(home && orbitals(state.board, home).some((h) => same(h, p)))) targets.delete(key(p));
   }
   return [...targets.values()];
 }
@@ -635,7 +635,6 @@ export function homePlanet(state: GameState, player: PlayerId): Planet | undefin
 
 /** Contested orbit (PROTOTYPING.md §6.8): opponents' ships in the planet's orbital positions, which stop `player` conquering it. */
 export function orbitBlockers(state: GameState, player: PlayerId, planet: Planet): Die[] {
-  if (!rulesOf(state).contestedOrbit) return [];
   return orbitals(state.board, planet)
     .map((p) => dieAt(state, p))
     .filter((d): d is Die => !!d && d.owner !== player);

@@ -19,7 +19,6 @@ import { CombatOverlay } from './CombatOverlay';
 import { ConquerChoice, DecisionOverlay, GameOver } from './Overlays';
 import { ErrorToast, PlayedCard, Toasts } from './Toasts';
 import { FullscreenButton } from './FullscreenButton';
-import { WorldButton } from './WorldButton';
 import { MusicButton, SoundButton } from './SoundButton';
 
 /** The map's height over its width, as drawn. */
@@ -74,15 +73,6 @@ export function Game({
   useEffect(() => {
     if (!review && leftAt) setLeftAt(null);
   }, [review, leftAt]);
-  // The page's colours follow the rule set's look (styles.css, :root[data-look]).
-  const look = rulesOf(game).look;
-  useEffect(() => {
-    if (!look) return;
-    document.documentElement.dataset.look = look;
-    return () => {
-      delete document.documentElement.dataset.look;
-    };
-  }, [look]);
   const { error, toasts } = view;
   const ctl = useController(game, dispatch, review ? NOBODY : view.mine);
   const [hideGameOver, setHideGameOver] = useState(false);
@@ -117,7 +107,6 @@ export function Game({
             <button className="btn btn-ghost" onClick={onRules}>
               Rules
             </button>
-            {game.board.world && <WorldButton world={game.board.world} />}
             <MusicButton />
             <SoundButton />
             <FullscreenButton />

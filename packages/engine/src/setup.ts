@@ -2,13 +2,16 @@
 import { buildBoard, same, STARTING_SHIPS } from './board';
 import { dealt } from './effects';
 import { aShip, emptyTurn, fail, headOf, log, note, logTo, name, placeCube, roll, type Handlers } from './core';
-import { defaultMapFor, rulesOf } from './rules';
+import { defaultMapFor } from './rules';
 import { effectOf, MAPS, type CardDef, type GameMode } from './data';
 import { boardLoc, die, scrapyard } from './lookups';
 import { startSlots } from './queries';
 import { next, shuffle } from './rng';
 import { DEFAULT_MODE, RULESETS } from './rulesets';
 import type { Die, GameState, PlayerConfig } from './types';
+
+/** Missiles each player starts with (Community Edition). */
+const STARTING_MISSILES = 1;
 
 export interface NewGameOptions {
   players: PlayerConfig[];
@@ -42,7 +45,7 @@ export function createGame(opts: NewGameOptions): GameState {
       id,
       dominance: 1,
       research: 1,
-      missiles: rules.startingMissiles,
+      missiles: STARTING_MISSILES,
       cubesLeft: map.cubes,
       skills: [],
       ambitionTokens: 0,
@@ -152,7 +155,7 @@ export const setupHandlers = {
     if (!planet?.start) fail('Choose a starting planet');
     if (planet.cubes.length) fail('That starting planet is taken');
     placeCube(s, head.player, planet.id);
-    if (rulesOf(s).homeShipyard) s.players[head.player].home = planet.id;
+    s.players[head.player].home = planet.id;
     log(s, `${name(s, head.player)} starts at planet ${planet.number}.`, head.player, undefined, [planet.id]);
     s.pending.shift();
     // Rulebook p.3: every player places a cube first, then ships are placed in player order.

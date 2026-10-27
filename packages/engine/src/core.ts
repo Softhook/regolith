@@ -107,10 +107,9 @@ export function headOf<K extends Pending['kind']>(s: GameState, kind: K, message
 // ---------------------------------------------------------------------------
 // Dice
 
-/** Rolls a die, re-rolling until it shows a number other than `avoid` (if given). */
-export function roll(s: GameState, d: Die, avoid?: number) {
-  do d.value = d6(s);
-  while (d.value === avoid);
+/** Rolls a die: a ship at setup or during play (a destroyed ship, an expansion ship…). */
+export function roll(s: GameState, d: Die) {
+  d.value = d6(s);
   d.rolls++;
 }
 
@@ -120,25 +119,14 @@ export function markSeen(s: GameState, d: Die) {
   if (!seen.includes(d.value)) seen.push(d.value);
 }
 
-/**
- * Rolls one of a player's ships during play (Reconfigure, a destroyed ship, an expansion ship…).
- * `avoid` is the number a Reconfigure must move away from.
- */
-export function rollShip(s: GameState, d: Die, avoid?: number) {
-  roll(s, d, avoid);
-}
-
-/** Reconfigure: re-roll until the number changes (see RuleSet.reconfigure). */
+/** Reconfigure: re-roll until the die shows a number it hasn't shown this turn (Community Edition). */
 export function rerollNew(s: GameState, d: Die) {
-  if (rulesOf(s).reconfigure === 'different') rollShip(s, d, d.value);
-  else {
-    const seen = (s.turn.seen[d.id] ??= [d.value]);
-    if (seen.length >= 6) fail('This ship has already shown every value this turn');
-    do d.value = d6(s);
-    while (seen.includes(d.value));
-    seen.push(d.value);
-    d.rolls++;
-  }
+  const seen = (s.turn.seen[d.id] ??= [d.value]);
+  if (seen.length >= 6) fail('This ship has already shown every value this turn');
+  do d.value = d6(s);
+  while (seen.includes(d.value));
+  seen.push(d.value);
+  d.rolls++;
   // CE Clever: the result may be shifted by 1, even onto a number already shown this turn; no wrap
   // between 1 and 6, as with Flexible (decided 2026-10-03, OPEN-QUESTIONS #63).
   if (anySkill(s, d.owner, (r) => r.adjustReconfigure)) {
@@ -150,7 +138,7 @@ export function rerollNew(s: GameState, d: Die) {
 /** A destroyed ship is re-rolled and goes to its owner's scrapyard. */
 export function destroyShip(s: GameState, d: Die) {
   d.loc = { zone: 'scrapyard' };
-  rollShip(s, d);
+  roll(s, d);
   s.turn.seen[d.id] = [d.value];
   if (s.phase === 'play' && anySkill(s, d.owner, (r) => r.chooseScrapyardNumber)) {
     if (!s.pending.some((p) => p.kind === 'clever' && p.die === d.id)) {

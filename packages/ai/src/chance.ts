@@ -1,4 +1,4 @@
-import { combatOutcome, copyState, die, rulesOf, tryApply, type Action, type CombatPending, type GameState } from '@regolith/engine';
+import { combatOutcome, copyState, die, tryApply, type Action, type CombatPending, type GameState } from '@regolith/engine';
 
 /**
  * The possible results of an action, with their probabilities.
@@ -39,13 +39,12 @@ export function outcomes(s: GameState, a: Action, seeds: number[]): Outcome[] | 
 /** Every value the re-rolled die can show, equally likely. */
 function rerolls(prev: GameState, next: GameState, dieId: string): Outcome[] {
   const old = die(prev, dieId).value;
-  const unseen = rulesOf(prev).reconfigure === 'unseen';
-  const seen = unseen ? (prev.turn.seen[dieId] ?? [old]) : [old];
+  const seen = prev.turn.seen[dieId] ?? [old];
   const values = [1, 2, 3, 4, 5, 6].filter((v) => !seen.includes(v));
   return values.map((v) => {
     const state = copyState(next);
     die(state, dieId).value = v;
-    if (unseen) state.turn.seen[dieId] = [...seen, v];
+    state.turn.seen[dieId] = [...seen, v];
     return { state, p: 1 / values.length };
   });
 }

@@ -21,29 +21,12 @@ export interface RuleSet {
   actionsPerTurn: number;
   /** Maximum value on the research track. */
   researchLimit: number;
-  /** Missiles each player starts with; 0 means the mode has no missiles. */
-  startingMissiles: number;
-  /**
-   * Reconfigure re-rolls until the die shows `different` — any number other than its current one
-   * (official rules) — or `unseen` — a number it has not shown this turn (Community Edition).
-   */
-  reconfigure: 'different' | 'unseen';
   /** Map groups (data/maps.yaml) this mode can be played on. */
   mapGroups: string[];
   /** Each die value's ship: its name and power (built in, or prototype hooks). */
   ships: ShipTable;
-  /** The most a ship's die value counts for movement; skill bonuses add to it (PROTOTYPING.md §2). */
-  maxMovement?: number;
   /** A fully occupied planet can still be conquered by an orbit summing to 12, displacing an opponent's cube (PROTOTYPING.md §6.10). */
   overConquest?: boolean;
-  /** A planet can't be conquered while an opponent's ship is in one of its orbital positions (PROTOTYPING.md §6.8). */
-  contestedOrbit?: boolean;
-  /** No deploying into a planet's orbit while an opponent's ship is in it (PROTOTYPING.md §6.8, *Deploying to a contested planet*). */
-  contestedDeploy?: boolean;
-  /** With `contestedDeploy`: a player may still deploy to their own home planet (PROTOTYPING.md §6.8, *Home shipyard*). */
-  homeShipyard?: boolean;
-  /** How the game screen looks: absent, Quantum's deep space; `ground`, dust and basalt under a low sun (web styles.css, :root[data-look]). */
-  look?: 'ground';
   /** The mode's own words for Quantum's, as the UI shows its text (words.ts); none: Quantum's. */
   words?: Words;
 }
@@ -61,8 +44,6 @@ export interface CardRules {
   expansionPile: boolean;
   /** The card that pile is; see expansionCard. */
   expansion: CardDef;
-  /** How the mode's cards are printed (the art package's `CardLook`). */
-  look?: 'screenprint';
   terms: {
     skill: string;
     skills: string;

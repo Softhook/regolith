@@ -30,18 +30,6 @@ export const REGOLITH_DECKS: { skills: CardDef[]; tactics: CardDef[]; expansion:
 export const REGOLITH_OVER_CONQUEST = false;
 
 /**
- * Contested deploy (PROTOTYPING.md §6.8): no deploying into a planet's orbit while an opponent's ship is in
- * it, so a defender can't re-block a planet as fast as its blockers are destroyed. Since 2026-10-21.
- */
-export const REGOLITH_CONTESTED_DEPLOY = true;
-
-/** Home shipyard (PROTOTYPING.md §6.8): with contested deploy, a player may always deploy to their own home planet, so nobody is shut out. */
-export const REGOLITH_HOME_SHIPYARD = true;
-
-/** The most a ship's die value counts for movement; skill bonuses add to it (ruling 2026-10-08). */
-const MAX_MOVEMENT = 3;
-
-/**
  * Regolith's mechs (docs/regolith/REGOLITH-WORLD.md, *The six mechs*): the official powers under the mechs' names, except
  * the 5's, which strikes at range, and the 6's, which fires barriers.
  */
@@ -71,7 +59,7 @@ const REGOLITH_SHIPS: ShipTable = Object.fromEntries(
 );
 
 /** The words Regolith describes itself with in the lobby, after what each mode adds. */
-const RULES_TEXT = `moves capped at 3, zones of control (a mech moving next to an enemy mech, not diagonally, stops there), a ranged Sniper, a Wisp that fires barriers and contested orbits (no conquering${REGOLITH_CONTESTED_DEPLOY ? ` or deploying${REGOLITH_HOME_SHIPYARD ? ', except to your home planet,' : ''}` : ''} while an enemy mech is in orbit)${REGOLITH_OVER_CONQUEST ? ' and over-conquest, displacing an opponent cube' : ''}`;
+const RULES_TEXT = `moves capped at 3, zones of control (a mech moving next to an enemy mech, not diagonally, stops there), a ranged Sniper, a Wisp that fires barriers and contested orbits (no conquering or deploying, except to your home planet, while an enemy mech is in orbit)${REGOLITH_OVER_CONQUEST ? ' and over-conquest, displacing an opponent cube' : ''}`;
 
 /**
  * Regolith (docs/regolith/REGOLITH.md): missiles, a starting skill drafted from its own decks (REGOLITH_DECKS) and
@@ -92,20 +80,11 @@ export const REGOLITH: RuleSet = {
     startingSkillDraft: true,
     peek: true,
     expansionPile: true,
-    // Printed in screenprint (docs/regolith/REGOLITH.md §5).
-    look: 'screenprint',
     terms: { skill: 'skill', skills: 'skills', skillDeck: 'Skills', tacticDeck: 'Tactics' },
   },
-  startingMissiles: 1,
-  reconfigure: 'unseen',
   mapGroups: ['hex', 'open', 'drift'],
   ships: REGOLITH_SHIPS,
-  maxMovement: MAX_MOVEMENT,
   overConquest: REGOLITH_OVER_CONQUEST,
-  contestedOrbit: true,
-  contestedDeploy: REGOLITH_CONTESTED_DEPLOY,
-  homeShipyard: REGOLITH_HOME_SHIPYARD,
-  look: 'ground',
   words: REGOLITH_WORDS,
 };
 

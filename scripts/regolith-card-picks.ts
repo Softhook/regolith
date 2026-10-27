@@ -10,7 +10,6 @@ import { dirname } from 'node:path';
 import { build } from 'esbuild';
 import { parse } from 'yaml';
 import type { CardDeck } from '../packages/art/src';
-import { MODES } from '../packages/engine/src';
 
 interface Card {
   id: string;
@@ -33,7 +32,6 @@ const root = new URL('..', import.meta.url);
 const read = (path: string) => parse(readFileSync(new URL(path, root), 'utf8'));
 const regolith: Record<string, Card[]> = read('data/regolith.yaml');
 const ideas: Record<string, Record<string, Ideas>> = read('docs/regolith/card-text-ideas.yaml');
-const LOOK = MODES.find((m) => m.id === 'regolith')?.cards?.look;
 
 const DECKS: { key: string; deck: CardDeck; name: string; word: string }[] = [
   { key: 'skills', deck: 'skill', name: 'Skills', word: 'Skill' },
@@ -53,9 +51,7 @@ const cards = DECKS.flatMap((d) =>
       subtitle: c.subtitle,
       text: c.text,
       category: c.category,
-      scene: c.from,
       deck: d.deck,
-      look: LOOK,
       copies: c.count,
       index: i + 1,
       deckSize,
