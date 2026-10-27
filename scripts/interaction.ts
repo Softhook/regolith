@@ -58,7 +58,6 @@ const BY_TYPE: Partial<Record<Action['type'], Cat>> = {
   deploy: 'fleet',
   reconfigure: 'fleet',
   change: 'fleet',
-  freeReconfigure: 'fleet',
   conquer: 'conquer',
   missile: 'missile',
   endTurn: 'other',

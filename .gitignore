@@ -5,3 +5,4 @@ dist/
 test-results/
 scripts/.relay-check.json
 .cache/
+packages/engine/src/data/cards.json

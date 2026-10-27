@@ -290,7 +290,7 @@ export class Search {
 }
 
 /**
- * The first `width` of `scored` (best first), and the best free prototype power beyond them: one that
+ * The first `width` of `scored` (best first), and the best free power with hooks beyond them: one that
  * spends no action (Regolith's Barrier). Alone it may score below a paid action, yet it can come first
  * and leave that action to follow, a line the search would otherwise never try.
  */

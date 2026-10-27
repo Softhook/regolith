@@ -1,6 +1,6 @@
 /**
  * How much each ship power is used in each mode (AI self-play). Prints a table per mode; the
- * assertions only guard the measurement itself, so a prototype power can be judged by eye:
+ * assertions only guard the measurement itself, so a power can be judged by eye:
  * a power that is offered often but never used is dead weight, one used every time may be too strong.
  * By default one quick game per mode, so the suite stays fast; the numbers worth reading need more games
  * and level 4, the lowest that uses Flagship transports:

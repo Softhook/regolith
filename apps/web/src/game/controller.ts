@@ -29,7 +29,7 @@ export type Sel =
   | { kind: 'scrap'; die: string }
   | { kind: 'swap'; die: string }
   | { kind: 'freeAttack'; die: string }
-  /** A prototype ship power's action (ShipHooks.action). */
+  /** A ship power's action (ShipHooks.action). */
   | { kind: 'power'; die: string }
   | { kind: 'tactical'; die: string }
   | { kind: 'kineticShunt'; die: string }

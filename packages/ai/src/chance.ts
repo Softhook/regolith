@@ -31,7 +31,7 @@ export function outcomes(s: GameState, a: Action, seeds: number[]): Outcome[] | 
   const next = tryApply(s, a);
   if (!next) return null;
   // Under Clever the rolled number is replaced by the player's choice, so the roll doesn't branch.
-  if ((a.type === 'reconfigure' || a.type === 'freeReconfigure') && next.pending[0]?.kind !== 'clever') return rerolls(s, next, a.die);
+  if (a.type === 'reconfigure' && next.pending[0]?.kind !== 'clever') return rerolls(s, next, a.die);
   if (next.pending[0]?.kind === 'combat' && s.pending[0]?.kind !== 'combat') return battles(next, next.pending[0]);
   return [{ state: next, p: 1 }];
 }

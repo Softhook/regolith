@@ -12,11 +12,11 @@
  *   effects.ts    the implemented Skill and Tactic effects, as types
  *   skillRules.ts what every skill does, as hooks the rules read
  *   skillActions.ts skills used as an action of their own
- *   prototype.ts  the prototype kit: ShipHooks, and all an experimental mode may use from the engine
- *   regolith/     Regolith, our own mode: its settings, ship table and powers (one file each)
+ *   ships.ts      the mechs, and ShipHooks: how the powers in powers/ (one file each) plug in
+ *   rulesets.ts   the rule sets: Regolith, and Basic, Regolith without its cards
  *   turn.ts       start / end of turn, and auto-resolving decisions after each action
  *   legal.ts      legal action enumeration (AI, UI hints)
- *   rules.ts      what differs between rule sets (Basic, Original, Community, Regolith)
+ *   rules.ts      what differs between rule sets (Basic, Regolith)
  *   core.ts       shared helpers: errors, log, dice, tracks, cubes
  *   queries.ts    read-only questions about a state (movement, conquering, combat totals…)
  *   lookups.ts    where dice are and what is on a space (no rules)

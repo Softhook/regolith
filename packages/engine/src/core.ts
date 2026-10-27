@@ -256,10 +256,10 @@ export function checkInfamy(s: GameState, p: PlayerId) {
 }
 
 /**
- * A skill that fires by itself (Hostile, Plundering, Arrogant…) says what it gave, on an entry naming
+ * A skill that fires by itself (Hostile, Plundering…) says what it gave, on an entry naming
  * its card and its gains so the UI can show it. Nothing for a bonus of nothing (a track already full).
  */
-export function logBonus(s: GameState, p: PlayerId, id: string, b: Gains) {
+function logBonus(s: GameState, p: PlayerId, id: string, b: Gains) {
   const gains: Gains = {};
   const parts: string[] = [];
   for (const [k, what] of [

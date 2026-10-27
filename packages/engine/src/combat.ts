@@ -24,7 +24,7 @@ import { anySkill, stealableSkill } from './skillRules';
 import type { Cell, Die, GameState, PlayerId } from './types';
 
 /**
- * The attacker has moved `from` next to the defender, or, `ranged` (a prototype power), fires from there.
+ * The attacker has moved `from` next to the defender, or, `ranged` (a power), fires from there.
  * A defender with Dangerous may first destroy both ships; otherwise both combat dice are rolled now.
  */
 export function startCombat(s: GameState, attacker: Die, defender: Die, from: Cell, ranged = false) {

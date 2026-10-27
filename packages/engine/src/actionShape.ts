@@ -48,7 +48,6 @@ export const SHAPES: { [K in Action['type']]: Shape<K> } = {
   carry: { die: str, passenger: str, to: cell, drop: cell },
   swap: { die: str, other: str },
   change: { die: str, value: oneOf(3, 5) },
-  freeReconfigure: { die: str },
   composed: {},
   ambitious: {},
   flexible: { die: str, delta: oneOf(1, -1) },

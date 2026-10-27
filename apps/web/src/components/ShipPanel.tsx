@@ -20,7 +20,7 @@ export function ShipPanel({ game, ctl, dispatch }: { game: GameState; ctl: Contr
   const ship = shipOf(game, d.value);
   const words = (text: string) => say(game, text);
   const ability = { name: words(ship.ability.name), text: words(ship.ability.text) };
-  // A prototype power (hooks, no built-in power) is never "used this turn".
+  // A power with hooks and no built-in power is never "used this turn".
   const passive = !ship.power;
   const cancel = () => ctl.select({ kind: 'none' });
   // The cards in the odds shown on the ships it may attack (the same for most targets).
@@ -91,17 +91,6 @@ export function ShipPanel({ game, ctl, dispatch }: { game: GameState; ctl: Contr
             <Label long={`Become ${value}`} short={`→ ${value}`} />
           </button>
         ));
-      case 'freeReconfigure':
-        return (
-          <button
-            className="btn"
-            disabled={!legal.can('freeReconfigure', mine)}
-            onClick={() => dispatch({ type: 'freeReconfigure', die: d.id })}
-            aria-label={words('Free Reconfigure')}
-          >
-            <Label long={words('Free Reconfigure')} short={words('Reconfigure')} />
-          </button>
-        );
     }
     return null;
   };

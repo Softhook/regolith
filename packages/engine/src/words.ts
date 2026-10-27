@@ -49,3 +49,43 @@ export function reword(words: Words | undefined, text: string, keep: readonly st
   });
   return kept.length ? out.replace(/\uE000(\d+)\uE000/g, (_, i: string) => kept[Number(i)]) : out;
 }
+
+/** How Quantum's words read in Regolith (docs/regolith/REGOLITH-WORLD.md, *The words*), as the UI shows them. */
+export const REGOLITH_WORDS: Words = {
+  ship: 'mech',
+  ships: 'mechs',
+  planet: 'objective',
+  planets: 'objectives',
+  'in orbit of': 'on the perimeter of',
+  'in orbit': 'on the perimeter',
+  'orbital position': 'perimeter space',
+  'orbital positions': 'perimeter spaces',
+  'orbital space': 'perimeter space',
+  'orbital spaces': 'perimeter spaces',
+  orbital: 'perimeter',
+  orbit: 'perimeter',
+  orbits: 'perimeters',
+  conquer: 'claim',
+  conquers: 'claims',
+  conquered: 'claimed',
+  conquering: 'claiming',
+  conquest: 'claim',
+  conquests: 'claims',
+  dominance: 'power',
+  scrapyard: 'salvage yard',
+  scrapyards: 'salvage yards',
+  reconfigure: 'refit',
+  reconfigures: 'refits',
+  reconfigured: 'refitted',
+  reconfiguring: 'refitting',
+  reconfiguration: 'refit',
+  deploy: 'drop',
+  deploys: 'drops',
+  deployed: 'dropped',
+  deploying: 'dropping',
+  deployment: 'drop',
+  missile: 'atomic',
+  missiles: 'atomics',
+  'warp gate': 'ice tunnel',
+  'warp gates': 'ice tunnels',
+};

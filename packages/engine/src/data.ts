@@ -1,5 +1,5 @@
 import mapsJson from './data/maps.json';
-import type { ShipHooks } from './prototype';
+import type { ShipHooks } from './ships';
 import type { World } from './types';
 
 export interface CardDef {
@@ -83,16 +83,16 @@ export function cardKind(id: string): 'skill' | 'tactic' | 'expansion' {
 }
 
 /**
- * The official ships' powers, built into the engine: ship identity is "has power X", not a die value,
- * so a mode can give a value a different power (RuleSet.ships).
+ * Quantum's ship powers the 1 to 4 keep, built into the engine: ship identity is "has power X", not a die value,
+ * so a die value could be given a different power (RuleSet.ships).
  */
-export type ShipPower = 'strike' | 'transport' | 'warp' | 'modify' | 'manoeuvre' | 'freeReconfigure';
+export type ShipPower = 'strike' | 'transport' | 'warp' | 'modify';
 
 export interface ShipDef {
   name: string;
-  /** A built-in power (the official ships). */
+  /** A built-in power (Quantum's). */
   power?: ShipPower;
-  /** A prototype power, as hooks (prototype.ts). A ship with hooks and no `power` has no once-per-turn ability. */
+  /** A power as hooks (ships.ts). A ship with hooks and no `power` has no once-per-turn ability. */
   hooks?: ShipHooks;
   /** The power's name and rules text for the UI; `hint` guides a player using its action. */
   ability: { name: string; text: string; hint?: string };
@@ -100,24 +100,3 @@ export interface ShipDef {
 
 /** A mode's ships by die value, 1 to 6. */
 export type ShipTable = Record<number, ShipDef>;
-
-export const CLASSIC_SHIPS: ShipTable = {
-  1: {
-    name: 'Battlestation',
-    power: 'strike',
-    ability: { name: 'Free Attack', text: 'Attack an adjacent enemy without using this ship’s move.' },
-  },
-  2: {
-    name: 'Flagship',
-    power: 'transport',
-    ability: { name: 'Carry & Move', text: 'Carry one of your nearby ships as part of a move, then drop it next to you.' },
-  },
-  3: { name: 'Destroyer', power: 'warp', ability: { name: 'Swap', text: 'Swap places with any of your other ships.' } },
-  4: { name: 'Frigate', power: 'modify', ability: { name: 'Change to 3 or 5', text: 'Turn into a Destroyer or an Interceptor.' } },
-  5: {
-    name: 'Interceptor',
-    power: 'manoeuvre',
-    ability: { name: 'Move Diagonally', text: 'May move and attack diagonally (used automatically when needed).' },
-  },
-  6: { name: 'Scout', power: 'freeReconfigure', ability: { name: 'Free Reconfigure', text: 'Re-roll this ship for free.' } },
-};

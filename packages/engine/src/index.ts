@@ -17,7 +17,7 @@ export {
 export { DEFAULT_MODE, MODES, RULESETS } from './rulesets';
 export { reword, type Words } from './words';
 export type { ActionOf } from './core';
-export type { PowerChoice, PrototypePower, ShipHooks } from './prototype';
+export type { Power, PowerChoice, ShipHooks } from './ships';
 export * from './board';
 export * from './lookups';
 export * from './queries';

@@ -1,23 +1,18 @@
 /**
- * Regolith mode (docs/regolith/PROTOTYPING.md, src/regolith): Community Edition with movement capped at 3,
+ * Regolith mode (docs/regolith/PROTOTYPING.md; rulesets.ts, ships.ts, powers/): Community Edition with movement capped at 3,
  * zones of control (every ship pickets the spaces around it), a new power for the 5 (Shoot), which
  * replaces Manoeuvre, a 6 that fires barriers, contested orbits, and over-conquest (an orbit of 12) when
- * REGOLITH_OVER_CONQUEST is on. The first block checks the two modes, Basic and Regolith, and that the mode
- * folder and the engine meet only at RULESETS and the prototype kit.
+ * REGOLITH_OVER_CONQUEST is on. The first block checks the two modes, Basic and Regolith.
  *
  * Scenarios run on Alpha Sector (hex), the basic map for 2 players, in axial cells (docs/HEX.md): a space's
  * sides are a row or column away, or (-1, +1) and (+1, -1). The middle 8 is at (6,4); row 7 runs clear from
  * (7,2) to (7,6), with the 7 at (7,1) to its left; column 5 runs clear from (2,5) down to (7,5); the top
  * start, a 7, is at (1,5), with (0,5) and (0,6) above it.
  */
-import { readdirSync, readFileSync } from 'node:fs';
-import { dirname, join, relative, resolve } from 'node:path';
-import ts from 'typescript';
 import { describe, expect, it } from 'vitest';
 import {
   adjacent,
   apply,
-  CLASSIC_SHIPS,
   orbitals,
   conquerCheck,
   deployTargets,
@@ -51,10 +46,10 @@ import {
 } from '../src';
 import { cubeLeft } from '../src/core';
 import { beginPlay, settle } from '../src/turn';
-import { REGOLITH_DECKS, REGOLITH_OVER_CONQUEST } from '../src/regolith';
-import { barrier as barrierPower, barrierTargets } from '../src/regolith/powers/barrier';
-import { picket } from '../src/regolith/powers/picket';
-import { shoot as shootPower, shootTargets } from '../src/regolith/powers/shoot';
+import { REGOLITH_DECKS, REGOLITH_OVER_CONQUEST } from '../src/rulesets';
+import { barrier as barrierPower, barrierTargets } from '../src/powers/barrier';
+import { picket } from '../src/powers/picket';
+import { shoot as shootPower, shootTargets } from '../src/powers/shoot';
 import { arrange, quickStart } from './helpers';
 import { toRow } from './audit';
 
@@ -132,7 +127,7 @@ describe('Regolith mode', () => {
     expect(regolith.ships[5].power).toBeUndefined();
     expect(regolith.ships[6].hooks).toEqual({ ...barrierPower.hooks, ...picket.hooks });
     expect(regolith.ships[6].power).toBeUndefined();
-    expect([1, 2, 3, 4].map((v) => regolith.ships[v].power)).toEqual([1, 2, 3, 4].map((v) => CLASSIC_SHIPS[v].power));
+    expect([1, 2, 3, 4].map((v) => regolith.ships[v].power)).toEqual(['strike', 'transport', 'warp', 'modify']);
     expect([1, 2, 3, 4, 5, 6].map((v) => regolith.ships[v].name)).toEqual([
       'Breacher',
       'Behemoth',
@@ -154,110 +149,6 @@ describe('Regolith mode', () => {
     s.mode = 'basic';
     expect(offered(s, 'power')).toEqual([{ type: 'power', die: 'p0d0', target: 'p1d0' }]);
     expect(stopZone(s, 0, shipsByIndex(s))).toBeDefined();
-  });
-
-  it('the classic ships, which its 1 to 4 start from, have no prototype hooks', () => {
-    for (const ship of Object.values(CLASSIC_SHIPS)) expect(ship.hooks, ship.name).toBeUndefined();
-  });
-
-  const src = join(__dirname, '../src');
-  const sourceExtensions = ['.ts', '.tsx', '.mts', '.cts', '.js', '.jsx', '.mjs', '.cjs'];
-  const files = (dir: string): string[] =>
-    readdirSync(dir, { withFileTypes: true }).flatMap((e) =>
-      e.isDirectory() ? files(join(dir, e.name)) : sourceExtensions.some((ext) => e.name.endsWith(ext)) ? [join(dir, e.name)] : [],
-    );
-  const moduleSpecifiers = (text: string): string[] => {
-    const source = ts.createSourceFile('boundary.ts', text, ts.ScriptTarget.Latest, true);
-    const found: string[] = [];
-    const add = (node: ts.Expression | undefined) => {
-      if (node && ts.isStringLiteralLike(node)) found.push(node.text);
-    };
-    const visit = (node: ts.Node) => {
-      if (ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) add(node.moduleSpecifier);
-      else if (ts.isImportEqualsDeclaration(node) && ts.isExternalModuleReference(node.moduleReference))
-        add(node.moduleReference.expression);
-      else if (ts.isCallExpression(node)) {
-        if (node.expression.kind === ts.SyntaxKind.ImportKeyword) add(node.arguments[0]);
-        else if (ts.isIdentifier(node.expression) && node.expression.text === 'require') add(node.arguments[0]);
-      }
-      ts.forEachChild(node, visit);
-    };
-    visit(source);
-    return found;
-  };
-  const imports = (f: string) => moduleSpecifiers(readFileSync(f, 'utf8'));
-  const importedPath = (file: string, specifier: string) => resolve(dirname(file), specifier);
-  const inRegolith = (f: string) => relative(src, f).startsWith('regolith/');
-  const inRegolithPath = (f: string) => {
-    const path = relative(src, f);
-    return path === 'regolith' || path.startsWith('regolith/');
-  };
-
-  it('is reached from the engine only through RULESETS (rulesets.ts)', () => {
-    const importers = files(src)
-      .filter((f) => !inRegolith(f))
-      .filter((f) => imports(f).some((i) => inRegolithPath(importedPath(f, i))))
-      .map((f) => relative(src, f));
-    expect(importers).toEqual(['rulesets.ts']);
-  });
-
-  it('uses the engine only through the prototype kit (prototype.ts)', () => {
-    for (const f of files(src).filter(inRegolith)) {
-      for (const i of imports(f)) {
-        const target = relative(src, importedPath(f, i)).replace(/\.(?:ts|tsx|mts|cts|js|jsx|mjs|cjs)$/, '');
-        expect(target === 'prototype' || target.startsWith('regolith/'), `${relative(src, f)} imports ${i}`).toBe(true);
-      }
-    }
-  });
-
-  // So Regolith can leave for its own app one day (docs/regolith/REGOLITH.md): everything else asks the rule set, never the mode's id.
-  it('is named, by its id or its name, only in its folder, rulesets.ts and the GameMode type', () => {
-    const root = join(__dirname, '../../..');
-    // The app's identity (appId.ts, the online namespace) names its game, not the mode.
-    const allowed = [
-      'packages/engine/src/regolith/',
-      'packages/engine/src/rulesets.ts',
-      'apps/web/src/appId.ts',
-      'packages/online/src/codec.ts',
-    ];
-    const isGameMode = (node: ts.Node): boolean =>
-      !!node.parent && ((ts.isTypeAliasDeclaration(node.parent) && node.parent.name.text === 'GameMode') || isGameMode(node.parent));
-    const names = (text: string) => text.toLowerCase() === 'regolith';
-    const sources = ['packages/engine/src', 'packages/ai/src', 'packages/online/src', 'apps/web/src']
-      .flatMap((dir) => files(join(root, dir)))
-      .filter((f) => !allowed.some((a) => relative(root, f).startsWith(a)));
-    const named = sources.filter((f) => {
-      let found = false;
-      const visit = (node: ts.Node) => {
-        if (
-          (ts.isStringLiteralLike(node) && names(node.text) && !isGameMode(node)) ||
-          (ts.isPropertyAccessExpression(node) && names(node.name.text))
-        )
-          found = true;
-        ts.forEachChild(node, visit);
-      };
-      visit(ts.createSourceFile(f, readFileSync(f, 'utf8'), ts.ScriptTarget.Latest, true));
-      return found;
-    });
-    // Styles too, outside their comments: a mode's look keys on its rule set (`data-look`), not its id.
-    const css = (dir: string): string[] =>
-      readdirSync(dir, { withFileTypes: true }).flatMap((e) =>
-        e.isDirectory() ? css(join(dir, e.name)) : e.name.endsWith('.css') ? [join(dir, e.name)] : [],
-      );
-    const styled = css(join(root, 'apps/web/src')).filter((f) =>
-      /regolith/i.test(readFileSync(f, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '')),
-    );
-    expect([...named, ...styled].map((f) => relative(root, f))).toEqual([]);
-  });
-
-  it('recognizes static, re-export, dynamic and require imports in the boundary check', () => {
-    expect(moduleSpecifiers("import './a'; export * from './b'; import('./c'); require('./d'); import item = require('./e');")).toEqual([
-      './a',
-      './b',
-      './c',
-      './d',
-      './e',
-    ]);
   });
 
   it('uses mode-configured regular-turn actions and research cap', () => {
@@ -485,11 +376,9 @@ describe('the way a ship flies (movePath)', () => {
 });
 
 describe('classic 5 and 6 abilities are gone, the 4 is kept', () => {
-  it('a Chameleon (4) can change, as in Community, but a Wisp (6) can’t reconfigure for free', () => {
+  it('a Chameleon (4) can change, as in Community', () => {
     const s = scenario({ p0d0: [7, 2, 4], p0d1: [0, 5, 6] });
     expect(offered(s, 'change').length).toBeGreaterThan(0);
-    expect(offered(s, 'freeReconfigure')).toEqual([]);
-    expect(() => apply(s, { type: 'freeReconfigure', die: 'p0d1' })).toThrow();
   });
 
   it('a Sniper (5) never moves diagonally, as a Community Interceptor does', () => {

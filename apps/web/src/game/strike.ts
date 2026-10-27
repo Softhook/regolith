@@ -26,7 +26,7 @@ export function destroyedOf(before: GameState, game: GameState): Die[] {
 }
 
 /**
- * How much longer a battle's stage takes for its shot (Shoot, a prototype power: a missile crosses the map,
+ * How much longer a battle's stage takes for its shot (Shoot, the Sniper's power: a missile crosses the map,
  * board/Shots, and the battle opens as it lands): its flight while a ranged battle is as it opened
  * (no missile yet), else 0. Its overlay opens that late (CombatOverlay), so whatever waits on
  * the battle being seen waits that much more: the AI (useAiDriver) and online playback.

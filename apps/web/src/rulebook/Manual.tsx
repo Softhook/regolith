@@ -1,6 +1,6 @@
 import type { CSSProperties, MouseEvent, ReactNode } from 'react';
 import type { CardDeck } from '@regolith/art';
-import { CLASSIC_SHIPS, MODES } from '@regolith/engine';
+import { MODES, RULESETS } from '@regolith/engine';
 import { ActionHex, MissileIcon } from '../components/Card';
 import { PLAYER_COLORS } from '../theme';
 import {
@@ -402,7 +402,7 @@ export function Manual({ dark }: { dark?: boolean }) {
             <div key={v} className="mn-ship">
               <DieIcon v={v} size={64} shipIllustration />
               <div>
-                <b>{CLASSIC_SHIPS[v].name}</b> <span className="mn-ability">{CLASSIC_SHIPS[v].ability.name}</span>
+                <b>{RULESETS.regolith.ships[v].name}</b> <span className="mn-ability">{RULESETS.regolith.ships[v].ability.name}</span>
                 <p>{SHIP_TEXT[v]}</p>
               </div>
             </div>

@@ -3,10 +3,6 @@
   "ignoreBinaries": ["magick"],
   "workspaces": {
     ".": { "entry": ["scripts/*.{ts,mjs}"], "project": ["scripts/**/*.{ts,mjs}"] },
-    "packages/engine": {
-      "entry": ["src/prototype.ts", "src/regolith/powers/*.ts"],
-      "project": ["src/**/*.ts", "test/**/*.ts"]
-    },
     "packages/*": { "project": ["src/**/*.ts", "test/**/*.ts"] },
     "apps/web": { "project": ["src/**/*.{ts,tsx}", "test/**/*.{ts,tsx}"] }
   }

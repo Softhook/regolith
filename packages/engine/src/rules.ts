@@ -1,5 +1,5 @@
 import { addCards, defaultMap, MAPS, type CardDef, type GameMode, type MapDef, type ShipDef, type ShipPower, type ShipTable } from './data';
-import type { ShipHooks } from './prototype';
+import type { ShipHooks } from './ships';
 import type { Die, GameState } from './types';
 import { reword, type Words } from './words';
 
@@ -23,7 +23,7 @@ export interface RuleSet {
   researchLimit: number;
   /** Map groups (data/maps.yaml) this mode can be played on. */
   mapGroups: string[];
-  /** Each die value's ship: its name and power (built in, or prototype hooks). */
+  /** Each die value's ship: its name and power (built in, or hooks). */
   ships: ShipTable;
   /** A fully occupied planet can still be conquered by an orbit summing to 12, displacing an opponent's cube (PROTOTYPING.md §6.10). */
   overConquest?: boolean;
@@ -96,7 +96,7 @@ export function hasPower(state: GameState, d: Die, power: ShipPower): boolean {
   return rulesOf(state).ships[d.value]?.power === power;
 }
 
-/** A ship's prototype power hooks in this game's rules (none for the official ships). */
+/** A ship's power hooks in this game's rules (none for the 1 to 4's built-in powers). */
 export function hooksOf(state: GameState, d: Die): ShipHooks | undefined {
   return rulesOf(state).ships[d.value]?.hooks;
 }

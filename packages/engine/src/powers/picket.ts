@@ -2,9 +2,10 @@
  * Picket: an enemy ship that moves into a space next to this one must stop there. Next to is a side away
  * (adjacent): up, down, left or right on squares, any of a hex's 6 sides; never diagonally.
  */
-import { grid, type PrototypePower } from '../../prototype';
+import { grid } from '../board';
+import { type Power } from '../ships';
 
-export const picket: PrototypePower = {
+export const picket: Power = {
   ability: {
     name: 'Picket',
     text: 'An enemy ship that moves into a space next to this ship (not diagonally) must stop there. It may still attack from there.',

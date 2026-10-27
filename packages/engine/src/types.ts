@@ -185,7 +185,7 @@ export interface CombatPending {
   from: Cell;
   /** The defender's space. */
   at: Cell;
-  /** A ranged attack (a prototype power): the attacker fired from where it stands and doesn't advance if it wins. */
+  /** A ranged attack (a power): the attacker fired from where it stands and doesn't advance if it wins. */
   ranged?: true;
 }
 
@@ -280,7 +280,7 @@ export interface GameState {
   market: Market;
   gates: Cell[];
   /**
-   * Barriers on the map (a prototype power places them), for good: nothing moves into, is deployed on or
+   * Barriers on the map (the Wisp and Barricade place them), for good: nothing moves into, is deployed on or
    * shoots through their spaces. Absent in a game that never had one.
    */
   barriers?: Barrier[];
@@ -294,7 +294,7 @@ export interface GameState {
   logCounter: number;
 }
 
-export type ShipAbility = 'freeAttack' | 'carry' | 'swap' | 'change' | 'freeReconfigure';
+export type ShipAbility = 'freeAttack' | 'carry' | 'swap' | 'change';
 
 export type Action =
   // setup
@@ -307,7 +307,7 @@ export type Action =
   | { type: 'move'; die: string; to: Cell }
   /** `from`: the space to attack from (moveOptions launches); the nearest when left out. */
   | { type: 'attack'; die: string; target: string; from?: Cell }
-  /** A prototype ship power's action (ShipHooks.action), aimed at a ship, a space or both. */
+  /** A ship power's action (ShipHooks.action), aimed at a ship, a space or both. */
   | { type: 'power'; die: string; target?: string; to?: Cell }
   | { type: 'deploy'; die: string; to: Cell }
   | { type: 'reconfigure'; die: string }
@@ -319,7 +319,6 @@ export type Action =
   | { type: 'carry'; die: string; passenger: string; to: Cell; drop: Cell }
   | { type: 'swap'; die: string; other: string }
   | { type: 'change'; die: string; value: 3 | 5 }
-  | { type: 'freeReconfigure'; die: string }
   // activated skills
   | { type: 'composed' }
   | { type: 'ambitious' }

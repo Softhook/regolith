@@ -23,7 +23,7 @@ for (const [deck, list] of Object.entries(cards)) {
     if ((c.status === 'new') !== (c.from === undefined)) throw new Error(`${where}: a new card has no \`from\`, and only a new card`);
   }
 }
-writeFileSync(new URL('packages/engine/src/regolith/cards.json', root), JSON.stringify(cards, null, 2) + '\n');
+writeFileSync(new URL('packages/engine/src/data/cards.json', root), JSON.stringify(cards, null, 2) + '\n');
 
 const { maps } = parse(readFileSync(new URL('data/maps.yaml', root), 'utf8'));
 for (const m of maps) {

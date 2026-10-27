@@ -2,7 +2,7 @@
  * Ship abilities (rulebook p.8): once per die per turn, on your own turn, ships on the map only.
  * They cost no action, except that Transport (2) and Manoeuvre (5) happen during a move.
  * Manoeuvre is part of the move handler (actions.ts); the other five are here, with the action of a
- * prototype power (ShipHooks.action).
+ * power with hooks (ShipHooks.action).
  */
 import { key, same } from './board';
 import { startCombat } from './combat';
@@ -16,7 +16,6 @@ import {
   name,
   ownShip,
   requireActionPhase,
-  rerollNew,
   aShip,
   shipName,
   spendPeaceful,
@@ -94,16 +93,7 @@ export const abilityHandlers = {
     markSeen(s, d);
     note(s, `${name(s, d.owner)} changes their ${was} into ${aShip(s, d)}.`, d.owner);
   },
-  /** 6 Scout — Free Reconfigure. */
-  freeReconfigure(s, a) {
-    requireActionPhase(s);
-    const d = ownShip(s, a.die, 'board');
-    useAbility(s, d, 'freeReconfigure');
-    const was = shipName(s, d);
-    rerollNew(s, d);
-    note(s, `${name(s, d.owner)}'s ${was} reconfigures itself into ${aShip(s, d)}.`, d.owner);
-  },
-  /** A prototype power's action (ShipHooks.action): legal exactly when its hooks offer it. */
+  /** A power's action (ShipHooks.action): legal exactly when its hooks offer it. */
   power(s, a) {
     requireActionPhase(s);
     const d = ownShip(s, a.die, 'board');

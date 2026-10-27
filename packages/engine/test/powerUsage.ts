@@ -7,7 +7,7 @@ import { apply, createGame, legalActions, rulesOf, type Action, type GameMode, t
 import { aiAction, players, seededRandom } from './helpers';
 
 /** The actions that spend a ship's once-per-turn power (carry and strike have tactical twins we don't count). */
-const POWER_ACTIONS = new Set<Action['type']>(['freeAttack', 'carry', 'swap', 'change', 'freeReconfigure', 'power']);
+const POWER_ACTIONS = new Set<Action['type']>(['freeAttack', 'carry', 'swap', 'change', 'power']);
 
 interface PowerRow {
   /** Die value of the ship (1 to 6). */
@@ -54,7 +54,7 @@ export function measurePowerUsage(mode: GameMode, opts: UsageOptions): ModeUsage
     used: 0,
     offeredTurns: 0,
     usedTurns: 0,
-    hasAction: !!def.hooks?.action || (!!def.power && def.power !== 'manoeuvre'),
+    hasAction: !!def.hooks?.action || !!def.power,
   }));
   const row = (value: number) => rows.find((r) => r.value === value)!;
   const out: ModeUsage = { mode, games: opts.games, finished: 0, playerTurns: 0, rows };

@@ -2,8 +2,13 @@
  * Shoot: attack an enemy in a straight line, without moving. Like a move or a normal attack it is the
  * ship's one action of the turn (and costs one action); the shooter never advances.
  */
-import { canMoveDie, cellOf, die, dieAt, isEmptySpace, markMoved, spend, startCombat, straightLines } from '../../prototype';
-import type { Die, GameState, PrototypePower } from '../../prototype';
+import { straightLines } from '../board';
+import { startCombat } from '../combat';
+import { markMoved, spend } from '../core';
+import { cellOf, die, dieAt, isEmptySpace } from '../lookups';
+import { canMoveDie } from '../queries';
+import { type Power } from '../ships';
+import { type Die, type GameState } from '../types';
 
 /** Enemy ships in range from where it stands, whatever the cost. */
 export function shootTargets(s: GameState, d: Die): Die[] {
@@ -25,7 +30,7 @@ export function shootTargets(s: GameState, d: Die): Die[] {
   return out;
 }
 
-export const shoot: PrototypePower = {
+export const shoot: Power = {
   ability: {
     name: 'Shoot',
     text: 'Instead of moving, attack the first mech in any straight line out of a side of its space (not diagonally), as far as it is clear (objectives, the edge of the board, barriers and mechs, friendly or enemy, block the line; the void does not). It stays where it is. Like a move or an attack, it is the mech’s one action of the turn.',

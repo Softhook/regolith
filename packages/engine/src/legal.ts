@@ -166,7 +166,6 @@ function actionPhaseOptions(s: GameState, opts: { includeCarry?: boolean }): Act
       if (hasPower(s, d, 'warp'))
         for (const o of shipsOnBoard(s, me)) if (o.id !== d.id) out.push({ type: 'swap', die: d.id, other: o.id });
       if (hasPower(s, d, 'modify')) out.push({ type: 'change', die: d.id, value: 3 }, { type: 'change', die: d.id, value: 5 });
-      if (hasPower(s, d, 'freeReconfigure')) out.push({ type: 'freeReconfigure', die: d.id });
       if (hasPower(s, d, 'transport') && opts.includeCarry && canPayMove && canMoveDie(s, d)) {
         for (const c of carries(s, d)) out.push({ type: 'carry', die: d.id, ...c });
       }

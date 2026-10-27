@@ -26,7 +26,7 @@ import { rng } from '../src/rng';
 import { MIN_TEXT, playerAidSvg } from '../src/aid';
 import { shipDie } from '../src/kit/starships';
 import { PRESS_TEST, pressTestSvg } from '../src/proof';
-import regolithCards from '../../engine/src/regolith/cards.json';
+import regolithCards from '../../engine/src/data/cards.json';
 import { SCENES } from '../src/screenprint/scenes';
 import { RIGS, type MechKind } from '../src/screenprint/mechs';
 import { mech } from '../src/screenprint/pose';

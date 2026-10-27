@@ -64,7 +64,6 @@ function bruteForce(s: GameState, withCarry: boolean): Action[] {
   for (const d of mine) {
     out.push(
       { type: 'reconfigure', die: d.id },
-      { type: 'freeReconfigure', die: d.id },
       { type: 'change', die: d.id, value: 3 },
       { type: 'change', die: d.id, value: 5 },
       { type: 'flexible', die: d.id, delta: 1 },

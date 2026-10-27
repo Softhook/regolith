@@ -554,7 +554,7 @@ const ORACLES: ((c: Step) => void)[] = [
       const head = c.before.pending[0];
       if (head?.kind === 'clever') c.fire(head.source === 'calculating' ? undefined : held(c.before, head.player, 'clever'));
     }
-    if (a.type !== 'reconfigure' && a.type !== 'freeReconfigure') return;
+    if (a.type !== 'reconfigure') return;
     const p = c.before.turn.player;
     const clever = held(c.before, p, 'clever');
     if (clever && !c.after.pending.some((x) => x.kind === 'clever' && x.die === a.die))

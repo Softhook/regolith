@@ -36,16 +36,7 @@ import { storedTactics } from './patient';
  * next turn) are what the higher levels in search.ts fix.
  */
 
-const RANDOM_ACTIONS = new Set<Action['type']>([
-  'attack',
-  'power',
-  'freeAttack',
-  'reconfigure',
-  'freeReconfigure',
-  'resourceful',
-  'takeCard',
-  'peekChoice',
-]);
+const RANDOM_ACTIONS = new Set<Action['type']>(['attack', 'power', 'freeAttack', 'reconfigure', 'resourceful', 'takeCard', 'peekChoice']);
 
 export interface GreedyOptions {
   /** Samples per random action. Higher is stronger and slower. */
@@ -131,7 +122,7 @@ function best(state: GameState, me: PlayerId, candidates: Action[], opts: Greedy
 function tieBreak(s: GameState, a: Action): number {
   if (a.type === 'endTurn') return -0.5;
   // Free abilities must actually improve the position, not just shuffle ships around.
-  if (a.type === 'swap' || a.type === 'change' || a.type === 'flexible' || a.type === 'freeReconfigure') return -2;
+  if (a.type === 'swap' || a.type === 'change' || a.type === 'flexible') return -2;
   // Regolith's Barrier is there for good: only where it clearly helps.
   if (a.type === 'power' && shipOf(s, die(s, a.die).value).ability?.name === 'Barrier') return -8;
   if (a.type === 'advance' && a.move) return 0.2;

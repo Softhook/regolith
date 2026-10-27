@@ -16,7 +16,7 @@ import {
 } from './board';
 import { card, effectOf } from './data';
 import { barrierAt, cellOf, die, dieAt, isEmptySpace, reserve, shipsOnBoard } from './lookups';
-import { hasPower, hooksOf, modeHasHook, rulesOf } from './rules';
+import { hooksOf, modeHasHook, rulesOf } from './rules';
 import { activeSkills, anySkill, ruleOf, skillRules, type CombatPart, type SkillRule } from './skillRules';
 import type { Barrier, Cell, CombatPending, CombatRole, Die, GameState, OncePerTurn, Planet, PlayerId, TurnState } from './types';
 
@@ -125,7 +125,7 @@ export function movementRange(state: GameState, d: Die): number {
 
 /**
  * Spaces where `mover`'s ships must stop, by board cell index (`at` is shipsByIndex): around enemy
- * ships with `stopsEnemies` (a prototype power, ShipHooks). Undefined when nothing stops them, so plain searches stay plain.
+ * ships with `stopsEnemies` (a power, ShipHooks). Undefined when nothing stops them, so plain searches stay plain.
  * Devious ignores them: it slips past enemy ships (ruling 2026-10-12).
  */
 export function stopZone(state: GameState, mover: PlayerId, at: (Die | undefined)[]): Uint8Array | undefined {
@@ -369,7 +369,6 @@ export function moveIndexes(state: GameState, ship: string | Die, at = shipsByIn
   if (!start) return result;
   const range = movementRange(state, d);
   const passes: boolean[] = [false];
-  if (hasPower(state, d, 'manoeuvre') && canUseAbility(state, d)) passes.push(true);
   const zone = stopZone(state, d.owner, at);
 
   // Devious: normal moves only, not Transport or the Tactical step (decided 2026-10-03, OPEN-QUESTIONS #65).
@@ -437,7 +436,7 @@ export function shipReach(state: GameState, d: Die, at: (Die | undefined)[]): Sh
   const from = start.r * g.cols + start.c;
   // The gates inline rather than gates(): a call per step is measurable here.
   const [gateA, gateB] = gateIndexes(state, g);
-  const diagonals = hasPower(state, d, 'manoeuvre') && canUseAbility(state, d);
+  const diagonals = false;
   const zone = stopZone(state, d.owner, at);
   const walls = barrierMask(state, g);
   for (let pass = 0; pass < (diagonals ? 2 : 1); pass++) {
@@ -541,9 +540,6 @@ export function tacticalOptions(state: GameState, dieId: string): TacticalOption
   if (!start) return result;
   const straight = stepNeighbours(state, start, false);
   const near = straight.map((cell) => ({ cell, diagonal: false }));
-  if (hasPower(state, d, 'manoeuvre') && canUseAbility(state, d)) {
-    for (const cell of stepNeighbours(state, start, true)) if (!straight.some((p) => same(p, cell))) near.push({ cell, diagonal: true });
-  }
   for (const { cell, diagonal } of near) {
     const target = dieAt(state, cell);
     if (!target && isEmptySpace(state, cell)) result.moves.push({ cell, diagonal });
