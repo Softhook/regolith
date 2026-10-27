@@ -12,17 +12,17 @@ const PLAYERS = 4;
 
 /**
  * Art Lab, player aid page (#lab/aid): the A6 board every player gets, with the dominance and research
- * die pads, the turn, and what each ship can do. Exports for print: the board, print sheets (two to a
+ * die pads, the turn, and what each mech can do. Exports for print: the board, print sheets (two to a
  * page), and the CMYK press sheets it shares with the tiles.
  */
 export function AidLab() {
-  const [edition, setEdition] = useState<AidEdition>('community');
+  const [edition, setEdition] = useState<AidEdition>('regolith');
   const [bleed, setBleed] = useState(true);
   const fonts = useFontCss(cardFontCss);
 
   const board = printableAid(edition, fonts ?? '');
   const detail = useSvgUrl(fonts === null ? '' : board.svg(bleed));
-  const part = edition === 'community' ? 'Community' : 'Classic';
+  const part = edition === 'regolith' ? 'Regolith' : 'Basic';
 
   return (
     <div className="lab">
@@ -32,8 +32,8 @@ export function AidLab() {
           <Segmented<AidEdition>
             small
             options={[
-              ['community', 'Community'],
-              ['classic', 'Classic'],
+              ['regolith', 'Regolith'],
+              ['basic', 'Basic'],
             ]}
             value={edition}
             onPick={setEdition}
@@ -45,7 +45,7 @@ export function AidLab() {
         <div className="lab-aid-side">
           <p className="lab-note">
             One board per player · A6 landscape, 148 × 105 mm · pads for the 19 mm power and research dice ·{' '}
-            {part === 'Classic' ? 'Classic rules (no atomics; Refit to any new value)' : 'Community Edition rules'}
+            {part === 'Basic' ? 'Basic rules (no cards, so no research)' : 'Regolith rules'}
           </p>
           <PrintPanel
             piece={PIECES.aid}

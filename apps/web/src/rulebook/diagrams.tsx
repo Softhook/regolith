@@ -1,17 +1,5 @@
 import { createContext, useContext, useId, type ReactNode } from 'react';
-import {
-  TILE,
-  cardBackSvg,
-  dataUrl,
-  icon,
-  numberPlacement,
-  PLAYER_HUES,
-  shipDie,
-  tileSpec,
-  tileSvg,
-  type CardDeck,
-  type World,
-} from '@regolith/art';
+import { TILE, cardBackSvg, dataUrl, icon, numberPlacement, mechDie, tileSpec, tileSvg, type CardDeck, type World } from '@regolith/art';
 import { BarrierBubble } from '../components/board/BarrierBubble';
 import { PlanetMarkings } from '../components/board/PlanetMarkings';
 import { PIPS } from '../components/Die3D';
@@ -249,7 +237,6 @@ export function DieFace({
   shipIllustration?: boolean;
 }) {
   const defs = useContext(Defs);
-  const id = useSvgId();
   const h = size / 2;
   const step = size * 0.27;
   const rx = size * 0.16;
@@ -263,10 +250,10 @@ export function DieFace({
         ))}
       </g>
     );
-  if (shipIllustration && (kind === 'you' || kind === 'foe')) {
-    // Mechs are drawn as on the player aid: the mech on its die face, in the player's colour.
-    const ship = shipDie(id, v, x, y, size, PLAYER_HUES[kind === 'you' ? 0 : 1]);
-    return <g className={cls} dangerouslySetInnerHTML={{ __html: `<defs>${ship.defs}</defs>${ship.body}` }} />;
+  if (shipIllustration) {
+    // Mechs are drawn as on the player aid: the mech printed on its die face.
+    const face = mechDie(v, x, y, size);
+    return <g className={cls} dangerouslySetInnerHTML={{ __html: face.body }} />;
   }
   const { face, pip } = COLOURS[kind];
   return (

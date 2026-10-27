@@ -125,7 +125,7 @@ export const printableAid = (edition: AidEdition, fontCss: string): Printable =>
 });
 
 /** The player aids on the sheets: two of each edition. */
-const AIDS: AidEdition[] = ['community', 'community', 'classic', 'classic'];
+const AIDS: AidEdition[] = ['regolith', 'regolith', 'basic', 'basic'];
 
 /**
  * The tiles and the player aids print together, on the same stock, from the tile and the aid page alike:

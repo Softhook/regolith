@@ -24,7 +24,7 @@ import { ICONS } from '../src/icons';
 import { CARD_CATEGORIES } from '../src/tokens';
 import { rng } from '../src/rng';
 import { MIN_TEXT, playerAidSvg } from '../src/aid';
-import { shipDie } from '../src/kit/starships';
+import { mechDie } from '../src/screenprint/die';
 import { PRESS_TEST, pressTestSvg } from '../src/proof';
 import regolithCards from '../../engine/src/data/cards.json';
 import { SCENES } from '../src/screenprint/scenes';
@@ -210,7 +210,7 @@ describe('tiles off the square', () => {
 
 describe('player aid', () => {
   it('renders both editions without bad numbers or broken references', () => {
-    for (const edition of ['community', 'classic'] as const) {
+    for (const edition of ['regolith', 'basic'] as const) {
       const trim = playerAidSvg({ edition });
       const svg = playerAidSvg({ edition, bleed: true });
       checkSvg(svg, edition);
@@ -220,36 +220,39 @@ describe('player aid', () => {
   });
 
   it('keeps every line of text readable', () => {
-    for (const edition of ['community', 'classic'] as const) {
+    for (const edition of ['regolith', 'basic'] as const) {
       const sizes = [...playerAidSvg({ edition }).matchAll(/font-size="([\d.]+)"/g)].map((m) => Number(m[1]));
       expect(sizes.length).toBeGreaterThan(20);
       expect(Math.min(...sizes)).toBeGreaterThanOrEqual(MIN_TEXT);
     }
   });
 
-  it('has a pad that fits a 19 mm die for dominance and for research', () => {
+  it('has a pad that fits a 19 mm die for power, and for research with cards', () => {
     expect(TILE.pad).toBeGreaterThanOrEqual(DIE + 4);
     const svg = playerAidSvg();
-    expect(svg).toContain('DOMINANCE');
+    expect(svg).toContain('POWER');
     expect(svg).toContain('RESEARCH');
     expect(svg.match(/width="24" height="24"/g)).toHaveLength(2);
+    const basic = playerAidSvg({ edition: 'basic' });
+    expect(basic).not.toContain('RESEARCH');
+    expect(basic.match(/width="24" height="24"/g)).toHaveLength(1);
   });
 
-  it('only mentions missiles in the Community Edition', () => {
-    expect(playerAidSvg({ edition: 'community' })).toContain('MISSILE');
-    expect(playerAidSvg({ edition: 'classic' })).not.toContain('MISSILE');
+  it('gives atomics and the rules that hold ground in both editions', () => {
+    for (const edition of ['regolith', 'basic'] as const)
+      for (const word of ['ATOMIC', 'ZONES', 'CONTESTED']) expect(playerAidSvg({ edition })).toContain(word);
   });
 
   it('has a pad for each of up to 7 cubes, with the win condition beside them', () => {
-    for (const edition of ['community', 'classic'] as const) {
+    for (const edition of ['regolith', 'basic'] as const) {
       const svg = playerAidSvg({ edition });
       expect(svg.match(new RegExp(`width="${CUBE_PAD.size}" height="${CUBE_PAD.size}"`, 'g'))).toHaveLength(7);
       expect(svg).toContain('PLACE YOUR LAST CUBE TO WIN');
     }
   });
 
-  it('draws six different ships on their dice', () => {
-    const ships = [1, 2, 3, 4, 5, 6].map((v) => shipDie('s', v, 0, 0, 19, 200).body);
+  it('draws six different mechs on their dice', () => {
+    const ships = [1, 2, 3, 4, 5, 6].map((v) => mechDie(v, 0, 0, 19).body);
     expect(new Set(ships).size).toBe(6);
     for (const s of ships) expect(s).not.toMatch(/NaN|undefined/);
   });

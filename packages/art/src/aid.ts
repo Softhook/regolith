@@ -1,20 +1,21 @@
 import { estimateWidth, type Measure } from './card';
 import { icon } from './icons';
 import { poly } from './kit/effects';
-import { shipDie } from './kit/starships';
 import { rng } from './rng';
-import { starfield } from './starfield';
+import { mechDie } from './screenprint/die';
+import { INKS } from './screenprint/inks';
 import { document, esc, hsl, n } from './svg';
 import { ACTION_HUE, CUBE_PAD, DOMINANCE, FONTS, INK, RESEARCH, TILE } from './tokens';
 
 /**
  * The player aid: an A6 board, landscape, the same for every player. Down the left edge, a rail of
- * seven cube pads holds the player's cubes, with the win condition beside it; then the two pads for
- * the dominance and research dice (19 mm), and between them the five actions; along the bottom,
- * the six ships on their die faces with what each can do.
+ * seven cube pads holds the player's cubes, with the win condition beside it; then the pads for the
+ * power and (with cards) research dice (19 mm), and beside them the actions and the rules that hold
+ * ground; along the bottom, the six mechs on their die faces with what each can do.
  *
- * Kept deliberately quiet: a dim starfield for ground, one accent colour (actions take the cards' yellow), no boxes.
- * The ship dice are the largest thing on it, then the die pads, then the actions. No text is smaller than `MIN_TEXT`.
+ * Kept deliberately quiet: the night paper of the cards with a few faint craters for ground, one accent colour
+ * (actions take the cards' yellow), no boxes. The mech dice are the largest thing on it, then the die pads,
+ * then the actions. No text is smaller than `MIN_TEXT`.
  */
 
 export const AID = {
@@ -29,10 +30,11 @@ export const AID = {
 /** The smallest text on the aid, mm (2 mm ≈ 5.7 pt), so it reads at arm's length on the table. */
 export const MIN_TEXT = 2;
 
-export type AidEdition = 'community' | 'classic';
+/** The rule set it is for: Basic has no cards, so no research. */
+export type AidEdition = 'basic' | 'regolith';
 
 export interface AidOptions {
-  /** Community Edition or Classic (the 2013 rules) wording. */
+  /** Regolith (the default) or Basic. */
   edition?: AidEdition;
   /** Add the bleed around the trim. */
   bleed?: boolean;
@@ -46,33 +48,30 @@ export interface AidOptions {
 // ---------------------------------------------------------------------------
 // What it says
 
-/** What each ship can do, in one short two-line phrase. */
+/** What each mech can do, in one short two-line phrase. */
 const SHIPS: { value: number; text: [string, string] }[] = [
-  { value: 1, text: ['Free attack on', 'a ship next to it'] },
-  { value: 2, text: ['Carry a ship', 'as it moves'] },
-  { value: 3, text: ['Swap with any', 'of your ships'] },
+  { value: 1, text: ['Free attack on', 'a mech next to it'] },
+  { value: 2, text: ['Carry a mech', 'as it moves'] },
+  { value: 3, text: ['Swap with any', 'of your mechs'] },
   { value: 4, text: ['Turn to 3 or 5', 'without rolling'] },
-  { value: 5, text: ['Move and attack', 'diagonally'] },
-  { value: 6, text: ['Free re-roll,', 'no action'] },
+  { value: 5, text: ['Shoot down a', 'clear line'] },
+  { value: 6, text: ['Free barrier', 'down a clear line'] },
 ];
 
 const actions = (edition: AidEdition): { name: string; cost: number; text: string }[] => [
-  { name: 'Conquer', cost: 2, text: 'Your orbiting ships sum to exactly the planet' },
-  { name: 'Deploy', cost: 1, text: 'Scrapyard ship to an orbit of your cube' },
-  { name: 'Move / Attack', cost: 1, text: 'Up to the ship’s value; attack ends it' },
-  {
-    name: 'Reconfigure',
-    cost: 1,
-    text: edition === 'community' ? 'Re-roll to a value not seen this turn' : 'Re-roll a ship to a new value',
-  },
-  { name: 'Research', cost: 1, text: '+1 research' },
+  { name: 'Claim', cost: 2, text: 'Your perimeter mechs sum to exactly the objective' },
+  { name: 'Drop', cost: 1, text: 'Salvage mech onto the perimeter of your cube' },
+  { name: 'Move / Attack', cost: 1, text: 'Up to its value, at most 3; attack ends it' },
+  { name: 'Refit', cost: 1, text: 'Re-roll to a value not seen this turn' },
+  ...(edition === 'regolith' ? [{ name: 'Research', cost: 1, text: '+1 research' }] : []),
 ];
 
 const rules = (edition: AidEdition): [label: string, text: string][] => [
-  ['Combat', 'Die + ship value: lower wins, ties to attacker'],
-  edition === 'community' ? ['Missile', 'Any time: one combat roll becomes 1'] : ['Defeat', 'The ship is re-rolled into the scrapyard'],
-  ['Ships', 'Each: one move and one ability a turn'],
-  ['Cards', 'At turn end: 1 per conquest · 1 at research 6'],
+  ['Combat', 'Die + mech value: lower wins, ties to attacker'],
+  ['Zones', 'Entering a space next to an enemy mech: stop'],
+  ['Contested', 'Enemy on the perimeter: no claim, no drop but home'],
+  ['Atomic', 'One combat roll of yours becomes 1'],
+  ...(edition === 'regolith' ? ([['Cards', 'At turn end: 1 per claim · 1 at research 6']] as [string, string][]) : []),
 ];
 
 // ---------------------------------------------------------------------------
@@ -109,15 +108,13 @@ function line(x: number, y: number, s: string, size: number, width: number, meas
 // ---------------------------------------------------------------------------
 // The board
 
-/** The board's ground (the press test shows the pads on it). */
-export const GROUND = hsl(228, 40, 8);
-const WHITE = hsl(220, 30, 96);
-const MUTED = hsl(224, 18, 74);
-const HAIR = hsl(224, 20, 30);
+/** The board's ground, the cards' night paper (the press test shows the pads on it). */
+export const GROUND = INKS.night;
+const WHITE = INKS.bone;
+const MUTED = '#B9B0A2';
+const HAIR = '#4A4540';
 /** The quiet fill of every pad on the aid: cubes and dice. */
-const PAD = hsl(228, 32, 12);
-/** The one accent: the game's own cyan, the same for every player. */
-const HUE = 194;
+const PAD = '#2E2B28';
 
 /** One action: a yellow hexagon with the action bolt, as on the cards (`glow` is its soft halo's gradient id). */
 function hex(cx: number, cy: number, r: number, glow: string): string {
@@ -138,25 +135,25 @@ export function diePad(cx: number, cy: number, hue: number, kind: 'dominance' | 
 
 /** A cube pad on the rail, from its top left: the planets' cube pad in the die pads' quiet fill. */
 export const cubePad = (x: number, y: number) =>
-  `<rect x="${n(x)}" y="${n(y)}" width="${CUBE_PAD.size}" height="${CUBE_PAD.size}" rx="${CUBE_PAD.corner}" fill="${PAD}" stroke="${hsl(224, 20, 52)}" stroke-width=".3"/>`;
+  `<rect x="${n(x)}" y="${n(y)}" width="${CUBE_PAD.size}" height="${CUBE_PAD.size}" rx="${CUBE_PAD.corner}" fill="${PAD}" stroke="${MUTED}" stroke-opacity=".5" stroke-width=".3"/>`;
 
-/** Where the text sits, [x0, y0, x1, y1] mm from the trim's top left: no faint stars there. */
-const TEXT: [number, number, number, number][] = [
-  [13, 5, 22, 100],
-  [21, 5, 51, 10],
-  [21, 36, 51, 61],
-  [53, 5, 114, 68],
-  [113, 5, 144, 10],
-  [113, 36, 144, 61],
-  [21, 90, 147, 100],
-];
+/** A few faint craters on the ground, rings in the plates' rust, the same on every aid. */
+function craters(): string {
+  const r = rng('player-aid');
+  let out = '';
+  for (let i = 0; i < 9; i++) {
+    const [x, y, size] = [r.range(0, AID.w), r.range(0, AID.h), r.range(4, 16)];
+    out += `<circle cx="${n(x)}" cy="${n(y)}" r="${n(size)}" fill="none" stroke="${INKS.rust}" stroke-opacity=".08" stroke-width="${n(size / 10)}"/>`;
+  }
+  return out;
+}
 
 /** The most cubes any map gives a player. */
 const MAX_CUBES = 7;
 
 /** The player aid as a standalone SVG document. */
 export function playerAidSvg(o: AidOptions = {}): string {
-  const edition = o.edition ?? 'community';
+  const edition = o.edition ?? 'regolith';
   const measure = o.measure ?? estimateWidth;
   const id = o.idPrefix ?? `aid-${edition}`;
   const { w: W, h: H, safe: M, bleed: B } = AID;
@@ -164,27 +161,12 @@ export function playerAidSvg(o: AidOptions = {}): string {
   const full = { x: -B, y: -B, w: W + 2 * B, h: H + 2 * B };
   const defs: string[] = [];
   const out: string[] = [];
-  const accent = hsl(HUE, 90, 66);
+  const accent = INKS.amber;
 
-  // The ground: the tiles' deep space, veiled so it stays behind the board. The same sky on every aid.
-  // Faint stars keep off the text, and only every other one is kept (the aid is bigger than a tile, so
-  // its stars come out bigger and denser); bright stars only in the open, under the two die columns.
-  const sky = starfield({
-    rng: rng('player-aid'),
-    id: `${id}-sky`,
-    area: full,
-    frame: { x: 0, y: 0, w: W, h: H },
-    hues: [222, 272],
-    nebula: 0.6,
-    faintAllowed: (x, y) =>
-      (Math.round(x * 7 + y * 13) & 1) === 0 && !TEXT.some(([x0, y0, x1, y1]) => x > x0 && x < x1 && y > y0 && y < y1),
-    brightAllowed: (x, y) => y > 63 && y < 70 && ((x > 22 && x < 52) || (x > 114 && x < 142)),
-  });
   defs.push(
-    sky.defs,
     `<radialGradient id="${id}-glow"><stop offset="0" stop-color="${hsl(ACTION_HUE, 100, 60)}" stop-opacity=".5"/><stop offset="1" stop-color="${hsl(ACTION_HUE, 100, 60)}" stop-opacity="0"/></radialGradient>`,
   );
-  out.push(sky.body, `<rect x="${full.x}" y="${full.y}" width="${full.w}" height="${full.h}" fill="${GROUND}" opacity=".3"/>`);
+  out.push(`<rect x="${full.x}" y="${full.y}" width="${full.w}" height="${full.h}" fill="${GROUND}"/>`, craters());
 
   // --- The cube rail: a pad per cube, spread over the full height, with the win condition alongside.
   // The pads are the planets' cube pads in the die pads' quiet fill; the text runs up the rail, like a spine.
@@ -199,20 +181,22 @@ export function playerAidSvg(o: AidOptions = {}): string {
   );
   const left = spine + 4;
 
-  // --- Dominance and research: label, pad, what moves the die, what 6 does.
+  // --- Power and research: label, pad, what moves the die, what 6 does. Basic has no research.
   const colW = 26;
   const side = (x: number, kind: 'dominance' | 'research') => {
     const h = kind === 'dominance' ? DOMINANCE : RESEARCH;
     const tone = hsl(h, 85, 70);
     const cx = x + colW / 2;
-    out.push(text(cx, M + 3, kind, 2.4, { font: 'bold', fill: tone, anchor: 'middle', track: 0.16, upper: true }));
+    out.push(
+      text(cx, M + 3, kind === 'dominance' ? 'power' : kind, 2.4, { font: 'bold', fill: tone, anchor: 'middle', track: 0.16, upper: true }),
+    );
     out.push(diePad(cx, M + 17.5, h, kind));
     const lines =
       kind === 'dominance'
         ? {
-            gain: ['+1 per enemy destroyed', '−1 per ship lost'],
+            gain: ['+1 per enemy destroyed', '−1 per mech lost'],
             six: 'At 6 · Infamy',
-            then: ['Place a cube on any', 'planet, reset to 1'],
+            then: ['Place a cube on any', 'objective, reset to 1'],
           }
         : { gain: ['+1 per Research action'], six: 'At 6 · Breakthrough', then: ['Take a card at the', 'end of turn, reset to 1'] };
     let y = M + 35.4;
@@ -225,11 +209,12 @@ export function playerAidSvg(o: AidOptions = {}): string {
     lines.then.forEach((t, i) => out.push(line(cx, y + 3.5 + i * 3.2, t, 2.2, colW, measure, { fill: MUTED, anchor: 'middle' })));
   };
   side(left, 'dominance');
-  side(W - M - colW, 'research');
+  const research = edition === 'regolith';
+  if (research) side(W - M - colW, 'research');
 
-  // --- The turn, in the middle column.
+  // --- The turn, in the middle column, and the right one too without research.
   const x0 = left + colW + 4;
-  const cw = W - M - colW - 4 - x0;
+  const cw = W - M - (research ? colW + 4 : 0) - x0;
   const rule = (y: number) => `<path d="M${n(x0)} ${n(y)}H${n(x0 + cw)}" stroke="${HAIR}" stroke-width=".25"/>`;
   out.push(text(x0, M + 4.6, '3 actions', 3.2, { font: 'bold', fill: WHITE, upper: true, track: 0.06 }));
   for (let i = 0; i < 3; i++) out.push(hex(x0 + cw - 2.2 - i * 5, M + 3.5, 2.25, `${id}-glow`));
@@ -242,14 +227,17 @@ export function playerAidSvg(o: AidOptions = {}): string {
     out.push(line(textX, y + 2.9, a.text, 2.2, x0 + cw - textX, measure, { fill: MUTED }));
   });
   out.push(rule(M + 45.6));
-  const ruleX = x0 + 13;
+  // The rules' text starts past the widest label.
+  const labelSize = 2.1;
+  const ruleX =
+    x0 + 3.5 + Math.max(...rules(edition).map(([label]) => (measure(label.toUpperCase(), 1, 'bold') + 0.08 * label.length) * labelSize));
   rules(edition).forEach(([label, s], i) => {
     const y = M + 49.6 + i * 3.6;
-    out.push(text(x0, y, label, 2.1, { font: 'bold', fill: WHITE, track: 0.08, upper: true }));
+    out.push(text(x0, y, label, labelSize, { font: 'bold', fill: WHITE, track: 0.08, upper: true }));
     out.push(line(ruleX, y, s, 2.2, x0 + cw - ruleX, measure, { fill: MUTED }));
   });
 
-  // --- The fleet: six die faces, strongest to fastest, and what each can do.
+  // --- The mechs: six die faces, strongest to fastest, and what each can do.
   // Anchored to the bottom: the last line of the ships' text sits on the bottom margin (less its descenders).
   const size = 17;
   const fleetY = H - M - 0.6 - (size + 4.4 + 3.1);
@@ -259,7 +247,7 @@ export function playerAidSvg(o: AidOptions = {}): string {
   const shipText = Math.max(MIN_TEXT, Math.min(2.5, ...lines.map((t) => (size + gap - 0.8) / measure(t, 1, 'bold'))));
   for (const [i, s] of SHIPS.entries()) {
     const cx = left + size / 2 + i * (size + gap);
-    const d = shipDie(`${id}-d${s.value}`, s.value, cx, fleetY + size / 2, size, HUE);
+    const d = mechDie(s.value, cx, fleetY + size / 2, size);
     defs.push(d.defs);
     out.push(d.body);
     s.text.forEach((t, k) =>
