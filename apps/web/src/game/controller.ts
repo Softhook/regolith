@@ -33,6 +33,7 @@ export type Sel =
   | { kind: 'power'; die: string }
   | { kind: 'tactical'; die: string }
   | { kind: 'kineticShunt'; die: string }
+  | { kind: 'shuntBarrier'; from: Cell }
   // A planet that can be conquered in more than one way, waiting for the player to choose how.
   | { kind: 'conquer'; planet: number }
   // `tactical`: a 1-space transport using the Tactical skill instead of a Move action.
@@ -55,7 +56,7 @@ export function useController(game: GameState, dispatch: Dispatch, mine: (p: Pla
   useEffect(() => setSel(NONE), [pendingSig]);
   // Drop a selection that is no longer valid (ship destroyed, already moved…).
   useEffect(() => {
-    if (sel.kind === 'none' || sel.kind === 'conquer') return;
+    if (sel.kind === 'none' || sel.kind === 'conquer' || sel.kind === 'shuntBarrier') return;
     const d = game.dice.find((x) => x.id === sel.die);
     if (!d || d.loc.zone !== (sel.kind === 'scrap' ? 'scrapyard' : 'board')) setSel(NONE);
   }, [game, sel]);
@@ -134,8 +135,15 @@ export function useController(game: GameState, dispatch: Dispatch, mine: (p: Pla
       if (head?.kind === 'advance') return void dispatch({ type: 'advance', move: true });
       if (head?.kind === 'warpGate') return void dispatch({ type: 'warpGate', cell });
       if (head?.kind === 'placeBarrier') return void dispatch({ type: 'placeBarrier', cell });
+      // A barrier to push: tapping one picks it, whatever was picked before.
+      if (head?.kind === 'kineticShunt' && highlights.cells.get(key(cell))?.tone === 'barrier')
+        return select({ kind: 'shuntBarrier', from: cell });
       if (head?.kind === 'kineticShunt' && sel.kind === 'kineticShunt') {
         dispatch({ type: 'kineticShunt', die: sel.die, to: cell });
+        return setSel(NONE);
+      }
+      if (head?.kind === 'kineticShunt' && sel.kind === 'shuntBarrier' && highlights.cells.get(key(cell))?.tone === 'move') {
+        dispatch({ type: 'shuntBarrier', from: sel.from, to: cell });
         return setSel(NONE);
       }
       if (head?.kind === 'placeExpansion') return void dispatch({ type: 'placeExpansion', to: cell });

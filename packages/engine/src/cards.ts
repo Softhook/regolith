@@ -31,6 +31,7 @@ import { barrierAt, boardLoc, die, reserve, shipsOnBoard } from './lookups';
 import {
   barrierSpaces,
   canHoldBarrier,
+  barrierShuntTargets,
   canShunt,
   canPlayStoredTactic,
   canProfiteer,
@@ -318,6 +319,15 @@ export const cardHandlers = {
     d.loc = boardLoc(a.to);
     const targetName = head.player === d.owner ? `their ${shipName(s, d)}` : `${name(s, d.owner)}'s ${shipName(s, d)}`;
     logTo(s, head.player, `${name(s, head.player)} pushes ${targetName}${path.tunnel ? ' through an ice tunnel' : ''}`, a.to);
+  },
+  shuntBarrier(s, a) {
+    const head = headOf(s, 'kineticShunt', 'No Kinetic Shunt to resolve');
+    const b = barrierAt(s, a.from);
+    if (!b) fail('Choose a barrier on the map');
+    if (!barrierShuntTargets(s, b).some((p) => same(p, a.to))) fail('Not a valid push destination');
+    s.pending.shift();
+    s.barriers = s.barriers!.map((x) => (x === b ? { ...b, r: a.to.r, c: a.to.c } : x));
+    logTo(s, head.player, `${name(s, head.player)} pushes a barrier`, a.to);
   },
   /** Patient: "When you take this Skill, you may take and store a Tactic." */
   patientTactic(s, a) {

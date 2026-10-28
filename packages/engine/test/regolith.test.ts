@@ -36,6 +36,7 @@ import {
   RULESETS,
   shipsByIndex,
   shuntTargets,
+  barrierShuntTargets,
   spaces,
   stopZone,
   tryApply,
@@ -107,7 +108,7 @@ describe('Regolith mode', () => {
           expect(c.text).toBe('Place two barriers.');
         } else {
           expect(effectOf(c.id)).toBe('kinetic-shunt');
-          expect(c.text).toBe('Choose any mech. Push it up to 4 spaces in a straight line.');
+          expect(c.text).toBe('Choose any mech or barrier. Push it up to 4 spaces in a straight line.');
         }
       } else {
         expect(c.id, c.id).toBe(`r-${c.from}`);
@@ -878,8 +879,8 @@ describe('Kinetic Shunt tactic card (Regolith)', () => {
     const cardDef = REGOLITH_DECKS.tactics.find((c) => c.id === 'r-kinetic-shunt');
     expect(cardDef).toBeDefined();
     expect(cardDef!.name).toBe('Kinetic Shunt');
-    expect(cardDef!.subtitle).toBe('Push any mech 4 spaces');
-    expect(cardDef!.text).toBe('Choose any mech. Push it up to 4 spaces in a straight line.');
+    expect(cardDef!.subtitle).toBe('Push any mech or barrier 4 spaces');
+    expect(cardDef!.text).toBe('Choose any mech or barrier. Push it up to 4 spaces in a straight line.');
     expect(cardDef!.count).toBe(2);
     expect(cardDef!.category).toBe('movement');
     expect(cardDef!.status).toBe('new');
@@ -916,6 +917,21 @@ describe('Kinetic Shunt tactic card (Regolith)', () => {
     // Apply the push to (4, 8)
     s = apply(s, { type: 'kineticShunt', die: 'p1d0', to: { r: 4, c: 8 } });
     expect(at(s, 'p1d0').loc).toEqual({ zone: 'board', r: 4, c: 8 });
+    expect(s.pending).toHaveLength(0);
+  });
+
+  it('can push a barrier up to 4 spaces in a straight line, but not onto a mech, a barrier or the far side of one', () => {
+    let s = scenario({ p0d0: [7, 2, 6], p1d0: [4, 4, 5] });
+    s.barriers = [{ r: 6, c: 6, owner: null }];
+    s.pending.unshift({ kind: 'kineticShunt', player: s.turn.player });
+    const to = (r: number, c: number) => ({ type: 'shuntBarrier', from: { r: 6, c: 6 }, to: { r, c } });
+    const pushes = legalActions(s).filter((a) => a.type === 'shuntBarrier');
+    expect(pushes.length).toBeGreaterThan(0);
+    for (const a of pushes) expect(barrierShuntTargets(s, { r: 6, c: 6 })).toContainEqual(a.to);
+    expect(() => apply(s, to(4, 4) as never)).toThrow(/Not a valid push destination/);
+    const dest = pushes[0].type === 'shuntBarrier' ? pushes[0].to : { r: 0, c: 0 };
+    s = apply(s, { type: 'shuntBarrier', from: { r: 6, c: 6 }, to: dest });
+    expect(s.barriers).toEqual([{ ...dest, owner: null }]);
     expect(s.pending).toHaveLength(0);
   });
 
@@ -1047,7 +1063,7 @@ describe('Kinetic Shunt tactic card (Regolith)', () => {
     expect(legal.some((a) => a.type === 'kineticShunt' && a.die === 'p0d0')).toBe(false);
   });
 
-  it('All mechs boxed in: playing Kinetic Shunt does not stall the game', () => {
+  it('All mechs boxed in: Kinetic Shunt pushes a barrier instead of stalling the game', () => {
     let s = scenario({ p0d0: [0, 5, 3] });
     s.barriers = [
       { r: 0, c: 6, owner: 0 },
@@ -1060,7 +1076,8 @@ describe('Kinetic Shunt tactic card (Regolith)', () => {
     s.pending.unshift({ kind: 'takeCard', player: 0, count: 1 });
     s = apply(s, { type: 'takeCard', deck: 'tactic', index: 0 });
 
-    expect(s.pending.some((p) => p.kind === 'kineticShunt')).toBe(false);
+    expect(s.pending[0]).toMatchObject({ kind: 'kineticShunt' });
+    expect(legalActions(s).every((a) => a.type === 'shuntBarrier')).toBe(true);
   });
 
   it('Player can shunt friendly mech onto perimeter to claim objective', () => {

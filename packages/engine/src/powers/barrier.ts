@@ -1,6 +1,6 @@
 /**
  * Barrier: fire a barrier in a straight line, onto any clear space along it. Free, once a turn, besides
- * the ship's move. A barrier stays for good and blocks every move, deploy and shot (GameState.barriers);
+ * the ship's move. A barrier stays put (only Kinetic Shunt moves it) and blocks every move, deploy and shot (GameState.barriers);
  * on a planet's orbital space it holds that space, as a ship would, but never counts towards a conquest.
  */
 import { straightLines } from '../board';

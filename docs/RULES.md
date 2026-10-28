@@ -54,8 +54,8 @@ may share a space: a mech there is on both.
 - Objectives, mechs and barriers block movement. Mechs move out of a side of their space, never diagonally.
 - Starting objectives are marked on the map; each player's is their **home objective**.
 - **Prepared ground.** Some maps start with an Ice Tunnel or wormhole (a pair of spaces each) and/or barriers already on them, laid
-  as the map's setup sheet shows. They are the same as the ones a game makes: barriers stay for good and belong to
-  nobody; the tunnel is moved like any other by the Ice Tunnel tactic; a wormhole is never moved (ruling 15). Each start still has 3 free
+  as the map's setup sheet shows. They are the same as the ones a game makes: a barrier belongs to
+  nobody, and Kinetic Shunt can still push it; the tunnel is moved like any other by the Ice Tunnel tactic; a wormhole is never moved (ruling 15). Each start still has 3 free
   perimeter spaces of its own, and every objective can be reached from every start.
 
 ## Setup
@@ -121,7 +121,7 @@ A power is used on your turn, on the map, once per die per turn, even if the die
 **Lines** (Shoot, Barrier) run straight out of a side of the mech's space. Mechs, objectives, barriers and the
 map's edge stop them; Sinkholes and Ice Tunnels don't, but a barrier can't land on a tunnel's space.
 
-**Barriers** stay for good. No mech moves, drops or shoots through one. On a perimeter space a barrier holds
+**Barriers** stay where they are put, unless Kinetic Shunt pushes one. No mech moves, drops or shoots through one. On a perimeter space a barrier holds
 it, as a mech would, but never counts towards a claim.
 
 ## Combat

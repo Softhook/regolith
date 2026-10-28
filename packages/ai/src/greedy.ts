@@ -22,7 +22,7 @@ import {
   type PlayerId,
 } from '@regolith/engine';
 import { shuffleUnseen } from './hidden';
-import { candidates } from './candidates';
+import { barrierShuntRank, candidates } from './candidates';
 import { storedTactics } from './patient';
 
 /**
@@ -159,7 +159,7 @@ function playOutDecisions(state: GameState, me: PlayerId): GameState {
 /** The follow-up option `quickPolicy` prefers for each kind of decision; otherwise the first legal one. */
 const PREFERRED: { [K in Pending['kind']]?: (a: Action, s: GameState, me: PlayerId) => boolean } = {
   showOfForce: (a, s, me) => a.type === 'showOfForce' && die(s, a.die).owner !== me,
-  kineticShunt: (a, s, me) => a.type === 'kineticShunt' && die(s, a.die).owner !== me,
+  kineticShunt: (a, s, me) => (a.type === 'kineticShunt' && die(s, a.die).owner !== me) || barrierShuntRank(s, a, me) > 0,
   takeCard: (a) => a.type === 'takeCard' && a.deck === 'expansion',
   patientTactic: (a) => a.type === 'patientTactic' && a.index !== undefined,
   unveil: (a) => a.type === 'unveilDeploy',
@@ -175,7 +175,10 @@ function quickPolicy(s: GameState, me: PlayerId): Action | null {
   if (head.kind === 'peek') return { type: 'peekChoice', takeTop: false };
   const options = legalActions(s);
   const prefer = PREFERRED[head.kind];
-  return (prefer && options.find((a) => prefer(a, s, me))) ?? options[0] ?? null;
+  const best = (prefer && options.find((a) => prefer(a, s, me))) ?? options[0] ?? null;
+  // Kinetic Shunt with only barriers to push: the least harmful, not the first.
+  if (head.kind !== 'kineticShunt' || best?.type !== 'shuntBarrier') return best;
+  return options.reduce((x, y) => (barrierShuntRank(s, y, me) > barrierShuntRank(s, x, me) ? y : x), best);
 }
 
 // ---------------------------------------------------------------------------

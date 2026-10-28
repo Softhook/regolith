@@ -38,9 +38,9 @@ export function hintFor(game: GameState, sel: Sel): string {
       case 'placeBarrier':
         return `Place Barrier ${head.placed.length + 1} of 2 on an empty space.`;
       case 'kineticShunt':
-        return sel.kind === 'kineticShunt'
-          ? 'Kinetic Shunt: choose an empty space in a straight line to push the mech to.'
-          : 'Kinetic Shunt: choose any mech on the map to push.';
+        return sel.kind === 'kineticShunt' || sel.kind === 'shuntBarrier'
+          ? 'Kinetic Shunt: choose an empty space in a straight line to push it to.'
+          : 'Kinetic Shunt: choose any mech or barrier on the map to push.';
       case 'unveil':
         return `${cardName('unveil-the-fleet')}: re-roll and drop mechs from your salvage yard, then press Done.`;
       case 'discardSkill':

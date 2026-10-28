@@ -22,6 +22,7 @@ import {
   missileOffered,
   moveOptions,
   shuntTargets,
+  barrierShuntTargets,
   startSlots,
   tacticalOptions,
   usedThisTurn,
@@ -88,7 +89,12 @@ const DECISION_CANDIDATES: { [K in Pending['kind']]: (s: GameState, head: Pendin
       .filter((cell) => !head.placed.some((p) => same(p, cell)) && !barrierAt(s, cell) && !s.wormhole?.some((w) => same(w, cell)))
       .map((cell) => ({ type: 'warpGate', cell })),
   placeBarrier: (s) => barrierSpaces(s).map((cell) => ({ type: 'placeBarrier', cell })),
-  kineticShunt: (s) => shipsOnBoard(s).flatMap((d) => shuntTargets(s, d).map((to) => ({ type: 'kineticShunt', die: d.id, to }) as const)),
+  kineticShunt: (s) => [
+    ...shipsOnBoard(s).flatMap((d) => shuntTargets(s, d).map((to) => ({ type: 'kineticShunt', die: d.id, to }) as const)),
+    ...(s.barriers ?? []).flatMap((b) =>
+      barrierShuntTargets(s, b).map((to) => ({ type: 'shuntBarrier', from: { r: b.r, c: b.c }, to }) as const),
+    ),
+  ],
   changeOfHeart: (s) => [...new Set(s.market.skillDeck)].map((skill) => ({ type: 'changeOfHeart', skill })),
   patientTactic: (s) => [
     { type: 'patientTactic' } as const,

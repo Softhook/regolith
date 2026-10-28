@@ -852,7 +852,7 @@ export function barrierSpaces(state: GameState): Cell[] {
   return spaces(state.board).filter((p) => canHoldBarrier(state, p));
 }
 
-/** How far Kinetic Shunt pushes a mech. */
+/** How far Kinetic Shunt pushes a mech or a barrier. */
 const SHUNT_RANGE = 4;
 
 /** A space Kinetic Shunt can push a mech to, and whether it gets there through a warp gate. */
@@ -905,7 +905,21 @@ export function shuntTargets(state: GameState, d: Die): Cell[] {
   return shuntPaths(state, d).map((p) => p.to);
 }
 
-/** Whether Kinetic Shunt has anything to push: a mech on the map with somewhere to go. */
+/**
+ * Where Kinetic Shunt can push a barrier: the spaces up to 4 away in a straight line that can hold one, stopping
+ * before anything in its way. A barrier doesn't use the Ice Tunnel and can't stop on a gate.
+ */
+export function barrierShuntTargets(state: GameState, from: Cell): Cell[] {
+  return straightLines(state.board, from).flatMap((line) => {
+    const blocked = line.slice(0, SHUNT_RANGE).findIndex((p) => !isEmptySpace(state, p));
+    return line.slice(0, blocked < 0 ? SHUNT_RANGE : blocked).filter((p) => canHoldBarrier(state, p));
+  });
+}
+
+/** Whether Kinetic Shunt has anything to push: a mech or a barrier on the map with somewhere to go. */
 export function canShunt(state: GameState): boolean {
-  return shipsOnBoard(state).some((d) => shuntPaths(state, d).length > 0);
+  return (
+    shipsOnBoard(state).some((d) => shuntPaths(state, d).length > 0) ||
+    (state.barriers ?? []).some((b) => barrierShuntTargets(state, b).length > 0)
+  );
 }

@@ -14,7 +14,7 @@ import {
 import type { Sel } from './controller';
 import type { Legal } from './legal';
 
-type CellTone = 'move' | 'deploy' | 'gate' | 'drop' | 'launch';
+type CellTone = 'move' | 'deploy' | 'gate' | 'drop' | 'launch' | 'barrier';
 type DieTone = 'attack' | 'swap' | 'target' | 'passenger';
 type PlanetTone = 'conquer' | 'infamy' | 'start' | 'blocked';
 
@@ -79,6 +79,13 @@ export function highlightsFor(game: GameState, sel: Sel, legal: Legal, actionPha
         break;
       case 'kineticShunt':
         for (const a of legal.of('kineticShunt')) h.dice.set(a.die, 'target');
+        for (const a of legal.of('shuntBarrier')) h.cells.set(key(a.from), { cell: a.from, tone: 'barrier' });
+        if (sel.kind === 'shuntBarrier') {
+          addCells(
+            legal.of('shuntBarrier', (a) => same(a.from, sel.from)).map((a) => a.to),
+            'move',
+          );
+        }
         if (sel.kind === 'kineticShunt') {
           addCells(
             legal.of('kineticShunt', (a) => a.die === sel.die).map((a) => a.to),

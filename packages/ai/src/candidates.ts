@@ -1,7 +1,35 @@
-import { cellOf, die, distance, legalActions, type Action, type GameState } from '@regolith/engine';
+import {
+  cellOf,
+  die,
+  distance,
+  homePlanet,
+  legalActions,
+  orbitals,
+  same,
+  type Action,
+  type Cell,
+  type GameState,
+  type PlayerId,
+} from '@regolith/engine';
 
 /** Calculating: the scrapyard numbers to take first (see candidates). */
 const CALCULATING_ORDER = [4, 3, 5, 2, 6, 1];
+
+/**
+ * How much Kinetic Shunt pushing a barrier helps `me`: freeing a space of their own home's perimeter, or
+ * putting the barrier on an enemy home's, is good; taking one of their own home's spaces is bad.
+ */
+export function barrierShuntRank(s: GameState, a: Action, me: PlayerId): number {
+  if (a.type !== 'shuntBarrier') return 0;
+  const home = homePlanet(s, me);
+  const onHome = (c: Cell) => !!home && orbitals(s.board, home).some((o) => same(o, c));
+  const onEnemyHome = (c: Cell) =>
+    s.players.some((p) => {
+      const h = p.id !== me && homePlanet(s, p.id);
+      return !!h && orbitals(s.board, h).some((o) => same(o, c));
+    });
+  return (onHome(a.from) ? 3 : 0) - (onHome(a.to) ? 5 : 0) + (onEnemyHome(a.to) ? 2 : 0) - (onEnemyHome(a.from) ? 2 : 0);
+}
 
 /**
  * The legal actions an AI considers, ordered for the decisions where the evaluation ties (the first
@@ -21,7 +49,9 @@ export function candidates(s: GameState, opts?: { includeCarry?: boolean }): Act
   // Kinetic Shunt: enemy mechs first, pushed furthest first.
   if (head?.kind === 'kineticShunt') {
     const rank = (a: Action) =>
-      a.type === 'kineticShunt' ? (die(s, a.die).owner !== head.player ? 100 : 0) + distance(cellOf(die(s, a.die))!, a.to) : 0;
+      a.type === 'kineticShunt'
+        ? (die(s, a.die).owner !== head.player ? 100 : 0) + distance(cellOf(die(s, a.die))!, a.to)
+        : barrierShuntRank(s, a, head.player) - 50;
     all.sort((a, b) => rank(b) - rank(a));
   }
   const options = nearestAttacks(all);

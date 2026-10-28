@@ -429,6 +429,7 @@ input { font: inherit; }
   border: var(--bw) dashed var(--good);
   box-shadow: 0 0 14px rgba(127,176,138, .25);
 }
+.hl-barrier span { width: 70%; height: 70%; border-radius: 50%; background: transparent; border: var(--bw) solid var(--accent); box-shadow: 0 0 10px var(--accent); }
 .hl-gate span { width: 56%; height: 56%; background: transparent; border: var(--bw) solid var(--good); box-shadow: 0 0 10px rgba(127,176,138,.4); opacity: .45; }
 /* A space to attack from: its way (.route) marks it, so the space only takes the tap and shows the odds when they differ.
    Without a way drawn, its dot shows. */

@@ -27,7 +27,7 @@
 #   or m for the middle itself (on a Sinkhole or blank tile; an objective in the middle leaves no space there).
 #     tunnel:   [space, space]   an Ice Tunnel, open from the first turn (the Ice Tunnel tactic still moves it)
 #     wormhole: [space, space]   a pair linked like the tunnel's but for good: the tactic can't close it or land on it
-#     barriers: [space, …]       barriers nobody fired: for good, like the Wisp's
+#     barriers: [space, …]       barriers nobody fired, like the Wisp's (only Kinetic Shunt moves one)
 #   `npm run map:show -- <id>` prints a map with every space named, and lays a symmetric list (--spin).
 #
 # length: short | medium | long, on every map: AI self-play's rounds times players (level 2, `npm run selfplay:maps`),

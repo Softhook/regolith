@@ -489,7 +489,8 @@ export function Manual({ dark }: { dark?: boolean }) {
           <figure>
             <BarrierFigure />
             <figcaption>
-              <b>{SHIPS[6].ability.name}.</b> The {SHIPS[6].name}’s barrier stays for good, and here holds a space of the 9’s perimeter.
+              <b>{SHIPS[6].ability.name}.</b> The {SHIPS[6].name}’s barrier stays put (only Kinetic Shunt moves it), and here holds a space
+              of the 9’s perimeter.
             </figcaption>
           </figure>
         </div>

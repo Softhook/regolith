@@ -454,8 +454,8 @@ tactics:
     art: { title: "Glass bubble", brief: "A Wisp inflating soft glass barrier bubbles across the ground." }
   - id: r-kinetic-shunt
     name: "Kinetic Shunt"
-    subtitle: "Push any mech 4 spaces"
-    text: "Choose any mech. Push it up to 4 spaces in a straight line."
+    subtitle: "Push any mech or barrier 4 spaces"
+    text: "Choose any mech or barrier. Push it up to 4 spaces in a straight line."
     category: movement
     count: 2
     status: new

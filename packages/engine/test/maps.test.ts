@@ -10,6 +10,7 @@ import {
   createGame,
   key,
   linked,
+  same,
   MAPS,
   mapStats,
   orbitals,
@@ -110,6 +111,18 @@ describe("prepared ground (a map's `start`)", () => {
     expect(otherGate(t, s.wormhole![0])).toEqual(s.wormhole![1]);
     expect(otherGate(t, a)).toEqual(b);
     expect(checkInvariants(t)).toEqual([]);
+  });
+
+  it('lets Kinetic Shunt push a barrier the map started with', () => {
+    const s = quickStart(2, 1, 'regolith', 'switchback');
+    const from = { r: s.barriers![0].r, c: s.barriers![0].c };
+    s.pending.unshift({ kind: 'kineticShunt', player: s.turn.player });
+    const push = legalActions(s).find((a) => a.type === 'shuntBarrier' && same(a.from, from));
+    expect(push).toBeDefined();
+    const t = apply(s, push!);
+    expect(t.barriers).toHaveLength(s.barriers!.length);
+    expect(barrierAt(t, from)).toBeUndefined();
+    expect(barrierAt(t, (push as { to: { r: number; c: number } }).to)?.owner).toBeNull();
   });
 
   it("refuses a space that is a tile's objective, a tile that is not there, and an odd tunnel", () => {

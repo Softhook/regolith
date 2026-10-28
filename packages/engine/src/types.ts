@@ -283,8 +283,8 @@ export interface GameState {
    */
   wormhole?: Cell[];
   /**
-   * Barriers on the map (the Wisp and Barricade place them), for good: nothing moves into, is deployed on or
-   * shoots through their spaces. Absent in a game that never had one.
+   * Barriers on the map (the Wisp and Barricade place them), nothing moves into, is deployed on or
+   * shoots through their spaces. Only Kinetic Shunt moves one. Absent in a game that never had one.
    */
   barriers?: Barrier[];
   turn: TurnState;
@@ -346,6 +346,7 @@ export type Action =
   | { type: 'warpGate'; cell: Cell }
   | { type: 'placeBarrier'; cell: Cell }
   | { type: 'kineticShunt'; die: string; to: Cell }
+  | { type: 'shuntBarrier'; from: Cell; to: Cell }
   | { type: 'changeOfHeart'; skill: string }
   | { type: 'prideful'; take: boolean }
   | { type: 'ruthless'; skill?: string }
