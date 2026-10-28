@@ -20,13 +20,21 @@ import { PHONE, REDUCED_MOTION, useMediaQuery } from '../../game/useMediaQuery';
 /** How large a space is drawn, px: close up (smaller on a phone). */
 const CELL = 140;
 const PHONE_CELL = 100;
-/** How fast the ground drifts, px a second, and which way it seems to go (the camera goes the other way): up and to the left. */
+/** How fast the ground drifts, px a second: which way is chosen afresh each time the ground is laid. */
 const SPEED = 16;
 const PHONE_SPEED = 11;
-const HEADING = (215 * Math.PI) / 180;
 /** The blank tiles (art `TILE_SET`), and how many of the tiles laid are the chosen map's instead. */
 const BLANKS: TileRef[] = Array.from({ length: 10 }, (_, i) => ({ id: `blank-${String(i + 1).padStart(2, '0')}`, at: { x: 0, y: 0 } }));
 const MAP_SHARE = 1 / 12;
+/**
+ * A flower's six neighbours are a step of the lattice away, ±(1, 0), ±(0, 1) or ±(1, −1) (below), so (i − j) mod 3
+ * sorts the flowers into three sets, none touching another of its own. Each tile is laid only in one set, by its
+ * place in its list, so no tile is laid next to a copy of itself.
+ */
+const SETS = [0, 1, 2];
+const setOf = (i: number, j: number) => (((i - j) % 3) + 3) % 3;
+const inSets = (tiles: TileRef[]) => SETS.map((s) => tiles.filter((_, k) => k % 3 === s));
+const BLANK_SETS = inSets(BLANKS);
 
 /**
  * Where the tiles go, in spaces: the middles of 7-hex flowers fitted together, two steps of the lattice they make
@@ -66,18 +74,20 @@ function inView(ox: number, oy: number, w: number, h: number, cell: number) {
 
 function Ground({ board, cell, speed, still }: { board: Board; cell: number; speed: number; still: boolean }) {
   const world = board.world;
-  const mapTiles = useMemo(() => tileArt(board).filter((t) => !t.id.startsWith('blank')), [board]);
-  /** The tile laid at (i, j): the same each time it comes round. */
+  const mapSets = useMemo(() => inSets(tileArt(board).filter((t) => !t.id.startsWith('blank'))), [board]);
+  /** The tile laid at (i, j): the same each time it comes round. A map with fewer than three tiles leaves a set blanks only. */
   const tileAt = (i: number, j: number): TileRef => {
     const h = hash(`${i},${j}`) >>> 0;
-    return mapTiles.length && (h % 1000) / 1000 < MAP_SHARE ? mapTiles[(h >>> 10) % mapTiles.length] : BLANKS[(h >>> 10) % BLANKS.length];
+    const [mapTiles, blanks] = [mapSets[setOf(i, j)], BLANK_SETS[setOf(i, j)]];
+    return mapTiles.length && (h % 1000) / 1000 < MAP_SHARE ? mapTiles[(h >>> 10) % mapTiles.length] : blanks[(h >>> 10) % blanks.length];
   };
 
   const drift = useRef<HTMLDivElement>(null);
   const [view, setView] = useState(() => inView(0, 0, innerWidth, innerHeight, cell));
   const shown = useRef(view);
+  const [heading] = useState(() => Math.random() * 2 * Math.PI);
   useEffect(() => {
-    const [vx, vy] = [speed * Math.cos(HEADING + Math.PI), speed * Math.sin(HEADING + Math.PI)];
+    const [vx, vy] = [speed * Math.cos(heading), speed * Math.sin(heading)];
     let [ox, oy] = [0, 0];
     let last = performance.now();
     let frame = 0;
@@ -104,7 +114,7 @@ function Ground({ board, cell, speed, still }: { board: Board; cell: number; spe
       cancelAnimationFrame(frame);
       removeEventListener('resize', place);
     };
-  }, [cell, speed, still]);
+  }, [cell, speed, still, heading]);
 
   const laid: { key: string; x: number; y: number; tile: TileRef }[] = [];
   for (let i = view.i0; i <= view.i1; i++)

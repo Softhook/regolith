@@ -101,9 +101,9 @@ it shows that ground.
   so every tile's rim is the same plain ground and any two tiles meet without a seam of colour.
 - **Loading.** Drawing a tile's filters is slow, so the game draws each tile's layers once to images 768 px
   across (576 px on touch screens) and keeps them in IndexedDB ([`tileImages.ts`](../apps/web/src/art/tileImages.ts)).
-  Behind the lobby, the chosen world's ground drifts past close up: the game's tiles laid edge to edge, mostly
-  blanks with the chosen map's tiles among them ([`Backdrop.tsx`](../apps/web/src/components/lobby/Backdrop.tsx)),
-  drawn from the same images. After them the lobby draws the rest of the chosen map's tiles, so the game opens
+  Behind the lobby, the chosen world's ground drifts past close up, a new way each visit: the game's tiles laid
+  edge to edge, mostly blanks with the chosen map's tiles among them, never one next to a copy of itself
+  ([`Backdrop.tsx`](../apps/web/src/components/lobby/Backdrop.tsx)), drawn from the same images. After them the lobby draws the rest of the chosen map's tiles, so the game opens
   with its tiles ready. Tiles are drawn one at a time, middle
   first, when the page is idle, so the page stays responsive while they come. The ground is stored as JPEG over
   its world's colour, what stands as PNG: WebP was several times slower to encode. Each stored image carries a
