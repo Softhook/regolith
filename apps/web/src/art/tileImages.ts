@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { buildBoard, type MapDef } from '@regolith/engine';
 import {
   GROUND_BASE,
   RASTER_AREA,
@@ -15,6 +16,7 @@ import {
 import { rasteriseWithCutout } from '../files';
 import { COARSE } from '../game/useMediaQuery';
 import { idle, storeImage, storedImage } from './imageStore';
+import { tileArt } from './boardTiles';
 
 /**
  * Tile artwork as ready-drawn images: the raster layers of a tile on its world's ground (art `rasterLayerSvg`),
@@ -110,6 +112,30 @@ export function decodedTileImage(tile: TileRef, world: World, layer: RasterLayer
     decoded.set(name, image);
   }
   return image;
+}
+
+/**
+ * Prepares the chosen map's tiles in the background while the player is in the lobby. Each tile carries its
+ * building where that map puts its planet, so they can't be drawn ahead of the map, and drawing them all as the
+ * game opens would stall its opening roll. The lobby's ground has first call: its tiles are asked for as it's
+ * laid, before this starts, and tiles are drawn in turn. One at a time, so it stops when the map changes.
+ */
+export function useWarmMapImages(map: MapDef): void {
+  const board = useMemo(() => buildBoard(map), [map]);
+  useEffect(() => {
+    let live = true;
+    void (async () => {
+      for (const t of tileArt(board))
+        for (const layer of ['ground', 'standing'] as const) {
+          await idle();
+          if (!live) return;
+          await decodedTileImage(t, board.world, layer).catch(() => {});
+        }
+    })();
+    return () => {
+      live = false;
+    };
+  }, [board]);
 }
 
 const NONE: Record<string, string> = {};

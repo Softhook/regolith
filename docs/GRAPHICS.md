@@ -96,11 +96,15 @@ it shows that ground.
 - **Off the middle.** An objective may sit on any hex of its tile (docs/HEX.md, *Off-centre planets*); the
   Art Lab shows the set with each objective on any spot (`planetAt`). Only the 7s go off the middle on
   today's maps (`OFF_CENTRE`); a larger building would spill over the tile's edge.
+- **Where tiles meet.** Each tile's ground is laid by its own noise, so its broad patches (Mars's basalt, the
+  brightness's mottle) would stop dead at the cut. They fade out over the last 0.6 of a space in (`rimFade`),
+  so every tile's rim is the same plain ground and any two tiles meet without a seam of colour.
 - **Loading.** Drawing a tile's filters is slow, so the game draws each tile's layers once to images 768 px
   across (576 px on touch screens) and keeps them in IndexedDB ([`tileImages.ts`](../apps/web/src/art/tileImages.ts)).
   Behind the lobby, the chosen world's ground drifts past close up: the game's tiles laid edge to edge, mostly
   blanks with the chosen map's tiles among them ([`Backdrop.tsx`](../apps/web/src/components/lobby/Backdrop.tsx)),
-  drawn from the same images, so the game opens with its tiles ready. Tiles are drawn one at a time, middle
+  drawn from the same images. After them the lobby draws the rest of the chosen map's tiles, so the game opens
+  with its tiles ready. Tiles are drawn one at a time, middle
   first, when the page is idle, so the page stays responsive while they come. The ground is stored as JPEG over
   its world's colour, what stands as PNG: WebP was several times slower to encode. Each stored image carries a
   hash of its SVG, so changing the artwork redraws only what changed.

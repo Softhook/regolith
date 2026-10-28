@@ -4,8 +4,8 @@ import type { World } from '../tile/look';
 import type { Spot } from '../tile/geometry';
 import { DRAWN, SIZE, anywhere, radial, stops } from './core';
 
-/** Where a feature `reach` across goes: on a tile's hex flower (`anywhere`), or anywhere on the lobby's surface. */
-export type Strew = (r: Rng, reach: number) => Spot;
+/** Where a feature `reach` across goes: anywhere on a tile's hex flower (`anywhere`). */
+type Strew = (r: Rng, reach: number) => Spot;
 
 /**
  * The Regolith ground's terrain, as a height map: craters of every age, pits, boulders, ridges, on Mars dunes
@@ -242,14 +242,14 @@ const ridges = (r: Rng, at: Strew, max: number) =>
 export const terrain = (r: Rng, world: World): string => LEVEL(DRAWN) + features(r, world, anywhere);
 
 /** Level ground over `area`, for features to stand on and carve. */
-export const LEVEL = (area: Box) => `<rect ${region(area)} fill="rgb(128,0,128)"/>`;
+const LEVEL = (area: Box) => `<rect ${region(area)} fill="rgb(128,0,128)"/>`;
 
-/** A tile's worth of the terrain's features on `world`, each where `at` puts it; dust devils' tracks start anywhere on a square `span` across. */
-export function features(r: Rng, world: World, at: Strew, span = SIZE): string {
+/** A tile's worth of the terrain's features on `world`, each where `at` puts it; dust devils' tracks start anywhere on the tile's square. */
+function features(r: Rng, world: World, at: Strew): string {
   if (world === 'deimos') return deimos(r, at);
   const mars = world === 'mars';
   return (
-    (mars ? dunes(r.fork('dunes'), at) + tracks(r.fork('tracks'), span) : '') +
+    (mars ? dunes(r.fork('dunes'), at) + tracks(r.fork('tracks'), SIZE) : '') +
     ridges(r, at, 2) +
     craters(r, at, 'o', r.int(1, 2), 0.6, 1.4) +
     (r.chance(0.25) ? craters(r, at, 'big', 1, 0.8, 1.05) : '') +

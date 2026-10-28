@@ -1,7 +1,7 @@
 import type { Rng } from '../rng';
 import { n, region, turbulence, type Box } from '../svg';
 import type { World } from '../tile/look';
-import { LIT } from './core';
+import { LIT, rimFade } from './core';
 
 /**
  * The Regolith ground's light: filters that turn a height map into lit, coloured ground (`ground`), and
@@ -43,7 +43,9 @@ const MARS_RAMP =
   '<feFuncB type="table" tableValues="0.102 0.125 0.188 0.263 0.353 0.455 0.549"/>' +
   '</feComponentTransfer>' +
   '<feColorMatrix in="broad" type="matrix" values="0 0 0 1 0  0 0 0 1 0  0 0 0 1 0  0 0 0 0 1" result="pg"/>' +
-  '<feComponentTransfer in="pg" result="mD"><feFuncR type="table" tableValues="0 0 0.1 0.9 1 1"/><feFuncG type="table" tableValues="0 0 0.1 0.9 1 1"/><feFuncB type="table" tableValues="0 0 0.1 0.9 1 1"/></feComponentTransfer>' +
+  '<feComponentTransfer in="pg" result="mD0"><feFuncR type="table" tableValues="0 0 0.1 0.9 1 1"/><feFuncG type="table" tableValues="0 0 0.1 0.9 1 1"/><feFuncB type="table" tableValues="0 0 0.1 0.9 1 1"/></feComponentTransfer>' +
+  // All dust towards the tile's rim (`ground`): mD0 · rim + (1 − rim).
+  '<feComposite in="mD0" in2="rim" operator="arithmetic" k1="1" k3="-1" k4="1" result="mD"/>' +
   '<feComponentTransfer in="mD" result="mR"><feFuncR type="linear" slope="-1" intercept="1"/><feFuncG type="linear" slope="-1" intercept="1"/><feFuncB type="linear" slope="-1" intercept="1"/></feComponentTransfer>' +
   '<feComposite in="dust" in2="mD" operator="arithmetic" k1="1" result="dustM"/>' +
   '<feComposite in="rock" in2="mR" operator="arithmetic" k1="1" result="rockM"/>' +
@@ -62,11 +64,6 @@ const FINE: Record<World, number> = { phobos: 1, deimos: 0.85, mars: 1 };
  * finds a slope from one pixel to the next, so a smaller pixel needs more relief for the same slope.
  */
 const relief = (scale: number) => n((scale * 0.28) / LIT);
-
-/** A noise over the square `period` across from the origin, stitched so its edges meet, and tiled over the filter. */
-const repeating = (freq: number, octaves: number, seed: number, result: string, period: number, kind = 'fractalNoise') =>
-  `<feTurbulence type="${kind}" baseFrequency="${freq}" numOctaves="${octaves}" seed="${seed}" stitchTiles="stitch" ` +
-  `x="0" y="0" width="${n(period)}" height="${n(period)}" result="${result}-tile"/><feTile in="${result}-tile" result="${result}"/>`;
 
 /**
  * Shadow (`SHD`) where the height map `height` stands higher towards the light (top left), `d` away, by more
@@ -88,13 +85,11 @@ const shadow = (height: string, steps: [d: number, k: number][], blur: number, c
 
 /**
  * The light: the height map gains fine noise where it isn't smooth, is lit from the top left, shadowed, tinted for
- * its world and grained. Over `area`, in board units. Given a `period`, each noise repeats every `period` across and
- * down, stitched at its edges, so a height map that repeats so too comes out lit the same in each repeat.
+ * its world and grained. Over `area`, in board units. Its broad patches (Mars's rock, the brightness's mottle)
+ * fade out over the tile's rim (core `rimFade`).
  */
-export function ground(r: Rng, area: Box, world: World, period?: number): string {
+export function ground(r: Rng, area: Box, world: World): string {
   const s = () => r.noiseSeed();
-  const noise = (freq: number, octaves: number, seed: number, result: string, kind?: string) =>
-    period ? repeating(freq, octaves, seed, result, period, kind) : turbulence(freq, octaves, seed, result, kind);
   const fine = FINE[world];
   const light = '<feDistantLight azimuth="225" elevation="22"/>';
   return (
@@ -103,9 +98,10 @@ export function ground(r: Rng, area: Box, world: World, period?: number): string
     '<feColorMatrix in="SourceGraphic" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 1 0 0 0" result="SMOOTH"/>' +
     '<feColorMatrix in="SourceGraphic" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 1 0 0" result="ALB"/>' +
     // One broad noise, four ways: its red and green warp the fine noise, its blue mottles the brightness, its alpha lays the dust and rock patches.
-    noise(0.01, 3, s(), 'broad') +
-    noise(0.03, 7, s(), 'nz') +
-    noise(0.018, 3, s(), 'rg', 'turbulence') +
+    turbulence(0.01, 3, s(), 'broad') +
+    rimFade(area) +
+    turbulence(0.03, 7, s(), 'nz') +
+    turbulence(0.018, 3, s(), 'rg', 'turbulence') +
     // The warp is in 256 steps too: each step shifts the noise by a third of a pixel, a seam the light
     // shows as fingerprint lines along the broad noise's contours. Half a pixel's blur closes the seams.
     '<feDisplacementMap in="nz" in2="broad" scale="26" xChannelSelector="R" yChannelSelector="G" result="nzs"/>' +
@@ -143,14 +139,16 @@ export function ground(r: Rng, area: Box, world: World, period?: number): string
     ) +
     '<feMerge result="Ls"><feMergeNode in="L"/><feMergeNode in="SHD"/></feMerge>' +
     '<feColorMatrix in="ALB" type="matrix" values="0 0 0 1 0  0 0 0 1 0  0 0 0 1 0  0 0 0 0 1" result="albG"/>' +
-    '<feColorMatrix in="broad" type="matrix" values="0 0 1 0 0  0 0 1 0 0  0 0 1 0 0  0 0 0 0 1" result="anG"/>' +
+    '<feColorMatrix in="broad" type="matrix" values="0 0 1 0 0  0 0 1 0 0  0 0 1 0 0  0 0 0 0 1" result="anG0"/>' +
+    // The mottle evened out towards the rim, to where it leaves the brightness as it is: anG0 · rim + 0.49 (1 − rim).
+    '<feComposite in="anG0" in2="rim" operator="arithmetic" k1="1" k3="-0.49" k4="0.49" result="anG"/>' +
     '<feComposite in="albG" in2="anG" operator="arithmetic" k2="1" k3="0.45" k4="-0.22" result="albN"/>' +
     '<feComposite in="Ls" in2="albN" operator="arithmetic" k1="2" result="lit"/>' +
     `<feSpecularLighting in="H" kernelUnitLength="${LIT}" surfaceScale="${relief(9)}" specularConstant="0.6" specularExponent="40" lighting-color="#e6f6ff" result="spec">${light}</feSpecularLighting>` +
     '<feComposite in="spec" in2="SMOOTH" operator="in" result="specM"/>' +
     '<feComposite in="lit" in2="specM" operator="arithmetic" k2="1" k3="0.7" result="lit2"/>' +
     RAMPS[world] +
-    noise(1.4, 1, s(), 'grain') +
+    turbulence(1.4, 1, s(), 'grain') +
     '<feComposite in="ramp" in2="grain" operator="arithmetic" k2="1" k3="0.09" k4="-0.045"/>' +
     '</filter>'
   );

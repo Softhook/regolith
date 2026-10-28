@@ -1,7 +1,7 @@
 import type { Rng } from '../rng';
 import { TILE } from '../tokens';
-import type { Box } from '../svg';
-import { BLED, HEX_TILE_CUT, type Spot } from '../tile/geometry';
+import { dataUrl, n, region, type Box } from '../svg';
+import { BLED, HEX_TILE_CUT, flowerPath, type Spot } from '../tile/geometry';
 
 /** The Regolith ground's units, the hex flower in them, and the SVG helpers its parts share (index.ts says how a tile is drawn). */
 
@@ -12,7 +12,7 @@ export const SCALE = TILE.cell / SPACE;
 /** The tile's trim, 96 mm, in board units. */
 export const SIZE = TILE.size / SCALE;
 /** How far past the area shown the ground is drawn, in board units: past the furthest shadow (9) and warp (13). */
-export const MARGIN = 20;
+const MARGIN = 20;
 /**
  * The pixel the ground's light is made for, in board units (its `kernelUnitLength`). Chrome lights a pixel
  * at a time whatever it's told, from heights in 256 steps: much finer, as in print, each step catches the
@@ -81,3 +81,24 @@ export const DRAWN: Box = {
   w: BLED.w / SCALE + 2 * MARGIN,
   h: BLED.h / SCALE + 2 * MARGIN,
 };
+
+/**
+ * How far in from the flower's cut the ground's broad patches fade out, board units (some 0.6 of a space): each
+ * tile's own noise lays them, so they'd stop dead where one tile meets the next; faded, every tile's rim is the
+ * same plain ground, and tiles laid side by side meet without a seam.
+ */
+const RIM = 40;
+
+/**
+ * Filter primitives over `area` making `rim`: white on the hex flower, fading to black over its last `RIM` in to
+ * its cut, opaque throughout (light.ts `ground`). Blurred, the cut's straight edges come out at half, so that's
+ * taken as black; the flower's inner corners come out a little lighter, and keep a trace.
+ */
+export function rimFade(area: Box): string {
+  const image = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${n(area.x)} ${n(area.y)} ${n(area.w)} ${n(area.h)}"><rect ${region(area)} fill="#000"/><path d="${flowerPath(0)}" transform="scale(${n(1 / SCALE)})" fill="#fff"/></svg>`;
+  return (
+    `<feImage href="${dataUrl(image)}" ${region(area)} preserveAspectRatio="none" result="rim0"/>` +
+    `<feGaussianBlur in="rim0" stdDeviation="${n(RIM / 2)}" result="rim1"/>` +
+    '<feComponentTransfer in="rim1" result="rim"><feFuncR type="linear" slope="2" intercept="-1"/><feFuncG type="linear" slope="2" intercept="-1"/><feFuncB type="linear" slope="2" intercept="-1"/><feFuncA type="linear" slope="0" intercept="1"/></feComponentTransfer>'
+  );
+}
