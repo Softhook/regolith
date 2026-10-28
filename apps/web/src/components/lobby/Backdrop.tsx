@@ -1,7 +1,7 @@
 import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { buildBoard, type MapDef } from '@regolith/engine';
+import { buildBoard, type Board, type MapDef } from '@regolith/engine';
 import { GROUND_BASE, RASTER_AREA, TILE, hash, type World } from '@regolith/art';
-import { decodedTileImage } from '../../art/tileImages';
+import { decodedTileImage, type TileRef } from '../../art/tileImages';
 import { tileArt } from '../../art/boardTiles';
 import { hexCorners } from '../board/geometry';
 import { PHONE, REDUCED_MOTION, useMediaQuery } from '../../game/useMediaQuery';
@@ -25,7 +25,7 @@ const SPEED = 16;
 const PHONE_SPEED = 11;
 const HEADING = (215 * Math.PI) / 180;
 /** The blank tiles (art `TILE_SET`), and how many of the tiles laid are the chosen map's instead. */
-const BLANKS = Array.from({ length: 10 }, (_, i) => ({ id: `blank-${String(i + 1).padStart(2, '0')}`, at: { x: 0, y: 0 } }));
+const BLANKS: TileRef[] = Array.from({ length: 10 }, (_, i) => ({ id: `blank-${String(i + 1).padStart(2, '0')}`, at: { x: 0, y: 0 } }));
 const MAP_SHARE = 1 / 12;
 
 /**
@@ -37,8 +37,16 @@ const STEP_B = { x: -Math.sqrt(3) / 2, y: 2.5 };
 const DET = STEP_A.x * STEP_B.y - STEP_B.x * STEP_A.y;
 /** How far a tile's art reaches from its middle, in spaces: its bleed past the flower, and some. */
 const REACH = 2;
-
-type TileRef = { id: string; at: { x: number; y: number } };
+/** A flower's hexes round its middle, in spaces. */
+const FLOWER = [
+  [0, 0],
+  [0, -1],
+  [0, 1],
+  [Math.sqrt(3) / 2, -0.5],
+  [Math.sqrt(3) / 2, 0.5],
+  [-Math.sqrt(3) / 2, -0.5],
+  [-Math.sqrt(3) / 2, 0.5],
+];
 
 /** The tiles in view of the screen moved by (ox, oy) px, by the lattice's steps: a range of each. */
 function inView(ox: number, oy: number, w: number, h: number, cell: number) {
@@ -56,8 +64,7 @@ function inView(ox: number, oy: number, w: number, h: number, cell: number) {
   return { i0, i1, j0, j1 };
 }
 
-function Ground({ map, cell, speed, still }: { map: MapDef; cell: number; speed: number; still: boolean }) {
-  const board = useMemo(() => buildBoard(map), [map]);
+function Ground({ board, cell, speed, still }: { board: Board; cell: number; speed: number; still: boolean }) {
   const world = board.world;
   const mapTiles = useMemo(() => tileArt(board).filter((t) => !t.id.startsWith('blank')), [board]);
   /** The tile laid at (i, j): the same each time it comes round. */
@@ -115,22 +122,13 @@ function Ground({ map, cell, speed, still }: { map: MapDef; cell: number; speed:
     for (const t of [...laid].sort((a, b) => away(a) - away(b))) decodedTileImage(t.tile, world, 'ground').catch(() => {});
   });
 
-  // A flower's hexes round its middle, a touch larger, so no hairline shows between them (as MapTiles clips them).
-  const flower = [
-    [0, 0],
-    [0, -1],
-    [0, 1],
-    [Math.sqrt(3) / 2, -0.5],
-    [Math.sqrt(3) / 2, 0.5],
-    [-Math.sqrt(3) / 2, -0.5],
-    [-Math.sqrt(3) / 2, 0.5],
-  ];
   return (
     <div ref={drift} className="lobby-ground">
       <svg>
         <defs>
+          {/* The flower's hexes a touch larger, so no hairline shows between them (as MapTiles clips them). */}
           <clipPath id="lobby-flower">
-            {flower.map(([x, y]) => (
+            {FLOWER.map(([x, y]) => (
               <polygon key={`${x},${y}`} points={hexCorners(x * cell, y * cell, cell * 1.01).join(' ')} />
             ))}
           </clipPath>
@@ -171,13 +169,13 @@ const Laid = memo(function Laid({ x, y, tile, world, cell }: { x: number; y: num
 export function LobbyBackdrop({ map }: { map: MapDef }) {
   const still = useMediaQuery(REDUCED_MOTION);
   const phone = useMediaQuery(PHONE);
-  const world = useMemo(() => buildBoard(map).world, [map]);
+  const board = useMemo(() => buildBoard(map), [map]);
   return (
-    <div className="lobby-backdrop" style={{ background: GROUND_BASE[world] }} aria-hidden="true">
+    <div className="lobby-backdrop" style={{ background: GROUND_BASE[board.world] }} aria-hidden="true">
       {/* Keyed by world: a new world's ground fades in. */}
       <Ground
-        key={`${world}:${phone}:${still}`}
-        map={map}
+        key={`${board.world}:${phone}:${still}`}
+        board={board}
         cell={phone ? PHONE_CELL : CELL}
         speed={phone ? PHONE_SPEED : SPEED}
         still={still}

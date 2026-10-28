@@ -49,7 +49,7 @@ let drawing: Promise<unknown> = Promise.resolve();
 const decoded = new Map<string, Promise<string>>();
 
 /** A tile to draw: its physical id, and where its planet sits, in spaces from its middle (the ground's building stands there). */
-interface TileRef {
+export interface TileRef {
   id: string;
   at?: Spot;
 }
@@ -90,20 +90,16 @@ function groundImages(tile: TileRef, world: World): Promise<Record<RasterLayer, 
   return pair;
 }
 
-/** The image URL for a layer of a tile (`p7-01`…) on a world, drawing and storing it the first time. */
-async function tileImage(tile: TileRef, world: World, layer: RasterLayer): Promise<string> {
-  return (await groundImages(tile, world))[layer];
-}
-
 /**
- * A tile's image URL once the image is decoded at full size, for the map. Drawn as large as it gets
+ * The image URL for a layer of a tile (`p7-01`…) on a world, drawing and storing it the first time, once the
+ * image is decoded at full size, for the map. Drawn as large as it gets
  * (zoomed in), the browser would otherwise decode each tile then, on the first zoom, and drop frames.
  */
 export function decodedTileImage(tile: TileRef, world: World, layer: RasterLayer): Promise<string> {
   const name = nameOf(tile, world, layer);
   let image = decoded.get(name);
   if (!image) {
-    image = tileImage(tile, world, layer).then(async (url) => {
+    image = groundImages(tile, world).then(async ({ [layer]: url }) => {
       const img = new Image();
       img.src = url;
       await img.decode().catch(() => {});
