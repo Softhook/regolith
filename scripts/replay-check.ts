@@ -78,7 +78,7 @@ const diceRolling = (page: Page) =>
 const { base, close } = await devServer(5198);
 const browser = await launchChrome();
 try {
-  const page = await browser.newPage({ viewport: { width: 1280, height: 860 } });
+  const page = await browser.newPage({ viewport: { width: 1280, height: 860 }, reducedMotion: 'reduce' });
   page.on('pageerror', (e) => fail(`page error: ${e.message}`));
   const bar = page.locator('.review-bar');
   const entries = page.locator('.log li button');
@@ -90,7 +90,7 @@ try {
     localStorage.setItem(logOpen, '1');
   }, appKey('logOpen'));
   await page.reload();
-  await page.getByRole('button', { name: 'Deploy your mechs' }).click();
+  await page.getByRole('button', { name: 'Drop your mechs' }).click();
   await page.waitForFunction(() => '__game' in window);
   check(
     (await page.locator('.log li').first().locator('button').count()) === 1,

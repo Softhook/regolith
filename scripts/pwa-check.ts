@@ -128,7 +128,7 @@ async function main() {
     await page.reload();
     await versionLine(page).filter({ hasText: 'pwa-check-v1' }).waitFor({ timeout: 5000 });
     check('the app opens offline', true);
-    await page.getByRole('button', { name: 'Deploy your mechs' }).click();
+    await page.getByRole('button', { name: 'Drop your mechs' }).click();
     await page.locator('.overlay button:not([disabled])', { hasText: 'Keep mechs' }).click({ timeout: 10_000 });
     await page.locator('.board').waitFor({ timeout: 5000 });
     check('a game against the AI starts offline', await onScreenGame(page));

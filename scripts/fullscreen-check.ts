@@ -130,7 +130,7 @@ try {
     await page.tap('.lobby-card h2');
     await page.waitForTimeout(200);
     check('left with the button, it stays left', !(await fullscreen(page)));
-    await page.tap('text=Deploy your mechs');
+    await page.tap('text=Drop your mechs');
     await page.waitForSelector('.topbar-actions');
     await page.waitForTimeout(200);
     check('… into a game too', !(await fullscreen(page)));
@@ -139,7 +139,7 @@ try {
   {
     const { page: first, done } = await open('The lobby asks in its own dialogs', computer, false);
     await first.waitForSelector('.lobby:not([class*=intro])', { timeout: 6000 });
-    await first.click('text=Deploy your mechs');
+    await first.click('text=Drop your mechs');
     await first.waitForSelector('.topbar-actions');
     // Another tab opens the lobby, with that game saved.
     const page = await first.context().newPage();
@@ -149,7 +149,7 @@ try {
     });
     await page.goto(base);
     await page.waitForSelector('.lobby:not([class*=intro])', { timeout: 6000 });
-    await page.click('text=Deploy your mechs');
+    await page.click('text=Drop your mechs');
     check('a new game over the saved one asks first', await page.isVisible('[role=dialog] >> text=Start a new game?'));
     await page.click('[role=dialog] >> text=Cancel');
     check('Cancel keeps the lobby', await page.isVisible('.lobby'));
