@@ -120,7 +120,7 @@ export const COMBAT_DICE = {
 } as const;
 
 /** Player hues for ships in the card illustrations, close to the game's default player colours (Lobby). */
-export const PLAYER_HUES = [216, 354, 42, 140];
+export const PLAYER_HUES = [208, 3, 43, 93, 259];
 
 /**
  * Card categories (data/cards.yaml `category`): accent hue and label, in the game and in print. Hues are

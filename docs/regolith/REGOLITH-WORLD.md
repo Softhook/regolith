@@ -18,7 +18,7 @@ everything gets buried in it.
 > power back to Earth. Then contact with Earth was lost and the ships stopped coming. Nobody on Mars knows
 > why, and nobody alive remembers Earth.
 >
-> What was left: four settlements that had never trusted each other, a few refineries and reactors, and
+> What was left: five settlements that had never trusted each other, a few refineries and reactors, and
 > the ice. Ice is drinking water, air and rocket fuel. There was never enough of it near the surface for
 > everyone, and now no one will send more.
 >
@@ -55,16 +55,17 @@ Not in Regolith: aliens, warp drives, space battles, giant anime robots, gore. M
 
 ## The sides
 
-Four settlements, one per seat: spin-offs of the Earth powers that founded them, long ago. They kept the
-old flags, and their names have drifted with the generations (Europe's Yuropa, China's Zhong, America's Merika, the South's Austral): they answer to nobody on Earth, and are not those nations at war. For now they are flavour only: every side plays with the same mechs and
+Five settlements, one per seat: spin-offs of the Earth powers that founded them, long ago. They kept the
+old flags, and their names have drifted with the generations (Europe's Yuropa, China's Zhong, America's Merika, the South's Austral, India's Bharat): they answer to nobody on Earth, and are not those nations at war. For now they are flavour only: every side plays with the same mechs and
 rules. They are the starting point if Regolith ever tries asymmetric sides (PROTOTYPING.md §6.6).
 
 | Seat | Colour | Side | Who they are | Wants |
 |---|---|---|---|---|
-| 1 | Blue (`#3d8bff`) | **Yuropa Commune** | Ice miners from the north polar cap, the oldest settlement. Run by their work crews. | To keep the ice that was theirs first |
-| 2 | Red (`#d62839`) | **Zhong Combine** | What is left of the Earth-chartered company: the contracts, the refineries and the best workshops. | To keep running Mars as a business |
-| 3 | Amber (`#ffb703`) | **Merika Free Port** | Traders and fixers from the volcanic highlands, who own the reactors and owe nobody. | Power, and the price of it |
-| 4 | Green (`#80ed99`) | **Austral Collective** | Farm settlements in the deep Hellas basin: the most people and the thirstiest crops. | Water, before the next harvest fails |
+| 1 | Blue (`#4f86b8`) | **Yuropa Commune** | Ice miners from the north polar cap, the oldest settlement. Run by their work crews. | To keep the ice that was theirs first |
+| 2 | Red (`#c4423b`) | **Zhong Combine** | What is left of the Earth-chartered company: the contracts, the refineries and the best workshops. | To keep running Mars as a business |
+| 3 | Amber (`#e6b43c`) | **Merika Free Port** | Traders and fixers from the volcanic highlands, who own the reactors and owe nobody. | Power, and the price of it |
+| 4 | Green (`#84b25a`) | **Austral Collective** | Farm settlements in the deep Hellas basin: the most people and the thirstiest crops. | Water, before the next harvest fails |
+| 5 | Purple (`#9c86c9`) | **Bharat Concord** | Dome-city clans from the Tharsis shadow, who trade in dyes, medicine and long memory. | To be counted among the founders, not after them |
 
 The colours are `PLAYER_COLORS` in [theme.ts](../../apps/web/src/theme.ts) (and `PLAYER_HUES` in the art package), the same in every mode. The sides are not in the game yet: players still name their own seats.
 
