@@ -178,10 +178,9 @@ maps:
       - ".  .  7*"
 
   # Drift: maps whose planets sit off the middle of their tiles (docs/HEX.md, Off-centre planets), so
-  # orbits cross tiles, shrink at the edge and overlap. Each is the same turned half a turn about its
-  # middle, so the two seats match while the planets look scattered. Regolith only, as for hex.
-  # Only 7s and 8s go off the middle of a square tile, and only 7s off a hex tile: anything bigger
-  # spills over the tile's edge (art OFF_CENTRE).
+  # orbits cross tiles, shrink at the edge and overlap. The seats match under a half-turn (2 or 4 players)
+  # or a third-turn (3 players), even as the planets look scattered. Only 7s go off-centre on hex tiles:
+  # anything bigger spills over the tile's edge (art OFF_CENTRE).
 
   - id: twin-drift
     name: Twin Drift (hex)
@@ -198,6 +197,48 @@ maps:
       - ".   8    8    ."
       - "7s  0    9"
       - ".   .    8*   7nw"
+
+  - id: circular-drift
+    name: Circular Drift
+    players: 2
+    group: drift
+    world: phobos
+    cubes: 6
+    stats: { slack: 2, shared: 4, planets: 6 }
+    # The two 7 starts lean into the ring's central gap, pulling orbits across the other tiles.
+    layout:
+      - ".  7s* 8  8"
+      - "8  .  .  8"
+      - ".  8  8  7n*"
+
+  - id: trinary-drift
+    name: Trinary Drift
+    players: 3
+    group: drift
+    world: deimos
+    cubes: 5
+    stats: { slack: 4, shared: 4, planets: 10 }
+    # Three 7s drift around a central 10, each turned a third of a turn from the next.
+    layout:
+      - "8* 7ne  8  8*"
+      - "8  10  7s"
+      - ".  7nw 8"
+      - ".  8*"
+
+  - id: nexus-drift
+    name: Nexus Drift
+    players: 4
+    group: drift
+    world: phobos
+    cubes: 6
+    stats: { slack: 6, shared: 5, planets: 12 }
+    # Two 7s lean toward the pair of 10s; the other two starts sit further out, as on Nexus.
+    layout:
+      - ".  9*"
+      - "8  7ne  9*"
+      - "8  10 10 8"
+      - "9* 7sw 8"
+      - ".  .  9*"
 
   # Open ground: hex maps spread out with blank tiles (-), open ground with no planet and no research, among
   # their voids, so the planets stand apart and mechs cross open country between them. Each is the same
@@ -296,5 +337,94 @@ maps:
       - "8* 10 -  9  7"
       - ".  7  -  8  8*"
 
-  # 2 players
+  # Three new layouts inspired by Cubic's opposed starts, central contests and ringed voids.
+  # The 2-player map opens long alternate routes to a contested 9; the 3-player map trades its central
+  # 10 for a research void and adds a balanced outer ring; the 4-player map turns Nexus's twin central
+  # 10s into a shared research corridor and gives every start the same 9.
 
+  - id: elysium-reach
+    name: Elysium Reach
+    players: 2
+    group: hex
+    world: mars
+    cubes: 7
+    stats: { slack: 3, shared: 3, planets: 11 }
+    layout:
+      - "8* .  .  .  7"
+      - "7  .  .  8"
+      - "7  .  9  .  7"
+      - "8  .  .  7"
+      - "7  .  .  .  8*"
+
+  - id: trinary-wells
+    name: Trinary Wells
+    players: 3
+    group: hex
+    world: deimos
+    cubes: 5
+    stats: { slack: 3, shared: 3, planets: 12 }
+    layout:
+      - "."
+      - ".  7"
+      - "8* 7  8  8*"
+      - "8  0  7"
+      - "7  7  8  7"
+      - ".  8*"
+
+  - id: hellas-divide
+    name: Hellas Divide
+    players: 4
+    group: hex
+    world: phobos
+    cubes: 5
+    stats: { slack: 4, shared: 4, planets: 12 }
+    layout:
+      - "7  9*"
+      - "8  7  9*"
+      - "8  0  0  8"
+      - "9* 7  8"
+      - ".  .  9* 7"
+
+  # Three further layouts, drawing on Cubic's long lanes, triangular starts and four-arm boards.
+
+  - id: canyon-relay
+    name: Canyon Relay
+    players: 2
+    group: hex
+    world: mars
+    cubes: 6
+    stats: { slack: 6, shared: 3, planets: 9 }
+    # A direct lane between equal homes, with a central 10, two 9s and four 7s along the route.
+    layout:
+      - "8* 7  9  7  10 7  9  7  8*"
+
+  - id: mare-trigonum
+    name: Mare Trigonum
+    players: 3
+    group: hex
+    world: phobos
+    cubes: 6
+    stats: { slack: 4, shared: 4, planets: 10 }
+    # Equal 9 starts on a triangle, with a 10 in the middle and two 3-fold rings around it.
+    layout:
+      - "9* 8  7  9*"
+      - "7  10 8"
+      - ".  8  7"
+      - ".  9*"
+
+  - id: fourfold-confluence
+    name: Fourfold Confluence
+    players: 4
+    group: hex
+    world: deimos
+    cubes: 5
+    stats: { slack: 4, shared: 5, planets: 13 }
+    # Four equal 8 starts on the arms; the 7s make the approach easier and the central 10 rewards crossing.
+    layout:
+      - ".  .  8*"
+      - ".  .  8"
+      - ".  7  7"
+      - "8* 8  10 8  8*"
+      - ".  7  7"
+      - ".  .  8"
+      - ".  .  8*"

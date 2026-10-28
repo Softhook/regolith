@@ -100,6 +100,20 @@ between sites: Arcadia Planitia and Valles Marineris (2 players), Stickney Crate
 Utopia Planitia and Limtoc (4). Each is the same turned. On a world's ground a blank tile is bare ground,
 no base; in space, sky alone.
 
+### New layouts
+
+Six more hex maps draw on Cubic's opposed starts, central contests, long lanes and four-arm boards,
+while offering different routes and setup economies:
+
+| Map | Players | The idea |
+|---|---:|---|
+| Elysium Reach | 2 | Distant, matching home sites and a contested 9, with broken lanes and alternate approaches |
+| Trinary Wells | 3 | A rotationally balanced triangle around a research void, with a balanced outer ring and tight cube economy |
+| Hellas Divide | 4 | Equal 9 starts around twin research voids, trading Nexus's central 10s for more open lanes |
+| Canyon Relay | 2 | A direct, narrow race between equal homes and a central 10 |
+| Mare Trigonum | 3 | Equal 9 starts around a 10, with threefold rings of 7s and 8s |
+| Fourfold Confluence | 4 | Equal 8 starts on four arms, with 7s on the approaches and a 10 at the crossing |
+
 ## First AI results
 
 20 games per map, level 2 AI (Captain) in every seat, averages per game. With the Basic rules,
@@ -231,7 +245,8 @@ alone, not a sunk well.
 
 The engine can place a tile's planet off its middle, on one of the spaces around it, on squares and
 hexes alike: a layout token takes a compass direction, `7ne` or `8s*` ([`data/maps.yaml`](../data/maps.yaml)).
-The **Off-centre planets** group in the lobby (Regolith rules) has two maps that do (see *Drift maps*).
+The **Off-centre planets** group in the lobby (Regolith rules) has maps for two, three and four players
+(see *Drift maps*).
 
 | | Square tile | Hex tile |
 |---|---|---|
@@ -266,13 +281,16 @@ with its planet on any space.
 
 ### Drift maps
 
-Two 2-player maps, each the same turned half a turn about its middle, so the seats match while the
-planets look scattered. 6 cubes each, slack 6.
+The maps keep their seats balanced by a half-turn for 2 or 4 players, or a third-turn for 3 players,
+while their planets sit off-centre and their orbital spaces cross tile boundaries.
 
 | Map | Layout | What the offsets do |
 |---|---|---|
 | Binary Reach (square), 3 × 4 tiles with two gaps | `8se* 10 7sw .` / `7sw 7s 7n 7ne` / `. 7ne 10 8nw*` | Each middle 7 leans towards a 7 on the next tile and shares 2 orbital spaces with it. The outer 7s sit against the map's edge with 2 orbital spaces. |
 | Twin Drift (hex), 12 tiles | `7se 8* . .` / `9 0 7n` / `. 8 8 .` / `7s 0 9` / `. . 8* 7nw` | Each start shares 2 orbital hexes with the 7 beside it, and the 9s share 2 more. Two 7s drift to the edge (3 orbital hexes); two Voids sit between. |
+| Circular Drift (hex) | `. 7s* 8 8` / `8 . . 8` / `. 8 8 7n*` | Opposed 7 starts lean into the ring's two-tile hole and pull their orbits across the ring. |
+| Trinary Drift (hex) | `8* 7n 8 8*` / `8 10 7se` / `. 7sw 8` / `. 8*` | Three 7s drift around a 10; each is a third-turn from the next, so the seats match. |
+| Nexus Drift (hex) | `. 9*` / `8 7ne 9*` / `8 10 10 8` / `9* 7sw 8` / `. . 9*` | Two 7s lean toward the twin 10s; their opposite directions preserve the half-turn balance. |
 
 Only 7s and 8s go off the middle of a square tile, and only 7s off a hex tile (`OFF_CENTRE` in
 [`tile/geometry.ts`](../packages/art/src/tile/geometry.ts)). An off-centre planet sits on its tile's edge space, half a space
@@ -280,8 +298,8 @@ from the edge: a 9 or 10 is wider than that (0.6 and 0.72 spaces from its middle
 fills an outer hex right to its sides. [`mapLayers.test.ts`](../apps/web/test/mapLayers.test.ts) holds every
 map to this.
 
-100 games per map, level 2 AI (Captain) in both seats, the same seeds on each map, 20 October 2026,
-averages per game:
+The first maps were compared in 100 games each with level 2 AI (Captain) in both seats and the same seeds,
+20 October 2026. The later maps have not yet been included in this benchmark. Averages per game:
 
 | Map | Rounds | Attacks | Conquers | Wins by seat |
 |---|--:|--:|--:|---|

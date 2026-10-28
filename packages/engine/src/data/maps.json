@@ -415,6 +415,114 @@
     ]
   },
   {
+    "id": "circular-drift",
+    "name": "Circular Drift",
+    "players": 2,
+    "group": "drift",
+    "cubes": 6,
+    "stats": {
+      "slack": 2,
+      "shared": 4,
+      "planets": 6
+    },
+    "world": "phobos",
+    "layout": [
+      [
+        ".",
+        "7s*",
+        "8",
+        "8"
+      ],
+      [
+        "8",
+        ".",
+        ".",
+        "8"
+      ],
+      [
+        ".",
+        "8",
+        "8",
+        "7n*"
+      ]
+    ]
+  },
+  {
+    "id": "trinary-drift",
+    "name": "Trinary Drift",
+    "players": 3,
+    "group": "drift",
+    "cubes": 5,
+    "stats": {
+      "slack": 4,
+      "shared": 4,
+      "planets": 10
+    },
+    "world": "deimos",
+    "layout": [
+      [
+        "8*",
+        "7ne",
+        "8",
+        "8*"
+      ],
+      [
+        "8",
+        "10",
+        "7s"
+      ],
+      [
+        ".",
+        "7nw",
+        "8"
+      ],
+      [
+        ".",
+        "8*"
+      ]
+    ]
+  },
+  {
+    "id": "nexus-drift",
+    "name": "Nexus Drift",
+    "players": 4,
+    "group": "drift",
+    "cubes": 6,
+    "stats": {
+      "slack": 6,
+      "shared": 5,
+      "planets": 12
+    },
+    "world": "phobos",
+    "layout": [
+      [
+        ".",
+        "9*"
+      ],
+      [
+        "8",
+        "7ne",
+        "9*"
+      ],
+      [
+        "8",
+        "10",
+        "10",
+        "8"
+      ],
+      [
+        "9*",
+        "7sw",
+        "8"
+      ],
+      [
+        ".",
+        ".",
+        "9*"
+      ]
+    ]
+  },
+  {
     "id": "arcadia-planitia",
     "name": "Arcadia Planitia",
     "players": 2,
@@ -724,6 +832,251 @@
         "7",
         "-",
         "8",
+        "8*"
+      ]
+    ]
+  },
+  {
+    "id": "elysium-reach",
+    "name": "Elysium Reach",
+    "players": 2,
+    "group": "hex",
+    "cubes": 7,
+    "stats": {
+      "slack": 3,
+      "shared": 3,
+      "planets": 11
+    },
+    "world": "mars",
+    "layout": [
+      [
+        "8*",
+        ".",
+        ".",
+        ".",
+        "7"
+      ],
+      [
+        "7",
+        ".",
+        ".",
+        "8"
+      ],
+      [
+        "7",
+        ".",
+        "9",
+        ".",
+        "7"
+      ],
+      [
+        "8",
+        ".",
+        ".",
+        "7"
+      ],
+      [
+        "7",
+        ".",
+        ".",
+        ".",
+        "8*"
+      ]
+    ]
+  },
+  {
+    "id": "trinary-wells",
+    "name": "Trinary Wells",
+    "players": 3,
+    "group": "hex",
+    "cubes": 5,
+    "stats": {
+      "slack": 3,
+      "shared": 3,
+      "planets": 12
+    },
+    "world": "deimos",
+    "layout": [
+      [
+        "."
+      ],
+      [
+        ".",
+        "7"
+      ],
+      [
+        "8*",
+        "7",
+        "8",
+        "8*"
+      ],
+      [
+        "8",
+        "0",
+        "7"
+      ],
+      [
+        "7",
+        "7",
+        "8",
+        "7"
+      ],
+      [
+        ".",
+        "8*"
+      ]
+    ]
+  },
+  {
+    "id": "hellas-divide",
+    "name": "Hellas Divide",
+    "players": 4,
+    "group": "hex",
+    "cubes": 5,
+    "stats": {
+      "slack": 4,
+      "shared": 4,
+      "planets": 12
+    },
+    "world": "phobos",
+    "layout": [
+      [
+        "7",
+        "9*"
+      ],
+      [
+        "8",
+        "7",
+        "9*"
+      ],
+      [
+        "8",
+        "0",
+        "0",
+        "8"
+      ],
+      [
+        "9*",
+        "7",
+        "8"
+      ],
+      [
+        ".",
+        ".",
+        "9*",
+        "7"
+      ]
+    ]
+  },
+  {
+    "id": "canyon-relay",
+    "name": "Canyon Relay",
+    "players": 2,
+    "group": "hex",
+    "cubes": 6,
+    "stats": {
+      "slack": 6,
+      "shared": 3,
+      "planets": 9
+    },
+    "world": "mars",
+    "layout": [
+      [
+        "8*",
+        "7",
+        "9",
+        "7",
+        "10",
+        "7",
+        "9",
+        "7",
+        "8*"
+      ]
+    ]
+  },
+  {
+    "id": "mare-trigonum",
+    "name": "Mare Trigonum",
+    "players": 3,
+    "group": "hex",
+    "cubes": 6,
+    "stats": {
+      "slack": 4,
+      "shared": 4,
+      "planets": 10
+    },
+    "world": "phobos",
+    "layout": [
+      [
+        "9*",
+        "8",
+        "7",
+        "9*"
+      ],
+      [
+        "7",
+        "10",
+        "8"
+      ],
+      [
+        ".",
+        "8",
+        "7"
+      ],
+      [
+        ".",
+        "9*"
+      ]
+    ]
+  },
+  {
+    "id": "fourfold-confluence",
+    "name": "Fourfold Confluence",
+    "players": 4,
+    "group": "hex",
+    "cubes": 5,
+    "stats": {
+      "slack": 4,
+      "shared": 5,
+      "planets": 13
+    },
+    "world": "deimos",
+    "layout": [
+      [
+        ".",
+        ".",
+        "8*"
+      ],
+      [
+        ".",
+        ".",
+        "8"
+      ],
+      [
+        ".",
+        "7",
+        "7"
+      ],
+      [
+        "8*",
+        "8",
+        "10",
+        "8",
+        "8*"
+      ],
+      [
+        ".",
+        "7",
+        "7"
+      ],
+      [
+        ".",
+        ".",
+        "8"
+      ],
+      [
+        ".",
+        ".",
         "8*"
       ]
     ]

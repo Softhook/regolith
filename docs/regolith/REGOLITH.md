@@ -60,12 +60,13 @@ Done (23 October 2026).
   all hex. Binary Reach, the one square drift map, moved to `drift-square`, which no mode plays for now.
 - Every hex map names its world in [data/maps.yaml](../../data/maps.yaml), and
   [build-data.mjs](../../scripts/build-data.mjs) refuses one that doesn't, so a map's world is a choice, not a
-  default. Alpha and Gamma Sector, Circular Logic, Critical Density and Nexus (hex), Stickney Crater and
-  Limtoc are `phobos`; Beta Sector, The Great Plan and Tesseract (hex) and Twin Drift are `deimos`; the rest
-  are `mars`. (The engine still draws a test's ad-hoc hex map, which has no world, on Mars.)
-- More hex maps (HEX.md *Not yet*: advanced, add-on, BGA layouts) go in the same group as they are made. Seven
-  advanced maps are in the hex group now, and the open group (HEX.md *Open ground*) spreads its planets
-  out with blank tiles; Regolith plays both.
+  default. Alpha and Gamma Sector, Circular Logic, Critical Density and Nexus (hex), Circular Drift, Nexus Drift,
+  Hellas Divide, Mare Trigonum, Stickney Crater and Limtoc are `phobos`; Beta Sector, The Great Plan, Tesseract
+  (hex), Twin Drift, Trinary Wells, Trinary Drift and Fourfold Confluence are `deimos`; the rest are `mars`.
+  (The engine still draws a test's ad-hoc hex map, which has no world, on Mars.)
+- The original seven advanced maps are in the hex group; new hex and off-centre layouts extend them for 2, 3 and
+  4 players. The open group (HEX.md *Open ground*) spreads its planets out with blank tiles; Regolith plays all
+  three groups.
 - `regolith.test.ts` pins it: every Regolith map is hex and has a world.
 
 ## 3. Cards: data

@@ -615,7 +615,7 @@ describe('contested orbit', () => {
   });
 
   it('on off-centre maps, an enemy on a space two orbits share blocks both planets', () => {
-    // Twin Drift only: Binary Reach, the square one, isn't played since Regolith went hex only.
+    // Twin Drift: Binary Reach, the square one, isn't played since Regolith went hex only.
     for (const map of ['twin-drift']) {
       const base = quickStart(2, 1, 'regolith', map);
       const shared = base.board.planets.flatMap((p) => orbitals(base.board, p)).find((c) => orbitedPlanets(base.board, c).length > 1)!;

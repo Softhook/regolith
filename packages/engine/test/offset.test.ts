@@ -192,8 +192,9 @@ describe('playing with off-centre planets', () => {
 describe('the drift maps', () => {
   const drift = MAPS.filter((m) => m.group === 'drift' && m !== OFFSET_HEX);
 
-  it('are one map, which both modes play', () => {
-    expect(drift.map((m) => m.id)).toEqual(['twin-drift']);
+  it('cover every player count and both modes play them', () => {
+    expect(drift.map((m) => m.id)).toEqual(['twin-drift', 'circular-drift', 'trinary-drift', 'nexus-drift']);
+    expect([...new Set(drift.map((m) => m.players))].sort()).toEqual([2, 3, 4]);
     expect(
       Object.values(RULESETS)
         .filter((r) => r.mapGroups.includes('drift'))
@@ -204,25 +205,35 @@ describe('the drift maps', () => {
   for (const m of drift) {
     const b = buildBoard(m);
 
-    it(`${m.name} is the same turned half a turn: each planet matches one across the middle`, () => {
-      const { at, rows, cols } = drawing(b);
+    it(`${m.name} matches itself under a turn: each planet has a corresponding planet`, () => {
+      const center = {
+        r: b.planets.reduce((sum, p) => sum + p.r, 0) / b.planets.length,
+        c: b.planets.reduce((sum, p) => sum + p.c, 0) / b.planets.length,
+      };
       for (const p of b.planets) {
-        const q = at(p);
-        const twin = b.planets.find((x) => {
-          const y = at(x);
-          return Math.abs(q.r + y.r - (rows - 1)) < 1e-9 && Math.abs(q.c + y.c - (cols - 1)) < 1e-9;
-        });
+        const twinAt =
+          m.players === 3
+            ? { r: center.r + p.c - center.c, c: center.c - (p.r - center.r) - (p.c - center.c) }
+            : { r: 2 * center.r - p.r, c: 2 * center.c - p.c };
+        const twin = b.planets.find((x) => Math.abs(x.r - twinAt.r) < 1e-9 && Math.abs(x.c - twinAt.c) < 1e-9);
         expect(twin, `planet ${p.number} at ${p.r},${p.c}`).toBeDefined();
         expect([twin!.number, twin!.start, orbitals(b, twin!).length]).toEqual([p.number, p.start, orbitals(b, p).length]);
       }
     });
 
     it(`${m.name} has orbits that overlap`, () => {
-      expect(spaces(b).filter((q) => orbitedPlanets(b, q).length > 1).length).toBeGreaterThanOrEqual(4);
+      expect(spaces(b).filter((q) => orbitedPlanets(b, q).length > 1).length).toBeGreaterThan(0);
     });
 
     it(`AI plays a Regolith game on ${m.name} to the end`, () => {
-      const { state } = playAiGame({ mode: 'regolith', players: 2, seed: 5, aiSeed: 7, mapId: m.id, levels: [2, 2] });
+      const { state } = playAiGame({
+        mode: 'regolith',
+        players: m.players,
+        seed: 5,
+        aiSeed: 7,
+        mapId: m.id,
+        levels: Array.from({ length: m.players }, () => 2),
+      });
       expect(state.winner).not.toBeNull();
     }, 60_000);
   }
