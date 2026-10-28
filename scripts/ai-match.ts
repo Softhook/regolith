@@ -13,7 +13,7 @@
  * is undecided. A margin of 0 always plays them all.
  *
  * A level may name a git commit to play that version of the AI against the current one:
- * `3@HEAD~1` is Commodore as of the previous commit (against today's engine). Its source is
+ * `3@HEAD~1` is Captain as of the previous commit (against today's engine). Its source is
  * extracted once into .cache/ai-match/<commit hash>.
  *
  * Seats alternate between games and each pair of games shares a map seed, so neither level

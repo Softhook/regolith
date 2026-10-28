@@ -4,7 +4,7 @@
  * Every action type has exactly one handler (the Handlers type makes the compiler enforce it),
  * grouped by topic:
  *
- *   setup.ts      game creation, fleet roll, starting skill, starting planet and ships
+ *   setup.ts      game creation, mech roll, starting skill, starting planet and ships
  *   actions.ts    Move/Attack, Deploy, Reconfigure, Research, Conquer, end turn
  *   abilities.ts  ship abilities 1–6
  *   combat.ts     attacks, missiles, advancing, Infamy

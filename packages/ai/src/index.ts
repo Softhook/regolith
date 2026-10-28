@@ -7,12 +7,12 @@ import { Search, type SearchParams } from './search';
  * `legalActions(state)` and never see the game's real RNG or the order of the decks.
  *
  *   1 Cadet      greedy, one action at a time, a few noisy samples (greedy.ts)
- *   2 Captain    one action at a time, but exact odds and an evaluation that knows
+ *   2 Sergeant    one action at a time, but exact odds and an evaluation that knows
  *                whose turn is next and what the enemy can reach (evaluate.ts, chance.ts)
- *   3 Commodore  plans the whole turn: searches combinations of actions (search.ts)
- *   4 Admiral    wider turn search, Flagship transports, and its best plans checked
+ *   3 Captain  plans the whole turn: searches combinations of actions (search.ts)
+ *   4 Colonel    wider turn search, Flagship transports, and its best plans checked
  *                against the opponent's actual reply
- *   5 Fleet Admiral  deeper and wider turn search, and each checked plan played against
+ *   5 General  deeper and wider turn search, and each checked plan played against
  *                several replies (different dice, the same for every plan), averaged
  */
 
@@ -26,10 +26,10 @@ export interface AiLevelInfo {
 
 export const AI_LEVELS: AiLevelInfo[] = [
   { level: 1, name: 'Cadet', summary: 'Takes the move that looks best right now.' },
-  { level: 2, name: 'Captain', summary: 'Weighs the odds and watches your ships.' },
-  { level: 3, name: 'Commodore', summary: 'Plans its whole turn.' },
-  { level: 4, name: 'Admiral', summary: 'Plans its turn and anticipates yours.' },
-  { level: 5, name: 'Fleet Admiral', summary: 'Plans deeper and weighs how your reply could go.' },
+  { level: 2, name: 'Sergeant', summary: 'Weighs the odds and watches your mechs.' },
+  { level: 3, name: 'Captain', summary: 'Plans its whole turn.' },
+  { level: 4, name: 'Colonel', summary: 'Plans its turn and anticipates yours.' },
+  { level: 5, name: 'General', summary: 'Plans deeper and weighs how your reply could go.' },
 ];
 
 export const DEFAULT_AI_LEVEL: AiLevel = 3;

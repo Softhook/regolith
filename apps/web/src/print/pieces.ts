@@ -73,7 +73,7 @@ export const PIECES = {
 
 /** One printable face: a card front, a deck's back, a tile. */
 export interface Printable {
-  /** Unique within its piece, and the file's name: `skill/07-agile`, `p7-01`. A folder part groups it in the ZIP. */
+  /** Unique within its piece, and the file's name: `skill/07-tune-up`, `p7-01`. A folder part groups it in the ZIP. */
   name: string;
   /** The face as an SVG document, at trim size or with the bleed. */
   svg: (bleed: boolean) => string;
@@ -93,7 +93,7 @@ export function sizeNote(p: Format, bleed: boolean): string {
   return `${p.w} × ${p.h} mm` + (bleed ? `, with ${p.bleed} mm bleed ${b.w} × ${b.h} mm` : ' (trim, no bleed)');
 }
 
-/** A face's name in a file name: `skill/07-agile` → `skill-07-agile`. */
+/** A face's name in a file name: `skill/07-tune-up` → `skill-07-tune-up`. */
 /** A name as a file name: `Ice Tunnel` → `ice-tunnel`. */
 export const slugOf = (name: string) =>
   name
@@ -103,7 +103,7 @@ export const slugOf = (name: string) =>
 
 const slug = (item: Printable) => item.name.replaceAll('/', '-');
 
-/** A single export's file name: `regolith-card-skill-07-agile-bleed-300dpi.png`, `regolith-tile-p7-01.svg`. */
+/** A single export's file name: `regolith-card-skill-07-tune-up-bleed-300dpi.png`, `regolith-tile-p7-01.svg`. */
 export function fileName(p: Format, item: Printable, o: { bleed: boolean; dpi?: number; ext: string }): string {
   return gameFile(`${p.id}-${slug(item)}${o.bleed ? '-bleed' : ''}${o.dpi ? `-${o.dpi}dpi` : ''}.${o.ext}`);
 }
@@ -111,7 +111,7 @@ export function fileName(p: Format, item: Printable, o: { bleed: boolean; dpi?: 
 /** One face's CMYK PDF: `regolith-proof-a4-fogra39.pdf`, `…-fogra39-deep.pdf` with the deep black (always with the bleed). */
 export const cmykName = (p: Format, item: Printable, deep: boolean) => gameFile(`${p.id}-${slug(item)}-${pressTag(deep)}.pdf`);
 
-/** A whole set's ZIP: `regolith-cards-community-bleed.zip`, `regolith-cards-community-fogra39.zip`. */
+/** A whole set's ZIP: `regolith-cards-bleed.zip`, `regolith-cards-fogra39.zip`. */
 export const setName = (p: Piece, o: { part?: string; tag?: string }) =>
   gameFile(`${p.plural}${o.part ? `-${o.part}` : ''}${o.tag ? `-${o.tag}` : ''}.zip`);
 

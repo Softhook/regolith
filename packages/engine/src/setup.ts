@@ -1,4 +1,4 @@
-/** Game creation and the setup decisions: fleet roll, starting skill, starting planet and ships. */
+/** Game creation and the setup decisions: mech roll, starting skill, starting planet and ships. */
 import { buildBoard, same, STARTING_SHIPS } from './board';
 import { dealt } from './effects';
 import { aShip, emptyTurn, fail, headOf, log, note, logTo, name, placeCube, roll, type Handlers } from './core';
@@ -113,14 +113,14 @@ export function createGame(opts: NewGameOptions): GameState {
   return state;
 }
 
-/** Lowest fleet total goes first (ties: random); then everyone picks a starting planet in turn order. */
+/** Lowest mech total goes first (ties: random); then everyone picks a starting planet in turn order. */
 function startDeployment(s: GameState) {
   const sums = s.players.map((p) => scrapyard(s, p.id).reduce((a, d) => a + d.value, 0));
   const low = Math.min(...sums);
   const tied = s.players.filter((p) => sums[p.id] === low);
   const first = tied[Math.floor(next(s) * tied.length)].id;
   s.turn.player = first;
-  log(s, `${name(s, first)} has the lowest fleet (${low}) and goes first.`, first);
+  log(s, `${name(s, first)} has the lowest mech total (${low}) and goes first.`, first);
   for (let i = 0; i < s.players.length; i++) {
     s.pending.push({ kind: 'placeStart', player: (first + i) % s.players.length });
   }
@@ -128,17 +128,17 @@ function startDeployment(s: GameState) {
 
 export const setupHandlers = {
   setupKeep(s) {
-    headOf(s, 'setupRoll', 'Not rolling a fleet');
+    headOf(s, 'setupRoll', 'Not rolling mechs');
     s.pending.shift();
     if (!s.pending.length) startDeployment(s);
   },
   setupReroll(s) {
-    const head = headOf(s, 'setupRoll', 'Not rolling a fleet');
+    const head = headOf(s, 'setupRoll', 'Not rolling mechs');
     if (head.rerolled) fail('You may only re-roll once');
     head.rerolled = true;
-    const fleet = scrapyard(s, head.player);
-    for (const d of fleet) roll(s, d);
-    note(s, `${name(s, head.player)} re-rolls their fleet: ${fleet.map((d) => d.value).join(', ')}.`, head.player);
+    const mechs = scrapyard(s, head.player);
+    for (const d of mechs) roll(s, d);
+    note(s, `${name(s, head.player)} re-rolls their mechs: ${mechs.map((d) => d.value).join(', ')}.`, head.player);
   },
   draftSkill(s, a) {
     const head = headOf(s, 'skillDraft', 'Not drafting');

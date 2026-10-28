@@ -113,7 +113,7 @@ function look(page: Page, tapsThisTurn: number, tried: string[], want: Want | nu
         // A popup: a card or choice if it offers one, else its main button, else any button.
         const choices = all('.overlay .qcard, .overlay .clever-choice');
         const primary = all('.overlay .btn-primary');
-        const keep = primary.find((b) => b.textContent!.includes('Keep fleet'));
+        const keep = primary.find((b) => b.textContent!.includes('Keep mechs'));
         el = keep ?? (choices.length ? pick(choices) : (primary[0] ?? all('.overlay button')[0]));
       } else {
         const takeable = all('.market.picking .takeable, .sheet.open .market .takeable');

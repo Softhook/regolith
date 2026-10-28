@@ -207,7 +207,7 @@ export const cardHandlers = {
       s.market.expansions--;
       s.pending.unshift({ kind: 'placeExpansion', player: p, die: res[0].id });
       roll(s, res[0]);
-      log(s, `${name(s, p)} expands their fleet.`, p, 'expansion');
+      log(s, `${name(s, p)} reinforces their mechs.`, p, 'expansion');
       tally(s, p, 'cardsTaken');
       return;
     }
@@ -340,7 +340,7 @@ export const cardHandlers = {
     gainCard(s, head.player, a.skill);
   },
   unveilReroll(s, a) {
-    const head = headOf(s, 'unveil', 'Not unveiling');
+    const head = headOf(s, 'unveil', 'Not dropping');
     const d = die(s, a.die);
     if (d.owner !== head.player || d.loc.zone !== 'scrapyard') fail('Choose one of your mechs');
     if (head.rerolled.includes(d.id)) fail('Already re-rolled');
@@ -350,7 +350,7 @@ export const cardHandlers = {
     note(s, `${name(s, head.player)} re-rolls their ${was}: ${shipName(s, d)}.`, head.player);
   },
   unveilDeploy(s, a) {
-    const head = headOf(s, 'unveil', 'Not unveiling');
+    const head = headOf(s, 'unveil', 'Not dropping');
     const d = die(s, a.die);
     if (d.owner !== head.player || d.loc.zone !== 'scrapyard') fail('Choose a mech in your salvage yard');
     if (!deployTargets(s, head.player).some((p) => same(p, a.to))) fail('Not a drop space');
@@ -358,7 +358,7 @@ export const cardHandlers = {
     logTo(s, head.player, `${name(s, head.player)} drops ${aShip(s, d)}`, a.to);
   },
   unveilDone(s) {
-    headOf(s, 'unveil', 'Not unveiling');
+    headOf(s, 'unveil', 'Not dropping');
     s.pending.shift();
   },
   /** Patient: ends the action phase by playing one stored Tactic; unused actions are forfeited (RULES.md ruling 4). */

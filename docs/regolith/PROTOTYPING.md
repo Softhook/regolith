@@ -418,7 +418,7 @@ or trusted hosts for online games.
 Infamy ignores the blockade, and only opponents' ships in the orbital
 positions do. The AI counts each blocker as an attack before the conquest, by a ship of its own (`clearing`
 in [evaluate.ts](../../packages/ai/src/evaluate.ts)). The board marks a planet whose orbit makes the sum but is
-blocked, and its info and the turn hint say why. With the Captain AI in every seat, 200 games per map
+blocked, and its info and the turn hint say why. With the Sergeant AI in every seat, 200 games per map
 (same seeds, against over-conquest without the blockade):
 
 | Map | Rounds | Conquests | Infamy | Attacks | Unfinished |
@@ -432,7 +432,7 @@ Most of it is the blockade: with over-conquest off and no blockade, games run as
 17–47% without the blockade. The AI barely parks ships in orbit on purpose, so with people, who will,
 games may well run longer.
 
-In the interaction measure ([HEX.md](../HEX.md) *Interaction*, Admiral against Admiral on Alpha Sector),
+In the interaction measure ([HEX.md](../HEX.md) *Interaction*, Colonel against Colonel on Alpha Sector),
 Regolith blocks about one conquest a game (1.00), and about 40% of the harm players do each other comes from moves rather than attacks: zones of control, orbits taken and conquests blocked.
 
 **Rule.** A planet cannot be conquered while any opponent's ship occupies one of its orbital
@@ -507,7 +507,7 @@ closed if either orbit is contested. Contested orbit now reads both ways: an ene
 you conquering the planet *and* deploying to it. Built as `RuleSet.contestedDeploy`, read in
 `deployTargets` ([queries.ts](../../packages/engine/src/queries.ts)); the deploy hint and planet info say why.
 
-**Self-play** (Captain AI in every seat, 200 games per map and setting, the same seeds, 2026-10-21).
+**Self-play** (Sergeant AI in every seat, 200 games per map and setting, the same seeds, 2026-10-21).
 *Re-blocks* are deploys into a contested orbit of one's own planet; a *lockout* is a turn starting with
 no ships on the board, ships in the scrapyard and nowhere to deploy.
 

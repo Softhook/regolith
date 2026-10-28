@@ -95,7 +95,7 @@ and setup economies:
 ## Measurements
 
 **Self-play, Regolith rules** (moves capped at 3, zones of control, Shoot), 20 games per map, level 2 AI
-(Captain) in every seat, 20 October 2026, averages per game. Twenty games are too few to read anything into
+(Sergeant) in every seat, 20 October 2026, averages per game. Twenty games are too few to read anything into
 the seat wins. No game stalled.
 
 | Map | Rounds | Attacks | Conquers | Wins by seat |
@@ -121,7 +121,7 @@ And counts of the board itself: turns starting with the two fleets at most 2 spa
 an enemy mech, turns with both players' mechs in one objective's orbit, and turns where a player's orbit adds up
 to an objective's number but an enemy mech sits in it (a conquest blocked).
 
-Level 4 AI (Admiral) in both seats, Alpha Sector, 200 games, 21 October 2026 (`npm run interaction -- 200 4,4`):
+Level 4 AI (Colonel) in both seats, Alpha Sector, 200 games, 21 October 2026 (`npm run interaction -- 200 4,4`):
 
 | | Regolith, no cards | Regolith |
 |---|--:|--:|
@@ -148,7 +148,7 @@ Level 4 AI (Admiral) in both seats, Alpha Sector, 200 games, 21 October 2026 (`n
 - The player who took more cards won 86–97% of games, but a player ahead has actions to spare for research, so
   that says little of what the cards do; the games without cards do.
 
-**Skill.** Level 4 against level 2 (`npm run interaction -- 200 2,4`): Admiral won 82% of games without cards
+**Skill.** Level 4 against level 2 (`npm run interaction -- 200 2,4`): Colonel won 82% of games without cards
 and 82% with them, each ±5. Neither the hexes nor the cards add luck or skill that this measures.
 
 **Limits.** Harm is the evaluation's view, so threats count as well as losses; one 2-player map.
@@ -231,7 +231,7 @@ An off-centre planet sits on its tile's edge space, half a space from the edge: 
 (0.6 and 0.72 spaces from its middle to its rim), and an 8 fills an outer hex right to its sides.
 [`mapLayers.test.ts`](../apps/web/test/mapLayers.test.ts) holds every map to this.
 
-Twin Drift against Alpha Sector, 100 games each with level 2 AI (Captain) in both seats and the same seeds,
+Twin Drift against Alpha Sector, 100 games each with level 2 AI (Sergeant) in both seats and the same seeds,
 20 October 2026, averages per game: Alpha Sector 10.1 rounds, 12.3 attacks, 6.2 conquers, seats 62/38; Twin
 Drift 13.9, 21.5, 8.0, seats 45/55. The seat splits are within chance at 100 games, and an earlier run with other
 seeds gave Alpha Sector 43/57. With 7 cubes (on the first layouts, which had the 10s and 9s off-centre) the

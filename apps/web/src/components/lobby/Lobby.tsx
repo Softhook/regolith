@@ -174,7 +174,7 @@ export function Lobby({
             disabled={!canStart}
             onClick={() => (!online && saved ? setConfirmingNew(true) : start())}
           >
-            {online ? 'Create online game' : 'Deploy your mechs'}
+            {online ? 'Create online game' : 'Drop your mechs'}
           </button>
         </div>
       </div>

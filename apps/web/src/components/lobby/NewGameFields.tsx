@@ -9,7 +9,7 @@ import { pick } from '../../random';
 import { AI_LEVEL_KEY, isFriendSeat } from './choices';
 
 const MAP_GROUPS: { id: string; name: string }[] = [
-  { id: 'hex', name: 'Sectors' },
+  { id: 'hex', name: 'Regions' },
   { id: 'open', name: 'Open ground' },
   { id: 'drift', name: 'Off-centre objectives' },
 ];

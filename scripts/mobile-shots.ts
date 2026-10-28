@@ -350,10 +350,10 @@ async function main() {
           for (let n = 1; n <= 4; n++) {
             const modal = page.locator('.overlay .modal').first();
             if (!(await succeeds(modal.waitFor({ timeout: 4000 })))) break;
-            const keep = modal.locator('button', { hasText: 'Keep fleet' });
+            const keep = modal.locator('button', { hasText: 'Keep mechs' });
             if (await keep.count())
               await page
-                .locator('.overlay button:not([disabled])', { hasText: 'Keep fleet' })
+                .locator('.overlay button:not([disabled])', { hasText: 'Keep mechs' })
                 .waitFor({ timeout: 5000 })
                 .catch(() => {});
             await page.waitForTimeout(600); // let cards and dice finish arriving
@@ -372,7 +372,7 @@ async function main() {
             if (pop.wide) issues.push(`"${title}" wider than the screen`);
             if (pop.hidden.length) issues.push(`"${title}": ${pop.hidden.map((t) => `"${t}"`).join(', ')} off screen`);
             await modal.evaluate((el) => {
-              const keepBtn = [...el.querySelectorAll('button')].find((b) => b.textContent!.includes('Keep fleet'));
+              const keepBtn = [...el.querySelectorAll('button')].find((b) => b.textContent!.includes('Keep mechs'));
               (keepBtn ?? (el.querySelector('.qcard') as HTMLElement | null))?.click();
             });
             await page.waitForTimeout(800);

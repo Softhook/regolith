@@ -211,7 +211,7 @@ function SetupRoll({ game, dispatch, player, rerolled }: { game: GameState; disp
   const dice = scrapyard(game, player);
   const sum = dice.reduce((a, d) => a + d.value, 0);
   const [landed, setLanded] = useState(false);
-  // Smaller dice on short screens (phone landscape), so Keep fleet stays on screen. Matches styles.css.
+  // Smaller dice on short screens (phone landscape), so Keep mechs stays on screen. Matches styles.css.
   const dieSize = useMediaQuery(SHORT) ? 54 : 78;
   const rollKey = dice.map((d) => d.rolls).join();
   useEffect(() => {
@@ -222,8 +222,8 @@ function SetupRoll({ game, dispatch, player, rerolled }: { game: GameState; disp
 
   return (
     <Modal
-      title="Roll your fleet"
-      subtitle={`${p.name}, these three dice are your starting mechs. The lowest fleet total plays first.`}
+      title="Roll your mechs"
+      subtitle={`${p.name}, these three dice are your starting mechs. The lowest total plays first.`}
       pc={p.color}
     >
       <div className="fleet-roll">
@@ -235,7 +235,7 @@ function SetupRoll({ game, dispatch, player, rerolled }: { game: GameState; disp
         ))}
       </div>
       <p className={`fleet-sum ${landed ? 'show' : ''}`}>
-        Fleet total <b>{sum}</b>
+        Mech total <b>{sum}</b>
       </p>
       <div className="modal-actions">
         <button
@@ -247,7 +247,7 @@ function SetupRoll({ game, dispatch, player, rerolled }: { game: GameState; disp
           {rerolled ? 'Re-roll used' : 'Re-roll all (once)'}
         </button>
         <button className="btn btn-primary" disabled={!landed} onClick={() => dispatch({ type: 'setupKeep' })}>
-          Keep fleet
+          Keep mechs
         </button>
       </div>
     </Modal>
@@ -333,7 +333,7 @@ export function GameOver({
       >
         {!lost && <div className="gameover-burst" />}
         <small>{lost ? 'Defeat' : 'Victory'}</small>
-        <h2 id="gameover-title">{w.name} claims the sector</h2>
+        <h2 id="gameover-title">{w.name} claims the region</h2>
         <p className="modal-sub">
           All cubes placed after {game.turn.number} turn{game.turn.number === 1 ? '' : 's'}.
         </p>

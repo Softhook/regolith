@@ -90,7 +90,7 @@ export function Log({
   return (
     <section className={`panel log ${open ? '' : 'collapsed'}`}>
       <button type="button" className="log-toggle" aria-expanded={open} onClick={toggle}>
-        <span className="log-title">Captain’s log</span>
+        <span className="log-title">Field log</span>
         <svg
           width="12"
           height="12"

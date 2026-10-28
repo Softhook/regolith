@@ -38,7 +38,7 @@ function Track({ label, value, tone, spot, fx }: { label: string; value: number;
   );
 }
 
-/** An AI player's tag, with its level: "AI · Admiral". */
+/** An AI player's tag, with its level: "AI · Colonel". */
 export function AiTag({ p }: { p: PlayerConfig }) {
   const level = aiLevelInfo(p);
   return (

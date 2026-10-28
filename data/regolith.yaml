@@ -465,7 +465,7 @@ tactics:
 expansion:
   - id: r-expansion
     name: "Reinforcements"
-    subtitle: "Expand your fleet"
+    subtitle: "Add a mech"
     text: "Roll a reserve mech. Put it on the perimeter of an objective with one of your cubes, or in your salvage yard."
     category: expansion
     count: 6

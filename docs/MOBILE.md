@@ -472,7 +472,7 @@ needed.
 - No Moto G55 preset: use
   `{ viewport: { width: 412, height: 800 }, deviceScaleFactor: 2.625, isMobile: true, hasTouch: true }`
   (landscape ≈ 867×340).
-- Games start from the `?play=` dev link. *Keep fleet* is disabled for 1.35 s while the dice
+- Games start from the `?play=` dev link. *Keep mechs* is disabled for 1.35 s while the dice
   land; wait for it to be enabled, then click it from inside the page (on a too-wide page it
   can be partly off screen).
 - Launch Chrome with `--no-proxy-server`. Otherwise its proxy auto-detection adds **12 s to

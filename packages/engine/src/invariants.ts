@@ -31,7 +31,7 @@ export function checkInvariants(s: GameState): string[] {
     check(p.dominance >= 1 && p.dominance <= 6, `${name}: power ${p.dominance} outside 1–6`);
     check(p.research >= 1 && p.research <= researchLimit, `${name}: research ${p.research} outside 1–${researchLimit}`);
     check(p.missiles >= 0, `${name}: ${p.missiles} atomics`);
-    check(p.actionPenalty >= 0 && p.planAhead >= 0, `${name}: negative penalty or Plan Ahead`);
+    check(p.actionPenalty >= 0 && p.planAhead >= 0, `${name}: negative penalty or Kill Zone`);
     check(p.ambitionTokens >= 0 && p.ambitionTokens < 3, `${name}: ${p.ambitionTokens} ambition tokens`);
     const placed = s.board.planets.reduce((n, pl) => n + pl.cubes.filter((x) => x === p.id).length, 0);
     if (map) check(placed + p.cubesLeft === map.cubes, `${name}: ${placed} cubes placed + ${p.cubesLeft} left ≠ ${map.cubes}`);
