@@ -1,6 +1,6 @@
 /**
  * Planets off the middle of their tiles (data/maps.yaml): a tile token's direction moves the planet to
- * one of the spaces around the middle, corners too on squares. Its orbit is still the spaces next to it,
+ * one of the spaces around the middle. Its orbit is still the spaces next to it,
  * so it reaches onto neighbouring tiles, loses spaces off the map's edge, and may overlap another's.
  */
 import { describe, expect, it } from 'vitest';

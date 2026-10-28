@@ -267,7 +267,7 @@ worth a lot.
 - **Size.** Santorini plays on 25 spaces and Amazons on 100. A ring of 7 flower tiles is 49 hexes, the
   current hex Alpha Sector 63.
 - **Chokepoints.** Gaps in the map, and debris placed at the start, make passes worth holding. Hexes have
-  fewer natural chokepoints than squares, so the map has to make them.
+  few natural chokepoints, so the map has to make them.
 - **Tiles that turn.** A flower tile with debris or an off-centre planet on it can be laid in 6 turns, so a few
   tiles give many boards ([HEX.md](HEX.md), *Off-centre planets*).
 
@@ -345,7 +345,7 @@ AI and self-play tools. Still missing:
   [board.ts](../packages/engine/src/board.ts).
 - **The powers**, each as a small exception in move generation or combat, as the Quantum ship abilities
   are now.
-- **A new rule set** next to Basic, Original and Community, with the options above as switches, so the lobby,
+- **A new rule set** next to Basic and Regolith, with the options above as switches, so the lobby,
   AI and sweeps can run any combination.
 
 Branching is small (3 ships, at most 3 hexes of movement, a handful of actions), so a search-based AI

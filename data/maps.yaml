@@ -18,7 +18,7 @@
 # loses spaces off the map's edge, and may overlap another planet's: a ship there counts for both. Each
 # starting planet needs 3 orbital spaces no other start shares.
 #
-# Groups: hex (the classic square maps adapted to hex tiles), open (maps spread out with blank tiles),
+# Groups: hex (the basic and advanced maps), open (maps spread out with blank tiles),
 #         drift (planets off the middle of their tiles).
 #
 # world: phobos | deimos | mars, on every map. The surface the map lies on, which its tiles show. Phobos is
@@ -72,9 +72,8 @@ maps:
       - "8  9"
       - ".  9*"
 
-  # Hex: advanced square maps adapted to hex tiles, keeping each one's idea (where the starts sit, what they
-  # touch, a void or a gap in the middle) and its cubes. A square map's mirror becomes a half turn (a third of a
-  # turn for 3 players), as hex maps can only match their seats by turning.
+  # Hex: advanced maps, each with an idea (where the starts sit, what they touch, a void or a gap in the middle).
+  # Their seats match by a half turn (a third of a turn for 3 players), as hex maps can't be mirrored.
 
   - id: terra-minor-hex
     name: Terra Minor
@@ -337,7 +336,7 @@ maps:
       - "8* 10 -  9  7"
       - ".  7  -  8  8*"
 
-  # Three new layouts inspired by Cubic's opposed starts, central contests and ringed voids.
+  # Three layouts of opposed starts, central contests and ringed voids.
   # The 2-player map opens long alternate routes to a contested 9; the 3-player map trades its central
   # 10 for a research void and adds a balanced outer ring; the 4-player map turns Nexus's twin central
   # 10s into a shared research corridor and gives every start the same 9.
@@ -386,7 +385,7 @@ maps:
       - "9* 7  8"
       - ".  .  9* 7"
 
-  # Three further layouts, drawing on Cubic's long lanes, triangular starts and four-arm boards.
+  # Three further layouts: long lanes, triangular starts and four-arm boards.
 
   - id: canyon-relay
     name: Canyon Relay

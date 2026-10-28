@@ -31,7 +31,7 @@ each match stopped once the sequential test decided it (SPRT, 10-point margin):
 | Fleet Admiral vs Admiral | 54 – 29 (92, 9 unfinished) | 34 – 16 (50) |
 
 Every level beats the one below on both modes. An unfinished game hit the step cap (3,000 actions) without a
-winner; only Basic had any. The rest of this section was measured on the earlier square-board modes, before the split:
+winner; only Basic had any. The rest of this section was measured on Cubic's earlier modes, before the split:
 
 Fleet Admiral beat Admiral 118 – 82 over 200 games (59%, z = 2.55, p ≈ 0.01; 2026-10-09, before
 the reply-scoring fix below), at about twice Admiral's thinking time. Settings that spend more time

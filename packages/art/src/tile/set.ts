@@ -9,7 +9,7 @@ export interface TileSpec {
   /** Planet number, 0 for a Void tile, or BLANK. */
   number: number;
   seed: number;
-  /** The kind of planet it was in the square game's space, which still picks its made-up name (`tileFlavour`). */
+  /** The kind of planet it was in Cubic's space look, which still picks its made-up name (`tileFlavour`). */
   type?: PlanetType;
 }
 

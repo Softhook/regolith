@@ -5,7 +5,7 @@ import { placement } from './geometry';
 
 /**
  * Next to each other on the map as drawn (diagonally too: an Interceptor's step): not across a joined
- * edge or through a Warp Gate. A square's diagonal is √2 spaces away, a hex's √3.
+ * edge or through a Warp Gate. A hex's diagonal is √3 spaces away.
  */
 const touching = (board: Board, a: Cell, b: Cell) => {
   const { at } = drawing(board);

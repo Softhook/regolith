@@ -15,7 +15,7 @@ export interface TileArt {
   at: Spot;
 }
 
-/** Each tile of the map (3×3 squares, or a hex map's 7-hex flowers), with the physical tile it uses (packages/art). */
+/** Each tile of the map (a hex map's 7-hex flowers), with the physical tile it uses (packages/art). */
 export function tileArt(board: Board): TileArt[] {
   const { tiles, ids } = tileIds(board);
   const planets = new Map(board.planets.map((p) => [board.cells[p.r][p.c].tile, p]));

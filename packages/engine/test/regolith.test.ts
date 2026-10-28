@@ -250,7 +250,7 @@ describe('zones of control (Picket on every ship)', () => {
     const zone = [...picket.hooks.stopsEnemies!(s, at(s, 'p1d0'), 4 * g.cols + 5)].map((i) => g.cells[i]);
     expect(zone).toEqual(adjacent(s.board, { r: 4, c: 5 }));
     expect(zone).toHaveLength(6);
-    // (5,3) is a hex diagonal of the enemy at (4,5); (5,4), a side a square would call diagonal, stops it, so
+    // (5,3) is a hex diagonal of the enemy at (4,5); (5,4), a side, stops it, so
     // (5,5) and the spaces past (4,4) are out of reach.
     const moves = reachable(scenario({ p0d0: [5, 3, 2], p1d0: [4, 5, 6] }));
     expect(moves).toEqual(expect.arrayContaining(['5,4', '4,4']));
@@ -615,7 +615,6 @@ describe('contested orbit', () => {
   });
 
   it('on off-centre maps, an enemy on a space two orbits share blocks both planets', () => {
-    // Twin Drift: Binary Reach, the square one, isn't played since Regolith went hex only.
     for (const map of ['twin-drift']) {
       const base = quickStart(2, 1, 'regolith', map);
       const shared = base.board.planets.flatMap((p) => orbitals(base.board, p)).find((c) => orbitedPlanets(base.board, c).length > 1)!;

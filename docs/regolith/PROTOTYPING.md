@@ -19,20 +19,20 @@ Nothing here is permanently adopted. Rulings, once decided, go to [RULES.md](../
 
 ## Current Regolith baseline
 
-As of 2026-10-21, Regolith is **Community Edition**, with only these changes:
+Regolith started as the Community Edition of Quantum and has moved away from it. Its rules today:
 
 | Status | Rule |
 |---|---|
-| **Current** | Community's **cards** (Skills, Tactics, research). Basic is Regolith with `cards: null` ([rulesets.ts](../../packages/engine/src/rulesets.ts)). |
-| **Current** | Plays the **hex** and **off-centre planet** maps (Twin Drift, Binary Reach) too, as well as Community's. On a hex map **Ingenious** ("conquer from the corners") is left out of the deck, as hex tiles have no corners (ruling 2026-10-20, [HEX.md](../HEX.md) *Cards*). |
+| **Current** | **Cards** (Skills, Tactics, research), from Regolith's own decks. Basic is Regolith with `cards: null` ([rulesets.ts](../../packages/engine/src/rulesets.ts)). |
+| **Current** | Plays **hex** maps only, including the **off-centre planet** ones (Twin Drift). **Ingenious** ("conquer from the corners") is not in the decks, as hex tiles have no corners (ruling 2026-10-20, [HEX.md](../HEX.md) *Cards*). |
 | **Current** | A ship's die value contributes at most **3** movement; skill bonuses apply after that cap. |
-| **Current** | **Zones of control:** every ship pickets the 4 orthogonally adjacent spaces (the 6 sides on hex maps; not diagonals) as a mode rule, not a ship power. Diagonals were dropped (2026-10-12) because most ships can't attack diagonally from where they stop. An enemy ship that moves into one must stop there (it may still attack from there; one that starts its move there may leave). Friendly ships are never stopped, and a player with the **Devious** skill ignores zones (ruling 2026-10-12; the card text is unchanged). |
-| **Current** | The **5 Interceptor** replaces its diagonal Manoeuvre ability with **Shoot**: spend one action to attack the first enemy in a clear orthogonal line (one out of each of a hex's 6 sides on hex maps) without advancing. Shooting is that ship's action for the turn. |
+| **Current** | **Zones of control:** every ship pickets the 6 spaces sharing a side (not diagonals) as a mode rule, not a ship power. Diagonals were dropped (2026-10-12) because most ships can't attack diagonally from where they stop. An enemy ship that moves into one must stop there (it may still attack from there; one that starts its move there may leave). Friendly ships are never stopped, and a player with the **Devious** skill ignores zones (ruling 2026-10-12; the card text is unchanged). |
+| **Current** | The **5 Interceptor** replaces its diagonal Manoeuvre ability with **Shoot**: spend one action to attack the first enemy in a clear straight line (one out of each of its space's 6 sides) without advancing. Shooting is that ship's action for the turn. |
 | **Current** | **Contested orbit** (§6.8, since 2026-10-21): a planet can't be conquered while an opponent's ship is in one of its orbital positions. Friendly ships never block, ships beside the orbit don't, and Infamy ignores it. |
 | **Current** | **Contested deploy** (§6.8, since 2026-10-21): no deploying into a planet's orbit while an opponent's ship is in it, by any route (Deploy, Expansion, Stealthy), **except to your own home planet** (home shipyard). |
 | **Off** | **Over-conquest** (§6.10): replacing an opponent's cube with an orbit of exactly **12**. Off since 2026-10-21; `REGOLITH_OVER_CONQUEST` in [rulesets.ts](../../packages/engine/src/rulesets.ts) turns it back on. |
 | **Current** | The **6 Scout** (Wisp) replaces Free Reconfigure with **Barrier** (since 2026-10-24): once a turn, for no action and besides its move, it fires a barrier onto any empty space in a clear straight line out of a side of its space, at any distance (stopped as a shot is). A barrier is permanent and can't be destroyed: no ship moves into or through its space, deploys onto it or shoots through it. It may sit in a planet's orbital position, holding that space, but never counts towards a conquest or contests the orbit. There is no limit on how many barriers are on the map. |
-| **Unchanged** | Ships 1–3 retain their Community abilities. The **4 Frigate** retains Modify. |
+| **Unchanged** | Ships 1–3 keep the abilities they had in Community. The **4 Frigate** retains Modify. |
 
 Picket is active as the default zone-of-control rule for every ship rather than as the 4's power. Contested Orbit (§6.8) is current. Beacon and every other rule below are **candidates**, not current rules.
 What the AI self-play says about this baseline is summarised in §8.
@@ -115,20 +115,9 @@ The legal-move search (`moveOptions`, `carryOptions`), board highlights, both AI
 ([greedy.ts](../../packages/ai/src/greedy.ts), [evaluate.ts](../../packages/ai/src/evaluate.ts)), and the
 ship panel's "Moves N" label all call it.
 
-How the mode was first added (2026-10-08, as `'prototyping'`, since renamed):
-
-1. Add `'prototyping'` to `GameMode` in [data.ts](../../packages/engine/src/data.ts).
-2. Give `RuleSet` an optional `maxMovement?: number`.
-3. Add the mode, copying Community, and list it in `MODES`:
-   ```ts
-   prototyping: { ...RULESETS.community, id: 'prototyping', name: 'Prototyping', title: 'Prototyping',
-            summary: 'Community Edition with redesigned fast ships.', maxMovement: 3 },
-   ```
-4. Cap the result in `movementRange`.
-5. Optional: a `.mode-badge.mode-prototyping` colour in `styles.css`, a row in the rulebook's mode table
-   ([Manual.tsx](../../apps/web/src/rulebook/Manual.tsx)), and a scenario test.
-
-About 15 lines; the three existing modes and their golden replays don't change.
+A rule that changes with the mode is a field of `RuleSet`, read in one place. The cap began as an optional
+`maxMovement` on the rule set, applied in `movementRange` (the mode itself was first added on 2026-10-08, when it
+was still called Prototyping).
 
 **Ruling (decided 2026-10-08):** the cap applies to the die value, before skill bonuses and special
 powers. A 6 moves 3; a 6 with Agile moves 4. So step 4 is:
@@ -153,9 +142,9 @@ Capping the total instead would make Agile useless on any ship showing 3 or more
    [golden.test.ts](../../packages/engine/test/golden.test.ts) and the consistency cross-check: seeded AI
    games run `checkInvariants()` after every action, and `legalActions` and `apply` must agree.
 4. **Measure balance with AI self-play.**
-   - `npm run ai:match -- 3 3 100 regolith 2`: turns per game and seat win rates. Compare with `community`.
+   - `npm run ai:match -- 3 3 100 regolith 2`: turns per game and seat win rates. Compare with `basic`.
    - `npm run selfplay:cards -- 50 regolith`: card win, pick, and use rates.
-   - `npm run power:usage -- 20 community,regolith`: how often each ship's power is used, against
+   - `npm run power:usage -- 20 basic,regolith`: how often each ship's power is used, against
      how often it was on offer, per die value.
    - `npm run interaction -- 200 4,4`: how much the players get in each other's way (interaction ratio,
      harm by kind of action, conquests blocked), per mode and map, with and without cards
@@ -166,7 +155,7 @@ attacks, conquers, and **moves per ship value**. `power:usage` covers power uses
 are what would show whether 4s, 5s and 6s are fielded or reconfigured away.
 
 **Caveat:** the AI plays legally under any rule, but its scoring in `evaluate.ts` is hand-tuned for
-Quantum. Passive powers (§5) need no AI work. Reactive powers and radical ideas in §6 need AI
+the original game. Passive powers (§5) need no AI work. Reactive powers and radical ideas in §6 need AI
 changes before self-play results become meaningful.
 
 ---
@@ -239,7 +228,7 @@ so it is not a power of the 4. Beacon is a candidate power with a source file an
 
 | Ship | Current Regolith rule | Candidate | Intended role if activated |
 |---|:-:|---|---|
-| **4 Frigate** | Move 3; **Modify** remains active | None registered. **Picket** (an enemy ship entering one of the orthogonally adjacent spaces must stop there) was its candidate; it is now every ship's zone of control. See §5.4 for powers the 4 could get instead. | Formerly: zone control |
+| **4 Frigate** | Move 3; **Modify** remains active | None registered. **Picket** (an enemy ship entering one of the adjacent spaces must stop there) was its candidate; it is now every ship's zone of control. See §5.4 for powers the 4 could get instead. | Formerly: zone control |
 | **5 Interceptor** | Move 3; **Shoot** is active | — | Ranged pressure: threatens space without abandoning position |
 | **6 Scout** | Move 3; **Free Reconfigure** remains active | **Beacon:** Deploy into empty spaces around the Scout, as if it were a planet with your cube. | Logistics: forward staging ground for reinforcements |
 
@@ -255,7 +244,7 @@ How the current rules and Beacon reshape play:
 
 | Ship | Alternative | Note |
 |---|---|---|
-| 4 | **Escort**: an orthogonally adjacent friendly ship subtracts 1 from its combat total when defending | Passive, easy; makes formations matter |
+| 4 | **Escort**: an adjacent friendly ship subtracts 1 from its combat total when defending | Passive, easy; makes formations matter |
 | 4 | **Anchor**: in a Conquer sum, counts as 3, 4, or 5, your choice | Restores flexibility as a conquer tool, not a dice fix |
 | 5 | **Intercept**: once/round off-turn reaction attack when an enemy ends within 2 spaces | High interactivity; requires off-turn pending prompts |
 | 5 | **Pursuit**: after winning an attack, may attack again from the new space (once per turn) | Aggressive; simpler than Intercept |
@@ -264,7 +253,7 @@ How the current rules and Beacon reshape play:
 
 #### Idea: Rally (replaces the 2 Flagship's Carry)
 
-**Rally:** as part of a Move action, the Flagship may move any other friendly ship that is orthogonally
+**Rally:** as part of a Move action, the Flagship may move any other friendly ship that is
 adjacent to it, using that ship's normal movement (and attack) rules. Carry is removed.
 
 Is it overpowered? Probably not, but it needs a limit:
@@ -272,7 +261,7 @@ Is it overpowered? Probably not, but it needs a limit:
   ship act without spending the Flagship's move, so it is closer to a free extra activation: strictly stronger.
 - Under Regolith's move-3 cap, this gives a second ship 3 moves for one action, which erodes the cap's
   purpose and risks the hyper-mobility problem from 5.1.
-- Orthogonal adjacency is a real positional tax, and the Flagship is a single ship, so the effect is bounded.
+- Adjacency is a real positional tax, and the Flagship is a single ship, so the effect is bounded.
 
 Tuning options, mildest first: (1) once per turn; (2) the Flagship itself must not move that turn;
 (3) the rallied ship moves at most 2 and cannot attack; (4) it replaces the Flagship's own move rather than
@@ -297,9 +286,9 @@ on game length and Flagship survival.
   after a Scout is destroyed.
 - Self-play metrics on moves, attacks, and power uses per ship value (`power:usage`, and the CSV script in
   §3). Success criterion: 4s, 5s, and 6s are fielded intentionally rather than reconfigured away.
-- Average game length compared with Community: the cap plus zones of control should lengthen games
+- Average game length compared with Community Edition: the cap plus zones of control should lengthen games
   slightly, but exceeding a 30% increase suggests adding an action or offensive counterweight. With
-  contested orbit, the AI's games on hexes already run 23–33% longer (§6.8).
+  contested orbit, the AI's games already run 23–33% longer (§6.8).
 
 ---
 
@@ -426,17 +415,17 @@ or trusted hosts for online games.
 
 **Status: current since 2026-10-21** (`RuleSet.contestedOrbit`, `orbitBlockers` in
 [queries.ts](../../packages/engine/src/queries.ts)), with over-conquest switched off. Rulings as proposed below:
-Infamy ignores the blockade, Ingenious corners don't block, and only opponents' ships in the orbital
+Infamy ignores the blockade, and only opponents' ships in the orbital
 positions do. The AI counts each blocker as an attack before the conquest, by a ship of its own (`clearing`
 in [evaluate.ts](../../packages/ai/src/evaluate.ts)). The board marks a planet whose orbit makes the sum but is
-blocked, and its info and the turn hint say why. With the Captain AI in every seat, 200 games per hex map
+blocked, and its info and the turn hint say why. With the Captain AI in every seat, 200 games per map
 (same seeds, against over-conquest without the blockade):
 
 | Map | Rounds | Conquests | Infamy | Attacks | Unfinished |
 |---|--:|--:|--:|--:|--:|
-| Alpha Sector (hex) | 7.5 → 9.8 | 5.8 → 5.1 | 0.4 → 0.7 | 5.2 → 8.3 | 0 |
-| Beta Sector (hex) | 9.2 → 11.5 | 7.2 → 6.1 | 1.3 → 1.9 | 15.3 → 19.9 | 0 |
-| Gamma Sector (hex) | 9.9 → 13.2 | 7.5 → 4.7 | 2.4 → 3.6 | 29.4 → 39.7 | 0 |
+| Alpha Sector | 7.5 → 9.8 | 5.8 → 5.1 | 0.4 → 0.7 | 5.2 → 8.3 | 0 |
+| Beta Sector | 9.2 → 11.5 | 7.2 → 6.1 | 1.3 → 1.9 | 15.3 → 19.9 | 0 |
+| Gamma Sector | 9.9 → 13.2 | 7.5 → 4.7 | 2.4 → 3.6 | 29.4 → 39.7 | 0 |
 
 Most of it is the blockade: with over-conquest off and no blockade, games run as before except on Gamma
 (+0.8 rounds). About 40% of Alpha games and 70% of Beta and Gamma ones end on an Infamy cube, against
@@ -444,13 +433,11 @@ Most of it is the blockade: with over-conquest off and no blockade, games run as
 games may well run longer.
 
 In the interaction measure ([HEX.md](../HEX.md) *Interaction*, Admiral against Admiral on Alpha Sector),
-Regolith blocks about one conquest a game (0.82 on squares, 1.00 on hexes, against 0.14–0.24 in the
-official modes), and about 40% of the harm players do each other comes from moves rather than attacks,
-against 11–14% in the official modes: zones of control, orbits taken and conquests blocked.
+Regolith blocks about one conquest a game (1.00), and about 40% of the harm players do each other comes from moves rather than attacks: zones of control, orbits taken and conquests blocked.
 
 **Rule.** A planet cannot be conquered while any opponent's ship occupies one of its orbital
-positions: the 4 orthogonal spaces around it on squares, the 6 around it on hexes, and on the off-centre
-maps whatever its orbit has (fewer at the map's edge; a space two orbits share blocks both planets). To place a quantum cube you must first clear
+positions: the 6 spaces around it, and on the off-centre
+maps whatever its orbit has (fewer at the map's edge; a space two orbits share blocks both planets). To place a cube you must first clear
 orbit, which in practice means destroying every opposing ship there, since nothing forces a ship to
 move. Friendly ships never block. The check is made only when conquering: a cube already on the
 planet is never lost to ships arriving later.
@@ -463,26 +450,25 @@ enemy fleet. Requiring a clear orbit changes the dynamics:
 - **Combat comes before conquest.** Players can no longer rush the sum past the defenders.
   Conquering becomes a two-step effort: win orbit first, then build.
 
-**Implications under the current baseline (2026-10-12).** Written for square maps; *On hex maps* below
-says what differs there.
+**Implications under the current baseline.**
 - **Tempo: a contested planet usually takes two turns.** Attack (1) + Conquer (2) is the full 3
   actions, so a one-turn capture needs the rest of the sum already in orbit and the attack to succeed.
   If the attacker advances into the vacated orbital space, its own value joins the sum, so
   the attack and the conquest have to be planned together. With the movement cap of 3 and zones of
   control, most sieges will take a turn to set up and a turn to resolve.
-- **Zones of control make orbits harder to get around.** Orbital positions are diagonal to each
-  other, so ships move between them through the planet's corners. A blocker zones the two corners
-  next to it, so an attacker circling the planet is stopped beside the blocker. That is also exactly
-  where it has to be to attack, so zones of control channel attackers into the fight rather than
-  shielding the blocker.
-- **Clearing a blocker means attacking from outside orbit.** Two orbital spaces are never
-  orthogonally adjacent, and the planet blocks a straight line between opposite ones. A ship already
-  in orbit can't attack another orbital ship without first moving to a corner or further out. The 5's
-  **Shoot** works well here: it can remove a blocker from range without leaving its own position.
+- **Every space is some planet's orbit**, so every ship, wherever it stands, blocks the planet it orbits
+  for every opponent: blocking happens by itself.
+- **Orbital spaces touch.** The six form a ring, each next to two others, so a ship in orbit can attack a
+  blocker beside it and advance into its space without changing its own sum. Clearing a blocker needs no
+  ship from outside, and the 5's **Shoot** can also remove one from range.
+- **Blockers support each other.** Two blockers side by side in the ring get Strategic's −2 and zone
+  each other's neighbours.
+- **Stealthy** (deploy anywhere not next to a ship) lands in an orbit every time: it can block a planet
+  for 1 action.
 - **Deploy lets defenders re-block for 1 action.** A destroyed blocker goes to its owner's
   scrapyard. If that owner has a cube on the planet, Deploy puts it straight back into an empty
-  orbital position. The attacker can stop this only by filling every orbital position, including the
-  one it just emptied (advance after winning). Expansion (Tactic) is a free version of the same
+  orbital position. Filling all 6 orbital spaces takes more ships than a fleet has, so the attacker
+  can't stop it. Expansion (Tactic) is a free version of the same
   move. This is the main stalemate risk on planets the defender already holds.
 - **Over-conquest becomes a real siege** (moot while over-conquest is off, §6.10). The planet over-conquest targets always holds an
   opponent's cube, so that opponent can always Deploy there. A sum of exactly 12 now also requires
@@ -497,26 +483,11 @@ says what differs there.
 - **Skill conquest still needs a clear orbit.** Pioneering, Tyrannical and Intelligent change the
   sum, not the blockade, so a planet with a blocker stays locked whatever they add.
 
-**On hex maps** (the review of 2026-10-21), several of the points above change:
-- **Every space is some planet's orbit**, so every ship, wherever it stands, blocks the planet it orbits
-  for every opponent. On squares the corners are no planet's orbit and parking in an orbit is a choice;
-  on hexes blocking happens by itself.
-- **Orbital spaces touch.** The six form a ring, each next to two others, so a ship in orbit can attack a
-  blocker beside it and advance into its space without changing its own sum. Clearing a blocker no longer
-  needs a ship from outside.
-- **Re-blocking can't be stopped.** Filling all 6 orbital spaces takes more ships than a fleet has, so a
-  defender with a cube on the planet can always Deploy back into orbit for 1 action.
-- **Blockers support each other.** Two blockers side by side in the ring get Strategic's −2 and zone
-  each other's neighbours, which squares never allow.
-- **Stealthy** (deploy anywhere not next to a ship) lands in an orbit every time: it can block a planet
-  for 1 action.
-
 **Rulings** (made as proposed, 2026-10-21, except 4, which is untried).
 1. Does **Infamy** ignore the blockade? *Proposed: yes*, since Infamy already ignores orbital
    positions, and it keeps a release valve.
-2. Do enemy ships on the **corners** block an **Ingenious** conquest? *Proposed: no.* Only the
-   orbital positions block, for every player, so there is one rule to remember. (Ingenious is left out
-   of the decks on hexes.)
+2. Do enemy ships beside the orbit block? *Proposed: no.* Only the orbital positions block, for every
+   player, so there is one rule to remember.
 3. Does the blockade apply to **over-conquest**? *Proposed: yes* at first, and measure it. If
    over-conquest disappears from games, exempt it or let over-conquest ignore one blocker. *In the
    end over-conquest was switched off with the blockade's arrival; the engine still blocks it when it is
@@ -542,14 +513,10 @@ no ships on the board, ships in the scrapyard and nowhere to deploy.
 
 | Map | Players | Rounds | Conquests | Battles | Re-blocks | Games with a lockout | Longest lockout |
 |---|--:|--:|--:|--:|--:|--:|--:|
-| Alpha Sector | 2 | 9.8 → 9.8 | 5.5 → 5.5 | 6.4 → 6.0 | 0.3 → 0 | 0 | — |
-| Alpha (hex) | 2 | 9.7 → 9.2 | 4.9 → 5.1 | 10.9 → 9.2 | 0.7 → 0 | 1 | 1 turn |
+| Alpha Sector | 2 | 9.7 → 9.2 | 4.9 → 5.1 | 10.9 → 9.2 | 0.7 → 0 | 1 | 1 turn |
 | Twin Drift | 2 | 11.2 → 10.4 | 6.7 → 6.9 | 11.9 → 9.4 | 1.4 → 0 | 0 | — |
-| Binary Reach | 2 | 13.1 → 12.6 | 6.2 → 6.4 | 10.3 → 9.0 | 1.0 → 0 | 0 | — |
-| Beta Sector | 3 | 12.4 → 11.7 | 6.1 → 6.5 | 21.9 → 19.0 | 3.1 → 0 | 3 (1.5%) | 2 turns |
-| Beta (hex) | 3 | 11.8 → 11.5 | 6.3 → 6.5 | 25.9 → 23.0 | 3.3 → 0 | 0 | — |
-| Gamma Sector | 4 | 15.6 → 14.1 | 5.9 → 6.5 | 43.9 → 35.6 | 7.9 → 0 | 24 (12%) | 7 turns |
-| Gamma (hex) | 4 | 14.1 → 13.2 | 4.9 → 5.5 | 52.4 → 43.8 | 10.0 → 0 | 80 (40%) | 8 turns |
+| Beta Sector | 3 | 11.8 → 11.5 | 6.3 → 6.5 | 25.9 → 23.0 | 3.3 → 0 | 0 | — |
+| Gamma Sector | 4 | 14.1 → 13.2 | 4.9 → 5.5 | 52.4 → 43.8 | 10.0 → 0 | 80 (40%) | 8 turns |
 
 - **The loop is real, and grows with players:** 0.3 re-blocks a game on Alpha Sector, 8–10 with four
   players. Closing it makes games shorter (up to 10% with four), with more conquests and fewer battles,
@@ -559,7 +526,7 @@ no ships on the board, ships in the scrapyard and nowhere to deploy.
   leader parked 1–2 ships in that orbit and the locked player could only research and end turns until
   they left. Being locked out is close to elimination: locked players won 9% of those 4-player games
   (25% is an even share). The AI doesn't seek lockouts on purpose; people would.
-- With 2 players it hardly happens, and with 3 rarely. With 4, mostly on hexes, where every space is an
+- With 2 players it hardly happens, and with 3 rarely. With 4, where every space is an
   orbit and the fleets crowd every planet.
 
 **Home shipyard (current since 2026-10-21).** Your home planet, the start planet you chose, isn't a
@@ -576,14 +543,12 @@ Same games, with the home shipyard (*off* = no contested deploy; re-blocks at ho
 
 | Map | Players | Rounds off → shipyard | Battles | Re-blocks (at home) | Games with a lockout |
 |---|--:|--:|--:|--:|--:|
-| Alpha (hex) | 2 | 9.7 → 9.2 | 10.9 → 9.2 | 0.7 (0.0) → 0.0 | 0 |
-| Beta Sector | 3 | 12.4 → 11.8 | 21.9 → 19.5 | 3.1 (0.7) → 0.7 | 0 |
-| Beta (hex) | 3 | 11.8 → 11.3 | 25.9 → 23.3 | 3.3 (0.5) → 0.5 | 0 |
-| Gamma Sector | 4 | 15.6 → 15.0 | 43.9 → 39.9 | 7.9 (2.8) → 3.0 | 0 |
-| Gamma (hex) | 4 | 14.1 → 13.6 | 52.4 → 48.4 | 10.0 (3.9) → 4.1 | 0 |
+| Alpha Sector | 2 | 9.7 → 9.2 | 10.9 → 9.2 | 0.7 (0.0) → 0.0 | 0 |
+| Beta Sector | 3 | 11.8 → 11.3 | 25.9 → 23.3 | 3.3 (0.5) → 0.5 | 0 |
+| Gamma Sector | 4 | 14.1 → 13.6 | 52.4 → 48.4 | 10.0 (3.9) → 4.1 | 0 |
 
 - **No lockouts on any map**, since every player always holds their home. (Filling all of a home's
-  orbit would still shut its owner out, but takes 4 ships on squares and 6 on hexes; it never happened.)
+  orbit would still shut its owner out, but takes 6 ships; it never happened.)
 - **The loop stays only at homes:** 60–85% of re-blocks are gone, and homes become capitals that are hard
   to take a share of. Games land between the two settings.
 - **Still to watch:** whether people turtle their home on purpose to deny its spare cube spaces, and
@@ -639,7 +604,7 @@ positional wargame.
 AI needs an activation sequencer (ordering moves before attacks). UI needs clear visual states
 (e.g. dimmed dice or activation pips) for ships that have already acted this turn.
 
-**Test.** Test with 1 vs 2 command actions. Compare game length and fleet sizes with Community. Does it
+**Test.** Test with 1 vs 2 command actions. Compare game length and fleet sizes with a run without the rule. Does it
 prevent runaway leaders, or does losing ships to the scrapyard create too steep of a tempo swing?
 
 ---
@@ -706,7 +671,7 @@ the blockade end with planets nobody can take.
 - [ ] Playtest home turtling with people; run the shipyard on the off-centre maps
 - [ ] Playtest contested orbit with people: the AI hardly garrisons, so stalls may be under-measured
 - [ ] Give the AI a garrison term for its own planets, then re-measure §6.8
-- [ ] Run the interaction measure on Gamma (hex) and with 3–4 players
+- [ ] Run the interaction measure on Gamma Sector and with 3–4 players
 - [ ] Decide the 4's power: nothing registered since Picket became every ship's rule (§5.4)
 - [ ] Decide whether to activate Beacon (6); its source file is a candidate only
 - [ ] Write per-game stats script (CSV: moves per ship value; `power:usage` covers powers)
@@ -717,21 +682,21 @@ the blockade end with planets nobody can take.
 
 ## 8. Current status & playtest results (2026-10-21)
 
-Regolith is playable in the lobby, on Community's maps, the hex tiles and the off-centre maps. The
-authoritative current-rule summary is at the top of this document: Community Edition with a movement
+Regolith is playable in the lobby, on the hex maps. The
+authoritative current-rule summary is at the top of this document: a movement
 cap of 3, zones of control on every ship, Shoot for the 5, and contested orbit, which also closes the
 orbit to the defender's deploys except at their home planet; over-conquest is off.
 The 4's Modify is still active; the 6's Free Reconfigure became Barrier (2026-10-24). Beacon is not enabled.
 
 ### Rulings established during implementation
 
-- **Shoot** attacks the first ship in any orthogonal line (up, down, left, right; on hexes, out of any of the 6 sides), at any distance, as
+- **Shoot** attacks the first ship in any straight line out of one of the 6 sides of its space, at any distance, as
   long as the line is clear: ships (friendly or enemy), planets and the board's edge block it; the void
   does not. (It was first range 1–2, diagonals included, then a free shot alongside the move, then a shot with a separate move.)
   Shooting costs one action and is the ship's one action of the turn, like a move or an attack: a ship
   can't move, attack or shoot again that turn, and can't shoot after moving or attacking. Normal combat, missiles, and re-rolls apply; the
   shooter never advances.
-- **Zones of control** cover the 4 orthogonal spaces (a hex's 6 sides), not diagonals. A ship stopped
+- **Zones of control** cover the 6 spaces sharing a side, not diagonals. A ship stopped
   in a zone may still attack from there, including another enemy beside it, but not with no steps
   left. A ship that starts in a zone may leave it; friendly ships are never stopped; a Warp Gate exit
   in a zone stops the ship there. Devious ignores zones and may pass through enemy ships.
@@ -739,7 +704,7 @@ The 4's Modify is still active; the 6's Free Reconfigure became Barrier (2026-10
   Stealthy; a space two orbits share is closed if either orbit is contested. Your home planet's orbit is
   always open to you (home shipyard).
 - **Contested orbit**: only opponents' ships in the orbital positions block; Infamy ignores it; an
-  enemy on an Ingenious corner doesn't block; on off-centre maps a space two orbits share blocks both
+  on off-centre maps a space two orbits share blocks both
   planets (§6.8).
 - **Over-conquest** (off) is optional alongside an ordinary conquest when an opponent cube is present. It
   requires an orbit sum of exactly 12 and returns the replaced cube to its owner's reserve.
@@ -753,10 +718,10 @@ earlier Shoot) measured a different configuration and are not evidence for these
 
 | Date | What | Where | Finding |
 |---|---|---|---|
-| 2026-10-20 | Cap, zones of control, Shoot, cards, over-conquest; 20 games per map | [HEX.md](../HEX.md) *First AI results* | Zones of control halve the fighting on hexes as on squares; Gamma (hex) no longer runs long; no game stalled. |
-| 2026-10-21 | Contested orbit against over-conquest; 200 games per hex map | §6.8 | Games 2–3 rounds longer, fewer conquests, more attacks and Infamy; no game unfinished. |
+| 2026-10-20 | Cap, zones of control, Shoot, cards, over-conquest; 20 games per map | [HEX.md](../HEX.md) *Measurements* | Zones of control halve the fighting; Gamma Sector no longer runs long; no game stalled. |
+| 2026-10-21 | Contested orbit against over-conquest; 200 games per map | §6.8 | Games 2–3 rounds longer, fewer conquests, more attacks and Infamy; no game unfinished. |
 | 2026-10-21 | Contested deploy on and off; 200 games per map, 2–4 players | §6.8 | Ends the re-block loop (up to 10 a game with 4 players) and shortens games, but locks players out in 12–40% of 4-player games. With the home shipyard: no lockouts, and 60–85% of the loop still gone. |
-| 2026-10-21 | Interaction, all modes, Alpha Sector square and hex, with and without cards | [HEX.md](../HEX.md) *Interaction* | Regolith is the most interactive set (ratio 0.33 square, 0.39 hex, against 0.30 Classic), and its harm comes as much from moves as attacks. Cards make every mode more solitary. Neither hexes nor cards change how often the stronger AI wins. |
+| 2026-10-21 | Interaction, Alpha Sector, with and without cards | [HEX.md](../HEX.md) *Interaction* | Interaction ratio 0.44 without cards and 0.39 with; harm comes as much from moves as attacks. Cards make games more solitary. Cards don't change how often the stronger AI wins. |
 | 2026-10-25 | Card balance: every Regolith skill against none, with Community as a control; 2,000 drafted games | [card-benchmark.md](../card-benchmark.md) | Defence gets stronger: Unstable Reactor and Entrenched gain ~10 points and lead with Science Survey and Field Refit (75–85%). Remodel and Engineering are worth nothing here; Sneak does nothing. |
 
 The open risk is stalls: the AI barely garrisons, so it may understate how long games run when people

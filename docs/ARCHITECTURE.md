@@ -65,7 +65,7 @@ In [`apps/web/src/game`](../apps/web/src/game):
 | `strike.ts`, `cast.ts`, `useTransient.ts` | Ships destroyed by a step, which card a step is the doing of, and transient step effects |
 | `review.ts`, `past.ts` | Looking back at earlier positions from the log |
 | `controller.ts` | The human's selection (`Sel`) and what a click on a die, space or planet does |
-| `highlights.ts`, `routes.ts` | `highlightsFor()` and flight paths on the board, derived from the legal actions |
+| `highlights.ts` | `highlightsFor()`: what the board lights up, derived from the legal actions |
 | `hints.ts` | The one-line hint for the current decision or selection |
 | `legal.ts` | The legal actions indexed by type, for buttons and highlights |
 | `view.ts` | `GameView`: a game as the screen sees it, local (`useGame`) or online (`useOnlineGame`) |

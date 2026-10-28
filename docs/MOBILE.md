@@ -9,9 +9,8 @@ Status: **Steps 0, 1 and 2 done; Step 3 done in emulation (layout, every popup a
 portrait and landscape). On the real Moto G55 so far: the default map (fine) and Asymptote
 (broken, fixed since); see *Progress* below.
 
-Everything dated before 2026-10-27 was measured while this was Cubic, on the earlier modes and square maps
-(Classic, Community, 3×3 to 7×7 tiles). Regolith plays hex maps only, in two modes, Basic and Regolith; the
-findings about layout hold, the map sizes and mode names in them are Cubic's.
+Everything dated before 2026-10-27 was measured while this was Cubic, on its earlier modes and maps. The
+findings about layout hold; the board sizes, map sizes and mode names in them are Cubic's and are not repeated here.
 
 **Reference devices:**
 
@@ -121,58 +120,9 @@ effects, 44px targets, tooltips), plus the layouts and zoom.
 
 ## 2. Where we are (measured)
 
-Below 980px the layout is a single scrolling column (board, market, sidebar). The stage is
-`min(100vw, 70vh)` tall, and cells are fitted to it with a **34px minimum**
-([Board.tsx](../apps/web/src/components/Board.tsx) `useCellSize`). Ships are drawn at 56% of a
-cell (about 19px at the minimum), but they are tapped on the whole cell.
-
-Cell size as rendered today. **"floor"** means the fit wanted less than 34px, so the board is
-bigger than its box:
-
-| Device (CSS px) | 3×3 Basic 2p | 5×5 Classic 4p | 7×7 4p |
-|---|---|---|---|
-| iPhone SE portrait (320×568) | 34 (floor) | floor, board 510px wide | floor, 714px |
-| iPhone 15 portrait (393×659) | 42 | floor, board 510px wide | floor, 714px |
-| iPhone 15 landscape (734×343) | floor (fit ≈ 26) | floor | floor |
-| **Moto G55** portrait (412×800) | 44 | floor, board 510px wide | floor, 714px |
-| **Moto G55** landscape (867×340) | floor (fit ≈ 26) | floor | floor |
-| iPad mini portrait (768×1024) | 78 | 47 | floor (fit ≈ 33) |
-| iPad mini landscape (1024×768) | 72 | **floor**, because the market takes ≈ 185px | floor (fit ≈ 24) |
-
-What this means in practice:
-
-1. **Phones, maps of 5×5 and up: the page zooms out.** A 510px board on a 393px (iPhone) or
-   412px (Moto G55) screen widens the layout viewport to 518px, so the mobile browser shrinks
-   the *whole page*, or leaves it wider than the screen. The board also overflows its stage and
-   the market cards draw over its bottom row, and dialogs centre on the wider page, so the fleet
-   roll's *Keep fleet* button is half off the screen on the G55. This is the worst bug and the
-   cheapest to fix.
-2. **Phone landscape breaks even 2-player maps** (the stage is only 240px tall).
-3. **iPad landscape with cards (Classic/Community) on 5×5** reaches the 34px floor because of
-   the market. Collapsing the market helps, but the board doesn't get bigger until the next
-   resize.
-4. **You scroll away from the board to act.** On an iPhone 15 the turn panel starts about 60px
-   above the bottom of the screen. *End turn* and the ship actions are below the fold, and the
-   page is 1,000–1,500px tall.
-5. **Ship and planet info is hover-only.** Ability text and planet capacity live in `title=`
-   (≈ 70 `title=` attributes across the components). Tapping an opponent's ship does nothing,
-   so on touch there is no way to read what it does. Your own ships show their ability in
-   ShipPanel when selected.
-6. **Touch basics still missing:** `100vh` in `.modal`; no `viewport-fit=cover` or safe-area
-   padding; no `touch-action` (double-tap zooms the page); 22 `:hover` rules that stick after a
-   tap; `.icon-btn` 32px, `.mini-btn` ≈ 18px, and 13–18 buttons under 44px on a game screen.
-
-Map sizes per player count (from `data/maps.yaml`), which decide how much zoom matters:
-
-| Players | Common sizes |
-|---|---|
-| 2 | 3×3, 3×5 (most); a few 4×4, 4×5 |
-| 3 | 3×3 to 5×5, spread evenly |
-| 4 | **5×5 (10 maps)**; 3×3, 3×5, 4×4; a few 6×6, 5×7, 7×7 |
-| 5 | 3×3, 5×5; one 10×1 |
-
-Basic's default maps (3×3) already play OK on a portrait phone (44px cells on the Moto G55,
-42px on an iPhone 15). Most 4-player games don't.
+Below 980px the layout is a single scrolling column (board, market, sidebar). The board is a hex map that fits
+its stage; it zooms by pinch and by buttons ([useBoardZoom.ts](../apps/web/src/components/board/useBoardZoom.ts)),
+and a space is tapped on its hex only. What still needs checking on a phone is listed under *Progress*.
 
 ---
 
@@ -207,8 +157,7 @@ Steps 1–3 come first; Step 4 is the big one and can wait until they are in.
 
 ### Step 0: Test setup ✅ (2026-10-06)
 - [x] **`npm run mobile:shots`** ([scripts/mobile-shots.ts](../scripts/mobile-shots.ts)): starts
-      its own dev server, opens a 2p 3×3, a 2p wide map (Asymptote, 15 cells across), a 4p 5×5
-      and a 4p 7×7 game on the 7 device sizes from §2, screenshots each setup popup (fleet roll,
+      its own dev server, opens games on maps from small to wide on the 7 device sizes from §2, screenshots each setup popup (fleet roll,
       starting skill) and the game to `test-results/mobile/` (git-ignored), and prints the cell
       size and page size for each. It **exits with 1 when a layout is broken**: page wider than
       the screen, board bigger than its stage, or a setup popup with buttons or cards off screen
@@ -245,14 +194,14 @@ Steps 1–3 come first; Step 4 is the big one and can wait until they are in.
 ### Step 1: Stop the breakage (small, ½ day)
 - [x] **Board never wider than its box.** In `useCellSize`
       ([Board.tsx](../apps/web/src/components/Board.tsx)) drop the 34px floor: always fit (8px floor, only against zero). Tap
-      areas are already full cells, so 25px cells on a 5×5 are tight but usable, and far better
-      than a zoomed-out page; 7×7 on a phone (≈ 17px) stays poor until Step 4.
+      areas were full cells, so small cells were tight but usable, and far better
+      than a zoomed-out page; the largest maps on a phone stayed poor until Step 4.
 - [x] Stage height on phones: give the board the space it needs, e.g.
       `height: min(100vw, calc(100dvh - topbar - turn bar))`, and in landscape let the board
       use the full height.
-- [x] Re-fit the board when the market collapses or expands. Checked 2026-10-07 (Classic 4p 5×5,
-      Playwright): the stage really resizes, e.g. 34 → 43px cells at 1024×768 when the market
-      collapses and back when it opens, never overflowing; same at 1280 and 1440.
+- [x] Re-fit the board when the market collapses or expands. Checked 2026-10-07 (on Cubic's
+      board, Playwright): the stage really resizes when the market collapses and back when it
+      opens, never overflowing; same at 1280 and 1440.
 - [x] `viewport-fit=cover` + `env(safe-area-inset-*)` padding; `100vh` → `100dvh` (`.modal`,
       and anywhere else that is sized by the viewport).
 - [x] `touch-action: manipulation` on the app; `user-select: none` and
@@ -262,8 +211,7 @@ Steps 1–3 come first; Step 4 is the big one and can wait until they are in.
       buttons, topbar buttons (padding or a larger hit area via `::after`, so things don't look
       bloated).
 
-Done 2026-10-06: `npm run mobile:shots` passes 21 of 21 (G55 cells: 3×3 44px, 5×5 26px,
-7×7 19px portrait; 31 / 18 / 13px landscape). The stage is
+Done 2026-10-06: `npm run mobile:shots` passes 21 of 21. The stage is
 `min(100vw, 100dvh − topbar − safe areas)`; the hit areas are a centred `::after`, so the
 buttons look the same. The market re-fit checked 2026-10-07 (see above). Not yet checked: everything on the real G55.
 
@@ -405,7 +353,7 @@ the G55 shows gesture problems we can't fix.
       the pan moves the map without moving a ship or scrolling the page, and *Whole map* fits it again.
       Chrome only. All 30 touch device × map cases pass (iPad Alpha Sector doesn't zoom: spaces big already).
 
-**Done when:** a 5×5 4-player map is playable on the Moto G55 and an iPhone with ships
+**Done when:** a 4-player map is playable on the Moto G55 and an iPhone with ships
 ≥ 44px when zoomed in, and panning never makes a move.
 
 ### Step 5: Home-screen app (built 2026-10-07; G55 check to do)
@@ -526,7 +474,7 @@ needed.
   (landscape ≈ 867×340).
 - Games start from the `?play=` dev link. *Keep fleet* is disabled for 1.35 s while the dice
   land; wait for it to be enabled, then click it from inside the page (on a too-wide page it
-  can be partly off screen). Event Horizon (7×7) is offered under Community, not Classic.
+  can be partly off screen).
 - Launch Chrome with `--no-proxy-server`. Otherwise its proxy auto-detection adds **12 s to
   every page load** on this Mac (the whole matrix took 5 minutes instead of 45 s).
 - Playwright's own `webkit` is desktop WebKit, not iOS Safari. Treat it as a hint, not a

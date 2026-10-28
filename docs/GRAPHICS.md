@@ -9,7 +9,7 @@ drawn by one function. The web app shows it on screen; the Art Lab exports it at
 twice, so the printed game and the online game can't drift apart.
 
 Regolith's look was Cubic's space look until the split (2026-10-27): starfields, planets and holographic cards.
-That look is gone, and with it the square tiles; it is in the history if a piece of it is wanted.
+That look is gone; it is in the history if a piece of it is wanted.
 
 ## Where we are today
 

@@ -22,17 +22,17 @@ there: Regolith is a rename and a new identity, not new rules.
 | Cards | Start as the Community cards, in Regolith's own deck; names, design and actions move away from Community over time |
 | Card style | Screenprint |
 
-## What changes, at a glance
+## At a glance
 
-| | Prototyping, before | Regolith |
-|---|---|---|
-| Lobby | "Prototyping" | "Regolith" (done) |
-| Maps | Community's square maps, plus the hex and drift groups | Hex maps only, each on Phobos, Deimos or Mars (done) |
-| Tiles | Ground on by default (top-bar switch to space) | The same; ground is the game's look |
-| Rules | Community + cap 3, zones of control, Shoot, contested orbit and deploy | The same, plus the Wisp's Barrier, and still changing |
-| Cards | Community's Skills and Tactics (no Ingenious on hexes) | Regolith's own decks, starting as copies of Community's |
-| Card art | `cardSvg`, the holo-grid scenes | A screenprint card renderer and its own scenes |
-| Words | Ship, planet, dominance, research | Mech, objective, control, intel (Vocabulary board; done in the UI, §7) |
+| | Regolith |
+|---|---|
+| Lobby | "Regolith", with Basic as its cards-free form |
+| Maps | Hex maps only, each on Phobos, Deimos or Mars |
+| Tiles | Ground is the game's look |
+| Rules | Movement cap 3, zones of control, Shoot, contested orbit and deploy, the Wisp's Barrier; still changing |
+| Cards | Regolith's own Skills and Tactics, starting as copies of Community's (no Ingenious: hexes have no corners) |
+| Card art | A screenprint card renderer and its own scenes |
+| Words | Mech, objective, control, intel (Vocabulary board) |
 
 ## 1. The rename
 
@@ -43,12 +43,9 @@ changing the label:
   in [rulesets.ts](../../packages/engine/src/rulesets.ts)), its mechs in `ships.ts` and `powers/`, its tests `regolith.test.ts`. The old ids (`'prototyping'`,
   and `'cubic'` before it) are gone, aliases included: saved and online games under them are dropped.
 - PROTOTYPING.md stays the design log of the rules, retitled as Regolith's, and keeps the word "prototyping" for the work, not the mode.
-- **Kept apart, for a later split.** So Regolith can one day leave for its own app on the shared packages,
-  only its folder, rulesets.ts and the `GameMode` type name it, by id or name; everything else asks the rule
-  set (`contestedOrbit`, `words`, `grid`, `experimental` for the badge's colour, …). `regolith.test.ts` checks
-  it across the engine, AI, online and web sources and the web app's styles, as it checks that the folder uses
-  the engine only through the kit. It reads text, so a check that gets at the mode some other way (by its
-  summary, say) passes it: review still matters. The split itself is planned in [SPLIT.md](SPLIT.md).
+- **Kept apart, then split.** Regolith was kept apart from Cubic's modes until it left for this repository
+  (2026-10-27, [SPLIT.md](SPLIT.md)). The engine still asks the rule set (`contestedOrbit`, `grid`,
+  `experimental`, …) rather than naming a mode.
 - **Other versions online.** A browser that gets an invite for a game it can't start (made by a version with
   other modes, maps or protocol) says so and asks both players to reload, rather than "Game not found".
 
@@ -57,7 +54,7 @@ changing the label:
 Done (23 October 2026).
 
 - `REGOLITH` sets its own `mapGroups` rather than adding to Community's: `hex`, `open` and `drift`,
-  all hex. Binary Reach, the one square drift map, moved to `drift-square`, which no mode plays for now.
+  all hex. There are no square maps.
 - Every hex map names its world in [data/maps.yaml](../../data/maps.yaml), and
   [build-data.mjs](../../scripts/build-data.mjs) refuses one that doesn't, so a map's world is a choice, not a
   default. Alpha and Gamma Sector, Circular Logic, Critical Density and Nexus (hex), Circular Drift, Nexus Drift,
@@ -122,7 +119,7 @@ Expansion card (`expansionCard(state)`, which the market and card flights ask).
   cards by effect ([cardValues.ts](../../packages/ai/src/cardValues.ts)).
 - **Reworked and new cards** need new rules. Where an effect can be written as a hook, it goes in
   `packages/engine/src/cards/`, one file per effect, like
-  [powers/](../../packages/engine/src/powers), so Community's rules can't change by accident. That
+  [powers/](../../packages/engine/src/powers), so a card's rules stay out of the core. That
   needs a card-hook surface in the kit next to `ShipHooks` (PROTOTYPING.md §9 *Adding a New Hook*), built
   when the first reworked card needs it. An effect too tangled for a hook goes into the engine's effects
   like any card, registered in `IMPLEMENTED_EFFECTS`, and only Regolith's deck deals it.
@@ -131,9 +128,9 @@ Expansion card (`expansionCard(state)`, which the market and card flights ask).
 
 ## 5. Cards: art (screenprint)
 
-Done (23 October 2026). The screenprint look is a second card renderer, not options on the first: layout,
-palette and type differ throughout, and `cardSvg` stays as it is for Community and Classic. A face with
-`look: 'screenprint'` goes to it; the rule set says which look its decks have (`CardRules.look`).
+Done (23 October 2026). Cards are drawn by the screenprint renderer (`cardSvg` and `cardBackSvg` in
+[card.ts](../../packages/art/src/card.ts) call it): layout, palette and type are its own. The holo-grid card
+it replaced went with the split.
 
 ```
 packages/art/src/screenprint/
@@ -193,20 +190,13 @@ The names, words and story are kept in one place, [REGOLITH-WORLD.md](REGOLITH-W
 (Breacher, Behemoth, Tactician, Chameleon, Sniper, Wisp), the objectives (Habitat, Refinery, Ice Mine, Reactor,
 Sinkhole), the sides, and how each original term reads in Regolith.
 
-The game says them everywhere (22 October 2026): `RuleSet.words` (engine `words.ts`) is the mode's
-vocabulary, REGOLITH-WORLD.md's table as `REGOLITH_WORDS` (`regolith/words.ts`), and `reword` / `say`
-put a text in it, with its case and article ("a planet" → "an objective") and with players' names kept.
-The engine, its log and the card data stay in the original words; the web app rewords what it shows: the
-log and toasts (`logText`), hints, rule errors, cards (`CardView`, through `useSay` from GameScreen),
-modals, tips, and the ship, planet and player panels. A new string in the game UI goes through `say` too.
-A card renamed in its own deck can say the words itself; the rewording leaves them as they are.
+The game says them everywhere. Before the split, the engine, its log and the card data kept Quantum's words and
+the web app reworded what it showed (`reword` / `say`). With Cubic gone there is one vocabulary, so the
+words are written straight into the data, the engine's log and the UI strings, and nothing translates them.
 
 ## 8. Testing
 
-- `regolith.test.ts`: the mode deals only Regolith's cards and plays only hex maps, and still can't
-  change Basic, Classic or Community.
-- While every card is a copy, a Regolith game plays move for move the same as one on Community's deck
-  with the same seed; a test can hold that until the first card is reworked.
+- `regolith.test.ts`: the mode deals only Regolith's cards and plays only hex maps.
 - The golden games are refreshed whenever a card's action changes.
 - [card-audit.ts](../../scripts/card-audit.ts) and [selfplay-cards.ts](../../scripts/selfplay-cards.ts) run on
   Regolith's deck; results go in PROTOTYPING.md §8 like the other playtests.
@@ -236,4 +226,3 @@ Steps 1–4 need no card designed.
 - **Deck size:** Community's (35 Skills, 9 Tactics), or smaller as cards are reworked.
 - **One look for map and cards:** the cards now share the tiles' buildings, colours and worlds, drawn
   flat; whether the tiles and dice move further towards the screenprint inks (CardScale's warning) is open.
-- **Binary Reach:** the one square drift map, in `drift-square` and played by no mode: give it to Community, or drop it.

@@ -1,5 +1,5 @@
 /**
- * Plays a first move, in Chrome, on the square Alpha Sector, each hex map and each map with off-centre
+ * Plays a first move, in Chrome, on each map, including those with off-centre
  * planets (docs/HEX.md): starts a Regolith game, picks one of your ships, taps a space it can move to on the
  * map and checks the ship went there. Checks too that the map draws a well for each space, cross-hatched
  * where the engine has two orbits overlap.
@@ -55,7 +55,7 @@ for (const map of MAPS) {
   if (drawn !== spaces(board).length) problem(`${drawn} wells drawn for ${spaces(board).length} spaces`);
   if (drawnShared !== shared) problem(`${drawnShared} shared wells drawn, the engine has ${shared}`);
 
-  // One of your ships, then a space it can move to, tapped where it is drawn. On a hex map the tap goes near the
+  // One of your ships, then a space it can move to, tapped where it is drawn. The tap goes near the
   // hex's top right side, in the corner of its square box that the hex up and right of it reaches over: a space
   // whose neighbour there is highlighted too, if there is one, so a tap on the wrong one would show.
   const ship = page.locator('.ship.own').first();
