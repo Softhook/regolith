@@ -1,28 +1,22 @@
 import { useEffect, useLayoutEffect, useRef, useState, type RefObject } from 'react';
 import { holdForTitle } from '../../ambience';
-import { OPENS_FULLSCREEN, fullscreenWaiting, resumeFullscreen } from '../../fullscreen';
+import { resumeFullscreen } from '../../fullscreen';
 import { reducedMotion } from '../../game/useMediaQuery';
 
-/**
- * The opening, once per page load: how long the title holds in the middle (unless it waits for a click), and how long
- * it takes to rise.
- */
-const INTRO_HOLD_MS = 2600;
+/** The opening, once per page load: how long the title takes to rise. */
 export const INTRO_RISE_MS = 1300;
 let introPlayed = false;
 
 /**
  * The lobby's opening: the title alone over the backdrop, in the middle of the screen, then rising to its place
  * as the rest fades in. Only on the first visit of a page load (not back from a game), never under reduced
- * motion; a click (or tap) or key skips it. Where that click goes full screen (a phone, the app installed on a
- * computer), the title waits for it, asking after a while, and holds, centred in the new size, until the window
- * has settled: the lobby then comes in full screen. The app installed on Android, already full screen, waits for
- * it too, so it opens the same way. Returns the phase (null once done), whether it waits for a click and has had
- * it, and the offset that centres the title.
+ * motion; the title always holds for a click (or tap) or key, asking after a while, even where full screen is
+ * already granted. Where that click goes full screen (a phone, the app installed on a computer), it holds,
+ * centred in the new size, until the window has settled: the lobby then comes in full screen. Returns the phase
+ * (null once done), whether it has had its click, and the offset that centres the title.
  */
 export function useIntro(title: RefObject<HTMLHeadingElement | null>) {
   const [phase, setPhase] = useState<'title' | 'rise' | null>(() => (introPlayed || reducedMotion() ? null : 'title'));
-  const [waits] = useState(() => OPENS_FULLSCREEN || fullscreenWaiting());
   const [started, setStarted] = useState(false);
   const [offset, setOffset] = useState(0);
   const shown = useRef(0);
@@ -49,10 +43,7 @@ export function useIntro(title: RefObject<HTMLHeadingElement | null>) {
     const music = phase === 'title' ? holdForTitle() : undefined;
     let live = true;
     const rise = (settling?: Promise<void> | null) => void Promise.all([music?.open(), settling]).then(() => live && setPhase('rise'));
-    const t =
-      phase === 'title' && waits
-        ? undefined
-        : setTimeout(() => (phase === 'title' ? rise() : setPhase(null)), phase === 'title' ? INTRO_HOLD_MS : INTRO_RISE_MS);
+    const t = phase === 'title' ? undefined : setTimeout(() => setPhase(null), INTRO_RISE_MS);
     const unlisten = () => {
       removeEventListener('click', skip);
       removeEventListener('keydown', skip);
@@ -74,6 +65,6 @@ export function useIntro(title: RefObject<HTMLHeadingElement | null>) {
       unlisten();
       music?.release();
     };
-  }, [phase, waits]);
-  return { phase, waits, started, offset };
+  }, [phase]);
+  return { phase, started, offset };
 }

@@ -23,7 +23,7 @@ const root = document.documentElement as FsElement;
 const keyboard = (navigator as Navigator & { keyboard?: KeyboardLock }).keyboard;
 
 /** Opened full screen already, from the manifest (the app installed on Android). */
-export const OPENS_FULLSCREEN = matchMedia('(display-mode: fullscreen)').matches;
+const OPENS_FULLSCREEN = matchMedia('(display-mode: fullscreen)').matches;
 /** Whether this page can go full screen; not where it opens full screen already. */
 export const FULLSCREEN_SUPPORTED = !!(root.requestFullscreen || root.webkitRequestFullscreen) && !OPENS_FULLSCREEN && !APPLE_TOUCH;
 export const isFullscreen = () => !!(doc.fullscreenElement ?? doc.webkitFullscreenElement);
@@ -108,9 +108,6 @@ export function resumeFullscreen(e?: Event): Promise<void> | null {
   if (!wanted || isFullscreen() || document.visibilityState !== 'visible') return pending;
   return enter();
 }
-
-/** Whether the next click or key goes full screen. */
-export const fullscreenWaiting = () => wanted && !isFullscreen();
 
 const resumeFrom = (e: Event) => {
   // The full screen button's own tap is the player's choice; asking here too would race its toggle.

@@ -1652,6 +1652,15 @@ svg.zones polygon {
   animation: intro-prompt-in 1.2s ease-out 4s both, intro-prompt-pulse 2.4s ease-in-out 5.2s infinite;
 }
 .intro-prompt.gone { opacity: 0; animation: none; transition: opacity .2s; }
+/* A card shown under the opening title (lobby/IntroCards.tsx): fades in, holds, fades out. */
+.intro-card {
+  position: fixed; left: 50%; bottom: calc(50% + 70px);
+  height: min(210px, calc(50vh - 100px)); width: auto;
+  transform: translateX(-50%); pointer-events: none;
+  border-radius: 8px; box-shadow: 0 6px 24px rgb(var(--shade) / .6);
+  animation: intro-card 13.2s ease-in-out both;
+}
+@keyframes intro-card { 0% { opacity: 0; } 10%, 90% { opacity: 1; } 100% { opacity: 0; } }
 @keyframes intro-prompt-in { from { opacity: 0; transform: translateY(6px); } }
 @keyframes intro-prompt-pulse { 50% { opacity: .45; } }
 /* On iPhone and iPad, how to play full screen (lobby/HomeScreenHint.tsx). */

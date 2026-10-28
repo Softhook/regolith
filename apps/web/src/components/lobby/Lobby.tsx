@@ -14,6 +14,7 @@ import { VersionLine } from './VersionLine';
 import { WhereIcon } from './WhereIcon';
 import { YourGames } from './YourGames';
 import { Field, MapPicker, SeatRow } from './NewGameFields';
+import { IntroCards } from './IntroCards';
 import { INTRO_RISE_MS, useIntro } from './useIntro';
 import { MODE_KEY, PLAYER_COUNTS, isFriendSeat, mapKey, storedAiLevel, storedMap, storedMode } from './choices';
 import { GAME_NAME } from '../../appId';
@@ -105,9 +106,10 @@ export function Lobby({
       <LobbyBackdrop map={map} />
       <div className="lobby-hero">
         <h1 ref={title}>{GAME_NAME}</h1>
-        {intro.phase && intro.waits && (
+        {intro.phase && (
           <p className={`intro-prompt${intro.started ? ' gone' : ''}`}>{matchMedia(COARSE).matches ? 'Tap' : 'Click'} to start</p>
         )}
+        {intro.phase === 'title' && !intro.started && <IntroCards />}
       </div>
       <div className="lobby-corner">
         <FullscreenButton />
