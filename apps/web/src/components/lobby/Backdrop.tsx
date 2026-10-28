@@ -151,9 +151,29 @@ function Ground({ board, cell, speed, still }: { board: Board; cell: number; spe
   );
 }
 
-/** A tile on the ground, middle at (x, y): its ground image (art `RASTER_AREA`) once drawn, clipped to its hexes. */
+/** A flower's hexes as one path of outlines, sides shared between them drawn twice. */
+const flowerOutline = (cell: number) =>
+  FLOWER.map(
+    ([x, y]) =>
+      `M${hexCorners(x * cell, y * cell, cell)
+        .map(([cx, cy]) => `${cx.toFixed(1)},${cy.toFixed(1)}`)
+        .join('L')}Z`,
+  ).join('');
+
+/**
+ * A tile on the ground, middle at (x, y): its ground image (art `RASTER_AREA`) once drawn, clipped to its hexes.
+ * Until then its hexes show as thin black outlines over the world's colour, so there's something to look at while
+ * tiles are drawn; the image fades in over them, and they're dropped once it has.
+ */
 const Laid = memo(function Laid({ x, y, tile, world, cell }: { x: number; y: number; tile: TileRef; world: World; cell: number }) {
   const [url, setUrl] = useState<string>();
+  const [covered, setCovered] = useState(false);
+  const outline = useMemo(() => flowerOutline(cell), [cell]);
+  useEffect(() => {
+    if (!url) return;
+    const t = setTimeout(() => setCovered(true), 1400);
+    return () => clearTimeout(t);
+  }, [url]);
   useEffect(() => {
     let live = true;
     decodedTileImage(tile, world, 'ground').then(
@@ -168,11 +188,14 @@ const Laid = memo(function Laid({ x, y, tile, world, cell }: { x: number; y: num
   const px = (v: number) => (v * 3 * cell) / TILE.size;
   const area = RASTER_AREA.ground;
   return (
-    url && (
-      <g transform={`translate(${x} ${y})`} clipPath="url(#lobby-flower)">
-        <image href={url} x={px(area.x - TILE.size / 2)} y={px(area.y - TILE.size / 2)} width={px(area.w)} height={px(area.h)} />
-      </g>
-    )
+    <g transform={`translate(${x} ${y})`}>
+      {!covered && <path className="lobby-grid" d={outline} />}
+      {url && (
+        <g clipPath="url(#lobby-flower)">
+          <image href={url} x={px(area.x - TILE.size / 2)} y={px(area.y - TILE.size / 2)} width={px(area.w)} height={px(area.h)} />
+        </g>
+      )}
+    </g>
   );
 });
 

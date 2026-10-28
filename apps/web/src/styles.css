@@ -1591,6 +1591,7 @@ svg.zones polygon {
 /* The ground, its own layer, moved by its transform alone; each tile fades in as it's drawn. */
 .lobby-ground { position: absolute; left: 0; top: 0; will-change: transform; }
 .lobby-ground svg { position: absolute; width: 1px; height: 1px; overflow: visible; }
+.lobby-ground .lobby-grid { fill: none; stroke: #000; stroke-width: 1px; stroke-opacity: 0.55; }
 .lobby-ground image { animation: backdrop-in 1.2s ease-out both; }
 @keyframes backdrop-in { from { opacity: 0; } }
 /* Dimmed, and darker still towards the edges and behind the form in the middle, so the map reads as scenery. */

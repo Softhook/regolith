@@ -13,9 +13,9 @@ import {
   type Spot,
   type World,
 } from '@regolith/art';
-import { rasteriseWithCutout } from '../files';
 import { COARSE } from '../game/useMediaQuery';
 import { idle, storeImage, storedImage } from './imageStore';
+import { drawTile } from './tileRaster';
 import { tileArt } from './boardTiles';
 
 /**
@@ -41,11 +41,6 @@ export const SHARP_CELL = (SIZE * TILE.cell) / TILE.size;
 const pixels = (layer: RasterLayer) => Math.round((SIZE * RASTER_AREA[layer].w) / TILE.size);
 
 const grounds = new Map<string, Promise<Record<RasterLayer, string>>>();
-/**
- * Tiles are drawn one at a time, each when the page is idle: drawn together as a game opens, their filters took
- * over 100 ms a frame, and drawn during a pinch or pan they'd drop its frames.
- */
-let drawing: Promise<unknown> = Promise.resolve();
 const decoded = new Map<string, Promise<string>>();
 
 /** A tile to draw: its physical id, and where its planet sits, in spaces from its middle (the ground's building stands there). */
@@ -68,18 +63,13 @@ function groundImages(tile: TileRef, world: World): Promise<Record<RasterLayer, 
     const svg = rasterLayerSvg(tileSpec(tile.id), world, tile.at);
     const mask = standingMaskSvg(tileSpec(tile.id), tile.at);
     const size = pixels('ground');
-    const key = `${hash(svg + mask)}:${size}:jpeg`;
+    const key = `${hash(svg + mask)}:${size}:jpeg:2`;
     const ids = [name, nameOf(tile, world, 'standing')];
     pair = (async () => {
       const [ground, standing] = await Promise.all(ids.map((id) => storedImage('tiles', id, key).catch(() => undefined)));
       if (ground && standing) return { ground: URL.createObjectURL(ground), standing: URL.createObjectURL(standing) };
       // The ground over its world's colour, as the map draws it (MapTiles).
-      const drawn = drawing.then(async () => {
-        await idle();
-        return rasteriseWithCutout(svg, mask, size, size, GROUND_BASE[world], 0.92);
-      });
-      drawing = drawn.catch(() => {});
-      const blobs = await drawn;
+      const blobs = await drawTile(svg, mask, size, GROUND_BASE[world]);
       blobs.forEach((blob, i) => storeImage('tiles', ids[i], key, blob).catch(() => {}));
       return { ground: URL.createObjectURL(blobs[0]), standing: URL.createObjectURL(blobs[1]) };
     })()

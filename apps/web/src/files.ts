@@ -19,7 +19,7 @@ export const blobToDataUrl = (blob: Blob) =>
     r.readAsDataURL(blob);
   });
 
-async function loadSvg(svg: string): Promise<HTMLImageElement> {
+export async function loadSvg(svg: string): Promise<HTMLImageElement> {
   const img = new Image();
   img.src = dataUrl(svg);
   await img.decode();
