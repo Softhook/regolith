@@ -518,8 +518,8 @@ export function Manual({ dark }: { dark?: boolean }) {
             <b>Objectives, mechs and barriers block movement.</b> Nothing moves through them.
           </li>
           <li>
-            <b>Prepared ground.</b> Some maps start with an Ice Tunnel or barriers already on them, as the map shows. They work as the ones
-            a game makes.
+            <b>Prepared ground.</b> Some maps start with an Ice Tunnel, a wormhole (a tunnel the Ice Tunnel tactic can’t close) or barriers
+            already on them, as the map shows. They work as the ones a game makes.
           </li>
           <li>
             <b>Habitat 7, Refinery 8, Ice Mine 9, Reactor 10.</b> The bigger the site, the harder it is to claim.

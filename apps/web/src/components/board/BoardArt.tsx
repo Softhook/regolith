@@ -44,9 +44,9 @@ export const BoardArt = memo(function BoardArt({
   const head = game.pending[0];
   const placing = head?.kind === 'warpGate' ? head.placed : [];
   const gates = [
-    ...(game.wormhole ?? []).map((g) => ({ ...g, open: true, wormhole: true })),
-    ...game.gates.map((g) => ({ ...g, open: true, wormhole: false })),
-    ...placing.map((g) => ({ ...g, open: false, wormhole: false })),
+    ...(game.wormhole ?? []).map((g) => ({ ...g, open: true, wormhole: true, color: WORMHOLE_COLOR })),
+    ...game.gates.map((g) => ({ ...g, open: true, wormhole: false, color: GATE_COLOR })),
+    ...placing.map((g) => ({ ...g, open: false, wormhole: false, color: GATE_COLOR })),
   ];
   return (
     <>
@@ -61,13 +61,7 @@ export const BoardArt = memo(function BoardArt({
 
         {gates.map((g, i) => (
           <g key={i} transform={`translate(${mid(g).x} ${mid(g).y})`} opacity={g.open ? 1 : 0.5}>
-            <circle
-              r={cell * 0.4}
-              fill="none"
-              stroke={g.wormhole ? WORMHOLE_COLOR : GATE_COLOR}
-              strokeWidth={cell * 0.05}
-              filter="url(#glow)"
-            />
+            <circle r={cell * 0.4} fill="none" stroke={g.color} strokeWidth={cell * 0.05} filter="url(#glow)" />
           </g>
         ))}
 
@@ -125,7 +119,7 @@ export const BoardArt = memo(function BoardArt({
             cy={cell / 2}
             r={cell * 0.36}
             fill="none"
-            stroke={g.wormhole ? WORMHOLE_COLOR : GATE_COLOR}
+            stroke={g.color}
             strokeWidth={cell * 0.025}
             strokeDasharray={`${cell * 0.065} ${cell * 0.065}`}
           />
@@ -135,7 +129,7 @@ export const BoardArt = memo(function BoardArt({
               cy={cell / 2}
               r={cell * 0.24}
               fill="none"
-              stroke={WORMHOLE_COLOR}
+              stroke={g.color}
               strokeWidth={cell * 0.04}
               strokeDasharray={`${cell * 0.12} ${cell * 0.05}`}
             />

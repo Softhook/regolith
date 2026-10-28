@@ -52,7 +52,8 @@ export function candidates(s: GameState, opts?: { includeCarry?: boolean }): Act
       a.type === 'kineticShunt'
         ? (die(s, a.die).owner !== head.player ? 100 : 0) + distance(cellOf(die(s, a.die))!, a.to)
         : barrierShuntRank(s, a, head.player) - 50;
-    all.sort((a, b) => rank(b) - rank(a));
+    const ranked = new Map(all.map((a) => [a, rank(a)]));
+    all.sort((a, b) => ranked.get(b)! - ranked.get(a)!);
   }
   const options = nearestAttacks(all);
   return s.turn.actionsLeft > 0 ? options.filter((a) => a.type !== 'playStoredTactic') : options;

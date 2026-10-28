@@ -283,7 +283,7 @@ export interface GameState {
    */
   wormhole?: Cell[];
   /**
-   * Barriers on the map (the Wisp and Barricade place them), nothing moves into, is deployed on or
+   * Barriers on the map (the Wisp and Barricade place them): nothing moves into, is deployed on or
    * shoots through their spaces. Only Kinetic Shunt moves one. Absent in a game that never had one.
    */
   barriers?: Barrier[];
