@@ -187,13 +187,13 @@ maps:
     world: deimos
     length: long
     cubes: 6
-    stats: { slack: 4, shared: 5, planets: 9 }
-    # A 10 in the middle, four arms of 8s out to the starts.
+    stats: { slack: 3, shared: 6, planets: 9 }
+    # A 12 (the Skyhook) in the middle, four arms of 8s out to the starts.
     layout:
       - ".  .  7*"
       - ".  .  8"
       - ".  9  9"
-      - "7* 8  10 8  7*"
+      - "7* 8  12 8  7*"
       - ".  9  9"
       - ".  .  8"
       - ".  .  7*"
@@ -441,11 +441,11 @@ maps:
     world: phobos
     length: long
     cubes: 6
-    stats: { slack: 4, shared: 4, planets: 10 }
-    # Equal 9 starts on a triangle, with a 10 in the middle and two 3-fold rings around it.
+    stats: { slack: 2, shared: 5, planets: 10 }
+    # Equal 9 starts on a triangle, with an 11 (the Mass Driver) in the middle and two 3-fold rings around it.
     layout:
       - "9* 8  7  9*"
-      - "7  10 8"
+      - "7  11 8"
       - ".  8  7"
       - ".  9*"
 
@@ -456,13 +456,13 @@ maps:
     world: deimos
     length: long
     cubes: 5
-    stats: { slack: 4, shared: 5, planets: 13 }
-    # Four equal 8 starts on the arms; the 7s make the approach easier and the central 10 rewards crossing.
+    stats: { slack: 3, shared: 6, planets: 13 }
+    # Four equal 8 starts on the arms; the 7s make the approach easier and the central 12 (the Skyhook) rewards crossing.
     layout:
       - ".  .  8*"
       - ".  .  8"
       - ".  7  7"
-      - "8* 8  10 8  8*"
+      - "8* 8  12 8  8*"
       - ".  7  7"
       - ".  .  8"
       - ".  .  8*"
@@ -510,12 +510,12 @@ maps:
     world: phobos
     length: medium
     cubes: 4
-    stats: { slack: 4, shared: 4, planets: 12 }
-    # Five of the hexagon's six corners hold starts; the sixth is a bay of open ground, with a 10 in the middle.
+    stats: { slack: 2, shared: 6, planets: 12 }
+    # Five of the hexagon's six corners hold starts; the sixth is a bay of open ground, with an 11 (the Mass Driver) in the middle.
     layout:
       - ".  8* 7  8*"
       - "7  -  0  7"
-      - "8* -  10 -  8*"
+      - "8* -  11 -  8*"
       - "9  0  -  7"
       - ".  -  9  8*"
 
@@ -647,14 +647,14 @@ maps:
     world: phobos
     length: medium
     cubes: 5
-    stats: { slack: 7, shared: 3, planets: 10 }
-    # Mare Trigonum with a rim of barriers round its central 10 and three one-space breaches, each facing a start's side.
+    stats: { slack: 5, shared: 3, planets: 10 }
+    # Mare Trigonum with a rim of barriers round its central 11 and three one-space breaches, each facing a start's side.
     start:
       barriers:
         ["0:1:se", "1:2:sw", "2:1:n", "0:2:sw", "2:2:n", "1:0:se", "0:1:s", "1:2:nw", "2:1:ne"]
     layout:
       - "9* 8  7  9*"
-      - "7  10 8"
+      - "7  11 8"
       - ".  8  7"
       - ".  9*"
 

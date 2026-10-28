@@ -398,3 +398,72 @@ export function fissures(r: Rng, count: number, from: number, reach: number): Pa
   }
   return { grade, paint };
 }
+
+/**
+ * Phobos's Mass Driver: an electromagnetic rail `reach` out either way along the y axis (across the hub's
+ * two sockets), two bars on cross-ties with accelerator coils round it, glowing blue-white and closer
+ * together towards the muzzle at the top, and ice pods waiting in a cradle at the foot.
+ */
+export function railgun(reach: number): Part {
+  const bars = (fill: string) => [-3.6, 3.6].map((x) => box(x, 0, 2.2, reach * 2, 0.6, fill)).join('');
+  const ties = Array.from({ length: 15 }, (_, i) => -reach + 6 + (i * (2 * reach - 12)) / 14);
+  const coils = Array.from({ length: 7 }, (_, i) => -reach + 12 + i * (6 + i * 1.6));
+  const pods = [34, 44].map((y) => y + reach * 0.3);
+  return {
+    extent: reach,
+    grade: `<rect x="-12" y="${n(-reach - 4)}" width="24" height="${n(reach * 2 + 8)}" rx="10" fill="${H.graded}" filter="url(#rg-soft6)"/>`,
+    heights:
+      ties.map((y) => box(0, y, 11, 1.6, 0.4, H.pipe)).join('') +
+      bars(H.deck) +
+      coils.map((y) => box(0, y, 15, 3.4, 1, H.dark)).join('') +
+      pods.map((y) => box(0, y, 6, 8, 3, 'rgb(190,160,200)')).join(''),
+    tint:
+      ties.map((y) => box(0, y, 11, 1.6, 0.4, '#4a4640')).join('') +
+      bars('#d8d4cc') +
+      coils.map((y) => box(0, y, 15, 3.4, 1, '#3a3a44')).join('') +
+      pods.map((y) => box(0, y, 6, 8, 3, '#e8f1f6')).join(''),
+    paint:
+      coils.map((y) => glow(0, y, 6, '#7fd8ff', 0.55, 'rg-soft1')).join('') +
+      glow(0, -reach + 4, 9, '#bfeaff', 0.7) +
+      lamp(0, reach - 2, '#ffcf4a'),
+  };
+}
+
+/**
+ * Deimos's Skyhook: the anchor of a tether that climbs to orbit. A gold-banded mast stands tall (so its
+ * shadow is long), guyed by two cables back to anchor blocks `reach` out, and the tether goes up from its top
+ * as a faint bright line running off towards `lift` degrees.
+ */
+export function skyhook(reach: number, lift: number): Part {
+  const anchors = [lift + 115, lift - 115].map((a) => polar(a, reach));
+  const guys = anchors.map((p) => run({ x: 0, y: 0 }, p, 0.9, '#c9c2b4', H.pipe));
+  const up = polar(lift, 90);
+  const tether = `M0,0 L${n(up.x)},${n(up.y)}`;
+  return {
+    extent: reach + 12,
+    ...merged([
+      ...guys,
+      {
+        grade: anchors.map((p) => graded(p.x, p.y, 12)).join('') + graded(0, 0, 22),
+        heights:
+          anchors.map((p) => box(p.x, p.y, 10, 10, 2, H.deck)).join('') +
+          disc(0, 0, 13, H.apron) +
+          disc(0, 0, 10, 'rgb(250,150,210)') +
+          disc(0, 0, 6.5, 'rgb(255,190,235)') +
+          disc(0, 0, 3.2, 'rgb(255,230,245)'),
+        tint:
+          anchors.map((p) => box(p.x, p.y, 10, 10, 2, '#7c766c')).join('') +
+          disc(0, 0, 13, '#55504a') +
+          disc(0, 0, 10, '#e8e2d4') +
+          `<circle r="8" fill="none" stroke="#d9a020" stroke-width="1.8"/>` +
+          `<circle r="4.6" fill="none" stroke="#c8321f" stroke-width="1.4"/>` +
+          disc(0, 0, 3.2, '#d9a020'),
+        paint:
+          `<path d="${tether}" fill="none" stroke="#fff3c8" stroke-width="4" opacity="0.4" filter="url(#rg-soft3)" style="mix-blend-mode: screen"/>` +
+          `<path d="${tether}" fill="none" stroke="#fff8dc" stroke-width="0.9" stroke-dasharray="4 2.5" opacity="0.95"/>` +
+          glow(0, 0, 9, '#ffe9a0', 0.8, 'rg-soft1') +
+          anchors.map((p) => lamp(p.x, p.y, '#ff6a3a')).join(''),
+      },
+    ]),
+  };
+}

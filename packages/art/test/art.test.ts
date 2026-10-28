@@ -11,6 +11,7 @@ import {
   numberCorner,
   numberPlacement,
   cubePadCentres,
+  PLANET_CAPACITY,
   tileSpec,
   tileSvg,
 } from '../src';
@@ -96,7 +97,7 @@ describe('tile set', () => {
   });
 
   it('rejects unknown or malformed tile ids', () => {
-    for (const bad of ['p6-01', 'p11-01', 'p7-00', 'void-0', 'void-abc', 'blank-00', 'blank', 'foo']) {
+    for (const bad of ['p6-01', 'p13-01', 'p7-00', 'void-0', 'void-abc', 'blank-00', 'blank', 'foo']) {
       expect(() => tileSpec(bad), bad).toThrow(/Unknown tile id/);
     }
   });
@@ -115,10 +116,10 @@ describe('tile set', () => {
 
 describe('cube pads', () => {
   it('fit inside the printed planet', () => {
-    for (const num of [7, 8, 9, 10]) {
+    for (const num of [7, 8, 9, 10, 11, 12]) {
       const R = PLANET_DIAMETER[num] / 2;
       const h = CUBE_PAD.size / 2;
-      for (const p of cubePadCentres(num - 6, 0, 0)) {
+      for (const p of cubePadCentres(PLANET_CAPACITY[num], 0, 0)) {
         const far = Math.hypot(Math.abs(p.x) + h, Math.abs(p.y) + h);
         expect(far, `planet ${num}`).toBeLessThan(R);
       }
@@ -128,7 +129,7 @@ describe('cube pads', () => {
 
 describe('planet number', () => {
   it('sits at the vertex three hexes share, a third of a space right and half a space down, unless its pads push it out', () => {
-    for (const k of [7, 8, 9, 10]) {
+    for (const k of [7, 8, 9, 10, 11, 12]) {
       const at = numberPlacement(k);
       expect(at.y / at.x, `planet ${k}`).toBeCloseTo(Math.sqrt(3));
       expect(at.y, `planet ${k}`).toBeGreaterThanOrEqual(TILE.cell / 2);
@@ -136,9 +137,9 @@ describe('planet number', () => {
   });
 
   it('stays clear of the cube pads', () => {
-    for (const num of [7, 8, 9, 10]) {
+    for (const num of [7, 8, 9, 10, 11, 12]) {
       const at = numberPlacement(num);
-      for (const p of cubePadCentres(num - 6, 0, 0)) {
+      for (const p of cubePadCentres(PLANET_CAPACITY[num], 0, 0)) {
         expect(boxGap(at.x, at.y, at.halfW, at.halfH, p.x, p.y, CUBE_PAD.size / 2), `planet ${num} pad`).toBeGreaterThan(0.5);
       }
     }

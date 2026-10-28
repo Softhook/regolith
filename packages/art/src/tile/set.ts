@@ -20,7 +20,7 @@ export const BLANK = -1;
  * How many of each tile a set needs: for planets and blanks, the most any map in data/maps.yaml uses at once
  * (docs/GRAPHICS.md §2a); three Voids. Start planets use a separate token, so they need no tiles of their own.
  */
-export const SET_COUNTS: Record<number, number> = { 7: 8, 8: 8, 9: 6, 10: 5, 0: 3, [BLANK]: 10 };
+export const SET_COUNTS: Record<number, number> = { 7: 8, 8: 8, 9: 6, 10: 5, 11: 2, 12: 2, 0: 3, [BLANK]: 10 };
 
 /** The look of one tile, from its id. Ids past the set's count (a map larger than the set) still work. */
 export function tileSpec(id: string): TileSpec {
@@ -42,7 +42,7 @@ const tileId = (number: number, i: number) => {
 const tilesOf = (num: number) => Array.from({ length: SET_COUNTS[num] }, (_, i) => tileSpec(tileId(num, i)));
 
 /** Every tile in a full set, in order: the planets, the Voids, and the blanks the open-ground maps spread out with. */
-export const TILE_SET: TileSpec[] = [7, 8, 9, 10, 0, BLANK].flatMap(tilesOf);
+export const TILE_SET: TileSpec[] = [7, 8, 9, 10, 11, 12, 0, BLANK].flatMap(tilesOf);
 
 /**
  * Which physical tile goes where on a map: the k-th planet of a number gets that number's k-th tile.

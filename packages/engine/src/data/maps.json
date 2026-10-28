@@ -335,8 +335,8 @@
     "group": "hex",
     "cubes": 6,
     "stats": {
-      "slack": 4,
-      "shared": 5,
+      "slack": 3,
+      "shared": 6,
       "planets": 9
     },
     "world": "deimos",
@@ -360,7 +360,7 @@
       [
         "7*",
         "8",
-        "10",
+        "12",
         "8",
         "7*"
       ],
@@ -1022,8 +1022,8 @@
     "group": "hex",
     "cubes": 6,
     "stats": {
-      "slack": 4,
-      "shared": 4,
+      "slack": 2,
+      "shared": 5,
       "planets": 10
     },
     "world": "phobos",
@@ -1037,7 +1037,7 @@
       ],
       [
         "7",
-        "10",
+        "11",
         "8"
       ],
       [
@@ -1058,8 +1058,8 @@
     "group": "hex",
     "cubes": 5,
     "stats": {
-      "slack": 4,
-      "shared": 5,
+      "slack": 3,
+      "shared": 6,
       "planets": 13
     },
     "world": "deimos",
@@ -1083,7 +1083,7 @@
       [
         "8*",
         "8",
-        "10",
+        "12",
         "8",
         "8*"
       ],
@@ -1205,8 +1205,8 @@
     "group": "open",
     "cubes": 4,
     "stats": {
-      "slack": 4,
-      "shared": 4,
+      "slack": 2,
+      "shared": 6,
       "planets": 12
     },
     "world": "phobos",
@@ -1227,7 +1227,7 @@
       [
         "8*",
         "-",
-        "10",
+        "11",
         "-",
         "8*"
       ],
@@ -1561,7 +1561,7 @@
     "group": "prepared",
     "cubes": 5,
     "stats": {
-      "slack": 7,
+      "slack": 5,
       "shared": 3,
       "planets": 10
     },
@@ -1576,7 +1576,7 @@
       ],
       [
         "7",
-        "10",
+        "11",
         "8"
       ],
       [

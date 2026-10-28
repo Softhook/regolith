@@ -25,6 +25,7 @@ import {
   type Cell,
   type GameState,
 } from '../src';
+import { CAPACITY } from '../src/board';
 import { finishSetup, players, quickStart } from './helpers';
 
 const BASE = quickStart(2, 1, 'basic');
@@ -357,9 +358,9 @@ describe('construct (p.7)', () => {
     });
   });
 
-  it('size-7 planets hold 1 cube, 8 hold 2, 9 hold 3, 10 hold 4', () => {
+  it('size-7 planets hold 1 cube, 8 hold 2, 9 hold 3, 10 hold 4, the Mass Driver (11) 2 and the Skyhook (12) 3', () => {
     const caps = (n: number) => quickStart(n, 1, 'basic').board.planets.map((p) => [p.number, p.capacity]);
-    for (const [num, cap] of [...caps(2), ...caps(3), ...caps(4)]) expect(cap).toBe(num - 6);
+    for (const [num, cap] of [...caps(2), ...caps(3), ...caps(4)]) expect(cap).toBe(CAPACITY[num]);
   });
 });
 

@@ -103,7 +103,9 @@ still fits.
 ## Objectives
 
 The planets are the sites worth holding. Their number is what it takes to claim them, so the
-bigger the site, the more it is worth fighting for.
+bigger the site, the more it is worth fighting for. The number sets the cubes a site holds for 7 to 10 (one
+to four); the 11 and 12 are the exception, hard to claim but holding few. Each stands on one moon only, and
+nobody starts at one.
 
 | Number | Objective | What it is |
 |---|---|---|
@@ -111,6 +113,8 @@ bigger the site, the more it is worth fighting for.
 | 8 | **Refinery** | Turns ice and regolith into water, air and fuel |
 | 9 | **Ice Mine** | A drill over a buried ice sheet |
 | 10 | **Reactor** | Power for everything around it |
+| 11 | **Mass Driver** | Phobos only. A rail that throws ice pods off the moon in its low gravity. Holds 2 cubes |
+| 12 | **Skyhook** | Deimos only. The anchor of a tether that climbs to orbit. Holds 3 cubes |
 | Void | **Sinkhole** | Ground collapsed into a melted ice pocket. Nothing to hold, but a mech there gains research |
 
 Props on the board and on cards: bunker, comms mast, drop pod, barricade, boulders (Vocabulary board).

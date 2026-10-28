@@ -1,4 +1,4 @@
-import { CUBE_PAD, FONTS, HEX_EDGE, PLANET_FAMILY, TILE, WELL, type WellStyle } from '../tokens';
+import { CUBE_PAD, FONTS, HEX_EDGE, PLANET_CAPACITY, PLANET_FAMILY, TILE, WELL, type WellStyle } from '../tokens';
 import { icon } from '../icons';
 import { hex, n, type Fragment } from '../svg';
 import { MID, TILE_SPOTS, cubePadCentres, hexCorners, numberCorner, numberPlacement, type Spot } from './geometry';
@@ -80,7 +80,8 @@ export function markings(spec: TileSpec, part: 'spaces' | 'planet', at: Spot): F
   }
   if (hasPlanet && part === 'planet') {
     const p = mm(at);
-    for (const q of cubePadCentres(spec.number - 6, p.x, p.y)) body += well(q.x, q.y, CUBE_PAD.size, CUBE_PAD.corner, WELL.cube);
+    for (const q of cubePadCentres(PLANET_CAPACITY[spec.number], p.x, p.y))
+      body += well(q.x, q.y, CUBE_PAD.size, CUBE_PAD.corner, WELL.cube);
     const num = numberPlacement(spec.number);
     const k = numberCorner(at);
     const hue = PLANET_FAMILY[spec.number].hue;

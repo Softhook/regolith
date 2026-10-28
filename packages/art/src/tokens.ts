@@ -19,7 +19,10 @@ export const TILE = {
  * number reads from size alone. Limits: 9 and 10 need > 33.2 mm for their cube pads. Under 45 mm a
  * planet clears a die in the next space; the 10, at 46.2 mm, reaches 0.6 mm under it (docs/GRAPHICS.md §2a).
  */
-export const PLANET_DIAMETER: Record<number, number> = { 7: 24.2, 8: 30.8, 9: 38.5, 10: 46.2 };
+export const PLANET_DIAMETER: Record<number, number> = { 7: 24.2, 8: 30.8, 9: 38.5, 10: 46.2, 11: 46.2, 12: 46.2 };
+
+/** Cubes each planet holds (the engine's `CAPACITY`): the 11 and 12, which only the number and the claim make hard, hold two and three. */
+export const PLANET_CAPACITY: Record<number, number> = { 7: 1, 8: 2, 9: 3, 10: 4, 11: 2, 12: 3 };
 
 /** Cube pads printed on planets (physical cubes up to 10 mm). The on-screen cubes are smaller. */
 export const CUBE_PAD = { size: 11, gap: 1.5, corner: 1.6 } as const;
@@ -86,6 +89,9 @@ export const PLANET_FAMILY: Record<number, PlanetFamily> = {
   8: { hue: 38, backLight: COOL_BACK_LIGHT, types: ['gas'] },
   9: { hue: 195, backLight: WARM_BACK_LIGHT, types: ['ice', 'gas'] },
   10: { hue: 6, backLight: COOL_BACK_LIGHT, types: ['lava'] },
+  // Phobos's Mass Driver and Deimos's Skyhook: never drawn as planets, but they carry a name, a number's outline and a hue.
+  11: { hue: 215, backLight: WARM_BACK_LIGHT, types: ['rocky'] },
+  12: { hue: 28, backLight: COOL_BACK_LIGHT, types: ['rocky'] },
 };
 
 /** Nebula hues stay between blue and pink-purple, so every tile's sky belongs to one set. */

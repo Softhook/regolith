@@ -1,4 +1,4 @@
-import { CUBE_PAD, NUMBER_TEXT, TILE } from '../tokens';
+import { CUBE_PAD, NUMBER_TEXT, PLANET_CAPACITY, TILE } from '../tokens';
 import { n, type Box } from '../svg';
 
 /**
@@ -140,7 +140,7 @@ export function numberPlacement(number: number): NumberPlacement {
   const size = digits > 1 ? NUMBER_TEXT.sizeTwoDigits : NUMBER_TEXT.size;
   const halfW = 0.32 * size * digits;
   const halfH = 0.37 * size;
-  const pads = cubePadCentres(number - 6, 0, 0);
+  const pads = cubePadCentres(PLANET_CAPACITY[number], 0, 0);
   const m = MEET;
   let [x, y] = [m.x * TILE.cell, m.y * TILE.cell];
   while (pads.some((p) => boxGap(x, y, halfW, halfH, p.x, p.y, CUBE_PAD.size / 2) < 0.8)) {

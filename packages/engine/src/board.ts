@@ -1,4 +1,4 @@
-import type { Board, BoardCell, Cell, GameState, Planet } from './types';
+import type { Board, BoardCell, Cell, GameState, Planet, World } from './types';
 import type { MapDef } from './data';
 
 /*
@@ -35,7 +35,14 @@ const TILE_ROW: Cell = { r: -1, c: 3 };
 const TILE_DOWN_RIGHT: Cell = { r: 2, c: 1 };
 const TILE_DOWN_LEFT: Cell = { r: 3, c: -2 };
 
-export const CAPACITY: Record<number, number> = { 7: 1, 8: 2, 9: 3, 10: 4 };
+/**
+ * How many cubes an objective holds, by its number. The number is what it takes to claim it; 7 to 10 hold one
+ * to four cubes, and the 11 and 12 are hard to claim and hold few.
+ */
+export const CAPACITY: Record<number, number> = { 7: 1, 8: 2, 9: 3, 10: 4, 11: 2, 12: 3 };
+
+/** The objectives that stand on one world only: the Mass Driver on Phobos, the Skyhook on Deimos. Nobody starts at one. */
+const WORLD_OBJECTIVES: Record<number, World> = { 11: 'phobos', 12: 'deimos' };
 
 /*
  * Where a tile's planet sits, as a step from the tile's middle space: a layout token's direction
@@ -74,6 +81,15 @@ export const STARTING_SHIPS = 3;
  * Checks what an off-centre planet could break: each starting planet needs room for the starting
  * ships, in orbital spaces no other start shares. Orbits that overlap are otherwise fine.
  */
+function checkWorldObjectives(board: Board) {
+  for (const p of board.planets) {
+    const world = WORLD_OBJECTIVES[p.number];
+    if (!world) continue;
+    if (board.world !== world) throw new Error(`${board.mapId}: objective ${p.number} stands on ${world} only, not ${board.world}`);
+    if (p.start) throw new Error(`${board.mapId}: nobody starts at objective ${p.number}`);
+  }
+}
+
 function checkStarts(board: Board) {
   const starts = board.planets.filter((p) => p.start);
   for (const p of starts) {
@@ -107,6 +123,7 @@ function layTile(cells: BoardCell[][], planets: Planet[], t: TileToken, tile: nu
 
 export function buildBoard(map: MapDef): Board {
   const board = buildHexBoard(map);
+  checkWorldObjectives(board);
   checkStarts(board);
   return board;
 }

@@ -2,6 +2,7 @@ import type { Rng } from '../rng';
 import { n } from '../svg';
 import { KEEP, OUTER } from './inks';
 import { cubePadCentres, numberCorner, type Spot } from '../tile/geometry';
+import { PLANET_CAPACITY } from '../tokens';
 import { SPACE, SCALE, SIZE, inside, polar, toward } from './core';
 import { H, biohazard, nuclear, type Part, placed, type Drawn, merged, disc, box, graded, glow, pipe, run } from './parts';
 import {
@@ -22,6 +23,8 @@ import {
   dish,
   crystals,
   fissures,
+  railgun,
+  skyhook,
 } from './buildings';
 import { landingPad, rover, crates, beacon, probe, tyreTracks } from './craft';
 
@@ -263,7 +266,7 @@ const SPREAD = [1, 1, 2, 2, 2, 3, 3, 3, 4];
  * the middle).
  */
 export function base(number: number, at: Spot, r: Rng): Drawn | undefined {
-  const pads = cubePadCentres(number - 6, 0, 0).map((p) => ({ x: p.x / SCALE, y: p.y / SCALE }));
+  const pads = cubePadCentres(PLANET_CAPACITY[number] ?? 0, 0, 0).map((p) => ({ x: p.x / SCALE, y: p.y / SCALE }));
   const ways = exits(r, at, number > 0);
   const count = r.pick(SPREAD);
   const centre = { x: SIZE / 2 + at.x * SPACE, y: SIZE / 2 + at.y * SPACE };
@@ -413,6 +416,42 @@ export function base(number: number, at: Spot, r: Rng): Drawn | undefined {
         // A radiation sign painted small in the middle of one of its four sockets, picked from the tile's seed, as the Ice Mine's sign is.
         nuclear(r.pick(pads), 1.4),
         ...around(49, '#ff7a1a'),
+      ]);
+    }
+    case 11: {
+      // The rail runs up and down through the hub, across its two sockets; the ground along it is kept clear.
+      const reach = 78;
+      for (let y = -reach; y <= reach; y += 16) taken.push({ x: 0, y, r: 10 });
+      return merged([
+        railgun(reach),
+        ...outskirtsOf(36, [
+          annex(1.2, [0.7, 0.8], tube(3, '#8d969c'), (r) => landingPad(r, '#7fd8ff'), 1.15),
+          annex(1, [0.6, 0.78], tube(2.5, '#8d969c'), containers, 1.5),
+          annex(1, [0.6, 0.78], tube(2.5, '#8d969c'), tankFarm, 1),
+          annex(0.6, [0.55, 0.72], tube(2, '#8d969c'), () => dish('#7fd8ff'), 1.2),
+        ]),
+        hub(pads, '#3a3836', H.deck, '#7fd8ff', { tint: '#c9c2b4' }, { tint: '#6f93a8' }),
+        ...around(36, '#7fd8ff'),
+      ]);
+    }
+    case 12: {
+      // The tether climbs off the tile towards the top left, away from the number; the cables hold it from the other sides.
+      const lift = r.pick([-150, -120, -60, -30]);
+      const [reach, mast] = [40, polar(lift, 54)];
+      taken.push(
+        { ...mast, r: 18 },
+        ...[lift + 115, lift - 115].map((a) => ({ x: mast.x + polar(a, reach).x, y: mast.y + polar(a, reach).y, r: 14 })),
+      );
+      return merged([
+        placed(mast.x, mast.y, skyhook(reach, lift)),
+        ...outskirtsOf(40, [
+          annex(1.2, [0.7, 0.8], tube(3, '#8d969c'), (r) => landingPad(r, '#ffe9a0'), 1.15),
+          annex(1, [0.6, 0.78], tube(2.5, '#8d969c'), containers, 1.5),
+          annex(1, [0.6, 0.78], tube(2.5, '#8d969c'), solar, BIG, true),
+          annex(0.6, [0.55, 0.72], tube(2, '#8d969c'), () => dish('#ffe9a0'), 1.2),
+        ]),
+        hub(pads, '#a59c90', H.deck, '#ffe9a0', { tint: '#c9c2b4' }, { tint: '#b8962e', band: ['#8a6a1c', 0.8] }),
+        ...around(40, '#ffe9a0'),
       ]);
     }
     default:
