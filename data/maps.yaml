@@ -348,14 +348,14 @@ maps:
     group: hex
     world: mars
     cubes: 7
-    stats: { slack: 5, shared: 3, planets: 11 }
-    # Starts at opposite corners, a 9 between them, and gaps and voids that break the straight lanes.
+    stats: { slack: 5, shared: 1, planets: 13 }
+    # Starts at opposite corners, a 9 between them, and gaps and two voids that break the straight lanes.
     layout:
-      - "8* 7  8"
-      - "7  .  0  8"
+      - "8* 7  7"
+      - "7  .  7  8"
       - ".  0  9  0"
-      - "8  0  .  7"
-      - ".  .  8  7  8*"
+      - "8  7  .  7"
+      - ".  .  7  7  8*"
 
   - id: trinary-wells
     name: Trinary Wells
