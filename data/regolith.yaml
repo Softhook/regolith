@@ -8,7 +8,7 @@
 # Text is in Regolith's words (REGOLITH-WORLD.md, *The words*). Ingenious is left out: hexes have no corners.
 # `art` is the brief its screenprint card is drawn from (§5); until then it shows the `from` card's picture.
 # Names and art were picked on the Regolith Card Picks page from docs/regolith/card-ideas.yaml (23 October 2026).
-# build-data.mjs builds this into packages/engine/src/regolith/cards.json.
+# build-data.mjs builds this into packages/engine/src/data/cards.json.
 
 skills:
   - id: r-agile

@@ -147,8 +147,8 @@ What a Regolith game shows today:
 - **The name**, in the lobby's mode menu and the game's top bar.
 - **The mech names and power texts**, everywhere a ship is named: board, sidebar, log, combat and the other
   overlays. They live in the mode's ship table (`SHIPS` in
-  [regolith/index.ts](../../packages/engine/src/regolith/index.ts)), and the engine and web app ask the
-  game's rules for a name (`shipOf`, `shipName`), so Community games keep Battlestation to Scout.
+  [ships.ts](../../packages/engine/src/ships.ts)), and the engine and web app ask the
+  game's rules for a name (`shipOf`, `shipName`), so each rule set can name its own mechs.
 - **Hex maps only**, on Phobos's, Deimos's and Mars's ground.
 - **The words** in the table above, across the game's text: log, hints, cards, panels and errors
   ([REGOLITH.md](REGOLITH.md) §7).

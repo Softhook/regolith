@@ -1,6 +1,6 @@
 /**
  * Times the paths that felt slow, in Chrome with its CPU slowed down (×4 by default, roughly a mid-range
- * phone such as the Moto G55), in a 4-player Community game:
+ * phone such as the Moto G55), in a 4-player Regolith game:
  *
  * - a card pop-up: the first one, the same again, a whole deck, and the deck again after a reload (art
  *   kept in IndexedDB);

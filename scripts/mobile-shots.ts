@@ -249,7 +249,7 @@ async function checkPopups(newPage: () => Promise<Page>, base: string, device: s
     const found = await box.evaluate((el, must) => {
       const b = el.getBoundingClientRect();
       const out: string[] = [];
-      // The market isn't a popup: it may run past the screen's foot, and Community's seven cards don't fit a phone's
+      // The market isn't a popup: it may run past the screen's foot, and seven cards don't fit a phone's
       // height at a readable size. Its cards must never be off to the side (a sideways scroll hid the third card of
       // a row); above or below the screen is fine when the panel or page they're in scrolls up and down.
       const popup = !el.matches('.market');

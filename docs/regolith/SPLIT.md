@@ -25,9 +25,8 @@ The rules of Regolith stay in [PROTOTYPING.md](PROTOTYPING.md) and its cards and
 ## What makes it cheap
 
 [REGOLITH.md §1](REGOLITH.md#1-the-rename) kept Regolith apart. The engine reaches it only through
-`RULESETS.regolith` ([rulesets.ts](../../packages/engine/src/rulesets.ts)). Its folder
-([packages/engine/src/regolith/](../../packages/engine/src/regolith)) uses the engine only through the
-prototype kit ([prototype.ts](../../packages/engine/src/prototype.ts)). The rest of the code asks the rule set
+`RULESETS.regolith` ([rulesets.ts](../../packages/engine/src/rulesets.ts)). Its mechs
+([ships.ts](../../packages/engine/src/ships.ts), [powers/](../../packages/engine/src/powers)) are the one place its powers live. The rest of the code asks the rule set
 (`contestedOrbit`, `words`, `look`, …), and `regolith.test.ts` checks it. Removing a mode means deleting
 its rule set and following the type errors.
 

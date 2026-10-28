@@ -1,6 +1,6 @@
 /**
  * Times the map's zoom and pan (useBoardZoom), in Chrome with its CPU slowed down (×4 by default, roughly a
- * mid-range phone such as the Moto G55), in a 4-player Community game: frame gaps while a gesture is under
+ * mid-range phone such as the Moto G55), in a 4-player Regolith game: frame gaps while a gesture is under
  * way, and the longest frame once it ends (when the new zoom is drawn crisp), with main-thread time for each.
  *
  * - desktop (mouse): wheel notches, a drag, the zoom buttons;

@@ -40,11 +40,8 @@ Done (23 October 2026). There were no users to keep, so the rename went all the 
 changing the label:
 
 - The mode's id is `'regolith'` (`GameMode` in [data.ts](../../packages/engine/src/data.ts), `RULESETS.regolith`
-  in [rulesets.ts](../../packages/engine/src/rulesets.ts)), its folder `packages/engine/src/regolith/` with
-  `regolithMode()` and the `REGOLITH_*` switches, its tests `regolith.test.ts`. The old ids (`'prototyping'`,
+  in [rulesets.ts](../../packages/engine/src/rulesets.ts)), its mechs in `ships.ts` and `powers/`, its tests `regolith.test.ts`. The old ids (`'prototyping'`,
   and `'cubic'` before it) are gone, aliases included: saved and online games under them are dropped.
-- The prototype kit ([prototype.ts](../../packages/engine/src/prototype.ts)) keeps its name: it is the engine's
-  surface for experimental rules, whichever mode uses it.
 - PROTOTYPING.md stays the design log of the rules, retitled as Regolith's, and keeps the word "prototyping" for the work, not the mode.
 - **Kept apart, for a later split.** So Regolith can one day leave for its own app on the shared packages,
   only its folder, rulesets.ts and the `GameMode` type name it, by id or name; everything else asks the rule
@@ -59,7 +56,7 @@ changing the label:
 
 Done (23 October 2026).
 
-- `regolithMode()` sets its own `mapGroups` rather than adding to Community's: `hex`, `open` and `drift`,
+- `REGOLITH` sets its own `mapGroups` rather than adding to Community's: `hex`, `open` and `drift`,
   all hex. Binary Reach, the one square drift map, moved to `drift-square`, which no mode plays for now.
 - Every hex map names its world in [data/maps.yaml](../../data/maps.yaml), and
   [build-data.mjs](../../scripts/build-data.mjs) refuses one that doesn't, so a map's world is a choice, not a
@@ -74,14 +71,13 @@ Done (23 October 2026).
 ## 3. Cards: data
 
 Done (23 October 2026). Regolith's cards have their own data file, so the deck can move away from Community
-one card at a time and `data/cards.yaml` stays the Community Edition record.
+one card at a time and the Community Edition record lives in its `from` fields.
 
 ```
 data/
-  cards.yaml          Community and Classic, as now
   regolith.yaml       Regolith's decks: Skills, Tactics, and the Expansion card (Reinforcements)
-packages/engine/src/regolith/
-  cards.json          built by scripts/build-data.mjs, in the mode's folder so it stays the mode's own
+packages/engine/src/data/
+  cards.json          built by scripts/build-data.mjs from regolith.yaml
 ```
 
 **Choosing names and art.** [card-ideas.yaml](card-ideas.yaml) holds three name candidates and three
@@ -116,16 +112,16 @@ Expansion card (`expansionCard(state)`, which the market and card flights ask).
 
 ## 4. Cards: rules
 
-- `regolithMode()` sets `cards` to Regolith's decks, with Community's market settings (starting draft,
-  peek, expansion pile, no refresh). `REGOLITH_CARDS` still switches cards off. `terms` names the decks.
+- `REGOLITH` ([rulesets.ts](../../packages/engine/src/rulesets.ts)) sets `cards` to Regolith's decks (starting draft,
+  peek, expansion pile, no refresh); Basic sets it to `null`. `terms` names the decks.
   Done (23 October 2026).
 - **No card is named by id in the rules.** Effects are found by `effectOf`, and the card held by
   `skillCard` (Ambitious discarded itself by the literal id `'ambitious'` until the Regolith deck showed it).
 - **Renamed cards** need no rules work: the engine resolves a card through `effectOf`, and the AI values
   cards by effect ([cardValues.ts](../../packages/ai/src/cardValues.ts)).
 - **Reworked and new cards** need new rules. Where an effect can be written as a hook, it goes in
-  `packages/engine/src/regolith/cards/`, one file per effect, like
-  [powers/](../../packages/engine/src/regolith/powers), so Community's rules can't change by accident. That
+  `packages/engine/src/cards/`, one file per effect, like
+  [powers/](../../packages/engine/src/powers), so Community's rules can't change by accident. That
   needs a card-hook surface in the kit next to `ShipHooks` (PROTOTYPING.md §9 *Adding a New Hook*), built
   when the first reworked card needs it. An effect too tangled for a hook goes into the engine's effects
   like any card, registered in `IMPLEMENTED_EFFECTS`, and only Regolith's deck deals it.
@@ -221,7 +217,7 @@ A card renamed in its own deck can say the words itself; the rewording leaves th
    folder are renamed (§1), the mode plays hex maps only, each with its world (§2), and its ships carry the
    mech names, which the engine and web app take from the game's rules.
 2. **Own deck.** *Done (23 October 2026):* `data/regolith.yaml` with the names picked on the Card Picks
-   page, the build step, `regolithMode()` dealing it, `DECKS` and the Art Lab listing it, drawn with
+   page, the build step, `REGOLITH` dealing it, `DECKS` and the Art Lab listing it, drawn with
    today's `cardSvg` and the Community pictures for now. The game plays as before, from its own deck.
 3. **Screenprint renderer.** *Done (23 October 2026):* inks, plates, the card layout and backs. Market,
    viewer, Art Lab and print exports use it.

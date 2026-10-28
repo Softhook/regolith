@@ -71,8 +71,7 @@ export function Market({
   const peekAt = (deck: DeckKind, cards: string[], index: number) =>
     peek && index === cards.length - 1 && cards.length === 3 && decks[deck].cards.length > 0;
   /**
-   * The cards a row shows. In the phone list, copies of a card are one row with a ×n badge (Classic can deal
-   * two Expansions); taking it takes the first copy. Elsewhere every card is its own.
+   * The cards a row shows. In the phone list, copies of a card are one row with a ×n badge; taking it takes the first copy. Elsewhere every card is its own.
    */
   const shown = (deck: DeckKind, cards: string[]) =>
     cards.flatMap((id, index) => {

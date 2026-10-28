@@ -47,7 +47,7 @@ export function Lobby({
   const [wanted, setWanted] = useState(2);
   const [online, setOnline] = useState(false);
   const [mode, setMode] = useState<GameMode>(storedMode);
-  // 5 players only has Community Edition maps; other rules fall back to their largest count.
+  // A count the rules have no map for falls back to their largest.
   const counts = playerCounts(RULESETS[mode]);
   const count = counts.includes(wanted) ? wanted : counts[counts.length - 1];
   // Each way of playing keeps its own seats: AI opponents on this device, friends online.

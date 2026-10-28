@@ -18,7 +18,7 @@ import { defaultSeat } from './seats';
 
 /**
  * Dev server only: a link that skips the lobby, for checking a layout on a phone and for
- * scripts/mobile-shots.ts. `?play=classic&players=4&map=tesseract&seed=7` starts that game with
+ * scripts/mobile-shots.ts. `?play=regolith&players=4&map=tesseract-hex&seed=7` starts that game with
  * one human (Commander) and AI opponents. `play` is a mode's id or name; `map` defaults to the
  * basic map for the player count; `seed` makes the dice the same every time. Reloading starts the
  * game again. Like any game on this device, it replaces the saved game.
@@ -51,7 +51,7 @@ export function devStartGame(): GameState | null {
 
 /**
  * Plays every seat's first choice through setup and on to the human's (player 0's) first turn, then
- * opens a popup: `combat` (the human's ship attacks and may answer, e.g. with a missile in Community), `advance` (it has won and
+ * opens a popup: `combat` (the human's ship attacks and may answer, e.g. with a missile), `advance` (it has won and
  * chooses whether to advance), `changeOfHeart` (needs a mode with cards), `takeCard` (a card to pick from the market, likewise) or
  * `over` (the human has won). `win` leaves the human one cube to place, with ships orbiting a planet they can conquer;
  * `lose` stops at the next player's (an AI's) first turn instead, and leaves them so.

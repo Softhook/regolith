@@ -110,11 +110,11 @@ and add its candidates to `DECISION_CANDIDATES` (`legal.ts`) and every answer wo
 `DECISION_BRUTE_FORCE` (`test/decisions.ts`); the compiler asks for both. If it can have no legal answer, add an
 `AUTO_RESOLVE` entry in `turn.ts`.
 
-**Add a Tactic.** Add the card to `data/cards.yaml`, its effect to `TACTIC_EFFECT_IDS` in `effects.ts`,
+**Add a Tactic.** Add the card to `data/regolith.yaml`, its effect to `TACTIC_EFFECT_IDS` in `effects.ts`,
 then its implementation to `TACTIC_EFFECTS` in `cards.ts` (the compiler asks for it). It joins the deck
 automatically, and `data.test.ts` drops it from the not-yet-implemented list.
 
-**Add a Skill.** Add the card to `data/cards.yaml` and its effect to `SKILL_EFFECTS` in `effects.ts`;
+**Add a Skill.** Add the card to `data/regolith.yaml` and its effect to `SKILL_EFFECTS` in `effects.ts`;
 the compiler then asks for its entry in `SKILL_RULES` (`skillRules.ts`). An entry is a set of hooks the
 rules read — `movement`, `conquer.sums`, `combat.modifier`, `startOfTurn`, `onDestroy`… — so a skill
 is defined in one place. If no hook fits, add one to `SkillRule` and read it where the rule lives

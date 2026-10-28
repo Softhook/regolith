@@ -144,7 +144,7 @@ function look(page: Page, tapsThisTurn: number, tried: string[], want: Want | nu
       if (el) {
         el.setAttribute('data-play', '1');
         // A card to take may be below the fold of the sheet or column, which the player scrolls up to (seven
-        // Community cards don't fit a phone's height); off to the side is still a problem (mobile-shots' rule).
+        // cards don't fit a phone's height); off to the side is still a problem (mobile-shots' rule).
         if (el.closest('.market')) {
           const b = el.getBoundingClientRect();
           if (b.top < 0 || b.bottom > innerHeight) el.scrollIntoView({ block: 'nearest', behavior: 'instant' });
