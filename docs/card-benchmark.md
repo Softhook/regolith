@@ -2,7 +2,7 @@
 
 Regolith's cards measured by AI self-play, 2026-10-25: about 50,000 two-player games at level 2. Every number
 here is a measure of the cards **as the AI plays them**; see [Limits](#limits). The same skills were measured in
-Quantum's Community rules as a control, while Regolith was a mode of Cubic; that column is kept for comparison.
+the Community rules as a control, while Regolith was a mode of Cubic; that column is kept for comparison.
 The AI's card values ([cardValues.ts](../packages/ai/src/cardValues.ts)) come from these runs and Cubic's
 earlier Community benchmark (2026-10-09, in this repo's history).
 

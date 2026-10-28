@@ -1,5 +1,5 @@
 /**
- * Basic mode, rule by rule. Regolith's rules start from the 2013 FunForge rulebook (Quantum_rules_US.pdf), and the page numbers here are its printed ones; Basic is Regolith with the cards
+ * Basic mode, rule by rule. Regolith's rules start from the 2013 FunForge rulebook, and the page numbers here are its printed ones; Basic is Regolith with the cards
  * left out (docs/regolith/PROTOTYPING.md). The 5 and 6, the movement cap, zones of control and
  * contested orbits are pinned in regolith.test.ts.
  *
@@ -491,7 +491,7 @@ describe('dominance and infamy (p.9)', () => {
   });
 });
 
-describe('quantum entanglement (designer errata, BGG thread 1087563)', () => {
+describe('entanglement (designer errata, BGG thread 1087563)', () => {
   // Every planet with room already holds player 0's cube: planet 4 (size 8) has one free location.
   const full = { 0: [1], 1: [1], 2: [0], 3: [1], 4: [0], 5: [1], 6: [1], 7: [1], 8: [1] };
 

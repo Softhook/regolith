@@ -5,8 +5,7 @@ in-game *How to play* and the printable `#rulebook`). The manual teaches; this f
 precisely, with the rulings a rules engine needs and the engine's name for each thing. Where the two disagree,
 the engine and its tests ([`packages/engine/test/`](../packages/engine/test)) are right and both texts are fixed.
 
-Regolith began as the Community Edition of *Quantum* (Eric Zimmerman, FunForge 2013) and was split off from
-Cubic on 2026-10-27 ([SPLIT.md](regolith/SPLIT.md)). How each rule came to be, and what was tried, is in
+Regolith was split off from Cubic on 2026-10-27 ([SPLIT.md](regolith/SPLIT.md)). How each rule came to be, and what was tried, is in
 [PROTOTYPING.md](regolith/PROTOTYPING.md); the cards, look and words in [REGOLITH.md](regolith/REGOLITH.md).
 
 ## Rule sets
@@ -22,7 +21,7 @@ Both are `RuleSet`s in [`rulesets.ts`](../packages/engine/src/rulesets.ts); Basi
 
 ## Words
 
-The engine keeps Quantum's identifiers; players read Regolith's words (REGOLITH.md §7).
+The engine keeps its original identifiers; players read Regolith's words (REGOLITH.md §7).
 
 | Players read | Engine | Notes |
 |---|---|---|
@@ -87,7 +86,7 @@ may share a space: a mech there is on both.
 **Claim** counts every one of your mechs on the perimeter: none can be left out. The objective needs a free cube
 space and none of your cubes. Mechs off the perimeter, and barriers on it, never count.
 
-**Back to your own** (Quantum's Entanglement): once every objective with room holds one of your cubes, you may
+**Back to your own** (Entanglement): once every objective with room holds one of your cubes, you may
 claim one you are already on. The sum needed rises by 3 for each of your cubes there.
 
 ### Holding ground
@@ -155,7 +154,7 @@ The moment your last cube is placed, you win.
 ## Rulings
 
 Settled questions the card text or the rules above leave open. Each is cited from the code as
-*RULES.md ruling N*. Most were decided while these cards were Quantum's (in Cubic's `OPEN-QUESTIONS.md` and
+*RULES.md ruling N*. Most were decided while these cards were the original ones (in Cubic's `OPEN-QUESTIONS.md` and
 `RULE-SUGGESTIONS.md`, kept in this repo's history); the card names here are Regolith's, with their `effect`.
 
 1. **Combat roll order.** Roll (Paired Cannons, `brutal`: the lower of 2) → set (Drill Sergeant, `rational`: 3;

@@ -1,6 +1,6 @@
 # Regolith card text ideas: shorter rules text and subtitles to choose from (docs/regolith/REGOLITH.md §3).
 #
-# data/regolith.yaml's text is still Quantum's sentence with Regolith's nouns swapped in. These rewrites keep
+# data/regolith.yaml's text is still the original sentence with Regolith's nouns swapped in. These rewrites keep
 # each card's action and say it the Regolith way: trigger first ("Once per turn, …", "When Claiming, …",
 # "When you first destroy an enemy mech each turn, …"), game terms capitalised (Power, Research, Atomic,
 # Combat roll, Move, Drop, Refit, Claim), and a subtitle that says what the card does in 2–4 words.

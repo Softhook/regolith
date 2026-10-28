@@ -101,7 +101,7 @@ still fits.
 
 ## Objectives
 
-The planets of Quantum are the sites worth holding. Their number is what it takes to claim them, so the
+The planets are the sites worth holding. Their number is what it takes to claim them, so the
 bigger the site, the more it is worth fighting for.
 
 | Number | Objective | What it is |
@@ -116,15 +116,15 @@ Props on the board and on cards: bunker, comms mast, drop pod, barricade, boulde
 
 ## The words
 
-How Quantum's terms read in Regolith. Those that stay the same are listed too, so it is clear they were
+How the original terms read in Regolith. Those that stay the same are listed too, so it is clear they were
 decided, not forgotten.
 
-| Quantum | Regolith |
+| Original | Regolith |
 |---|---|
 | Ship | **Mech** |
 | Planet | **Objective** |
 | Orbit, orbital positions | **Perimeter** |
-| Quantum cube | **Cube** |
+| Original cube | **Cube** |
 | Conquer | **Claim** |
 | Dominance | **Power** |
 | Research | **Research** |

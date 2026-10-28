@@ -132,7 +132,7 @@ from the layout and fails if they disagree. A map's setup sheet for the table co
 
 | Test | Guards |
 |---|---|
-| [`basic.test.ts`](../packages/engine/test/basic.test.ts) | Every rule Basic inherits from Quantum's 2013 rulebook, one scenario each, citing its page |
+| [`basic.test.ts`](../packages/engine/test/basic.test.ts) | Every rule Basic inherits from the 2013 FunForge rulebook, one scenario each, citing its page |
 | [`regolith.test.ts`](../packages/engine/test/regolith.test.ts) | Regolith's own rules: the movement cap, zones of control, Shoot, Barrier, contested perimeters |
 | [`hex.test.ts`](../packages/engine/test/hex.test.ts), [`offset.test.ts`](../packages/engine/test/offset.test.ts) | Hex geometry; objectives off the middle of their tiles |
 | [`engine.test.ts`](../packages/engine/test/engine.test.ts) | Card effects, modes, missiles, undo |

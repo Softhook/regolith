@@ -1,6 +1,6 @@
 /**
  * The mechs (docs/regolith/REGOLITH-WORLD.md, *The six mechs*), by die value, and the hooks a power plugs into
- * (ShipHooks). The 1 to 4 have Quantum's powers, built into the engine (ShipPower); the 5 strikes at range and
+ * (ShipHooks). The 1 to 4 have the classic powers, built into the engine (ShipPower); the 5 strikes at range and
  * the 6 fires barriers, each a power of its own in powers/, and every mech has a zone of control (Picket).
  *
  * To try a change: how a power works or its text, its file in powers/; a power on another mech, move it in

@@ -820,8 +820,8 @@ export function Manual({ dark }: { dark?: boolean }) {
       </section>
 
       <footer className="mn-credits">
-        {GAME_NAME} by Christian Nold is a non-commercial game inspired by <i>Quantum</i> by Eric Zimmerman (FunForge, 2013) and its
-        fan-made Community Edition. Quantum is a trademark of its owners; this manual is an independent text.
+        {GAME_NAME}, a game by Christian Nold, is inspired by <i>Quantum</i> by Eric Zimmerman and its fan-made Community Edition, by{' '}
+        <i>Santorini</i> by Gord! and by <i>Amazons</i> by Walter Zamkauskas.
       </footer>
     </article>
   );

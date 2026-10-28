@@ -506,8 +506,8 @@ Needed for async play (phase 4), public play, or if P2P connections fail too oft
 ### Phase 6 — Public play (only if we want strangers to play)
 - [ ] Open lobbies / matchmaking, ratings.
 - [ ] Moderation basics (chat filter, report, block).
-- [ ] **Credit and licence settled first** ([ROADMAP.md](ROADMAP.md#project)): Regolith's rules come
-      from Quantum's, whose name and trade dress belong to its publisher.
+- [ ] **Credit and licence settled first** ([ROADMAP.md](ROADMAP.md#project)): Regolith's rules are
+      inspired by other games; credit them properly.
 
 **Rough total:** phases 0–3 about 2–3 weeks (play with friends, real-time, with AI);
 phase 4 another 1–2 weeks.

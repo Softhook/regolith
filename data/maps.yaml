@@ -18,7 +18,7 @@
 # loses spaces off the map's edge, and may overlap another planet's: a ship there counts for both. Each
 # starting planet needs 3 orbital spaces no other start shares.
 #
-# Groups: hex (Quantum's maps adapted to hex tiles), open (maps spread out with blank tiles),
+# Groups: hex (the classic square maps adapted to hex tiles), open (maps spread out with blank tiles),
 #         drift (planets off the middle of their tiles).
 #
 # world: phobos | deimos | mars, on every map. The surface the map lies on, which its tiles show. Phobos is

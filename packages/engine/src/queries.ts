@@ -646,7 +646,7 @@ export function conquerCheck(state: GameState, player: PlayerId, planetId: numbe
     if (!replace.length) return fail('No opponent cube to displace');
     target = OVER_CONQUEST_TARGET;
   } else if (own > 0) {
-    // Quantum Entanglement: only once you hold every planet that still has room.
+    // Entanglement: only once you hold every planet that still has room.
     const blocked = state.board.planets.some((p) => planetFreeSlots(p) > 0 && !p.cubes.includes(player));
     if (blocked) return fail('You already have a cube here');
     target += 3 * own;
@@ -678,7 +678,7 @@ export function conquerCheck(state: GameState, player: PlayerId, planetId: numbe
   return fail(`Perimeter totals ${sum}, needs ${target}${blockade}`, all, sum);
 }
 
-/** Any planet without your cube; if none has room, Quantum Entanglement allows your own planets. */
+/** Any planet without your cube; if none has room, Entanglement allows your own planets. */
 export function infamyTargets(state: GameState, player: PlayerId): Planet[] {
   const open = state.board.planets.filter((p) => planetFreeSlots(p) > 0);
   const fresh = open.filter((p) => !p.cubes.includes(player));

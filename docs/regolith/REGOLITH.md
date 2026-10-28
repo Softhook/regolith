@@ -191,12 +191,12 @@ packages/art/src/screenprint/
 
 The names, words and story are kept in one place, [REGOLITH-WORLD.md](REGOLITH-WORLD.md): the six mechs
 (Breacher, Behemoth, Tactician, Chameleon, Sniper, Wisp), the objectives (Habitat, Refinery, Ice Mine, Reactor,
-Sinkhole), the sides, and how each Quantum term reads in Regolith.
+Sinkhole), the sides, and how each original term reads in Regolith.
 
 The game says them everywhere (22 October 2026): `RuleSet.words` (engine `words.ts`) is the mode's
 vocabulary, REGOLITH-WORLD.md's table as `REGOLITH_WORDS` (`regolith/words.ts`), and `reword` / `say`
 put a text in it, with its case and article ("a planet" → "an objective") and with players' names kept.
-The engine, its log and the card data stay in Quantum's words; the web app rewords what it shows: the
+The engine, its log and the card data stay in the original words; the web app rewords what it shows: the
 log and toasts (`logText`), hints, rule errors, cards (`CardView`, through `useSay` from GameScreen),
 modals, tips, and the ship, planet and player panels. A new string in the game UI goes through `say` too.
 A card renamed in its own deck can say the words itself; the rewording leaves them as they are.

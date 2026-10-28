@@ -9,7 +9,7 @@ Status: **Steps 0, 1 and 2 done; Step 3 done in emulation (layout, every popup a
 portrait and landscape). On the real Moto G55 so far: the default map (fine) and Asymptote
 (broken, fixed since); see *Progress* below.
 
-Everything dated before 2026-10-27 was measured while this was Cubic, on Quantum's modes and square maps
+Everything dated before 2026-10-27 was measured while this was Cubic, on the earlier modes and square maps
 (Classic, Community, 3×3 to 7×7 tiles). Regolith plays hex maps only, in two modes, Basic and Regolith; the
 findings about layout hold, the map sizes and mode names in them are Cubic's.
 

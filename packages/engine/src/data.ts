@@ -84,14 +84,14 @@ export function cardKind(id: string): 'skill' | 'tactic' | 'expansion' {
 }
 
 /**
- * Quantum's ship powers the 1 to 4 keep, built into the engine: ship identity is "has power X", not a die value,
+ * The ship powers the 1 to 4 keep, built into the engine: ship identity is "has power X", not a die value,
  * so a die value could be given a different power (RuleSet.ships).
  */
 export type ShipPower = 'strike' | 'transport' | 'warp' | 'modify';
 
 export interface ShipDef {
   name: string;
-  /** A built-in power (Quantum's). */
+  /** A built-in power. */
   power?: ShipPower;
   /** A power as hooks (ships.ts). A ship with hooks and no `power` has no once-per-turn ability. */
   hooks?: ShipHooks;

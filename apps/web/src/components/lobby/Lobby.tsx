@@ -192,9 +192,7 @@ export function Lobby({
         <a href="#rulebook">Manual (PDF)</a>
         <a href="#lab/cards">Art Lab: cards &amp; tiles</a>
       </nav>
-      <p className="credits">
-        Regolith by Christian Nold is inspired by Quantum by Eric Zimmerman and its fan-made Community Edition. Non-commercial fan project.
-      </p>
+      <p className="credits">Regolith, a game by Christian Nold.</p>
       <VersionLine />
     </div>
   );

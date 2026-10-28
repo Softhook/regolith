@@ -31,7 +31,7 @@ each match stopped once the sequential test decided it (SPRT, 10-point margin):
 | Fleet Admiral vs Admiral | 54 – 29 (92, 9 unfinished) | 34 – 16 (50) |
 
 Every level beats the one below on both modes. An unfinished game hit the step cap (3,000 actions) without a
-winner; only Basic had any. The rest of this section was measured on Quantum's modes, before the split:
+winner; only Basic had any. The rest of this section was measured on the earlier square-board modes, before the split:
 
 Fleet Admiral beat Admiral 118 – 82 over 200 games (59%, z = 2.55, p ≈ 0.01; 2026-10-09, before
 the reply-scoring fix below), at about twice Admiral's thinking time. Settings that spend more time
@@ -73,11 +73,11 @@ a difference of a few percent (the script prints z; |z| > 2 is about p < 0.05).
 ## What was wrong with the original AI
 
 The original AI is kept as level 1. Self-play showed it rarely fought (about one attack per Basic
-game, with dominance often never leaving 1), re-rolled ships with no purpose, and in Quantum's Original
+game, with dominance often never leaving 1), re-rolled ships with no purpose, and in the Original
 mode researched about 27 times a game. The causes were assumptions built into its design:
 
 1. **One action at a time.** It scored each action on its own and never planned how a turn's three
-   actions work together. In Quantum the strong moves are combinations ("move A out, move B in,
+   actions work together. In this game the strong moves are combinations ("move A out, move B in,
    conquer").
 2. **No idea of the opponent's next turn.** The score was a snapshot. It didn't know whose turn was
    next, and it ignored enemy threats like a conquest that will happen next turn. Its danger term

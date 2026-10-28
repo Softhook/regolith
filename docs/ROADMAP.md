@@ -19,7 +19,7 @@ order. Done work is in the git history; how the rules got here is in [PROTOTYPIN
 
 ## AI
 
-- [ ] Measure the levels on Basic and Regolith (`npm run ai:match`), as they were tuned on Quantum's modes.
+- [ ] Measure the levels on Basic and Regolith (`npm run ai:match`), as they were tuned on the earlier modes.
 - [ ] Card values from Regolith's own benchmark, not Community's ([cardValues.ts](../packages/ai/src/cardValues.ts)).
 - [ ] Better play with more than 2 players (who attacks whom).
 

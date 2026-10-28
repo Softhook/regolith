@@ -5,7 +5,9 @@ walk your mechs into the ground around a refinery or reactor, hold it, and plant
 can't pull them out. It is played with dice as mechs on hex tiles, in the browser or printed at a table.
 
 Regolith is inspired by [Quantum](https://boardgamegeek.com/boardgame/143519/quantum) (Eric Zimmerman,
-FunForge 2013) and its fan-made [Community Edition](https://github.com/stolksdorf/quantum).
+FunForge 2013) and its fan-made [Community Edition](https://github.com/stolksdorf/quantum), by
+[Santorini](https://boardgamegeek.com/boardgame/194655/santorini) (Gord!) and by
+[Amazons](https://boardgamegeek.com/boardgame/2978/game-of-the-amazons) (Walter Zamkauskas).
 
 **Play it:** [softhook.github.io/regolith](https://softhook.github.io/regolith/). It runs in the browser,
 installs to a phone or tablet home screen and plays offline.
@@ -86,9 +88,9 @@ More tools, all headless:
 | [GRAPHICS.md](docs/GRAPHICS.md) | The art package, Art Lab and print pipeline |
 | [Mood board](docs/moodboards/regolith/README.md) | The look: ground, mechs, cards and objectives |
 
-## Credits
+## Inspiration
 
 - **Quantum** — designed by Eric Zimmerman, published by FunForge.
 - **Community Edition** — [stolksdorf/quantum](https://github.com/stolksdorf/quantum) and contributors.
-
-This is a non-commercial project.
+- **Santorini** — designed by Gord!.
+- **Amazons** — designed by Walter Zamkauskas.

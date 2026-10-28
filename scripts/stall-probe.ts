@@ -130,7 +130,7 @@ function standing(s: GameState, p: PlayerId): Standing {
   const roomy = s.board.planets.filter((q) => planetFreeSlots(q) > 0);
   const live = roomy.some((planet) => {
     const own = planet.cubes.filter((x) => x === p).length;
-    // Quantum Entanglement: a second cube only once you hold every planet with room.
+    // Entanglement: a second cube only once you hold every planet with room.
     if (own && roomy.some((q) => !q.cubes.includes(p))) return false;
     const open = orbitals(s.board, planet).filter((c) => area.has(`${c.r},${c.c}`)).length;
     return open > 0 && 6 * open + bonus >= planet.number + 3 * own;
