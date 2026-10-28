@@ -28,7 +28,7 @@ Regolith started as the Community Edition of Quantum and has moved away from it.
 | **Current** | A ship's die value contributes at most **3** movement; skill bonuses apply after that cap. |
 | **Current** | **Zones of control:** every ship pickets the 6 spaces sharing a side (not diagonals) as a mode rule, not a ship power. Diagonals were dropped (2026-10-12) because most ships can't attack diagonally from where they stop. An enemy ship that moves into one must stop there (it may still attack from there; one that starts its move there may leave). Friendly ships are never stopped, and a player with the **Devious** skill ignores zones (ruling 2026-10-12; the card text is unchanged). |
 | **Current** | The **5 Interceptor** replaces its diagonal Manoeuvre ability with **Shoot**: spend one action to attack the first enemy in a clear straight line (one out of each of its space's 6 sides) without advancing. Shooting is that ship's action for the turn. |
-| **Current** | **Contested orbit** (§6.8, since 2026-10-21): a planet can't be conquered while an opponent's ship is in one of its orbital positions. Friendly ships never block, ships beside the orbit don't, and Infamy ignores it. |
+| **Current** | **Contested orbit** (§6.8, since 2026-10-21): a planet can't be conquered while an opponent's ship is in one of its orbital positions. Friendly ships never block, ships beside the orbit don't, and Take Over ignores it. |
 | **Current** | **Contested deploy** (§6.8, since 2026-10-21): no deploying into a planet's orbit while an opponent's ship is in it, by any route (Deploy, Expansion, Stealthy), **except to your own home planet** (home shipyard). |
 | **Off** | **Over-conquest** (§6.10): replacing an opponent's cube with an orbit of exactly **12**. Off since 2026-10-21; `REGOLITH_OVER_CONQUEST` in [rulesets.ts](../../packages/engine/src/rulesets.ts) turns it back on. |
 | **Current** | The **6 Scout** (Wisp) replaces Free Reconfigure with **Barrier** (since 2026-10-24): once a turn, for no action and besides its move, it fires a barrier onto any empty space in a clear straight line out of a side of its space, at any distance (stopped as a shot is). A barrier is permanent and can't be destroyed: no ship moves into or through its space, deploys onto it or shoots through it. It may sit in a planet's orbital position, holding that space, but never counts towards a conquest or contests the orbit. There is no limit on how many barriers are on the map. |
@@ -415,20 +415,20 @@ or trusted hosts for online games.
 
 **Status: current since 2026-10-21** (`RuleSet.contestedOrbit`, `orbitBlockers` in
 [queries.ts](../../packages/engine/src/queries.ts)), with over-conquest switched off. Rulings as proposed below:
-Infamy ignores the blockade, and only opponents' ships in the orbital
+Take Over ignores the blockade, and only opponents' ships in the orbital
 positions do. The AI counts each blocker as an attack before the conquest, by a ship of its own (`clearing`
 in [evaluate.ts](../../packages/ai/src/evaluate.ts)). The board marks a planet whose orbit makes the sum but is
 blocked, and its info and the turn hint say why. With the Sergeant AI in every seat, 200 games per map
 (same seeds, against over-conquest without the blockade):
 
-| Map | Rounds | Conquests | Infamy | Attacks | Unfinished |
+| Map | Rounds | Conquests | Take Over | Attacks | Unfinished |
 |---|--:|--:|--:|--:|--:|
 | Alpha Sector | 7.5 → 9.8 | 5.8 → 5.1 | 0.4 → 0.7 | 5.2 → 8.3 | 0 |
 | Beta Sector | 9.2 → 11.5 | 7.2 → 6.1 | 1.3 → 1.9 | 15.3 → 19.9 | 0 |
 | Gamma Sector | 9.9 → 13.2 | 7.5 → 4.7 | 2.4 → 3.6 | 29.4 → 39.7 | 0 |
 
 Most of it is the blockade: with over-conquest off and no blockade, games run as before except on Gamma
-(+0.8 rounds). About 40% of Alpha games and 70% of Beta and Gamma ones end on an Infamy cube, against
+(+0.8 rounds). About 40% of Alpha games and 70% of Beta and Gamma ones end on an Take Over cube, against
 17–47% without the blockade. The AI barely parks ships in orbit on purpose, so with people, who will,
 games may well run longer.
 
@@ -474,9 +474,9 @@ enemy fleet. Requiring a clear orbit changes the dynamics:
   opponent's cube, so that opponent can always Deploy there. A sum of exactly 12 now also requires
   a clear orbit, which may tip over-conquest from "hard" to "almost never". If so, the anti-leader
   lever disappears just when leaders can afford to garrison.
-- **Infamy stays the way out.** Each won attack gives +1 dominance, so clearing blockers pushes
-  the attacker towards Infamy, which ignores orbital positions. Sieges therefore pay off even when
-  the conquest itself fails. Keep Infamy unaffected by the blockade (see rulings below).
+- **Take Over stays the way out.** Each won attack gives +1 dominance, so clearing blockers pushes
+  the attacker towards Take Over, which ignores orbital positions. Sieges therefore pay off even when
+  the conquest itself fails. Keep Take Over unaffected by the blockade (see rulings below).
 - **Cheap denial in multiplayer.** Any opponent blocks, including a third player who has no
   interest in the planet. One spare ship can deny a planet to the leader (good) or to whoever is
   catching up (kingmaking).
@@ -484,7 +484,7 @@ enemy fleet. Requiring a clear orbit changes the dynamics:
   sum, not the blockade, so a planet with a blocker stays locked whatever they add.
 
 **Rulings** (made as proposed, 2026-10-21, except 4, which is untried).
-1. Does **Infamy** ignore the blockade? *Proposed: yes*, since Infamy already ignores orbital
+1. Does **Take Over** ignore the blockade? *Proposed: yes*, since Take Over already ignores orbital
    positions, and it keeps a release valve.
 2. Do enemy ships beside the orbit block? *Proposed: no.* Only the orbital positions block, for every
    player, so there is one rule to remember.
@@ -563,11 +563,11 @@ Same games, with the home shipyard (*off* = no contested deploy; re-blocks at ho
    doesn't block until its owner's next turn. No lockout is possible; it needs a marker per ship.
 
 **Build (done).** `orbitBlockers` in [queries.ts](../../packages/engine/src/queries.ts), read by
-`conquerCheck` behind `RuleSet.contestedOrbit`, so only Regolith sees it. Infamy goes through a
+`conquerCheck` behind `RuleSet.contestedOrbit`, so only Regolith sees it. Take Over goes through a
 separate path and is unaffected. The AI has a term for attacking blockers (`clearing`) but not yet one
 for garrisoning its own planets, so self-play still understates the rule.
 
-**Test.** Game length, attacks per conquest, share of conquests made through Infamy,
+**Test.** Game length, attacks per conquest, share of conquests made through Take Over,
 over-conquest frequency, and how often a player Deploys back into a planet they are defending.
 Watch for stalled games where every high-value planet is garrisoned.
 
@@ -703,7 +703,7 @@ The 4's Modify is still active; the 6's Free Reconfigure became Barrier (2026-10
 - **Contested deploy**: no deploying into a contested orbit by any route, including Expansion and
   Stealthy; a space two orbits share is closed if either orbit is contested. Your home planet's orbit is
   always open to you (home shipyard).
-- **Contested orbit**: only opponents' ships in the orbital positions block; Infamy ignores it; an
+- **Contested orbit**: only opponents' ships in the orbital positions block; Take Over ignores it; an
   on off-centre maps a space two orbits share blocks both
   planets (§6.8).
 - **Over-conquest** (off) is optional alongside an ordinary conquest when an opponent cube is present. It
@@ -719,7 +719,7 @@ earlier Shoot) measured a different configuration and are not evidence for these
 | Date | What | Where | Finding |
 |---|---|---|---|
 | 2026-10-20 | Cap, zones of control, Shoot, cards, over-conquest; 20 games per map | [HEX.md](../HEX.md) *Measurements* | Zones of control halve the fighting; Gamma Sector no longer runs long; no game stalled. |
-| 2026-10-21 | Contested orbit against over-conquest; 200 games per map | §6.8 | Games 2–3 rounds longer, fewer conquests, more attacks and Infamy; no game unfinished. |
+| 2026-10-21 | Contested orbit against over-conquest; 200 games per map | §6.8 | Games 2–3 rounds longer, fewer conquests, more attacks and Take Over; no game unfinished. |
 | 2026-10-21 | Contested deploy on and off; 200 games per map, 2–4 players | §6.8 | Ends the re-block loop (up to 10 a game with 4 players) and shortens games, but locks players out in 12–40% of 4-player games. With the home shipyard: no lockouts, and 60–85% of the loop still gone. |
 | 2026-10-21 | Interaction, Alpha Sector, with and without cards | [HEX.md](../HEX.md) *Interaction* | Interaction ratio 0.44 without cards and 0.39 with; harm comes as much from moves as attacks. Cards make games more solitary. Cards don't change how often the stronger AI wins. |
 | 2026-10-25 | Card balance: every Regolith skill against none, with Community as a control; 2,000 drafted games | [card-benchmark.md](../card-benchmark.md) | Defence gets stronger: Unstable Reactor and Entrenched gain ~10 points and lead with Science Survey and Field Refit (75–85%). Remodel and Engineering are worth nothing here; Sneak does nothing. |

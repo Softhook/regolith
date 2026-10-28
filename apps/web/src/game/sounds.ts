@@ -108,7 +108,7 @@ export function soundsFor(
   if (next.players.some((pl, i) => pl.missiles > prev.players[i].missiles)) effects.add('missileLoad');
   if (next.gates.length > prev.gates.length) effects.add('portal');
 
-  // The tracks, unless a louder sound already says so: a breakthrough (research), Infamy or a kill (dominance).
+  // The tracks, unless a louder sound already says so: a breakthrough (research), Take Over or a kill (dominance).
   const rose = (k: 'research' | 'dominance') => next.players.some((pl, i) => pl[k] > prev.players[i][k]);
   if (rose('research') && !first.has('breakthrough')) effects.add('research');
   if (rose('dominance') && !destroyed && !first.has('infamy')) effects.add('dominance');

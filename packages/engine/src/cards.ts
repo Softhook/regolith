@@ -232,7 +232,7 @@ export const cardHandlers = {
     const id = a.takeTop ? (head.deck === 'skill' ? s.market.skillDeck : s.market.tacticDeck).shift()! : takeFromRow(s, head.deck, 2);
     takeOrStore(s, head.player, id, head.store);
   },
-  /** Profiteering: a pick earned by a Conquer action (not by Infamy; RULES.md ruling 7) becomes 1 missile. */
+  /** Profiteering: a pick earned by a Conquer action (not by Take Over; RULES.md ruling 7) becomes 1 missile. */
   profiteer(s) {
     const head = headOf(s, 'takeCard', 'Not taking a card');
     if (!canProfiteer(s)) fail('No card for claiming to trade');

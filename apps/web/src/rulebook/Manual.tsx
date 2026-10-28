@@ -433,7 +433,7 @@ export function Manual({ dark }: { dark?: boolean }) {
             </p>
           </div>
           <div className="mn-route">
-            <h3>Become infamous</h3>
+            <h3>Take Over</h3>
             <div className="mn-route-fig">
               <Track at={5} next tone="dom" end={<CubeIcon size={18} />} />
             </div>
@@ -654,7 +654,7 @@ export function Manual({ dark }: { dark?: boolean }) {
             <ContestedFigure />
             <figcaption>
               <b>Contested perimeters.</b> While an enemy mech is on an objective’s perimeter, nobody else can claim it or drop a mech onto
-              its perimeter, except onto the perimeter of your own home objective. Infamy ignores it.
+              its perimeter, except onto the perimeter of your own home objective. A Take Over ignores it.
             </figcaption>
           </figure>
         </div>
@@ -699,7 +699,7 @@ export function Manual({ dark }: { dark?: boolean }) {
 
         <div className="mn-two">
           <div className="mn-box">
-            <h3>Infamy</h3>
+            <h3>Take Over</h3>
             <Track at={6} tone="dom" end={<CubeIcon size={18} />} />
             <p>
               When your Power reaches 6, place a cube right away on any objective with room and none of your cubes, contested or not. Then
@@ -731,7 +731,7 @@ export function Manual({ dark }: { dark?: boolean }) {
               <PlanetIcon n={7} size={30} />
             </span>
             <p>
-              <b>1 card for each objective</b> you claimed this turn, Infamy included.
+              <b>1 card for each objective</b> you claimed this turn, Take Over included.
             </p>
           </div>
           <div className="mn-earn">
@@ -810,11 +810,11 @@ export function Manual({ dark }: { dark?: boolean }) {
           </li>
           <li>
             <b>Back to your own.</b> Once every objective with room already has one of your cubes, you may claim one you’re already on. The
-            sum needed rises by 3 for each of your cubes there. Infamy can also place a cube there.
+            sum needed rises by 3 for each of your cubes there. A Take Over can also place a cube there.
           </li>
           <li>
-            <b>Cards earned on someone else’s turn</b>, such as through Infamy, are taken after the active player’s. A bonus turn from a
-            card is played at once, and any cards still owed are taken at the end of it.
+            <b>Cards earned on someone else’s turn</b>, such as through a Take Over, are taken after the active player’s. A bonus turn from
+            a card is played at once, and any cards still owed are taken at the end of it.
           </li>
         </ul>
       </section>

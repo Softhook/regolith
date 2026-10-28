@@ -7,7 +7,7 @@
  *   setup.ts      game creation, mech roll, starting skill, starting planet and ships
  *   actions.ts    Move/Attack, Deploy, Reconfigure, Research, Conquer, end turn
  *   abilities.ts  ship abilities 1–6
- *   combat.ts     attacks, missiles, advancing, Infamy
+ *   combat.ts     attacks, missiles, advancing, Take Over
  *   cards.ts      the card market, Tactic effects and their decisions
  *   effects.ts    the implemented Skill and Tactic effects, as types
  *   skillRules.ts what every skill does, as hooks the rules read

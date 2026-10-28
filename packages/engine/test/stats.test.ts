@@ -75,7 +75,7 @@ describe('game stats', () => {
     expect(gained(before, apply(before, { type: 'showOfForce', die: 'p0d0' }))).toEqual([{}, {}]);
   });
 
-  it('count a conquest and a planet seized through Infamy, but not a starting planet', () => {
+  it('count a conquest and a planet seized through Take Over, but not a starting planet', () => {
     const base = quickStart(2, 1, 'basic');
     expect(base.players.map((p) => p.stats!.planetsTaken)).toEqual([0, 0]);
     // Planet 4 (an 8) between a 6 and a 2 (basic.test.ts's scenario).

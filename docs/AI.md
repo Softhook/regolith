@@ -85,7 +85,7 @@ mode researched about 27 times a game. The causes were assumptions built into it
 3. **Sampling bias.** Re-rolls and attacks were scored from 3 random samples, and the best-looking
    action was chosen. Whichever random action got lucky in the samples won, which is why it
    reconfigured so often. With 1 sample it reconfigured 70% more.
-4. **Weights out of scale.** Dominance 5 scored 150 points while Infamy is worth a cube (1000), so
+4. **Weights out of scale.** Dominance 5 scored 150 points while Take Over is worth a cube (1000), so
    destroying ships hardly paid. Research scored a flat 14 per step. Every skill was worth the same.
 5. **Reach ignored blocking**, and ignored whether a ship's value fits the planet's sum.
 
@@ -103,7 +103,7 @@ mode researched about 27 times a game. The causes were assumptions built into it
 minus the strongest rival's. A position in my own turn is scored as if I end the turn now; the
 search decides whether to do more first. Each player's value adds up:
 
-- cubes placed; dominance as progress towards Infamy (5 → 6 is worth about a cube); research as
+- cubes placed; dominance as progress towards Take Over (5 → 6 is worth about a cube); research as
   progress towards a card; skills, missiles, ships on the map and in the scrapyard;
 - **conquest potential**: for the best three planets, how many actions a conquest is away (orbit
   already adds up; one ship of the right value can reach orbit; one orbiting ship can leave;
@@ -111,7 +111,7 @@ search decides whether to do more first. Each player's value adds up:
   next. Reach uses real paths;
 - **exposure**: for each ship, the chance an enemy ship that can actually reach it destroys it,
   times what that costs: the ship, a dominance step, and the attacker's gain, which is a cube if
-  it gives them Infamy. Ships of the player who moves next are less exposed (they can react).
+  it gives them Take Over. Ships of the player who moves next are less exposed (they can react).
 
 **Chance** (`chance.ts`): a re-roll branches into each value it can show, following the mode's
 rule (a value not yet shown this turn). An attack branches into

@@ -25,7 +25,7 @@ How the code is organised, and where to make the common changes.
 | `actions.ts` | Move/Attack, Deploy, Reconfigure, Research, Conquer, end turn |
 | `abilities.ts` | The mechs' powers built into the engine (1–4) |
 | `ships.ts`, `powers/` | The mechs by die value, and the powers that plug in through `ShipHooks` (Shoot, Barrier, the zone of control) |
-| `combat.ts` | Attacks, missiles, advancing, Infamy |
+| `combat.ts` | Attacks, missiles, advancing, Take Over |
 | `cards.ts` | Card market, Tactic effects, card decisions |
 | `effects.ts` | The implemented Skill and Tactic effects, as types |
 | `skillRules.ts` | What every skill does: one entry of hooks per skill (`SKILL_RULES`) |
@@ -41,7 +41,7 @@ How the code is organised, and where to make the common changes.
 Two ideas hold it together:
 
 - **Actions and decisions.** A player acts by sending an `Action`. When the rules need someone to
-  choose (combat, Infamy, picking a card…), a `Pending` decision is queued in `state.pending`; the
+  choose (combat, Take Over, picking a card…), a `Pending` decision is queued in `state.pending`; the
   head of the queue must be answered before anything else. The UI and the AI use the same mechanism.
 - **Exhaustive registries.** `Handlers` (engine.ts) maps every `Action` type to one handler;
   `DECISION_CANDIDATES` (legal.ts) maps every `Pending` kind to its possible answers. Both are typed so

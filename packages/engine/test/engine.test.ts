@@ -534,7 +534,7 @@ describe('Devious: through enemy ships, normal moves only (RULES.md ruling 8)', 
 });
 
 describe('Profiteering: a card for a Conquer action may be 1 missile (RULES.md ruling 7)', () => {
-  /** Ends a turn with `conquered` Conquer actions and `infamy` Infamy cubes; `breakthrough` adds a research pick. */
+  /** Ends a turn with `conquered` Conquer actions and `infamy` Take Over cubes; `breakthrough` adds a research pick. */
   function cardPhase(opts: { conquered: number; infamy?: number; breakthrough?: boolean; skill?: boolean }): GameState {
     const s = quickStart(2, 3);
     const me = s.turn.player;
@@ -555,7 +555,7 @@ describe('Profiteering: a card for a Conquer action may be 1 missile (RULES.md r
     expect(next.pending.some((x) => x.kind === 'takeCard' && x.player === me)).toBe(false);
   });
 
-  it('not for an Infamy cube, or without the skill', () => {
+  it('not for an Take Over cube, or without the skill', () => {
     expect(offered(cardPhase({ conquered: 0, infamy: 1 }))).toBe(false);
     expect(offered(cardPhase({ conquered: 1, skill: false }))).toBe(false);
   });

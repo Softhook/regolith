@@ -5,7 +5,7 @@ import { rng } from './rng';
 import { mechDie } from './screenprint/die';
 import { INKS } from './screenprint/inks';
 import { document, esc, hsl, n } from './svg';
-import { ACTION_HUE, CUBE_PAD, DOMINANCE, FONTS, INK, RESEARCH, TILE } from './tokens';
+import { ACTION_HUE, CUBE_PAD, FONTS, INK, TILE, TRACK_INK } from './tokens';
 
 /**
  * The player aid: an A6 board, landscape, the same for every player. Down the left edge, a rail of
@@ -125,11 +125,11 @@ function hex(cx: number, cy: number, r: number, glow: string): string {
 }
 
 /** A die pad: where the dominance or research die sits, the 24 mm of a tile's space (a 19 mm die with room round it). */
-export function diePad(cx: number, cy: number, hue: number, kind: 'dominance' | 'research'): string {
+export function diePad(cx: number, cy: number, ink: string, kind: 'dominance' | 'research'): string {
   const s = TILE.pad;
   return (
-    `<rect x="${n(cx - s / 2)}" y="${n(cy - s / 2)}" width="${s}" height="${s}" rx="3.6" fill="${PAD}" stroke="${hsl(hue, 80, 62)}" stroke-width=".4"/>` +
-    icon(kind, cx, cy, 7, hsl(hue, 60, 40), 1.5)
+    `<rect x="${n(cx - s / 2)}" y="${n(cy - s / 2)}" width="${s}" height="${s}" rx="3.6" fill="${PAD}" stroke="${ink}" stroke-width=".4"/>` +
+    icon(kind, cx, cy, 7, ink, 1.5)
   );
 }
 
@@ -184,18 +184,17 @@ export function playerAidSvg(o: AidOptions = {}): string {
   // --- Power and research: label, pad, what moves the die, what 6 does. Basic has no research.
   const colW = 26;
   const side = (x: number, kind: 'dominance' | 'research') => {
-    const h = kind === 'dominance' ? DOMINANCE : RESEARCH;
-    const tone = hsl(h, 85, 70);
+    const tone = TRACK_INK[kind];
     const cx = x + colW / 2;
     out.push(
       text(cx, M + 3, kind === 'dominance' ? 'power' : kind, 2.4, { font: 'bold', fill: tone, anchor: 'middle', track: 0.16, upper: true }),
     );
-    out.push(diePad(cx, M + 17.5, h, kind));
+    out.push(diePad(cx, M + 17.5, tone, kind));
     const lines =
       kind === 'dominance'
         ? {
             gain: ['+1 per enemy destroyed', '−1 per mech lost'],
-            six: 'At 6 · Infamy',
+            six: 'At 6 · Take Over',
             then: ['Place a cube on any', 'objective, reset to 1'],
           }
         : { gain: ['+1 per Research action'], six: 'At 6 · Breakthrough', then: ['Take a card at the', 'end of turn, reset to 1'] };

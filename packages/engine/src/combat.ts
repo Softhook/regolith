@@ -1,4 +1,4 @@
-/** Combat: starting an attack, missiles, resolution, advancing, and Infamy. */
+/** Combat: starting an attack, missiles, resolution, advancing, and Take Over. */
 import {
   checkInfamy,
   destroyedEnemyShip,
@@ -136,11 +136,11 @@ export const combatHandlers = {
     }
   },
   infamy(s, a) {
-    const head = headOf(s, 'infamy', 'No Infamy to resolve');
+    const head = headOf(s, 'infamy', 'No Take Over to resolve');
     if (!infamyTargets(s, head.player).some((p) => p.id === a.planet)) fail('Choose an objective without your cube');
     s.pending.shift();
     s.players[head.player].dominance = 1;
-    log(s, `${name(s, head.player)} seizes objective ${s.board.planets[a.planet].number} through Infamy.`, head.player, 'seize', [
+    log(s, `${name(s, head.player)} seizes objective ${s.board.planets[a.planet].number} through a Take Over.`, head.player, 'seize', [
       a.planet,
     ]);
     tally(s, head.player, 'planetsTaken');
@@ -148,7 +148,7 @@ export const combatHandlers = {
     if (s.phase !== 'play' || !rulesOf(s).cards) return;
     const ownTurn = head.player === s.turn.player;
     if (s.turn.phase === 'cards') {
-      // Infamy during the card phase still earns a card for the cube: at once on the player's own
+      // Take Over during the card phase still earns a card for the cube: at once on the player's own
       // turn, otherwise after the active player's picks (designer, BGG thread 1087563).
       const pick: PendingOf<'takeCard'> = { kind: 'takeCard', player: head.player, count: 1 };
       if (ownTurn) s.pending.unshift(pick);

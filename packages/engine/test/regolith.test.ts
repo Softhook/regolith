@@ -600,7 +600,7 @@ describe('contested orbit', () => {
     }
   });
 
-  it('never blocks a player’s own ships, nor Infamy', () => {
+  it('never blocks a player’s own ships, nor Take Over', () => {
     const { s, planet } = siege();
     expect(conquerCheck(s, 1, planet)).not.toMatchObject({ blocked: true });
     expect(infamyTargets(s, 0).map((p) => p.id)).toContain(planet);

@@ -3,7 +3,7 @@ import { CARD, cardPalette } from './card';
 import { document, esc, hsl, hslToRgb, n } from './svg';
 import { INKS } from './screenprint/inks';
 import { hexEdge, hexEdges, well } from './tile/markings';
-import { CARD_CATEGORIES, CUBE_PAD, DOMINANCE, FONTS, INK, TILE, WELL } from './tokens';
+import { CARD_CATEGORIES, CUBE_PAD, FONTS, INK, TILE, TRACK_INK, WELL } from './tokens';
 
 /**
  * The press test: one A4 page to print on the real press and stock before a run, to check what the
@@ -127,7 +127,7 @@ export function pressTestSvg(o: PressTestOptions = {}): string {
   // The aid's own pads, on its ground.
   const aidX = M + 84;
   body += rect(aidX, strip, M + WIDTH - aidX, h, GROUND);
-  body += diePad(aidX + 18, cy, DOMINANCE, 'dominance') + label(aidX + 18, 'aid die pad');
+  body += diePad(aidX + 18, cy, TRACK_INK.dominance, 'dominance') + label(aidX + 18, 'aid die pad');
   body += cubePad(aidX + 36, cy - CUBE_PAD.size / 2) + label(aidX + 36 + CUBE_PAD.size / 2, 'aid cube pad');
 
   // Type: the sizes the pieces use, on the light and the dark card paper.

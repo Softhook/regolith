@@ -104,12 +104,14 @@ export const FONTS = {
 export const INK = 'hsl(228 45% 8%)';
 
 /**
- * Hues of the two tracks every player has: research purple, dominance red-orange. Research sits at 290°
+ * Hue of the research cards: purple. It sits at 290°
  * rather than a bluer violet: CMYK can't reach saturated violet, and at 268° it printed barely apart
  * from the ship blue (218°); towards magenta, ink holds more of the gap.
  */
-export const RESEARCH = 290;
-export const DOMINANCE = 12;
+const RESEARCH = 290;
+
+/** The same two tracks as flat inks (the game's --dom and --res): Regolith oxide for Power, ice for Research. */
+export const TRACK_INK = { dominance: '#E0703A', research: '#A9C9D3' } as const;
 
 /** The two combat dice, in print and in the game: black for the attacker, white for the defender. */
 export const COMBAT_DICE = {

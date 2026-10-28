@@ -69,7 +69,7 @@ may share a space: a mech there is on both.
 1. **Start.** Regolith: +1 Research for each of your mechs on a Sinkhole.
 2. **Up to 3 actions**, any order, any repeats. Each mech makes at most one move, attack or shot a turn.
    Mech powers and cards may also be used after the last action.
-3. **Cards** (Regolith): take 1 for each objective you claimed this turn (Infamy included), and 1 if your
+3. **Cards** (Regolith): take 1 for each objective you claimed this turn (Take Over included), and 1 if your
    Research is at 6, which then resets to 1.
 
 ### Actions
@@ -97,7 +97,7 @@ claim one you are already on. The sum needed rises by 3 for each of your cubes t
   stops the mech there.
 - **Contested perimeters.** While an opponent's mech is on an objective's perimeter, nobody else may claim it
   or drop onto it, by any route (Reinforcements and Infiltration included). A space two perimeters share is
-  closed if either is contested. Your home objective's perimeter is always open to your drops. Infamy ignores
+  closed if either is contested. Your home objective's perimeter is always open to your drops. Take Over ignores
   contests.
 
 ## The mechs
@@ -128,7 +128,7 @@ Attacker and defender each roll a die and add their mech's number. **Lower wins;
   defender −1. The attacker moves into the space or stays put; a Sniper always stays.
 - **Defender wins:** the attacker goes back to where it attacked from. Nothing else happens.
 
-**Infamy.** When your Power reaches 6, place a cube at once on any objective with room and none of your cubes,
+**Take Over.** When your Power reaches 6, place a cube at once on any objective with room and none of your cubes,
 contested or not, then reset to 1. With nowhere to place it, Power stays at 6.
 
 **Atomics.** Spend one to make your own combat roll a 1 (ruling 2). Everyone starts with one.
@@ -144,7 +144,7 @@ Cards are taken one at a time from the face-up rows. After each pick the row sli
 the deck, so the card farthest from it is the oldest. **Peek:** taking the oldest card in a row, you may first
 look at the top of that deck and take that card instead. An empty deck is refilled by shuffling its discards.
 
-Cards earned on another player's turn (by Infamy) are taken after the active player's. A bonus turn (Forced
+Cards earned on another player's turn (by Take Over) are taken after the active player's. A bonus turn (Forced
 March) is played at once; cards still owed are taken at its end.
 
 ## Winning
@@ -165,7 +165,7 @@ Settled questions the card text or the rules above leave open. Each is cited fro
    losing. Nobody else may.
 3. **Stolen Flag** (`prideful`). A player who takes it from another discards down to their skill limit at once,
    but not the Stolen Flag. A stolen one works at once. Whenever it starts working (stolen, at the end of the
-   turn it was taken, or back after Signal Jammer), a player with Power 4 or more gains Infamy at once.
+   turn it was taken, or back after Signal Jammer), a player with Power 4 or more gains Take Over at once.
 4. **Strategic Plan** (`patient`). Only Tactics can be stored. At the end of each turn a player may play one
    stored Tactic, even when ending the turn with actions unused, which are lost.
 5. **Peek with an empty deck.** Taking the oldest face-up card first reshuffles the discards into a new deck,
@@ -173,7 +173,7 @@ Settled questions the card text or the rules above leave open. Each is cited fro
 6. **Engineering** (`clever`). After any refit, ±1, even onto a number already shown this turn. No wrap
    between 1 and 6 (as with Field Refit, `flexible`).
 7. **Arms Deal** (`profiteering`). Only picks earned by the Claim action (going back to your own included)
-   may become an atomic, not Infamy's or Research's. A card taken first uses a pick not from a claim when there
+   may become an atomic, not Take Over's or Research's. A card taken first uses a pick not from a claim when there
    is one.
 8. **Sneak** (`devious`). Through enemy mechs on Move and Attack only, not on Behemoth carries or Advance's
    (`tactical`) one-space move. A mech can't stop on an enemy's space or attack from one, and doesn't pass
@@ -187,7 +187,7 @@ Settled questions the card text or the rules above leave open. Each is cited fro
     Close Protection's support and Infiltration's (`stealthy`) "not next to a mech" (board.ts `linked`). A
     tunnel never links an objective, so perimeters and claims are unchanged.
 12. **Fanatics** (`righteous`). Blocks every Research gain, not resets. Stand Down (`composed`), which costs
-    Power, isn't offered under it, and Infamy's reset to 1 isn't a loss.
+    Power, isn't offered under it, and Take Over's reset to 1 isn't a loss.
 13. **Veteran Crew** (`talented`). It counts towards the skill limit, and raises it as soon as it's held, so
     taking it as a fourth skill forces no discard.
 14. **Combat Power** is +1 to the winner and −1 to the loser of a combat only, unless Fanatics protects them.

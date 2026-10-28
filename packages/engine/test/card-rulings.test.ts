@@ -100,7 +100,7 @@ describe('Calculating', () => {
 });
 
 describe('Prideful', () => {
-  it('triggers Infamy at dominance 4', () => {
+  it('triggers Take Over at dominance 4', () => {
     let s = cardGame({ me: ['r-prideful'] });
     const me = s.turn.player;
     s.players[me].dominance = 3;
@@ -114,7 +114,7 @@ describe('Prideful', () => {
     s = apply(s, { type: 'resolveCombat' });
     if (s.pending[0]?.kind === 'advance') s = apply(s, { type: 'advance', move: false });
 
-    // Dominance reached 4, which triggers Infamy
+    // Dominance reached 4, which triggers Take Over
     expect(s.players[me].dominance).toBe(4);
     expect(s.pending.some((p) => p.kind === 'infamy')).toBe(true);
   });
@@ -140,7 +140,7 @@ describe('Prideful', () => {
     expect(s.players[foe].skills.some((sk) => sk.id === 'r-prideful')).toBe(false);
   });
 
-  it('triggers Infamy when a Prideful taken from the market takes effect at the end of the turn', () => {
+  it('triggers Take Over when a Prideful taken from the market takes effect at the end of the turn', () => {
     let s = cardGame();
     const me = s.turn.player;
     s.players[me].dominance = 5;
@@ -155,7 +155,7 @@ describe('Prideful', () => {
     expect(s.pending[0]).toMatchObject({ kind: 'infamy', player: me });
   });
 
-  it('triggers Infamy when a Prideful disabled by Ruthless comes back', () => {
+  it('triggers Take Over when a Prideful disabled by Ruthless comes back', () => {
     let s = cardGame();
     const me = s.turn.player;
     const foe = 1 - me;
@@ -168,10 +168,10 @@ describe('Prideful', () => {
     expect(s.pending[0]).toMatchObject({ kind: 'infamy', player: foe });
   });
 
-  it('does not trigger Infamy at the start of a turn without a lowered threshold', () => {
+  it('does not trigger Take Over at the start of a turn without a lowered threshold', () => {
     let s = cardGame();
     const me = s.turn.player;
-    // Dominance 6 kept from an Infamy that had nowhere to go: no new Infamy until Dominance rises.
+    // Dominance 6 kept from an Take Over that had nowhere to go: no new Take Over until Dominance rises.
     s.players[me].dominance = 6;
     s = apply(s, { type: 'endTurn' });
     s = apply(s, { type: 'endTurn' });
@@ -347,7 +347,7 @@ describe('Ruthless', () => {
 });
 
 describe('Prideful edge cases', () => {
-  it('triggers Infamy when stolen by a player whose dominance is 4', () => {
+  it('triggers Take Over when stolen by a player whose dominance is 4', () => {
     let s = cardGame({ foe: ['r-prideful'] });
     const me = s.turn.player;
     const foe = 1 - me;
@@ -368,7 +368,7 @@ describe('Prideful edge cases', () => {
 
     // Steal Prideful
     s = apply(s, { type: 'prideful', take: true });
-    // Infamy should now be queued!
+    // Take Over should now be queued!
     expect(s.pending.some((p) => p.kind === 'infamy' && p.player === me)).toBe(true);
   });
 });

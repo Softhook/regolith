@@ -502,7 +502,7 @@ describe('entanglement (designer errata, BGG thread 1087563)', () => {
     expect(conquerCheck(scenario({ p0d0: [5, 4, 6], p0d1: [7, 4, 5] }, open), 0, 4).ok).toBe(false);
   });
 
-  it('applies to Infamy too', () => {
+  it('applies to Take Over too', () => {
     expect(infamyTargets(scenario({}, full), 0).map((p) => p.id)).toEqual([4]);
   });
 });
@@ -518,7 +518,7 @@ describe('winning (p.2, p.9)', () => {
     expect(() => apply(s, { type: 'endTurn' })).toThrow(/over/);
   });
 
-  it('or place it through Infamy', () => {
+  it('or place it through Take Over', () => {
     let s = scenario({ p0d0: [7, 2, 1], p1d0: [7, 3, 6] }, four);
     s.players[0].dominance = 5;
     s = apply(resolve(attack(s, { type: 'attack', die: 'p0d0', target: 'p1d0' }, 1, 6)), { type: 'advance', move: true });

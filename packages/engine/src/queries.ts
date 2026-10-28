@@ -61,7 +61,7 @@ export function breakthroughAt(state: GameState, player: PlayerId): number {
   return Math.min(limit, ...skillRules(state, player).map((r) => r.breakthroughAt ?? limit));
 }
 
-/** Dominance needed for Infamy (normally 6, or 4 with Prideful). */
+/** Dominance needed for Take Over (normally 6, or 4 with Prideful). */
 export function infamyAt(state: GameState, player: PlayerId): number {
   return Math.min(6, ...skillRules(state, player).map((r) => r.infamyAt ?? 6));
 }
@@ -591,7 +591,7 @@ export function deployTargets(state: GameState, player: PlayerId): Cell[] {
 }
 
 // ---------------------------------------------------------------------------
-// Cubes: conquering, Infamy, Relocation
+// Cubes: conquering, Take Over, Relocation
 
 export interface ConquerCheck {
   ok: boolean;

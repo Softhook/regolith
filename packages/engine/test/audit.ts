@@ -369,7 +369,7 @@ const ORACLES: ((c: Step) => void)[] = [
     }
   },
 
-  // Righteous (CE): never gains research; Dominance only drops through an Infamy reset.
+  // Righteous (CE): never gains research; Dominance only drops through an Take Over reset.
   (c) => {
     for (const p of c.after.players) {
       const r = held(c.before, p.id, 'righteous');
@@ -561,7 +561,7 @@ const ORACLES: ((c: Step) => void)[] = [
       c.fail(clever, 'no number choice after a Reconfigure');
   },
 
-  // Infamy: Dominance reaching the threshold (6, or 4 with Prideful) earns an Infamy decision.
+  // Take Over: Dominance reaching the threshold (6, or 4 with Prideful) earns an Take Over decision.
   (c) => {
     for (const p of c.after.players) {
       const prideful = held(c.after, p.id, 'prideful');
@@ -570,7 +570,7 @@ const ORACLES: ((c: Step) => void)[] = [
       const crossed = p.dominance >= at && (p.dominance > c.before.players[p.id].dominance || at < wasAt);
       if (!crossed || !infamyTargets(c.after, p.id).length) continue;
       if (!c.after.pending.some((x) => x.kind === 'infamy' && x.player === p.id))
-        c.fail(prideful, `${p.name} at ${p.dominance} Dominance without Infamy`);
+        c.fail(prideful, `${p.name} at ${p.dominance} Dominance without Take Over`);
       else if (prideful && p.dominance < 6) c.fire(prideful);
     }
   },

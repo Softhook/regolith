@@ -112,7 +112,7 @@ function finishTurn(s: GameState) {
 
 /**
  * Puts the player's inactive skills that pass `which` into effect. A Prideful taking effect can
- * make the player's Dominance already enough for Infamy (RULES.md ruling 3).
+ * make the player's Dominance already enough for Take Over (RULES.md ruling 3).
  */
 function activateSkills(s: GameState, player: PlayerId, which: (sk: OwnedSkill) => boolean) {
   let threshold = false;
@@ -141,7 +141,7 @@ const AUTO_RESOLVE: { [K in Pending['kind']]?: (s: GameState, head: PendingOf<K>
   },
   infamy(s, head) {
     if (infamyTargets(s, head.player).length) return false;
-    log(s, `${name(s, head.player)} has nowhere to place an Infamy cube.`, head.player, 'infamy');
+    log(s, `${name(s, head.player)} has nowhere to place a Take Over cube.`, head.player, 'infamy');
     s.pending.shift();
     return true;
   },

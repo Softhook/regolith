@@ -67,7 +67,7 @@ export interface SkillRule {
   skillLimit?: number;
   /** Research needed for a breakthrough. */
   breakthroughAt?: number;
-  /** Dominance needed for an Infamy cube (Prideful). */
+  /** Dominance needed for a Take Over cube (Prideful). */
   infamyAt?: number;
   /** When a ship is placed in your scrapyard, choose its number instead (Calculating). */
   chooseScrapyardNumber?: boolean;

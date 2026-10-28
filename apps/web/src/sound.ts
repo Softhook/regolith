@@ -199,7 +199,7 @@ export const sfx = {
   discard: () => noise(0.25, 0.08, { type: 'bandpass', from: 5000, to: 1200, q: 0.8, rise: 0.05 }),
   /** Research breakthrough: a sparkling rising arpeggio. */
   breakthrough: () => [784, 988, 1175, 1568, 1976].forEach((f, i) => tone(f, 0.25, 'sine', 0.045, i * 0.06)),
-  /** Infamy: an ominous low brass chord. */
+  /** Take Over: an ominous low brass chord. */
   infamy: () => [110, 165, 131].forEach((f, i) => tone(f, 1.1, 'sawtooth', 0.035, i * 0.05, undefined, 0.15)),
   /** A skill used: a bright power-up zap. */
   skill: () => {

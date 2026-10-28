@@ -1,5 +1,5 @@
 /**
- * Cards taken on someone else's turn (an off-turn Infamy pick), and a few card edge cases:
+ * Cards taken on someone else's turn (an off-turn Take Over pick), and a few card edge cases:
  * Warp Gate placement, Change of Heart with an empty deck, Ambitious tokens on discard, and
  * when CE Brilliant asks.
  */

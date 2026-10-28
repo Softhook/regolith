@@ -4,7 +4,7 @@
  * with a cap on them.
  *
  * At the start of every turn each player is open (a planet they can still claim on the board), locked
- * (none, but an enemy mech they can reach, so combat can still earn Infamy) or sealed (neither: only
+ * (none, but an enemy mech they can reach, so combat can still earn Take Over) or sealed (neither: only
  * cards help, research breakthroughs to Ice Tunnel, Power Grab, Orbital Cannon or Infiltration). What a
  * player can reach is a flood fill over spaces, walled by barriers, planets and the board's edge, through
  * the Ice Tunnel pair, from their mechs and the orbits they can drop into; mechs don't wall (they move).
@@ -71,7 +71,7 @@ interface Shutout {
   turns: number;
   /** Every player sealed at some point in it. */
   sealed: boolean;
-  /** What ended it: a cube by conquest or Infamy, an Ice Tunnel opening a way, a mech destroyed, or the game cut off. */
+  /** What ended it: a cube by conquest or Take Over, an Ice Tunnel opening a way, a mech destroyed, or the game cut off. */
   end: 'conquer' | 'infamy' | 'tunnel' | 'other' | 'unfinished';
 }
 

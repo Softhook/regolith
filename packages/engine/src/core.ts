@@ -235,7 +235,7 @@ export function gainResearch(s: GameState, p: PlayerId, n: number) {
 }
 
 /**
- * Dominance reaching 6 triggers Infamy: place a cube (a pending decision), then reset to 1. With
+ * Dominance reaching 6 triggers Take Over: place a cube (a pending decision), then reset to 1. With
  * nowhere to place it, dominance stays at 6 (2013 rulebook p.9: reset "after you have placed your
  * cube").
  */
@@ -246,13 +246,13 @@ export function gainDominance(s: GameState, p: PlayerId, n: number) {
 }
 
 /**
- * Infamy: Dominance at the player's threshold (6, or 4 with Prideful) earns an Infamy cube. Checked
+ * Take Over: Dominance at the player's threshold (6, or 4 with Prideful) earns a Take Over cube. Checked
  * when Dominance rises and when Prideful takes effect (RULES.md ruling 3).
  */
 export function checkInfamy(s: GameState, p: PlayerId) {
   const pl = s.players[p];
   if (pl.dominance < infamyAt(s, p) || s.pending.some((x) => x.kind === 'infamy' && x.player === p)) return;
-  log(s, `${pl.name} achieves Infamy!`, p, 'infamy');
+  log(s, `${pl.name} takes over!`, p, 'infamy');
   s.pending.push({ kind: 'infamy', player: p });
 }
 

@@ -7,7 +7,7 @@
 export const PLAYER_COLORS = ['#3d8bff', '#d62839', '#ffb703', '#80ed99', '#b388ff'];
 
 /** A Warp Gate's colour, on the map (board/BoardArt) and in its effects (board/CardEffects). */
-export const GATE_COLOR = '#5ef0b0';
+export const GATE_COLOR = '#7FB08A';
 
 /** Pips on a ship die. */
 export const PIP = '#0a0f1e';

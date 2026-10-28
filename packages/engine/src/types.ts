@@ -108,7 +108,7 @@ export interface PlayerStats {
   shipsDestroyed: number;
   /** This player's ships destroyed by someone else. */
   shipsLost: number;
-  /** Planets conquered (or seized through Infamy). */
+  /** Planets conquered (or seized through Take Over). */
   planetsTaken: number;
   /** Cards gained: taken from the market (Skills, Tactics, Expansions) or drawn by a card (Change of Heart). */
   cardsTaken: number;
@@ -137,7 +137,7 @@ export interface TurnState {
   /** Values each die has shown this turn (for Reconfigure). */
   seen: Record<string, number[]>;
   conquests: number;
-  /** Conquer actions taken this turn; unlike `conquests`, Infamy cubes don't count (Profiteering). */
+  /** Conquer actions taken this turn; unlike `conquests`, Take Over cubes don't count (Profiteering). */
   conquered?: number;
   attacked: boolean;
   /** Players who have already destroyed an enemy ship this turn ("first time each turn" triggers). */
@@ -150,7 +150,7 @@ export interface TurnState {
    * order (Momentum taken on someone else's turn).
    */
   resume?: PlayerId;
-  /** Other players who placed a cube through Infamy during this turn (one entry per cube). */
+  /** Other players who placed a cube through Take Over during this turn (one entry per cube). */
   offTurnCubes?: PlayerId[];
   /** CE Curious: whether the additional Move or Research action was used this turn. */
   curiousUsed?: boolean;

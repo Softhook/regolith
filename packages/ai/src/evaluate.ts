@@ -32,14 +32,14 @@ import { storedTacticsValue } from './patient';
  * Position evaluation for levels 2 and up, in "cube points": one cube is worth CUBE.
  *
  * Unlike the level-1 heuristic it knows whose turn comes next, measures reach with real
- * paths (planets and ships block), values dominance as progress towards Infamy, and counts
+ * paths (planets and ships block), values dominance as progress towards Take Over, and counts
  * what each player's ships risk from the enemy ships that can actually reach them.
  */
 
 const CUBE = 1000;
 const WIN = 1e6;
 
-/** Value of each dominance level (index = dominance). Reaching 6 is Infamy, worth a cube. */
+/** Value of each dominance level (index = dominance). Reaching 6 is Take Over, worth a cube. */
 const DOMINANCE = [0, 0, 60, 150, 290, 500];
 const SHIP_ON_BOARD = 70;
 const SHIP_IN_SCRAPYARD = 30;
@@ -139,7 +139,7 @@ function context(s: GameState, mover: PlayerId): Ctx {
   for (const d of ships) {
     const k = kill.get(d.id) ?? 0;
     if (!k) continue;
-    // Losing a ship costs the ship, a dominance step, and gives a rival one (maybe Infamy).
+    // Losing a ship costs the ship, a dominance step, and gives a rival one (maybe Take Over).
     const pl = s.players[d.owner];
     const attacker = strongestAttackerDominance(s, d.owner);
     const loss = SHIP_ON_BOARD - SHIP_IN_SCRAPYARD + dominanceStep(pl.dominance - 1) + dominanceGain(attacker);
@@ -153,7 +153,7 @@ function dominanceStep(to: number): number {
   return to < 1 || to >= 5 ? 0 : DOMINANCE[to + 1] - DOMINANCE[to];
 }
 
-/** Value gained by rising one step from `from` dominance; 5 → 6 is Infamy. */
+/** Value gained by rising one step from `from` dominance; 5 → 6 is Take Over. */
 function dominanceGain(from: number): number {
   return from >= 5 ? CUBE + DOMINANCE[1] - DOMINANCE[5] : DOMINANCE[from + 1] - DOMINANCE[from];
 }
@@ -179,7 +179,7 @@ function playerValue(ctx: Ctx, p: PlayerId): number {
     const at = breakthroughAt(s, p);
     v += CARD * 0.7 * Math.min(1, (pl.research - 1) / Math.max(1, at - 1));
     if (s.turn.player === p && s.turn.phase === 'actions') v += s.turn.conquests * CARD;
-    // Cards already earned but taken later: an Infamy cube on another player's turn, or picks
+    // Cards already earned but taken later: an Take Over cube on another player's turn, or picks
     // carried into a Momentum turn.
     if (s.turn.phase === 'actions') v += (s.turn.offTurnCubes ?? []).filter((x) => x === p).length * CARD;
     v += (pl.carriedPicks ?? 0) * CARD;
