@@ -7,6 +7,7 @@ import { lost, type GameView } from '../game/view';
 import { useReview, type Review } from '../game/review';
 import { logText } from '../game/logText';
 import { GAME_NAME } from '../appId';
+import { playWorld } from '../ambience';
 import { SHEET, useMediaQuery } from '../game/useMediaQuery';
 import { BottomSheet } from './BottomSheet';
 import { Board } from './Board';
@@ -60,6 +61,8 @@ export function Game({
   const dispatch = review ? NO_DISPATCH : view.dispatch;
   const undo = review ? undefined : view.undo;
   useUndoShortcut(undo);
+  // The music is that of the world the game is on.
+  useEffect(() => playWorld(live.board.world), [live.board.world]);
   // The game as it was when the review began. On the way back the map shows it for a moment, then
   // follows play from there to the game now, so what happened meanwhile rolls, blows up and is
   // brought into view as usual instead of just being there.
