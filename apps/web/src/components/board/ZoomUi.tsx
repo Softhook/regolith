@@ -120,6 +120,34 @@ export function useFollowMoves(game: GameState, ctl: Controller, spots: ShipSpot
   useEffect(() => follow(), [game, follow]);
 }
 
+/**
+ * Zoomed in, when the turn becomes one this screen plays (yours, or the next hot-seat player's), the map glides
+ * to the most of that player's mechs one screen holds, at the same zoom (some in view, if not all). Looking back through a game (`review:`) leaves it alone.
+ */
+export function useFollowTurn(game: GameState, ctl: Controller, spots: ShipSpots, zoom: BoardZoom, scene?: string) {
+  const last = useRef<{ map: string; turn: number } | null>(null);
+  const follow = useEffectEvent(() => {
+    const before = last.current;
+    const key = { map: game.board.mapId, turn: game.turn.number };
+    last.current = key;
+    if (before?.map === key.map && before.turn === key.turn) return;
+    if (game.phase !== 'play' || scene?.startsWith('review:') || !ctl.mine(game.turn.player)) return;
+    const own = game.dice.flatMap((d) => (d.owner === game.turn.player ? (spots.get(d.id) ?? []) : []));
+    if (!own.length) return;
+    // The most mechs one screen holds, centred, so some are in view even when they're spread across the map.
+    const halfR = zoom.h / zoom.cell / 2;
+    const halfC = zoom.w / zoom.cell / 2;
+    let best = [own[0]];
+    for (const p of own) {
+      const group = own.filter((q) => Math.abs(q.r - p.r) <= halfR && Math.abs(q.c - p.c) <= halfC);
+      if (group.length > best.length) best = group;
+    }
+    const mid = (v: number[]) => (Math.min(...v) + Math.max(...v)) / 2;
+    zoom.centreOn(mid(best.map((p) => p.r)), mid(best.map((p) => p.c)));
+  });
+  useEffect(() => follow(), [game.turn.number, game.turn.player, game.board.mapId, follow]);
+}
+
 type Side = 'left' | 'right' | 'top' | 'bottom';
 const ARROWS: Record<Side, string> = { left: 'm15 6-6 6 6 6', right: 'm9 6 6 6-6 6', top: 'm6 15 6-6 6 6', bottom: 'm6 9 6 6 6-6' };
 

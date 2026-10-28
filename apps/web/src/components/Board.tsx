@@ -11,7 +11,7 @@ import { Zones } from './board/Zones';
 import { hexMapPath, placement, shipSpots, spotBox, type ShipSpots } from './board/geometry';
 import { useStaging, type Staging } from './board/staging';
 import { useBoardZoom } from './board/useBoardZoom';
-import { OffscreenHints, ZoomControls, useFollowMoves, useZoomIntro } from './board/ZoomUi';
+import { OffscreenHints, ZoomControls, useFollowMoves, useFollowTurn, useZoomIntro } from './board/ZoomUi';
 import { Die3D, DieShadow } from './Die3D';
 import { PIECE_SHADOW_OPACITY } from './board/shadows';
 import { REGOLITH_SHADOW, TILE } from '@regolith/art';
@@ -57,6 +57,7 @@ export function Board({
   const staging = useStaging(game, scene);
   const tip = useZoomIntro(game, ctl, zoom, !!introduce);
   useFollowMoves(game, ctl, spots, zoom, scene);
+  useFollowTurn(game, ctl, spots, zoom, scene);
   const [inspect, setInspect] = useState<Inspect | null>(null);
   if (inspect && 'ship' in inspect && !spots.has(inspect.ship)) setInspect(null);
   // The info closes itself on a tap elsewhere; a tap on the same thing again closes it too.
