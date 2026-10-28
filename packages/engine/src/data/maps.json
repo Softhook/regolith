@@ -1077,5 +1077,266 @@
         "8*"
       ]
     ]
+  },
+  {
+    "id": "pentagon-plains",
+    "name": "Pentagon Plains",
+    "players": 5,
+    "group": "open",
+    "cubes": 4,
+    "stats": {
+      "slack": 4,
+      "shared": 4,
+      "planets": 12
+    },
+    "world": "mars",
+    "layout": [
+      [
+        ".",
+        "8*",
+        "7",
+        "8*"
+      ],
+      [
+        "7",
+        "-",
+        "-",
+        "9"
+      ],
+      [
+        "8*",
+        "-",
+        "10",
+        "-",
+        "7"
+      ],
+      [
+        "9",
+        "-",
+        "-",
+        "8*"
+      ],
+      [
+        ".",
+        "7",
+        "8*",
+        "0"
+      ]
+    ]
+  },
+  {
+    "id": "ouroboros",
+    "name": "Ouroboros",
+    "players": 5,
+    "group": "hex",
+    "cubes": 4,
+    "stats": {
+      "slack": 5,
+      "shared": 5,
+      "planets": 12
+    },
+    "world": "deimos",
+    "layout": [
+      [
+        ".",
+        "8*",
+        "8",
+        "8*"
+      ],
+      [
+        "8",
+        ".",
+        ".",
+        "7"
+      ],
+      [
+        "8*",
+        ".",
+        ".",
+        ".",
+        "9"
+      ],
+      [
+        "7",
+        ".",
+        ".",
+        "8*"
+      ],
+      [
+        ".",
+        "9",
+        "8*",
+        "9"
+      ]
+    ]
+  },
+  {
+    "id": "crescent-bay",
+    "name": "Crescent Bay",
+    "players": 5,
+    "group": "open",
+    "cubes": 4,
+    "stats": {
+      "slack": 4,
+      "shared": 4,
+      "planets": 12
+    },
+    "world": "phobos",
+    "layout": [
+      [
+        ".",
+        "8*",
+        "7",
+        "8*"
+      ],
+      [
+        "7",
+        "-",
+        "0",
+        "7"
+      ],
+      [
+        "8*",
+        "-",
+        "10",
+        "-",
+        "8*"
+      ],
+      [
+        "9",
+        "0",
+        "-",
+        "7"
+      ],
+      [
+        ".",
+        "-",
+        "9",
+        "8*"
+      ]
+    ]
+  },
+  {
+    "id": "olympus-mons",
+    "name": "Olympus Mons",
+    "players": 2,
+    "group": "open",
+    "cubes": 5,
+    "stats": {
+      "slack": 6,
+      "shared": 1,
+      "planets": 9
+    },
+    "world": "mars",
+    "layout": [
+      [
+        ".",
+        "8*",
+        "7",
+        "8"
+      ],
+      [
+        "7",
+        "0",
+        "-",
+        "-"
+      ],
+      [
+        "-",
+        "-",
+        "10",
+        "-",
+        "-"
+      ],
+      [
+        "-",
+        "-",
+        "0",
+        "7"
+      ],
+      [
+        ".",
+        "8",
+        "7",
+        "8*"
+      ]
+    ]
+  },
+  {
+    "id": "triple-junction",
+    "name": "Triple Junction",
+    "players": 3,
+    "group": "hex",
+    "cubes": 4,
+    "stats": {
+      "slack": 6,
+      "shared": 2,
+      "planets": 9
+    },
+    "world": "phobos",
+    "layout": [
+      [
+        "9*",
+        "8",
+        "7",
+        "9*"
+      ],
+      [
+        "7",
+        "0",
+        "8"
+      ],
+      [
+        ".",
+        "8",
+        "7"
+      ],
+      [
+        ".",
+        "9*"
+      ]
+    ]
+  },
+  {
+    "id": "cydonia",
+    "name": "Cydonia",
+    "players": 4,
+    "group": "hex",
+    "cubes": 4,
+    "stats": {
+      "slack": 2,
+      "shared": 4,
+      "planets": 10
+    },
+    "world": "mars",
+    "layout": [
+      [
+        ".",
+        ".",
+        "8*"
+      ],
+      [
+        ".",
+        "7",
+        "7"
+      ],
+      [
+        "8*",
+        "9",
+        "0",
+        "9",
+        "8*"
+      ],
+      [
+        ".",
+        "7",
+        "7"
+      ],
+      [
+        ".",
+        ".",
+        "8*"
+      ]
+    ]
   }
 ]

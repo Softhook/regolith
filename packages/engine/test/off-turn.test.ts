@@ -104,10 +104,8 @@ describe('card edge cases', () => {
     expect(s.players[me].ambitionTokens).toBe(0);
   });
 
-  it('is played by 2 to 4 players: no map has room for 5, and 6 are refused', () => {
-    expect(createGame({ players: players(4), seed: 1 }).players).toHaveLength(4);
-    for (const mode of ['basic', 'regolith'] as const)
-      expect(() => createGame({ players: players(5), seed: 1, mode })).toThrow(/No map for 5 players/);
+  it('is played by 2 to 5 players, and 6 are refused', () => {
+    for (const n of [2, 3, 4, 5]) expect(createGame({ players: players(n), seed: 1 }).players).toHaveLength(n);
     expect(() => createGame({ players: players(6), seed: 1 })).toThrow(/2–5 players/);
   });
 });

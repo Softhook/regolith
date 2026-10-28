@@ -428,3 +428,100 @@ maps:
       - ".  7  7"
       - ".  .  8"
       - ".  .  8*"
+
+  # Five players: a hexagon of 19 tiles can't be turned into fifths, so these are mirror-balanced instead:
+  # two pairs of seats that mirror each other and one on the axis. Cubes stay low (4): a fifth player
+  # lengthens every round, so each cube costs the table more than it does at two players.
+
+  - id: pentagon-plains
+    name: Pentagon Plains
+    players: 5
+    group: open
+    world: mars
+    cubes: 4
+    stats: { slack: 4, shared: 4, planets: 12 }
+    # A 10 in the middle of a ring of open ground; five 8 starts round the hexagon's rim, the 9s between pairs of them, and a void.
+    layout:
+      - ".  8* 7  8*"
+      - "7  -  -  9"
+      - "8* -  10 -  7"
+      - "9  -  -  8*"
+      - ".  7  8* 0"
+
+  - id: ouroboros
+    name: Ouroboros
+    players: 5
+    group: hex
+    world: deimos
+    cubes: 4
+    stats: { slack: 5, shared: 5, planets: 12 }
+    # A ring of twelve round an empty middle, a start every two or three tiles; two starts share a 9 between them.
+    layout:
+      - ".  8* 8  8*"
+      - "8  .  .  7"
+      - "8* .  .  .  9"
+      - "7  .  .  8*"
+      - ".  9  8* 9"
+
+  - id: crescent-bay
+    name: Crescent Bay
+    players: 5
+    group: open
+    world: phobos
+    cubes: 4
+    stats: { slack: 4, shared: 4, planets: 12 }
+    # Five of the hexagon's six corners hold starts; the sixth is a bay of open ground, with a 10 in the middle.
+    layout:
+      - ".  8* 7  8*"
+      - "7  -  0  7"
+      - "8* -  10 -  8*"
+      - "9  0  -  7"
+      - ".  -  9  8*"
+
+  # Lower cube counts for the bigger tables. A cube is a claim, and a claim takes a turn or two of manoeuvring
+  # (more with more mechs in the way), so the game's length goes with the cubes times the players: these maps
+  # ask 5 of two players, 5 or 4 of three, 4 of four.
+
+  - id: olympus-mons
+    name: Olympus Mons
+    players: 2
+    group: open
+    world: mars
+    cubes: 5
+    stats: { slack: 6, shared: 1, planets: 9 }
+    # A 10 on the summit between two voids, an 8 and a 7 beside each start; the half turn matches the seats.
+    layout:
+      - ".  8* 7  8"
+      - "7  0  -  -"
+      - "-  -  10 -  -"
+      - "-  -  0  7"
+      - ".  8  7  8*"
+
+  - id: triple-junction
+    name: Triple Junction
+    players: 3
+    group: hex
+    world: phobos
+    cubes: 4
+    stats: { slack: 6, shared: 2, planets: 9 }
+    # A void ringed by 7s and 8s in turn, a 9 start at each of three corners, a third of a turn apart.
+    layout:
+      - "9* 8  7  9*"
+      - "7  0  8"
+      - ".  8  7"
+      - ".  9*"
+
+  - id: cydonia
+    name: Cydonia
+    players: 4
+    group: hex
+    world: mars
+    cubes: 4
+    stats: { slack: 2, shared: 4, planets: 10 }
+    # Four 8 starts at the corners of a diamond, a void between them and a pair of 9s on its long diagonal.
+    layout:
+      - ".  .  8*"
+      - ".  7  7"
+      - "8* 9  0  9  8*"
+      - ".  7  7"
+      - ".  .  8*"
