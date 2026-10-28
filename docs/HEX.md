@@ -64,9 +64,9 @@ a tile to the right.
 
 | Map | Shape | Planets | Starts |
 |---|---|---|---|
-| Alpha Sector (hex), 2 players | A 3×3 rhombus on its point (rows 1-2-3-2-1) | eight 7s, an 8 in the middle | the two far points, 4 tiles apart |
-| Beta Sector (hex), 3 players | A triangle of 10 tiles around a 10 | the 7s and 8s alternate around the 10 | the corners (8s), each touching one 7 and one 8 |
-| Gamma Sector (hex), 4 players | The rhombus, with a 10 in the middle | 9s and 8s, the same after a half turn | the points (9s), touching a 9 and an 8; the sides (8s), touching a 9, an 8 and the 10 |
+| Alpha Sector, 2 players | A 3×3 rhombus on its point (rows 1-2-3-2-1) | eight 7s, an 8 in the middle | the two far points, 4 tiles apart |
+| Beta Sector, 3 players | A triangle of 10 tiles around a 10 | the 7s and 8s alternate around the 10 | the corners (8s), each touching one 7 and one 8 |
+| Gamma Sector, 4 players | The rhombus, with a 10 in the middle | 9s and 8s, the same after a half turn | the points (9s), touching a 9 and an 8; the sides (8s), touching a 9, an 8 and the 10 |
 
 The square maps' corners are all alike; a rhombus has two sharp points and two blunt sides, so Gamma
 starts two players at each, with bigger home planets on the remoter points. The seats aren't alike yet:
@@ -84,13 +84,13 @@ the same after a half turn (a third of a turn for 3 players) where the square ma
 
 | Map | Players | The idea kept |
 |---|---|---|
-| Terra Minor (hex) | 2 | a band of six 8s, a start at each end |
-| Circular Logic (hex) | 2 | a ring of eight round a hole (two tiles on hexes), the starts across it |
-| The Great Plan (hex) | 2 | a void ringed by 8s and 7s, the starts out among 7s |
-| Critical Density (hex) | 3 | the starts crowded two spaces apart round the middle, 8s between |
-| Edge of Oblivion (hex) | 3 | a void ringed by 9s and 8s, the starts at the points |
-| Nexus (hex) | 4 | two 10s in the middle, 7s and 8s round them, the starts round those |
-| Tesseract (hex) | 4 | a 10 in the middle and four arms out to the starts |
+| Terra Minor | 2 | a band of six 8s, a start at each end |
+| Circular Logic | 2 | a ring of eight round a hole (two tiles on hexes), the starts across it |
+| The Great Plan | 2 | a void ringed by 8s and 7s, the starts out among 7s |
+| Critical Density | 3 | the starts crowded two spaces apart round the middle, 8s between |
+| Edge of Oblivion | 3 | a void ringed by 9s and 8s, the starts at the points |
+| Nexus | 4 | two 10s in the middle, 7s and 8s round them, the starts round those |
+| Tesseract | 4 | a 10 in the middle and four arms out to the starts |
 
 ### Open ground
 
@@ -122,11 +122,11 @@ while offering different routes and setup economies:
 | Map | Rounds | Attacks | Conquers | Wins by seat |
 |---|--:|--:|--:|---|
 | Alpha Sector | 10.4 | 12.5 | 6.0 | 10/10 |
-| Alpha Sector (hex) | 10.8 | 17.4 | 5.8 | 14/6 |
+| Alpha Sector | 10.8 | 17.4 | 5.8 | 14/6 |
 | Beta Sector | 13.7 | 33.4 | 8.2 | 11/3/6 |
-| Beta Sector (hex) | 14.9 | 43.4 | 7.5 | 8/4/8 |
+| Beta Sector | 14.9 | 43.4 | 7.5 | 8/4/8 |
 | Gamma Sector | 14.9 | 48.9 | 9.6 | 2/4/6/8 |
-| Gamma Sector (hex) | 19.2 | 85.8 | 7.0 | 6/3/6/5 |
+| Gamma Sector | 19.2 | 85.8 | 7.0 | 6/3/6/5 |
 
 On hexes ships meet more often: more neighbours, and every space is some planet's orbit. Games run a
 little longer, and Gamma's much longer (+29%), with conquests harder to finish among more fighting.
@@ -138,11 +138,11 @@ cards without Ingenious on hexes), the same seeds, 20 October 2026:
 | Map | Rounds | Attacks | Conquers | Wins by seat |
 |---|--:|--:|--:|---|
 | Alpha Sector | 7.3 | 5.8 | 5.1 | 7/13 |
-| Alpha Sector (hex) | 7.0 | 7.8 | 5.7 | 6/14 |
-| Beta Sector (hex) | 9.4 | 23.7 | 7.3 | 9/3/8 |
-| Gamma Sector (hex) | 9.5 | 37.4 | 6.5 | 5/5/3/7 |
+| Alpha Sector | 7.0 | 7.8 | 5.7 | 6/14 |
+| Beta Sector | 9.4 | 23.7 | 7.3 | 9/3/8 |
+| Gamma Sector | 9.5 | 37.4 | 6.5 | 5/5/3/7 |
 
-Zones of control halve the fighting on hexes as on squares, and Gamma (hex) no longer runs long: about as
+Zones of control halve the fighting on hexes as on squares, and Gamma Sector no longer runs long: about as
 many rounds as Beta. No game stalled.
 
 ## Interaction
@@ -166,7 +166,7 @@ rules apart: Regolith without cards is the same rules with `cards: null`.
 Level 4 AI (Admiral) in both seats, Alpha Sector, 200 games per setup, the same seeds, 21 October 2026
 (`npm run interaction -- 200 4,4`):
 
-| | Basic | Classic | Community | Proto, no cards | Proto | Proto (hex), no cards | Proto (hex) |
+| | Basic | Classic | Community | Proto, no cards | Proto | Proto, no cards | Proto (hex) |
 |---|--:|--:|--:|--:|--:|--:|--:|
 | Player-turns | 23.3 | 19.5 | 17.1 | 24.8 | 17.4 | 25.4 | 17.2 |
 | Battles | 15.1 | 10.8 | 9.1 | 12.7 | 7.0 | 18.7 | 9.6 |
@@ -199,12 +199,12 @@ Level 4 AI (Admiral) in both seats, Alpha Sector, 200 games per setup, the same 
   so that says little of what the cards do; the games without cards do.
 
 **Skill.** Level 4 against level 2 (`npm run interaction -- 200 2,4`), Admiral's wins: Basic 78%,
-Classic 84%, Regolith without cards 82% (square) and 82% (hex), with cards 84% and 82%, each ±5. Neither
+Classic 84%, Regolith without cards 82% (square) and 82%, with cards 84% and 82%, each ±5. Neither
 the hexes nor the cards make the stronger player win more or less often: they add neither luck nor
 skill that this measures.
 
 **Limits.** The AI's evaluation was tuned on squares and may miss what hexes offer; harm is the evaluation's
-view, so threats count as well as losses; one 2-player map. Gamma (hex), where the fighting was heaviest,
+view, so threats count as well as losses; one 2-player map. Gamma, where the fighting was heaviest,
 is next.
 
 ## Drawing
@@ -287,10 +287,10 @@ while their planets sit off-centre and their orbital spaces cross tile boundarie
 | Map | Layout | What the offsets do |
 |---|---|---|
 | Binary Reach (square), 3 × 4 tiles with two gaps | `8se* 10 7sw .` / `7sw 7s 7n 7ne` / `. 7ne 10 8nw*` | Each middle 7 leans towards a 7 on the next tile and shares 2 orbital spaces with it. The outer 7s sit against the map's edge with 2 orbital spaces. |
-| Twin Drift (hex), 12 tiles | `7se 8* . .` / `9 0 7n` / `. 8 8 .` / `7s 0 9` / `. . 8* 7nw` | Each start shares 2 orbital hexes with the 7 beside it, and the 9s share 2 more. Two 7s drift to the edge (3 orbital hexes); two Voids sit between. |
-| Circular Drift (hex) | `. 7s* 8 8` / `8 . . 8` / `. 8 8 7n*` | Opposed 7 starts lean into the ring's two-tile hole and pull their orbits across the ring. |
-| Trinary Drift (hex) | `8* 7n 8 8*` / `8 10 7se` / `. 7sw 8` / `. 8*` | Three 7s drift around a 10; each is a third-turn from the next, so the seats match. |
-| Nexus Drift (hex) | `. 9*` / `8 7ne 9*` / `8 10 10 8` / `9* 7sw 8` / `. . 9*` | Two 7s lean toward the twin 10s; their opposite directions preserve the half-turn balance. |
+| Twin Drift, 12 tiles | `7se 8* . .` / `9 0 7n` / `. 8 8 .` / `7s 0 9` / `. . 8* 7nw` | Each start shares 2 orbital hexes with the 7 beside it, and the 9s share 2 more. Two 7s drift to the edge (3 orbital hexes); two Voids sit between. |
+| Circular Drift | `. 7s* 8 8` / `8 . . 8` / `. 8 8 7n*` | Opposed 7 starts lean into the ring's two-tile hole and pull their orbits across the ring. |
+| Trinary Drift | `8* 7n 8 8*` / `8 10 7se` / `. 7sw 8` / `. 8*` | Three 7s drift around a 10; each is a third-turn from the next, so the seats match. |
+| Nexus Drift | `. 9*` / `8 7ne 9*` / `8 10 10 8` / `9* 7sw 8` / `. . 9*` | Two 7s lean toward the twin 10s; their opposite directions preserve the half-turn balance. |
 
 Only 7s and 8s go off the middle of a square tile, and only 7s off a hex tile (`OFF_CENTRE` in
 [`tile/geometry.ts`](../packages/art/src/tile/geometry.ts)). An off-centre planet sits on its tile's edge space, half a space
@@ -305,7 +305,7 @@ The first maps were compared in 100 games each with level 2 AI (Captain) in both
 |---|--:|--:|--:|---|
 | Alpha Sector | 10.1 | 12.3 | 6.2 | 62/38 |
 | Binary Reach | 14.5 | 17.7 | 7.7 | 52/48 |
-| Twin Drift (hex) | 13.9 | 21.5 | 8.0 | 45/55 |
+| Twin Drift | 13.9 | 21.5 | 8.0 | 45/55 |
 
 The drift maps' seat splits are within chance at 100 games. Alpha Sector's 62/38 is at the edge of it,
 and an earlier run with other seeds gave 43/57, so it says more about 100 games than about the seats.

@@ -1,7 +1,7 @@
 [
   {
     "id": "alpha-hex",
-    "name": "Alpha Sector (hex)",
+    "name": "Alpha Sector",
     "players": 2,
     "group": "hex",
     "cubes": 5,
@@ -37,7 +37,7 @@
   },
   {
     "id": "beta-hex",
-    "name": "Beta Sector (hex)",
+    "name": "Beta Sector",
     "players": 3,
     "group": "hex",
     "cubes": 5,
@@ -72,7 +72,7 @@
   },
   {
     "id": "gamma-hex",
-    "name": "Gamma Sector (hex)",
+    "name": "Gamma Sector",
     "players": 4,
     "group": "hex",
     "cubes": 5,
@@ -108,7 +108,7 @@
   },
   {
     "id": "terra-minor-hex",
-    "name": "Terra Minor (hex)",
+    "name": "Terra Minor",
     "players": 2,
     "group": "hex",
     "cubes": 7,
@@ -138,7 +138,7 @@
   },
   {
     "id": "circular-logic-hex",
-    "name": "Circular Logic (hex)",
+    "name": "Circular Logic",
     "players": 2,
     "group": "hex",
     "cubes": 6,
@@ -171,7 +171,7 @@
   },
   {
     "id": "the-great-plan-hex",
-    "name": "The Great Plan (hex)",
+    "name": "The Great Plan",
     "players": 2,
     "group": "hex",
     "cubes": 7,
@@ -209,7 +209,7 @@
   },
   {
     "id": "critical-density-hex",
-    "name": "Critical Density (hex)",
+    "name": "Critical Density",
     "players": 3,
     "group": "hex",
     "cubes": 5,
@@ -237,7 +237,7 @@
   },
   {
     "id": "edge-of-oblivion-hex",
-    "name": "Edge of Oblivion (hex)",
+    "name": "Edge of Oblivion",
     "players": 3,
     "group": "hex",
     "cubes": 7,
@@ -281,7 +281,7 @@
   },
   {
     "id": "nexus-hex",
-    "name": "Nexus (hex)",
+    "name": "Nexus",
     "players": 4,
     "group": "hex",
     "cubes": 6,
@@ -321,7 +321,7 @@
   },
   {
     "id": "tesseract-hex",
-    "name": "Tesseract (hex)",
+    "name": "Tesseract",
     "players": 4,
     "group": "hex",
     "cubes": 6,
@@ -373,7 +373,7 @@
   },
   {
     "id": "twin-drift",
-    "name": "Twin Drift (hex)",
+    "name": "Twin Drift",
     "players": 2,
     "group": "drift",
     "cubes": 6,

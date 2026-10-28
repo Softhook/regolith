@@ -9,10 +9,12 @@ import { pick } from '../../random';
 import { AI_LEVEL_KEY, isFriendSeat } from './choices';
 
 const MAP_GROUPS: { id: string; name: string }[] = [
-  { id: 'hex', name: 'Hex tiles' },
+  { id: 'hex', name: 'Sectors' },
   { id: 'open', name: 'Open ground' },
   { id: 'drift', name: 'Off-centre objectives' },
 ];
+
+const WORLD_NAMES = { phobos: 'Phobos', deimos: 'Deimos', mars: 'Mars' } as const;
 
 /** A tile of the preview: its number, a start's ring, or nothing for a gap. */
 function MiniTile({ token, style }: { token: string; style?: CSSProperties }) {
@@ -167,7 +169,7 @@ export function MapPicker({ map, choices, onChoose }: { map: MapDef; choices: Ma
                   <optgroup key={g.id} label={g.name}>
                     {maps.map((m) => (
                       <option key={m.id} value={m.id}>
-                        {m.name}
+                        {m.name} ({WORLD_NAMES[m.world ?? 'mars']})
                       </option>
                     ))}
                   </optgroup>
