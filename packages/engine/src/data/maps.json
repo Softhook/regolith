@@ -11,6 +11,7 @@
       "planets": 7
     },
     "world": "phobos",
+    "length": "short",
     "layout": [
       [
         ".",
@@ -47,6 +48,7 @@
       "planets": 10
     },
     "world": "deimos",
+    "length": "medium",
     "layout": [
       [
         "8*",
@@ -82,6 +84,7 @@
       "planets": 9
     },
     "world": "phobos",
+    "length": "long",
     "layout": [
       [
         ".",
@@ -118,6 +121,7 @@
       "planets": 6
     },
     "world": "mars",
+    "length": "medium",
     "layout": [
       [
         "8",
@@ -148,6 +152,7 @@
       "planets": 6
     },
     "world": "phobos",
+    "length": "short",
     "layout": [
       [
         ".",
@@ -181,6 +186,7 @@
       "planets": 10
     },
     "world": "deimos",
+    "length": "short",
     "layout": [
       [
         "7",
@@ -219,6 +225,7 @@
       "planets": 7
     },
     "world": "phobos",
+    "length": "long",
     "layout": [
       [
         "9*",
@@ -247,6 +254,7 @@
       "planets": 12
     },
     "world": "mars",
+    "length": "medium",
     "layout": [
       [
         ".",
@@ -291,6 +299,7 @@
       "planets": 12
     },
     "world": "phobos",
+    "length": "long",
     "layout": [
       [
         ".",
@@ -331,6 +340,7 @@
       "planets": 9
     },
     "world": "deimos",
+    "length": "long",
     "layout": [
       [
         ".",
@@ -383,6 +393,7 @@
       "planets": 10
     },
     "world": "deimos",
+    "length": "short",
     "layout": [
       [
         "7se",
@@ -426,6 +437,7 @@
       "planets": 6
     },
     "world": "phobos",
+    "length": "medium",
     "layout": [
       [
         ".",
@@ -459,6 +471,7 @@
       "planets": 10
     },
     "world": "deimos",
+    "length": "medium",
     "layout": [
       [
         "8*",
@@ -494,6 +507,7 @@
       "planets": 12
     },
     "world": "phobos",
+    "length": "long",
     "layout": [
       [
         ".",
@@ -534,6 +548,7 @@
       "planets": 8
     },
     "world": "mars",
+    "length": "medium",
     "layout": [
       [
         ".",
@@ -580,6 +595,7 @@
       "planets": 10
     },
     "world": "mars",
+    "length": "medium",
     "layout": [
       [
         ".",
@@ -624,6 +640,7 @@
       "planets": 9
     },
     "world": "phobos",
+    "length": "long",
     "layout": [
       [
         ".",
@@ -682,6 +699,7 @@
       "planets": 10
     },
     "world": "mars",
+    "length": "long",
     "layout": [
       [
         ".",
@@ -737,6 +755,7 @@
       "planets": 14
     },
     "world": "mars",
+    "length": "long",
     "layout": [
       [
         ".",
@@ -797,6 +816,7 @@
       "planets": 14
     },
     "world": "phobos",
+    "length": "long",
     "layout": [
       [
         ".",
@@ -848,6 +868,7 @@
       "planets": 13
     },
     "world": "mars",
+    "length": "short",
     "layout": [
       [
         "8*",
@@ -893,6 +914,7 @@
       "planets": 12
     },
     "world": "deimos",
+    "length": "short",
     "layout": [
       [
         "."
@@ -936,6 +958,7 @@
       "planets": 12
     },
     "world": "phobos",
+    "length": "medium",
     "layout": [
       [
         "7",
@@ -977,6 +1000,7 @@
       "planets": 9
     },
     "world": "mars",
+    "length": "medium",
     "layout": [
       [
         "8*",
@@ -1003,6 +1027,7 @@
       "planets": 10
     },
     "world": "phobos",
+    "length": "long",
     "layout": [
       [
         "9*",
@@ -1038,6 +1063,7 @@
       "planets": 13
     },
     "world": "deimos",
+    "length": "long",
     "layout": [
       [
         ".",
@@ -1090,6 +1116,7 @@
       "planets": 12
     },
     "world": "mars",
+    "length": "long",
     "layout": [
       [
         ".",
@@ -1136,6 +1163,7 @@
       "planets": 12
     },
     "world": "deimos",
+    "length": "medium",
     "layout": [
       [
         ".",
@@ -1182,6 +1210,7 @@
       "planets": 12
     },
     "world": "phobos",
+    "length": "medium",
     "layout": [
       [
         ".",
@@ -1228,6 +1257,7 @@
       "planets": 9
     },
     "world": "mars",
+    "length": "short",
     "layout": [
       [
         ".",
@@ -1274,6 +1304,7 @@
       "planets": 9
     },
     "world": "phobos",
+    "length": "short",
     "layout": [
       [
         "9*",
@@ -1309,6 +1340,7 @@
       "planets": 10
     },
     "world": "mars",
+    "length": "medium",
     "layout": [
       [
         ".",
@@ -1338,5 +1370,331 @@
         "8*"
       ]
     ]
+  },
+  {
+    "id": "ice-run",
+    "name": "Ice Run",
+    "players": 2,
+    "group": "prepared",
+    "cubes": 6,
+    "stats": {
+      "slack": 6,
+      "shared": 3,
+      "planets": 7
+    },
+    "world": "deimos",
+    "length": "medium",
+    "layout": [
+      [
+        "7*",
+        "8",
+        "9",
+        "7",
+        "10",
+        "7",
+        "9",
+        "8",
+        "7*"
+      ]
+    ],
+    "start": {
+      "tunnel": [
+        "0:2:s",
+        "0:6:n"
+      ]
+    }
+  },
+  {
+    "id": "rubble-field",
+    "name": "Rubble Field",
+    "players": 3,
+    "group": "prepared",
+    "cubes": 4,
+    "stats": {
+      "slack": 6,
+      "shared": 2,
+      "planets": 9
+    },
+    "world": "mars",
+    "length": "medium",
+    "layout": [
+      [
+        "9*",
+        "8",
+        "7",
+        "9*"
+      ],
+      [
+        "7",
+        "0",
+        "8"
+      ],
+      [
+        ".",
+        "8",
+        "7"
+      ],
+      [
+        ".",
+        "9*"
+      ]
+    ],
+    "start": {
+      "barriers": [
+        "0:2:n",
+        "2:2:se",
+        "1:0:sw",
+        "1:2:n",
+        "2:1:se",
+        "0:1:sw",
+        "0:2:se",
+        "2:2:sw",
+        "1:0:n"
+      ]
+    }
+  },
+  {
+    "id": "two-arcs",
+    "name": "Two Arcs",
+    "players": 2,
+    "group": "prepared",
+    "cubes": 4,
+    "stats": {
+      "slack": 2,
+      "shared": 2,
+      "planets": 4
+    },
+    "world": "phobos",
+    "length": "short",
+    "layout": [
+      [
+        ".",
+        "7*",
+        "8",
+        "8"
+      ],
+      [
+        ".",
+        ".",
+        ".",
+        "."
+      ],
+      [
+        ".",
+        "8",
+        "8",
+        "7*"
+      ]
+    ],
+    "start": {
+      "wormhole": [
+        "0:2:s",
+        "2:2:n"
+      ]
+    }
+  },
+  {
+    "id": "crater-rim",
+    "name": "Crater Rim",
+    "players": 2,
+    "group": "prepared",
+    "cubes": 5,
+    "stats": {
+      "slack": 6,
+      "shared": 1,
+      "planets": 9
+    },
+    "world": "mars",
+    "length": "short",
+    "layout": [
+      [
+        ".",
+        "8*",
+        "7",
+        "8"
+      ],
+      [
+        "7",
+        "0",
+        "-",
+        "-"
+      ],
+      [
+        "-",
+        "-",
+        "10",
+        "-",
+        "-"
+      ],
+      [
+        "-",
+        "-",
+        "0",
+        "7"
+      ],
+      [
+        ".",
+        "8",
+        "7",
+        "8*"
+      ]
+    ],
+    "start": {
+      "barriers": [
+        "1:1:se",
+        "3:2:nw",
+        "1:2:sw",
+        "3:1:ne",
+        "1:1:s",
+        "3:2:n",
+        "2:3:nw",
+        "2:1:se",
+        "2:1:ne",
+        "2:3:sw"
+      ]
+    }
+  },
+  {
+    "id": "moon-crater",
+    "name": "Moon Crater",
+    "players": 3,
+    "group": "prepared",
+    "cubes": 5,
+    "stats": {
+      "slack": 7,
+      "shared": 3,
+      "planets": 10
+    },
+    "world": "phobos",
+    "length": "medium",
+    "layout": [
+      [
+        "9*",
+        "8",
+        "7",
+        "9*"
+      ],
+      [
+        "7",
+        "10",
+        "8"
+      ],
+      [
+        ".",
+        "8",
+        "7"
+      ],
+      [
+        ".",
+        "9*"
+      ]
+    ],
+    "start": {
+      "barriers": [
+        "0:1:se",
+        "1:2:sw",
+        "2:1:n",
+        "0:2:sw",
+        "2:2:n",
+        "1:0:se",
+        "0:1:s",
+        "1:2:nw",
+        "2:1:ne"
+      ]
+    }
+  },
+  {
+    "id": "switchback",
+    "name": "Switchback",
+    "players": 2,
+    "group": "prepared",
+    "cubes": 5,
+    "stats": {
+      "slack": 0,
+      "shared": 1,
+      "planets": 7
+    },
+    "world": "deimos",
+    "length": "short",
+    "layout": [
+      [
+        ".",
+        "7*"
+      ],
+      [
+        "7",
+        "7"
+      ],
+      [
+        "7",
+        "8",
+        "7"
+      ],
+      [
+        "7",
+        "7"
+      ],
+      [
+        ".",
+        "7*"
+      ]
+    ],
+    "start": {
+      "barriers": [
+        "1:0:se",
+        "1:1:nw",
+        "3:1:nw",
+        "3:0:se"
+      ]
+    }
+  },
+  {
+    "id": "ice-bridge",
+    "name": "Ice Bridge",
+    "players": 4,
+    "group": "prepared",
+    "cubes": 4,
+    "stats": {
+      "slack": 0,
+      "shared": 6,
+      "planets": 8
+    },
+    "world": "deimos",
+    "length": "long",
+    "layout": [
+      [
+        ".",
+        ".",
+        "8*"
+      ],
+      [
+        ".",
+        "7",
+        "."
+      ],
+      [
+        "8*",
+        "9",
+        ".",
+        "9",
+        "8*"
+      ],
+      [
+        ".",
+        ".",
+        "7"
+      ],
+      [
+        ".",
+        ".",
+        "8*"
+      ]
+    ],
+    "start": {
+      "wormhole": [
+        "2:1:se",
+        "2:3:nw"
+      ]
+    }
   }
 ]

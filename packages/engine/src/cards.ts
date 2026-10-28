@@ -288,6 +288,7 @@ export const cardHandlers = {
     const cell = s.board.cells[a.cell.r]?.[a.cell.c];
     if (!cell || cell.kind !== 'space') fail('Gates go on spaces, not objectives');
     if (barrierAt(s, a.cell)) fail('Gates don’t go on barriers');
+    if (s.wormhole?.some((w) => same(w, a.cell))) fail('Gates don’t go on the wormhole');
     if (head.placed.some((p) => same(p, a.cell))) fail('Choose a different space');
     head.placed.push({ r: a.cell.r, c: a.cell.c });
     if (head.placed.length === 2) {

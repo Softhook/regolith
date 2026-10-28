@@ -131,22 +131,62 @@ function hexTiles(map: MapDef): { r: number; c: number; token: string; tile: num
   return out;
 }
 
-function buildHexBoard(map: MapDef): Board {
+const FLOWER: readonly Cell[] = [{ r: 0, c: 0 }, ...SIDES];
+
+/** Where a layout's tiles lie once shifted onto the board: each tile's middle space, and the board's size. */
+function laidOut(map: MapDef) {
   const tiles = hexTiles(map);
-  const flower = [{ r: 0, c: 0 }, ...SIDES];
-  const all = tiles.flatMap((t) => flower.map((d) => ({ r: t.r + d.r, c: t.c + d.c })));
+  const all = tiles.flatMap((t) => FLOWER.map((d) => ({ r: t.r + d.r, c: t.c + d.c })));
   const r0 = Math.min(...all.map((p) => p.r));
   const c0 = Math.min(...all.map((p) => p.c));
   const rows = Math.max(...all.map((p) => p.r)) - r0 + 1;
   const cols = Math.max(...all.map((p) => p.c)) - c0 + 1;
+  return { tiles, r0, c0, rows, cols };
+}
+
+function buildHexBoard(map: MapDef): Board {
+  const { tiles, r0, c0, rows, cols } = laidOut(map);
   const cells = offCells(rows, cols);
   const planets: Planet[] = [];
   for (const t of tiles) {
-    const spaces = flower.map((d) => ({ r: t.r - r0 + d.r, c: t.c - c0 + d.c }));
+    const spaces = FLOWER.map((d) => ({ r: t.r - r0 + d.r, c: t.c - c0 + d.c }));
     if (spaces.some((p) => cells[p.r][p.c].kind !== 'off')) throw new Error(`${map.id}: hex tiles overlap`);
     layTile(cells, planets, parseToken(t.token), t.tile, spaces, spaces[0]);
   }
   return { mapId: map.id, mapName: map.name, rows, cols, cells, planets, world: map.world ?? 'mars' };
+}
+
+/**
+ * The space a map's `start` lists name (data/maps.yaml): `row:col:side`, the layout's tile row and the tile's
+ * place in it, then one of its spaces: a compass side from its middle (n ne se s sw nw) or `m`, the middle.
+ * Throws for a tile that isn't there or a space that is its planet.
+ */
+export function startSpace(map: MapDef, spec: string): Cell {
+  const m = /^(\d+):(\d+):(m|n|ne|se|s|sw|nw)$/.exec(spec);
+  const where = `${map.id}: start space "${spec}"`;
+  if (!m) throw new Error(`${where} is not row:col:side`);
+  const { tiles, r0, c0 } = laidOut(map);
+  const tileCols = Math.max(...map.layout.map((r) => r.length));
+  const t = tiles.find((x) => x.tile === Number(m[1]) * tileCols + Number(m[2]));
+  if (!t) throw new Error(`${where} names no tile`);
+  const d = m[3] === 'm' ? MIDDLE : OFFSETS[m[3]];
+  const at = { r: t.r - r0 + d.r, c: t.c - c0 + d.c };
+  const planet = parseToken(t.token);
+  if (planet.number > 0 && m[3] === (planet.dir ?? 'm')) throw new Error(`${where} is the tile's objective`);
+  return at;
+}
+
+/** What a map starts with on the ground: its Ice Tunnel and wormhole (a pair of spaces each) and barriers, as spaces on the board. */
+export function startingGround(map: MapDef): { gates: Cell[]; wormhole: Cell[]; barriers: Cell[] } {
+  const start = map.start ?? {};
+  const gates = (start.tunnel ?? []).map((x) => startSpace(map, x));
+  const wormhole = (start.wormhole ?? []).map((x) => startSpace(map, x));
+  const barriers = (start.barriers ?? []).map((x) => startSpace(map, x));
+  if (gates.length !== 0 && gates.length !== 2) throw new Error(`${map.id}: an Ice Tunnel is a pair of spaces`);
+  if (wormhole.length !== 0 && wormhole.length !== 2) throw new Error(`${map.id}: a wormhole is a pair of spaces`);
+  const all = [...gates, ...wormhole, ...barriers].map(key);
+  if (new Set(all).size !== all.length) throw new Error(`${map.id}: two starting features on one space`);
+  return { gates, wormhole, barriers };
 }
 
 /** How far a flat-topped hex's centre is from the next column's, in hex heights (√3 / 2). */
@@ -322,24 +362,30 @@ export function linked(state: GameState, p: Cell): Cell[] {
   return [...adjacent(state.board, p), ...gatePartner(state, p)];
 }
 
+/** The linked pairs of spaces: the map's wormhole, then the Ice Tunnel, each when placed. */
+export function gatePairs(state: GameState): Cell[][] {
+  return [state.wormhole ?? [], state.gates].filter((p) => p.length === 2);
+}
+
 /** Movement neighbours, Warp Gate links included. */
 export function stepNeighbours(state: GameState, p: Cell): readonly Cell[] {
   const result = adjacent(state.board, p);
-  return state.gates.length === 2 ? [...result, ...gatePartner(state, p)] : result;
+  const partner = otherGate(state, p);
+  return partner ? [...result, partner] : result;
 }
 
 /** The other Warp Gate space, when p is one of two placed gates. */
 function gatePartner(state: GameState, p: Cell): Cell[] {
-  if (state.gates.length !== 2) return [];
-  const [a, b] = state.gates;
-  return same(p, a) ? [b] : same(p, b) ? [a] : [];
+  const partner = otherGate(state, p);
+  return partner ? [partner] : [];
 }
 
-/** The other Warp Gate / Ice Tunnel space, when p is one of two placed gates. */
+/** The other Ice Tunnel or wormhole space, when p is one end of a pair. */
 export function otherGate(state: GameState, p: Cell): Cell | undefined {
-  if (state.gates.length !== 2) return undefined;
-  const [a, b] = state.gates;
-  return same(p, a) ? b : same(p, b) ? a : undefined;
+  for (const [a, b] of gatePairs(state))
+    if (same(p, a)) return b;
+    else if (same(p, b)) return a;
+  return undefined;
 }
 
 const isSpace = (board: Board, p: Cell) => cellAt(board, p)?.kind === 'space';

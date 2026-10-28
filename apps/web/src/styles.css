@@ -399,6 +399,7 @@ input { font: inherit; }
 }
 .gate-spin { position: absolute; pointer-events: none; animation: spin 6s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
+.wormhole-spin { animation-direction: reverse; animation-duration: 4s; }
 
 .board-layer { position: absolute; inset: 0; }
 .hl {

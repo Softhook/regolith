@@ -31,7 +31,11 @@ export interface MapDef {
   stats: { slack: number; shared: number | null; planets: number };
   /** The map's world, Phobos, Deimos or Mars: every map in data/maps.yaml names one (Mars for a test's map that doesn't). */
   world?: World;
+  /** How long a game on it runs, by AI self-play (data/maps.yaml); the lobby lists maps by it. Absent on a test's map. */
+  length?: 'short' | 'medium' | 'long';
   layout: string[][];
+  /** What the map starts with on the ground (data/maps.yaml): spaces as `row:col:side`, see board.ts `startSpace`. */
+  start?: { tunnel?: string[]; wormhole?: string[]; barriers?: string[] };
 }
 
 export const MAPS: MapDef[] = mapsJson as MapDef[];

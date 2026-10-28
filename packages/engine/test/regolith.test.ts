@@ -115,8 +115,8 @@ describe('Regolith mode', () => {
       }
     }
     expect(expansionCard(BASE.regolith)).toBe(own.expansion);
-    expect(regolith.mapGroups).toEqual(['hex', 'open', 'drift']);
-    const played = MAPS.filter((m) => ['hex', 'open', 'drift'].includes(m.group));
+    expect(regolith.mapGroups).toEqual(['hex', 'open', 'drift', 'prepared']);
+    const played = MAPS.filter((m) => ['hex', 'open', 'drift', 'prepared'].includes(m.group));
     for (const m of played) expect(m.world, m.id).toBeDefined();
     expect(played.map((m) => m.id)).toContain('twin-drift');
     expect(regolith.overConquest).toBe(REGOLITH_OVER_CONQUEST);

@@ -2,6 +2,7 @@
 import {
   adjacent,
   cellAt,
+  gatePairs,
   grid,
   type Grid,
   key,
@@ -235,17 +236,17 @@ function barrierMask(state: GameState, g: Grid): Uint8Array | undefined {
   return mask;
 }
 
-/** The two Warp Gates' cell indexes, or -1s until both are placed (see board.ts stepNeighbours). */
-function gateIndexes(state: GameState, g: Grid): [number, number] {
-  if (state.gates.length !== 2) return [-1, -1];
-  const [a, b] = state.gates;
-  return [a.r * g.cols + a.c, b.r * g.cols + b.c];
+/** The cell indexes of the linked pairs, wormhole then Ice Tunnel, -1s where one isn't placed (see board.ts stepNeighbours). */
+function gateIndexes(state: GameState, g: Grid): [number, number, number, number] {
+  const out: number[] = [-1, -1, -1, -1];
+  gatePairs(state).forEach((pair, i) => pair.forEach((c, k) => (out[2 * i + k] = c.r * g.cols + c.c)));
+  return out as [number, number, number, number];
 }
 
 /** The Warp Gate partner of a cell index, or -1. */
 function gates(state: GameState, g: Grid): (i: number) => number {
-  const [a, b] = gateIndexes(state, g);
-  return (i) => (i === a ? b : i === b ? a : -1);
+  const [a, b, c, d] = gateIndexes(state, g);
+  return (i) => (i === a ? b : i === b ? a : i === c ? d : i === d ? c : -1);
 }
 
 export function canMoveDie(state: GameState, d: Die): boolean {
@@ -428,7 +429,7 @@ export function shipReach(state: GameState, d: Die, at: (Die | undefined)[]): Sh
   const range = movementRange(state, d);
   const from = start.r * g.cols + start.c;
   // The gates inline rather than gates(): a call per step is measurable here.
-  const [gateA, gateB] = gateIndexes(state, g);
+  const [gateA, gateB, gateC, gateD] = gateIndexes(state, g);
   const zone = stopZone(state, d.owner, at);
   const walls = barrierMask(state, g);
   const near = g.ortho;
@@ -446,7 +447,8 @@ export function shipReach(state: GameState, d: Die, at: (Die | undefined)[]): Sh
     const stopped = zone !== undefined && zone[cur] === 1 && cur !== from;
     const list = near[cur];
     for (let k = 0; k <= list.length; k++) {
-      const nb = k < list.length ? list[k] : cur === gateA ? gateB : cur === gateB ? gateA : -1;
+      const nb =
+        k < list.length ? list[k] : cur === gateA ? gateB : cur === gateB ? gateA : cur === gateC ? gateD : cur === gateD ? gateC : -1;
       if (nb < 0) continue;
       const ship = at[nb];
       if (ship) {
@@ -842,7 +844,7 @@ export function signed(n: number): string {
 
 /** Whether a barrier can go on `p`, by Barricade or a Wisp: an empty space with no warp gate on it. */
 export function canHoldBarrier(state: GameState, p: Cell): boolean {
-  return isEmptySpace(state, p) && !state.gates.some((g) => same(g, p));
+  return isEmptySpace(state, p) && !state.gates.some((g) => same(g, p)) && !state.wormhole?.some((g) => same(g, p));
 }
 
 /** The spaces Barricade can place a barrier on. */

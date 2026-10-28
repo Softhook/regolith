@@ -53,6 +53,7 @@ More tools, all headless:
 | `npm run audit:cards` | AI games with every card dealt, each step checked for legality and each card's effect against its text |
 | `npm run selfplay:cards` | Card win, pick and use rates over AI self-play |
 | `npm run selfplay:powers` / `selfplay:stalls` | What each mech's power is worth; games that stall |
+| `npm run selfplay:maps -- --maps=ice-run,canyon-relay` | Map by map: game length, fighting, first-player wins; `map:show` and `map:design` lay a map's starting tunnel and barriers |
 | `npm run power:usage` | How often the AI uses each power |
 | `npm run test:deep` | The legal-move cross-check over many more games (minutes) |
 | `npm run hex:check` / `ground:check` | The hex board and the ground tiles in a real browser |

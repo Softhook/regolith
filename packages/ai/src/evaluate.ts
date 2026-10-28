@@ -1,4 +1,5 @@
 import {
+  gatePairs,
   attackChance,
   barrierAt,
   breakthroughAt,
@@ -374,13 +375,14 @@ function stepsTo(s: GameState, planet: Planet): Int16Array {
   const g = grid(s.board);
   let byWalls = STEPS.get(s.board.cells);
   if (!byWalls) STEPS.set(s.board.cells, (byWalls = new Map()));
-  const walls = `${(s.barriers ?? []).map((b) => `${b.r},${b.c}`).join(';')}|${s.gates.map((c) => `${c.r},${c.c}`).join(';')}`;
+  const walls = `${(s.barriers ?? []).map((b) => `${b.r},${b.c}`).join(';')}|${[...(s.wormhole ?? []), ...s.gates].map((c) => `${c.r},${c.c}`).join(';')}`;
   let fields = byWalls.get(walls);
   if (!fields) byWalls.set(walls, (fields = []));
   if (fields[planet.id]) return fields[planet.id];
   const blocked = new Uint8Array(g.size);
   for (const b of s.barriers ?? []) blocked[b.r * g.cols + b.c] = 1;
-  const [gateA, gateB] = s.gates.length === 2 ? s.gates.map((c) => c.r * g.cols + c.c) : [-1, -1];
+  const partner = new Map<number, number>();
+  for (const [a, b] of gatePairs(s).map((p) => p.map((c) => c.r * g.cols + c.c))) partner.set(a, b).set(b, a);
   const steps = new Int16Array(g.size).fill(-1);
   const queue: number[] = [];
   for (const c of orbitals(s.board, planet)) {
@@ -392,7 +394,8 @@ function stepsTo(s: GameState, planet: Planet): Int16Array {
   }
   for (let head = 0; head < queue.length; head++) {
     const cur = queue[head];
-    const next = cur === gateA ? [...g.ortho[cur], gateB] : cur === gateB ? [...g.ortho[cur], gateA] : g.ortho[cur];
+    const through = partner.get(cur);
+    const next = through === undefined ? g.ortho[cur] : [...g.ortho[cur], through];
     for (const nb of next) {
       if (steps[nb] >= 0 || !g.space[nb] || blocked[nb]) continue;
       steps[nb] = steps[cur] + 1;

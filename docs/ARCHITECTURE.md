@@ -126,7 +126,10 @@ the new rule set changes a rule rather than a parameter, add a field to `RuleSet
 rule lives. Don't compare `state.mode` to a name anywhere else.
 
 **Add a map.** Add it to `data/maps.yaml` with its published stats (or `mapStats()`'s, if none are published); [`maps.test.ts`](../packages/engine/test/maps.test.ts) recomputes the stats
-from the layout and fails if they disagree. A map's setup sheet for the table comes with it (Art Lab, `#lab/maps`).
+from the layout and fails if they disagree. A map's setup sheet for the table comes with it (Art Lab, `#lab/maps`). A map may also start with an Ice Tunnel
+or barriers (`start:` in the YAML, group `prepared`): `npm run map:show -- <id>` prints it with every space named as
+`row:col:side`, and `--spin=<2|3>@<row:col> --pick=…` lays the turned copies that keep the seats level.
+`npm run selfplay:maps -- --maps=<ids>` measures what kind of game it makes (rounds, fights, first-seat wins).
 
 ## Tests
 
@@ -144,7 +147,7 @@ from the layout and fails if they disagree. A map's setup sheet for the table co
 | [`load-order.test.ts`](../packages/engine/test/load-order.test.ts) | The engine works whichever of its modules is imported first, and each entry point (`createGame`, `apply`, `legalActions`, `checkInvariants`) works with only its own module imported |
 | [`data.test.ts`](../packages/engine/test/data.test.ts) | Card ids unique; every card effect implemented or on the known-missing list |
 | [`golden.test.ts`](../packages/engine/test/golden.test.ts) | Exact replay of seeded AI-vs-AI games in every mode, with invariants checked after every action. Fails on *any* behaviour change. After an intended change, review and run `npx vitest run -u`. |
-| [`maps.test.ts`](../packages/engine/test/maps.test.ts) | Map stats match layouts |
+| [`maps.test.ts`](../packages/engine/test/maps.test.ts) | Map stats match layouts; a map's starting tunnel and barriers sit on spaces, leave each start its room, keep every objective reachable, and play out to a winner |
 | [`off-turn.test.ts`](../packages/engine/test/off-turn.test.ts) | Cards taken on someone else's turn (skills, Kill Zone, Forced March); Ice Tunnel, Headhunter and Final Push edge cases; when Science Survey asks |
 | [`words.test.ts`](../packages/engine/test/words.test.ts), [`skill-log.test.ts`](../packages/engine/test/skill-log.test.ts), [`stats.test.ts`](../packages/engine/test/stats.test.ts) | The log in Regolith's words; skills that fire by themselves named on it; the players' game stats |
 | [`powerUsage.test.ts`](../packages/engine/test/powerUsage.test.ts) | How often each mech power is offered and used (`npm run power:usage` for real numbers) |

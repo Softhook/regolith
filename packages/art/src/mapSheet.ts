@@ -10,7 +10,8 @@ import { TILE } from './tokens';
 /**
  * A map's setup sheet: a landscape board for setting a map up at a table, which tile goes where. Each tile is its
  * flower, drawn as the map lays it, with what to look for on it: an objective's number (on the hex it sits on, as
- * the layout puts it), a Sinkhole, or blank ground. The starting objectives are amber. On the aid's night paper.
+ * the layout puts it), a Sinkhole, or blank ground. The starting objectives are amber. A map that starts with an Ice
+ * Tunnel or barriers shows them, to lay down with the tiles. On the aid's night paper.
  */
 
 export const MAP_SHEET = {
@@ -35,6 +36,14 @@ export interface MapSheetTile {
   start: boolean;
 }
 
+/** Something the map starts with on a space: a mouth of its Ice Tunnel, or a barrier. */
+export interface MapSheetMark {
+  kind: 'tunnel' | 'wormhole' | 'barrier';
+  /** The space's middle, in spaces from the drawing's top left. */
+  x: number;
+  y: number;
+}
+
 export interface MapSheetOptions {
   name: string;
   players: number;
@@ -44,6 +53,8 @@ export interface MapSheetOptions {
   cols: number;
   rows: number;
   tiles: MapSheetTile[];
+  /** What it starts with on the ground; the tunnel's two mouths are joined by a dashed line. */
+  marks?: MapSheetMark[];
   bleed?: boolean;
   fontCss?: string;
 }
@@ -60,6 +71,16 @@ function objective(cx: number, cy: number, r: number, t: Pick<MapSheetTile, 'num
     : `<circle cx="${n(cx)}" cy="${n(cy)}" r="${n(r)}" fill="none" stroke="${WHITE}" stroke-width=".5"/>`;
   if (!t.number) return disc;
   return disc + text(cx, cy + r * 0.45, String(t.number), r * 1.25, { font: 'bold', anchor: 'middle', fill: t.start ? GROUND : WHITE });
+}
+
+/** An Ice Tunnel mouth: a ring of ice; a wormhole's: a double ring of violet; a barrier: a solid bar-crossed disc. */
+function mark(cx: number, cy: number, r: number, kind: MapSheetMark['kind']): string {
+  const [x, y, q] = [n(cx), n(cy), n(r)];
+  if (kind === 'wormhole')
+    return `<circle cx="${x}" cy="${y}" r="${q}" fill="none" stroke="${INKS.violet}" stroke-width="${n(r * 0.2)}"/><circle cx="${x}" cy="${y}" r="${n(r * 0.5)}" fill="none" stroke="${INKS.violet}" stroke-width="${n(r * 0.2)}"/>`;
+  if (kind === 'tunnel')
+    return `<circle cx="${x}" cy="${y}" r="${q}" fill="none" stroke="${INKS.ice}" stroke-width="${n(r * 0.3)}"/><circle cx="${x}" cy="${y}" r="${n(r * 0.35)}" fill="${INKS.ice}"/>`;
+  return `<circle cx="${x}" cy="${y}" r="${q}" fill="${WHITE}"/><path d="M${n(cx - r * 0.7)},${n(cy - r * 0.7)}L${n(cx + r * 0.7)},${n(cy + r * 0.7)}M${n(cx - r * 0.7)},${n(cy + r * 0.7)}L${n(cx + r * 0.7)},${n(cy - r * 0.7)}" stroke="${GROUND}" stroke-width="${n(r * 0.28)}" stroke-linecap="round"/>`;
 }
 
 /** A flat-topped hex `r` across its corners, for the legend. */
@@ -104,6 +125,19 @@ export function mapSheetSvg(o: MapSheetOptions): string {
     if (t.number > 0) out.push(objective(ox + (t.x + t.at.x) * cell, oy + (t.y + t.at.y) * cell, cell * 0.4, t));
   }
 
+  // What the map starts with: the tunnel's mouths joined by a dashed line, then the barriers.
+  const marks = o.marks ?? [];
+  const spot = (m: MapSheetMark) => [ox + m.x * cell, oy + m.y * cell];
+  for (const kind of ['tunnel', 'wormhole'] as const) {
+    const pair = marks.filter((m) => m.kind === kind);
+    if (pair.length !== 2) continue;
+    const [a, c] = pair.map(spot);
+    out.push(
+      `<path d="M${n(a[0])},${n(a[1])}L${n(c[0])},${n(c[1])}" stroke="${kind === 'tunnel' ? INKS.ice : INKS.violet}" stroke-width=".5" stroke-dasharray="1.5 1.5" fill="none"/>`,
+    );
+  }
+  for (const m of marks) out.push(mark(spot(m)[0], spot(m)[1], cell * 0.32, m.kind));
+
   // The legend, along the bottom: a swatch and a few words each, spread across.
   const ly = H - M - 1.5;
   const r = 2.4;
@@ -112,6 +146,11 @@ export function mapSheetSvg(o: MapSheetOptions): string {
     [objective(0, 0, r, { number: 0, start: true }), 'Starting objective'],
     [swatch(0, 0, r, SINKHOLE), 'Sinkhole'],
     [swatch(0, 0, r, GROUND), 'Blank ground'],
+    ...(marks.some((m) => m.kind === 'tunnel') ? [[mark(0, 0, r * 0.8, 'tunnel'), 'Ice Tunnel (a pair)'] as [string, string]] : []),
+    ...(marks.some((m) => m.kind === 'wormhole')
+      ? [[mark(0, 0, r * 0.8, 'wormhole'), 'Wormhole (a pair, for good)'] as [string, string]]
+      : []),
+    ...(marks.some((m) => m.kind === 'barrier') ? [[mark(0, 0, r * 0.8, 'barrier'), 'Barrier'] as [string, string]] : []),
   ];
   let x = M;
   for (const [draw, label] of keys) {

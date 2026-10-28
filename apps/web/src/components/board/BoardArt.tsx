@@ -3,7 +3,7 @@ import { drawing, type Board, type GameState } from '@regolith/engine';
 import { PLANET_DIAMETER, TILE } from '@regolith/art';
 import { BarrierBubble } from './BarrierBubble';
 import { tileArt, type TileArt } from '../../art/boardTiles';
-import { GATE_COLOR } from '../../theme';
+import { GATE_COLOR, WORMHOLE_COLOR } from '../../theme';
 import { placement } from './geometry';
 import { PlanetMarkings } from './PlanetMarkings';
 import { MapTiles } from './MapTiles';
@@ -43,7 +43,11 @@ export const BoardArt = memo(function BoardArt({
   // The open gates, then any of a Warp Gate pair placed so far: faint until the pair is complete.
   const head = game.pending[0];
   const placing = head?.kind === 'warpGate' ? head.placed : [];
-  const gates = [...game.gates.map((g) => ({ ...g, open: true })), ...placing.map((g) => ({ ...g, open: false }))];
+  const gates = [
+    ...(game.wormhole ?? []).map((g) => ({ ...g, open: true, wormhole: true })),
+    ...game.gates.map((g) => ({ ...g, open: true, wormhole: false })),
+    ...placing.map((g) => ({ ...g, open: false, wormhole: false })),
+  ];
   return (
     <>
       <svg className="board-svg" width={W} height={H} viewBox={`0 0 ${W} ${H}`}>
@@ -57,7 +61,13 @@ export const BoardArt = memo(function BoardArt({
 
         {gates.map((g, i) => (
           <g key={i} transform={`translate(${mid(g).x} ${mid(g).y})`} opacity={g.open ? 1 : 0.5}>
-            <circle r={cell * 0.4} fill="none" stroke={GATE_COLOR} strokeWidth={cell * 0.05} filter="url(#glow)" />
+            <circle
+              r={cell * 0.4}
+              fill="none"
+              stroke={g.wormhole ? WORMHOLE_COLOR : GATE_COLOR}
+              strokeWidth={cell * 0.05}
+              filter="url(#glow)"
+            />
           </g>
         ))}
 
@@ -104,7 +114,7 @@ export const BoardArt = memo(function BoardArt({
       {gates.map((g, i) => (
         <svg
           key={i}
-          className="gate-spin"
+          className={g.wormhole ? 'gate-spin wormhole-spin' : 'gate-spin'}
           style={{ left: box(g).left, top: box(g).top, opacity: g.open ? 1 : 0.5 }}
           width={cell}
           height={cell}
@@ -115,10 +125,21 @@ export const BoardArt = memo(function BoardArt({
             cy={cell / 2}
             r={cell * 0.36}
             fill="none"
-            stroke={GATE_COLOR}
+            stroke={g.wormhole ? WORMHOLE_COLOR : GATE_COLOR}
             strokeWidth={cell * 0.025}
             strokeDasharray={`${cell * 0.065} ${cell * 0.065}`}
           />
+          {g.wormhole && (
+            <circle
+              cx={cell / 2}
+              cy={cell / 2}
+              r={cell * 0.24}
+              fill="none"
+              stroke={WORMHOLE_COLOR}
+              strokeWidth={cell * 0.04}
+              strokeDasharray={`${cell * 0.12} ${cell * 0.05}`}
+            />
+          )}
         </svg>
       ))}
     </>

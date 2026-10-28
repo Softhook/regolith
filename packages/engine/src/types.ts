@@ -262,9 +262,9 @@ export interface LogEntry {
   turn?: true;
 }
 
-/** A barrier on the map, and the player whose ship placed it. */
+/** A barrier on the map, and the player whose ship placed it; null for one the map started with (data/maps.yaml `start`). */
 export interface Barrier extends Cell {
-  owner: PlayerId;
+  owner: PlayerId | null;
 }
 
 export interface GameState {
@@ -277,6 +277,11 @@ export interface GameState {
   dice: Die[];
   market: Market;
   gates: Cell[];
+  /**
+   * A wormhole the map started with (data/maps.yaml `start`): a pair of spaces linked like the Ice Tunnel's, for good.
+   * The Ice Tunnel tactic can't close it or land on it. Absent on a map without one.
+   */
+  wormhole?: Cell[];
   /**
    * Barriers on the map (the Wisp and Barricade place them), for good: nothing moves into, is deployed on or
    * shoots through their spaces. Absent in a game that never had one.

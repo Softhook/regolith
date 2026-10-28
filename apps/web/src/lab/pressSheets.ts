@@ -9,11 +9,12 @@ import {
   tileSpec,
   tileSvg,
   type AidEdition,
+  type MapSheetMark,
   type TileOptions,
   type TileSpec,
   type World,
 } from '@regolith/art';
-import { MAPS, buildBoard, drawing, type MapDef } from '@regolith/engine';
+import { MAPS, buildBoard, drawing, startingGround, type Cell, type MapDef } from '@regolith/engine';
 import { tileArt } from '../art/boardTiles';
 import { blobToDataUrl, rasterise } from '../files';
 import type { PressSheets } from '../print/exports';
@@ -139,7 +140,10 @@ export function printableMap(map: MapDef, fontCss: string): Printable {
       start: starts.has(t.tile),
     };
   });
-  const sheet = { name: map.name, players: map.players, cubes: map.cubes, world: board.world, cols, rows, tiles, fontCss };
+  const ground = startingGround(map);
+  const mark = (kind: MapSheetMark['kind']) => (cell: Cell) => ({ kind, x: at(cell).c + 0.5, y: at(cell).r + 0.5 });
+  const marks = [...ground.gates.map(mark('tunnel')), ...ground.wormhole.map(mark('wormhole')), ...ground.barriers.map(mark('barrier'))];
+  const sheet = { name: map.name, players: map.players, cubes: map.cubes, world: board.world, cols, rows, tiles, marks, fontCss };
   return { name: map.id, svg: (bleed) => mapSheetSvg({ ...sheet, bleed }) };
 }
 

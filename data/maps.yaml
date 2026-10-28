@@ -19,7 +19,19 @@
 # starting planet needs 3 orbital spaces no other start shares.
 #
 # Groups: hex (the basic and advanced maps), open (maps spread out with blank tiles),
-#         drift (planets off the middle of their tiles).
+#         drift (planets off the middle of their tiles), prepared (maps that start with an Ice Tunnel or
+#         barriers already on the ground).
+#
+# start: what the map starts with on the ground, optional. A space is named `row:col:side`, the layout's tile row
+#   and the tile's place in its row (counting its gaps), then the tile's space: n ne se s sw nw round its middle,
+#   or m for the middle itself (on a Sinkhole or blank tile; an objective in the middle leaves no space there).
+#     tunnel:   [space, space]   an Ice Tunnel, open from the first turn (the Ice Tunnel tactic still moves it)
+#     wormhole: [space, space]   a pair linked like the tunnel's but for good: the tactic can't close it or land on it
+#     barriers: [space, …]       barriers nobody fired: for good, like the Wisp's
+#   `npm run map:show -- <id>` prints a map with every space named, and lays a symmetric list (--spin).
+#
+# length: short | medium | long, on every map: AI self-play's rounds times players (level 2, `npm run selfplay:maps`),
+#   under 30 turns, up to 50, over 50. The lobby lists maps by it.
 #
 # world: phobos | deimos | mars, on every map. The surface the map lies on, which its tiles show. Phobos is
 #   grey and cratered; Deimos, the outer moon, redder and smoother, its craters buried under dust; Mars has
@@ -36,6 +48,7 @@ maps:
     players: 2
     group: hex
     world: phobos
+    length: short
     cubes: 5
     stats: { slack: 0, shared: 1, planets: 7 }
     layout:
@@ -50,6 +63,7 @@ maps:
     players: 3
     group: hex
     world: deimos
+    length: medium
     cubes: 5
     stats: { slack: 4, shared: 4, planets: 10 }
     layout:
@@ -63,6 +77,7 @@ maps:
     players: 4
     group: hex
     world: phobos
+    length: long
     cubes: 5
     stats: { slack: 4, shared: 5, planets: 9 }
     layout:
@@ -80,6 +95,7 @@ maps:
     players: 2
     group: hex
     world: mars
+    length: medium
     cubes: 7
     stats: { slack: 0, shared: 6, planets: 6 }
     # A band of six 8s, a start at each end touching two of them.
@@ -93,6 +109,7 @@ maps:
     players: 2
     group: hex
     world: phobos
+    length: short
     cubes: 6
     stats: { slack: 2, shared: 4, planets: 6 }
     # A ring of eight round a two-tile hole, the starts across it.
@@ -106,6 +123,7 @@ maps:
     players: 2
     group: hex
     world: deimos
+    length: short
     cubes: 7
     stats: { slack: 2, shared: 2, planets: 10 }
     # A void ringed by 8s and 7s; each start sits among three 7s at an end.
@@ -121,6 +139,7 @@ maps:
     players: 3
     group: hex
     world: phobos
+    length: long
     cubes: 5
     stats: { slack: 2, shared: 5, planets: 7 }
     # Seven tiles: the starts round an 8, two spaces apart, with 8s between them.
@@ -134,6 +153,7 @@ maps:
     players: 3
     group: hex
     world: mars
+    length: medium
     cubes: 7
     stats: { slack: 6, shared: 3, planets: 12 }
     # A void ringed by 9s and 8s; each start, out at a point, touches a 9, an 8 and a 7.
@@ -149,6 +169,7 @@ maps:
     players: 4
     group: hex
     world: phobos
+    length: long
     cubes: 6
     stats: { slack: 6, shared: 5, planets: 12 }
     # Two 10s in the middle with the 7s and 8s round them; two starts touch a 10, two sit further out.
@@ -164,6 +185,7 @@ maps:
     players: 4
     group: hex
     world: deimos
+    length: long
     cubes: 6
     stats: { slack: 4, shared: 5, planets: 9 }
     # A 10 in the middle, four arms of 8s out to the starts.
@@ -186,6 +208,7 @@ maps:
     players: 2
     group: drift
     world: deimos
+    length: short
     cubes: 6
     stats: { slack: 6, shared: 2, planets: 10 }
     # Each start shares two orbital spaces with a 7 beside it, and the 9s share two more. Two 7s
@@ -202,6 +225,7 @@ maps:
     players: 2
     group: drift
     world: phobos
+    length: medium
     cubes: 6
     stats: { slack: 2, shared: 4, planets: 6 }
     # The two 7 starts lean into the ring's central gap, pulling orbits across the other tiles.
@@ -215,6 +239,7 @@ maps:
     players: 3
     group: drift
     world: deimos
+    length: medium
     cubes: 5
     stats: { slack: 4, shared: 4, planets: 10 }
     # Three 7s drift around a central 10, each turned a third of a turn from the next.
@@ -229,6 +254,7 @@ maps:
     players: 4
     group: drift
     world: phobos
+    length: long
     cubes: 6
     stats: { slack: 6, shared: 5, planets: 12 }
     # Two 7s lean toward the pair of 10s; the other two starts sit further out, as on Nexus.
@@ -248,6 +274,7 @@ maps:
     players: 2
     group: open
     world: mars
+    length: medium
     cubes: 6
     stats: { slack: 2, shared: 4, planets: 8 }
     # A hexagon of 19 tiles round a void; each start sits in a corner, on open ground beside a 7.
@@ -263,6 +290,7 @@ maps:
     players: 2
     group: open
     world: mars
+    length: medium
     cubes: 7
     stats: { slack: 6, shared: 4, planets: 10 }
     # A long canyon, the starts at either end, 7 tiles apart, with the 10s in its middle.
@@ -276,6 +304,7 @@ maps:
     players: 3
     group: open
     world: phobos
+    length: long
     cubes: 6
     stats: { slack: 3, shared: 3, planets: 9 }
     # A crater floor of blanks and three voids, ringed by 9s and 8s; the starts on the rim, touching a 7 and an 8.
@@ -292,6 +321,7 @@ maps:
     players: 3
     group: open
     world: mars
+    length: long
     cubes: 6
     stats: { slack: 4, shared: 4, planets: 10 }
     # A 10 on a rise of open ground; each start stands on the slope beside a void and a 7, four tiles from the others.
@@ -308,6 +338,7 @@ maps:
     players: 4
     group: open
     world: mars
+    length: long
     cubes: 6
     stats: { slack: 6, shared: 4, planets: 14 }
     # A void with two 10s across it, on an open plain; the four starts stand out at its edge, each touching a 7
@@ -326,6 +357,7 @@ maps:
     players: 4
     group: open
     world: phobos
+    length: long
     cubes: 6
     stats: { slack: 6, shared: 4, planets: 14 }
     # Two voids side by side across open ground; two starts by a 10, two by a 9 and an 8.
@@ -346,6 +378,7 @@ maps:
     players: 2
     group: hex
     world: mars
+    length: short
     cubes: 7
     stats: { slack: 5, shared: 1, planets: 13 }
     # Starts at opposite corners, a 9 between them, and gaps and two voids that break the straight lanes.
@@ -361,6 +394,7 @@ maps:
     players: 3
     group: hex
     world: deimos
+    length: short
     cubes: 5
     stats: { slack: 3, shared: 3, planets: 12 }
     layout:
@@ -376,6 +410,7 @@ maps:
     players: 4
     group: hex
     world: phobos
+    length: medium
     cubes: 5
     stats: { slack: 4, shared: 4, planets: 12 }
     layout:
@@ -392,6 +427,7 @@ maps:
     players: 2
     group: hex
     world: mars
+    length: medium
     cubes: 6
     stats: { slack: 6, shared: 3, planets: 9 }
     # A direct lane between equal homes, with a central 10, two 9s and four 7s along the route.
@@ -403,6 +439,7 @@ maps:
     players: 3
     group: hex
     world: phobos
+    length: long
     cubes: 6
     stats: { slack: 4, shared: 4, planets: 10 }
     # Equal 9 starts on a triangle, with a 10 in the middle and two 3-fold rings around it.
@@ -417,6 +454,7 @@ maps:
     players: 4
     group: hex
     world: deimos
+    length: long
     cubes: 5
     stats: { slack: 4, shared: 5, planets: 13 }
     # Four equal 8 starts on the arms; the 7s make the approach easier and the central 10 rewards crossing.
@@ -438,6 +476,7 @@ maps:
     players: 5
     group: open
     world: mars
+    length: long
     cubes: 4
     stats: { slack: 4, shared: 4, planets: 12 }
     # A 10 in the middle of a ring of open ground; five 8 starts round the hexagon's rim, the 9s between pairs of them, and a void.
@@ -453,6 +492,7 @@ maps:
     players: 5
     group: hex
     world: deimos
+    length: medium
     cubes: 4
     stats: { slack: 5, shared: 5, planets: 12 }
     # A ring of twelve round an empty middle, a start every two or three tiles; two starts share a 9 between them.
@@ -468,6 +508,7 @@ maps:
     players: 5
     group: open
     world: phobos
+    length: medium
     cubes: 4
     stats: { slack: 4, shared: 4, planets: 12 }
     # Five of the hexagon's six corners hold starts; the sixth is a bay of open ground, with a 10 in the middle.
@@ -487,6 +528,7 @@ maps:
     players: 2
     group: open
     world: mars
+    length: short
     cubes: 5
     stats: { slack: 6, shared: 1, planets: 9 }
     # A 10 on the summit between two voids, an 8 and a 7 beside each start; the half turn matches the seats.
@@ -502,6 +544,7 @@ maps:
     players: 3
     group: hex
     world: phobos
+    length: short
     cubes: 4
     stats: { slack: 6, shared: 2, planets: 9 }
     # A void ringed by 7s and 8s in turn, a 9 start at each of three corners, a third of a turn apart.
@@ -516,6 +559,7 @@ maps:
     players: 4
     group: hex
     world: mars
+    length: medium
     cubes: 4
     stats: { slack: 2, shared: 4, planets: 10 }
     # Four 8 starts at the corners of a diamond, a void between them and a pair of 9s on its long diagonal.
@@ -524,4 +568,128 @@ maps:
       - ".  7  7"
       - "8* 9  0  9  8*"
       - ".  7  7"
+      - ".  .  8*"
+
+  # Prepared ground: the ground starts broken. An Ice Tunnel or barriers are on the map before the first
+  # turn, laid symmetrically, so the seats stay level. The shape of the fight comes from them: a tunnel's
+  # mouths are where raiders appear, a barrier line is a pass to hold.
+
+  - id: ice-run
+    name: Ice Run
+    players: 2
+    group: prepared
+    world: deimos
+    length: medium
+    cubes: 6
+    stats: { slack: 6, shared: 3, planets: 7 }
+    # A long lane like Canyon Relay, but an Ice Tunnel is open between its two 9s, past the central 10.
+    start:
+      tunnel: ["0:2:s", "0:6:n"]
+    layout:
+      - "7* 8  9  7  10 7  9  8  7*"
+
+  - id: rubble-field
+    name: Rubble Field
+    players: 3
+    group: prepared
+    world: mars
+    length: medium
+    cubes: 4
+    stats: { slack: 6, shared: 2, planets: 9 }
+    # Triple Junction with nine barriers laid in threes, a third of a turn apart, that wall each pair of starts off from the other: the walk between homes goes from 7 spaces to 12, round the rubble.
+    start:
+      barriers: ["0:2:n", "2:2:se", "1:0:sw", "1:2:n", "2:1:se", "0:1:sw", "0:2:se", "2:2:sw", "1:0:n"]
+    layout:
+      - "9* 8  7  9*"
+      - "7  0  8"
+      - ".  8  7"
+      - ".  9*"
+
+  - id: two-arcs
+    name: Two Arcs
+    players: 2
+    group: prepared
+    world: phobos
+    length: short
+    cubes: 4
+    stats: { slack: 2, shared: 2, planets: 4 }
+    # Circular Logic cut in two: each start has an arc of three objectives to itself, and only the wormhole crosses the gap. No arc has the four a player's cubes need, so one must be planted across.
+    start:
+      wormhole: ["0:2:s", "2:2:n"]
+    layout:
+      - ".  7* 8  8"
+      - ".  .  .  ."
+      - ".  8  8  7*"
+
+  - id: crater-rim
+    name: Crater Rim
+    players: 2
+    group: prepared
+    world: mars
+    length: short
+    cubes: 5
+    stats: { slack: 6, shared: 1, planets: 9 }
+    # Olympus Mons with a rim of barriers round its summit 10, two one-space breaches. The 10 is a fort: whoever holds the breaches holds the claim.
+    start:
+      barriers:
+        ["1:1:se", "3:2:nw", "1:2:sw", "3:1:ne", "1:1:s", "3:2:n", "2:3:nw", "2:1:se", "2:1:ne", "2:3:sw"]
+    layout:
+      - ".  8* 7  8"
+      - "7  0  -  -"
+      - "-  -  10 -  -"
+      - "-  -  0  7"
+      - ".  8  7  8*"
+
+  - id: moon-crater
+    name: Moon Crater
+    players: 3
+    group: prepared
+    world: phobos
+    length: medium
+    cubes: 5
+    stats: { slack: 7, shared: 3, planets: 10 }
+    # Mare Trigonum with a rim of barriers round its central 10 and three one-space breaches, each facing a start's side.
+    start:
+      barriers:
+        ["0:1:se", "1:2:sw", "2:1:n", "0:2:sw", "2:2:n", "1:0:se", "0:1:s", "1:2:nw", "2:1:ne"]
+    layout:
+      - "9* 8  7  9*"
+      - "7  10 8"
+      - ".  8  7"
+      - ".  9*"
+
+  - id: switchback
+    name: Switchback
+    players: 2
+    group: prepared
+    world: deimos
+    length: short
+    cubes: 5
+    stats: { slack: 0, shared: 1, planets: 7 }
+    # Alpha Sector with two broken walls across it, each a pair of 7s with two barriers between and gaps at both ends. The walk between the starts is 10 spaces, through the chamber with the 8.
+    start:
+      barriers: ["1:0:se", "1:1:nw", "3:1:nw", "3:0:se"]
+    layout:
+      - ".  7*"
+      - "7  7"
+      - "7  8  7"
+      - "7  7"
+      - ".  7*"
+
+  - id: ice-bridge
+    name: Ice Bridge
+    players: 4
+    group: prepared
+    world: deimos
+    length: long
+    cubes: 4
+    stats: { slack: 0, shared: 6, planets: 8 }
+    # Cydonia cut across its void into two islands of two starts each; the wormhole is the only way over, and each island has too few objectives for its players' cubes.
+    start:
+      wormhole: ["2:1:se", "2:3:nw"]
+    layout:
+      - ".  .  8*"
+      - ".  7  ."
+      - "8* 9  .  9  8*"
+      - ".  .  7"
       - ".  .  8*"

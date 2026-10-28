@@ -62,8 +62,8 @@ export function checkInvariants(s: GameState): string[] {
     check(!occupied.has(k), `a barrier on ${k}, which is taken`);
     occupied.add(k);
     check(s.board.cells[b.r]?.[b.c]?.kind === 'space', `a barrier on ${k}, which is not a space`);
-    check(isPlayer(b.owner), `barrier on ${k}: unknown owner ${b.owner}`);
-    check(!s.gates.some((g) => key(g) === k), `a barrier on ${k}, which has an ice tunnel`);
+    check(b.owner === null || isPlayer(b.owner), `barrier on ${k}: unknown owner ${b.owner}`);
+    check(![...s.gates, ...(s.wormhole ?? [])].some((g) => key(g) === k), `a barrier on ${k}, which has an ice tunnel or wormhole`);
   }
   for (const p of s.players) {
     check(s.dice.filter((d) => d.owner === p.id).length === DICE_PER_PLAYER, `player ${p.id} does not have ${DICE_PER_PLAYER} dice`);
@@ -107,6 +107,8 @@ export function checkInvariants(s: GameState): string[] {
   check(isPlayer(t.player), `turn of unknown player ${t.player}`);
   check(t.actionsLeft >= 0 && t.freeDeploys >= 0, 'negative action count');
   check(s.gates.length === 0 || s.gates.length === 2, `${s.gates.length} ice tunnels`);
+  check(!s.wormhole || s.wormhole.length === 2, `a wormhole of ${s.wormhole?.length} spaces`);
+  check(!s.gates.some((g) => s.wormhole?.some((w) => key(w) === key(g))), 'an ice tunnel on the wormhole');
 
   // Phase and decisions
   check((s.phase === 'over') === (s.winner !== null), `phase ${s.phase} with winner ${s.winner}`);

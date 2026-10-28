@@ -92,6 +92,58 @@ and setup economies:
 | Mare Trigonum | 3 | Equal 9 starts around a 10, with threefold rings of 7s and 8s |
 | Fourfold Confluence | 4 | Equal 8 starts on four arms, with 7s on the approaches and a 10 at the crossing |
 
+### Prepared ground
+
+Seven maps start with something already on the ground: an Ice Tunnel (`tunnel:`), a wormhole (`wormhole:`, a tunnel the Ice Tunnel tactic can't close), barriers (`barriers:`) or any of them,
+listed under the map's `start:` in [`data/maps.yaml`](../data/maps.yaml). They are the game's own pieces, laid
+before the first turn and laid symmetrically (a half turn, a third for 3 players), so the seats stay level. A
+map's barriers belong to nobody. What each one changes is mostly the *walk* between homes, the fewest steps from
+one home's perimeter to another's:
+
+| Map | Players | Cubes | The idea | Walk between homes |
+|---|---:|---:|---|---|
+| Ice Run | 2 | 6 | Canyon Relay's lane, with an Ice Tunnel past the central 10 | 22 → 11 |
+| Two Arcs | 2 | 4 | Circular Logic cut in two: each start has three objectives to itself, and only the wormhole crosses the gap. Four cubes need a fourth objective, so one must be planted across | none → 5 |
+| Switchback | 2 | 5 | Alpha Sector with two walls, each open at one end, the east end of the north wall and the west end of the south: an S through the chamber with the 8 | 8 → 13 |
+| Crater Rim | 2 | 5 | Olympus Mons with a rim of barriers round its summit 10 and two one-space breaches | 10 → 11 |
+| Rubble Field | 3 | 4 | Triple Junction with nine barriers in threes, walling each start from the others | 7 → 12 |
+| Moon Crater | 3 | 5 | Mare Trigonum with a rim of barriers round the central 10 and three breaches | 7 → 7 |
+| Ice Bridge | 4 | 4 | Cydonia cut into two islands of two starts; the wormhole is the only way across, and an island has too few objectives for its players' cubes | 6 on an island, 9–11 across |
+
+Naming a space: `row:col:side` is the layout's tile row, the tile's place in its row (gaps count) and the tile's
+space, a compass side from its middle (`n ne se s sw nw`) or `m` (the middle, on a Sinkhole or blank tile; an
+objective in the middle leaves none). `npm run map:show -- <id>` prints a map with every space named,
+`--spin=2@<row:col> --pick=…` lays the turned copies of a space, `--ring=` and `--line=` list a ring or a wall's
+spaces, and `npm run map:design -- <id> --spin=…` searches for barriers that lengthen the walk (Rubble Field's) or a
+tunnel that shortens it evenly. `maps.test.ts` holds each map to: its features on spaces, each start keeping 3
+perimeter spaces of its own, every objective reachable from every start (through the tunnel), and a game that
+reaches a winner.
+
+**Self-play** (`npm run selfplay:maps`), level 2 AI (Sergeant) in every seat, 40 games each, 28 October 2026,
+averages per game, against the map each one is built on:
+
+| Map | Rounds | Attacks | First player wins | Parent map (rounds, attacks, first player wins) |
+|---|--:|--:|--:|---|
+| Ice Run | 15.0 | 9.9 | 70% | Canyon Relay, 19.3, 5.8, 65% |
+| Two Arcs | 11.3 | 8.8 | 55% | Circular Logic, 14.7, 10.5, 70%; 6 cubes, not 4 |
+| Switchback | 10.3 | 5.8 | 68% | Alpha Sector, 9.5, 8.3, 53% |
+| Crater Rim | 12.1 | 3.9 | 58% | Olympus Mons, 9.9, 4.3, 58% |
+| Rubble Field | 12.3 | 13.8 | 30% (of 3) | Triple Junction, 9.6, 13.2, 43% |
+| Moon Crater | 14.8 | 18.4 | 38% (of 3) | Mare Trigonum, 18.1, 35.2, 38%; 6 cubes, not 5 |
+| Ice Bridge | 16.3 | 26.1 | 35% (of 4) | Cydonia, 10.8, 22.4, 38% |
+
+No game was left unfinished in these. A second run of 100 games each on other seeds put Ice Run's first-player share at 49% (so the 70% above was chance) and Ice Bridge's at 35% of 4, and left one Two Arcs game unfinished: the islands were cut apart for good, the likely cause being the Ice Tunnel tactic moving the map's tunnel. That is why Two Arcs and Ice Bridge now use a *wormhole*, which the tactic can't close (RULES.md ruling 15). What it says, with the usual caution (40 games, an AI that plans a turn at a time):
+
+- **A tunnel is the strongest feature.** Ice Run halves the walk and cuts the game by a fifth while 70% more attacks
+  happen, as the mouths are where players meet. Two Arcs and Ice Bridge need theirs to play at all.
+- **Barriers lengthen a game only as much as they lengthen the walk.** Rubble Field (7 → 12) runs 28% longer than
+  Triple Junction at the same cubes, with the same fighting; Switchback (8 → 13) about as long as Alpha but with
+  fewer attacks, as the AI does not hold a pass. A rim (Crater Rim, Moon Crater) barely changes the walk, only
+  who can reach the objective inside, and the AI plays it much as it does the open map: Moon Crater has about half
+  Mare Trigonum's fighting (as well as one cube fewer).
+- **Only 40 games each:** a first-player share like Switchback's 68% is about two standard deviations from even,
+  worth a longer run before reading anything into it.
+
 ## Measurements
 
 **Self-play, Regolith rules** (moves capped at 3, zones of control, Shoot), 20 games per map, level 2 AI
@@ -242,6 +294,8 @@ planet, and neither AI went for it.
 
 - A hex form of Ingenious, if it's worth having back (see *Cards*).
 - More advanced maps, and the add-on and BGA ones; wrapping maps.
+- More than one Ice Tunnel at the start (the engine and AI hold one pair), which would make 3- and 4-player
+  maps with a lane for every seat, and a Moon Crater-like map built round the Ice Tunnel tactic.
 - Turning a tall map on its side to fit a wide screen.
 - Packing tiles closer on a sheet: they print in a 2 × 2 grid, though flowers nest.
 - Off-centre planets in the lobby's small map previews (they show each tile's number only).
@@ -249,3 +303,4 @@ planet, and neither AI went for it.
   moving it off one planet's orbit leaves the other's too.
 - A ruling on a Void space in a planet's orbit, before a map puts one there: a ship there would gain Research
   and count towards the conquest, which no rule says it should or shouldn't.
+

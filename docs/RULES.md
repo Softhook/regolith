@@ -53,6 +53,10 @@ may share a space: a mech there is on both.
 - An objective numbered *n* holds *n* − 6 cubes, at most one per player.
 - Objectives, mechs and barriers block movement. Mechs move out of a side of their space, never diagonally.
 - Starting objectives are marked on the map; each player's is their **home objective**.
+- **Prepared ground.** Some maps start with an Ice Tunnel or wormhole (a pair of spaces each) and/or barriers already on them, laid
+  as the map's setup sheet shows. They are the same as the ones a game makes: barriers stay for good and belong to
+  nobody; the tunnel is moved like any other by the Ice Tunnel tactic; a wormhole is never moved (ruling 15). Each start still has 3 free
+  perimeter spaces of its own, and every objective can be reached from every start.
 
 ## Setup
 
@@ -191,3 +195,8 @@ Settled questions the card text or the rules above leave open. Each is cited fro
 13. **Veteran Crew** (`talented`). It counts towards the skill limit, and raises it as soon as it's held, so
     taking it as a fourth skill forces no discard.
 14. **Combat Power** is +1 to the winner and −1 to the loser of a combat only, unless Fanatics protects them.
+15. **A map's own Ice Tunnel and wormhole** (`warp-gate`). The Ice Tunnel is the game's one tunnel: the tactic closes a
+    map's own and opens its pair as it would any other. A **wormhole** is a second pair, linked in just the same way
+    (ruling 11) but for good: the tactic can't close it or land a tunnel mouth on it, so a map that depends on it
+    (Two Arcs, whose islands meet only there) can't be cut in two. It shows violet, with a double ring. Barriers a
+    map starts with are the map's, not any player's.

@@ -43,7 +43,10 @@
     "knip": "knip",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "regolith:picks": "npm run data && vite-node scripts/regolith-card-picks.ts --"
+    "regolith:picks": "npm run data && vite-node scripts/regolith-card-picks.ts --",
+    "selfplay:maps": "npm run data && vite-node scripts/map-probe.ts --",
+    "map:show": "npm run data && vite-node scripts/map-show.ts --",
+    "map:design": "npm run data && vite-node scripts/map-design.ts --"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",

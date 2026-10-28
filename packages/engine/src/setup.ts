@@ -1,5 +1,5 @@
 /** Game creation and the setup decisions: mech roll, starting skill, starting planet and ships. */
-import { buildBoard, same, STARTING_SHIPS } from './board';
+import { buildBoard, same, startingGround, STARTING_SHIPS } from './board';
 import { dealt } from './effects';
 import { aShip, emptyTurn, fail, headOf, log, note, logTo, name, placeCube, roll, type Handlers } from './core';
 import { defaultMapFor } from './rules';
@@ -33,6 +33,7 @@ export function createGame(opts: NewGameOptions): GameState {
   if (map.players !== n) throw new Error(`${map.name} is a ${map.players}-player map`);
   if (!rules.mapGroups.includes(map.group)) throw new Error(`${map.name} isn't played with the ${rules.name} rules`);
   const seed = (opts.seed ?? Math.floor(Math.random() * 2 ** 31)) >>> 0;
+  const ground = startingGround(map);
 
   const state: GameState = {
     version: 1,
@@ -65,7 +66,9 @@ export function createGame(opts: NewGameOptions): GameState {
       tacticDiscard: [],
       expansions: rules.cards?.expansionPile ? n + 1 : 0,
     },
-    gates: [],
+    gates: ground.gates,
+    ...(ground.wormhole.length && { wormhole: ground.wormhole }),
+    ...(ground.barriers.length && { barriers: ground.barriers.map((c) => ({ ...c, owner: null })) }),
     turn: emptyTurn(0, 0),
     pending: [],
     phase: 'setup',
@@ -110,6 +113,12 @@ export function createGame(opts: NewGameOptions): GameState {
     }
   }
   log(state, `New ${rules.title} game on ${map.name}.`);
+  const nBarriers = ground.barriers.length;
+  if (ground.gates.length || ground.wormhole.length || nBarriers)
+    log(
+      state,
+      `The ground starts with ${[ground.gates.length && 'a pair of ice tunnels', ground.wormhole.length && 'a wormhole', nBarriers && `${nBarriers} barriers`].filter(Boolean).join(' and ')}.`,
+    );
   return state;
 }
 

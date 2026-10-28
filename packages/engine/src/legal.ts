@@ -85,7 +85,7 @@ const DECISION_CANDIDATES: { [K in Pending['kind']]: (s: GameState, head: Pendin
   showOfForce: (s) => shipsOnBoard(s).map((d) => ({ type: 'showOfForce', die: d.id })),
   warpGate: (s, head) =>
     spaces(s.board)
-      .filter((cell) => !head.placed.some((p) => same(p, cell)) && !barrierAt(s, cell))
+      .filter((cell) => !head.placed.some((p) => same(p, cell)) && !barrierAt(s, cell) && !s.wormhole?.some((w) => same(w, cell)))
       .map((cell) => ({ type: 'warpGate', cell })),
   placeBarrier: (s) => barrierSpaces(s).map((cell) => ({ type: 'placeBarrier', cell })),
   kineticShunt: (s) => shipsOnBoard(s).flatMap((d) => shuntTargets(s, d).map((to) => ({ type: 'kineticShunt', die: d.id, to }) as const)),

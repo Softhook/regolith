@@ -21,6 +21,8 @@ import {
   mapStats,
   moveOptions,
   orbitals,
+  same,
+  startingGround,
   spaces,
   tileCentres,
   type Cell,
@@ -124,8 +126,12 @@ describe('hex maps', () => {
       const b = buildBoard(m);
       const all = spaces(b).filter((p) => b.cells[p.r][p.c].kind === 'space');
       const seen = new Set([`${all[0].r},${all[0].c}`]);
+      // A map's own Ice Tunnel and wormhole join the islands it has.
+      const ground = startingGround(m);
+      const via = (p: Cell) =>
+        [ground.gates, ground.wormhole].flatMap(([g1, g2]) => (g1 && same(p, g1) ? [g2] : g2 && same(p, g2) ? [g1] : []));
       for (const queue = [all[0]]; queue.length;)
-        for (const q of adjacent(b, queue.pop()!)) {
+        for (const q of [...adjacent(b, queue[queue.length - 1]), ...via(queue.pop()!)]) {
           if (b.cells[q.r][q.c].kind !== 'space' || seen.has(`${q.r},${q.c}`)) continue;
           seen.add(`${q.r},${q.c}`);
           queue.push(q);

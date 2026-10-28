@@ -45,7 +45,7 @@ const REGOLITH: RuleSet = {
     expansionPile: true,
     terms: { skill: 'skill', skills: 'skills', skillDeck: 'Skills', tacticDeck: 'Tactics' },
   },
-  mapGroups: ['hex', 'open', 'drift'],
+  mapGroups: ['hex', 'open', 'drift', 'prepared'],
   ships: SHIPS,
   overConquest: REGOLITH_OVER_CONQUEST,
 };

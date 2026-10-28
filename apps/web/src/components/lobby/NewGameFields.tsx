@@ -8,10 +8,10 @@ import { remember } from '../../storage';
 import { pick } from '../../random';
 import { AI_LEVEL_KEY, isFriendSeat } from './choices';
 
-const MAP_GROUPS: { id: string; name: string }[] = [
-  { id: 'hex', name: 'Regions' },
-  { id: 'open', name: 'Open ground' },
-  { id: 'drift', name: 'Off-centre objectives' },
+const MAP_LENGTHS: { id: NonNullable<MapDef['length']>; name: string }[] = [
+  { id: 'short', name: 'Short games' },
+  { id: 'medium', name: 'Medium games' },
+  { id: 'long', name: 'Long games' },
 ];
 
 const WORLD_NAMES = { phobos: 'Phobos', deimos: 'Deimos', mars: 'Mars' } as const;
@@ -150,7 +150,7 @@ export function SeatRow({
   );
 }
 
-/** Map dropdown grouped by origin, a random pick, and a preview of the chosen map. */
+/** Map dropdown grouped by how long a game runs, a random pick, and a preview of the chosen map. */
 export function MapPicker({ map, choices, onChoose }: { map: MapDef; choices: MapDef[]; onChoose: (id: string) => void }) {
   const chooseRandom = () => {
     const others = choices.filter((m) => m.id !== map.id);
@@ -162,8 +162,8 @@ export function MapPicker({ map, choices, onChoose }: { map: MapDef; choices: Ma
         <small>Map</small>
         <div className="map-select">
           <select value={map.id} aria-label="Map" onChange={(e) => onChoose(e.target.value)}>
-            {MAP_GROUPS.map((g) => {
-              const maps = choices.filter((m) => m.group === g.id);
+            {MAP_LENGTHS.map((g) => {
+              const maps = choices.filter((m) => m.length === g.id);
               return (
                 maps.length > 0 && (
                   <optgroup key={g.id} label={g.name}>

@@ -27,6 +27,8 @@ writeFileSync(new URL('packages/engine/src/data/cards.json', root), JSON.stringi
 
 const { maps } = parse(readFileSync(new URL('data/maps.yaml', root), 'utf8'));
 for (const m of maps) {
+  if (!['short', 'medium', 'long'].includes(m.length))
+    throw new Error(`data/maps.yaml: ${m.id} has length ${m.length}: every map has one, short, medium or long`);
   if (!['phobos', 'deimos', 'mars'].includes(m.world))
     throw new Error(`data/maps.yaml: ${m.id} has world ${m.world}: every map has one, Phobos, Deimos or Mars`);
 }
@@ -38,7 +40,9 @@ const parsed = maps.map((m) => ({
   cubes: m.cubes,
   stats: m.stats,
   world: m.world,
+  length: m.length,
   layout: m.layout.map((row) => row.trim().split(/\s+/)),
+  ...(m.start && { start: m.start }),
 }));
 writeFileSync(new URL('maps.json', out), JSON.stringify(parsed, null, 2) + '\n');
 
