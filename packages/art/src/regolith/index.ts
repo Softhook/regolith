@@ -71,9 +71,9 @@ function scene(spec: TileSpec, at: Spot, world: World): Scene {
   const drawn =
     `<g filter="url(#rg-cast)">${standing}</g>` +
     `<g filter="url(#rg-built)">${standing}</g>` +
-    place(`<g style="mix-blend-mode: color">${inked(site.tint, world)}</g>`) +
+    place(`<g style="mix-blend-mode: color">${inked(site.tint, spec.number)}</g>`) +
     (mars ? `<g filter="url(#rg-dust)" opacity="0.9" style="mix-blend-mode: soft-light">${standing}</g>` : '') +
-    place(inked(site.paint, world));
+    place(inked(site.paint, spec.number));
   return { defs, lit, standing: { heights: standing, drawn } };
 }
 

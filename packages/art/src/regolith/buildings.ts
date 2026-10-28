@@ -2,6 +2,7 @@ import type { Rng } from '../rng';
 import { n } from '../svg';
 import type { Spot } from '../tile/geometry';
 import { polar } from './core';
+import { LIT, WELL } from './inks';
 import { H, type Part, placed, merged, disc, square, box, graded, glow, lamp, run } from './parts';
 
 /** The buildings of the Regolith bases, each a `Part` drawn round its own middle: hubs, domes, tanks, towers, pits and the rest. */
@@ -29,16 +30,42 @@ function trefoil(pads: readonly Spot[], e: number, round: number, fill: number):
 /** The hub deck's dashed amber edge. */
 const EDGE = ' stroke="#F2B233" stroke-width="0.7" stroke-dasharray="3 2" opacity="0.55"';
 
+/** How a hub's cube wells are coloured, apart from its deck: their colour, and a wash of a lighter one over them (colour and opacity). */
+export interface Wells {
+  tint: string;
+  wash?: [string, number];
+}
+
+/** A hub's frame, the band round its edge, coloured apart from the deck. */
+export interface Frame {
+  tint?: string;
+  /** A band of paint along its edge: colour and opacity. */
+  band?: [string, number];
+}
+
+const bandOf = (band?: [string, number]) => (band ? ` stroke="${band[0]}" stroke-width="4.5" opacity="${band[1]}"` : '');
+
+/** The wells' own colour and wash, over the deck's. */
+const wellsOf = (pads: readonly Spot[], wells?: Wells): Pick<Part, 'tint' | 'paint'> => {
+  if (!wells) return {};
+  const each = (fill: string) => pads.map((p) => square(p.x, p.y, 24.5, 3.4, fill)).join('');
+  return {
+    tint: WELL(each(wells.tint)),
+    paint: wells.wash ? WELL(`<g opacity="${wells.wash[1]}">${each(wells.wash[0])}</g>`) : '',
+  };
+};
+
 /**
  * The hub: a deck round the planet's cube sockets (`cubePadCentres`, one per cube it holds), no larger
  * than they need, edged in amber, a light at a corner: round three, the three squares' own
  * shape, smoothed; otherwise a box.
  */
-export function hub(pads: readonly Spot[], deck: string, height = H.deck, light = '#F2B233'): Part {
+export function hub(pads: readonly Spot[], deck: string, height = H.deck, light = '#F2B233', wells?: Wells, frame?: Frame): Part {
   const xs = pads.map((p) => p.x);
   const ys = pads.map((p) => p.y);
   const [x0, x1, y0, y1] = [Math.min(...xs) - 15, Math.max(...xs) + 15, Math.min(...ys) - 15, Math.max(...ys) + 15];
   const [w, h, cx, cy] = [x1 - x0, y1 - y0, (x0 + x1) / 2, (y0 + y1) / 2];
+  const wellArt = wellsOf(pads, wells);
   const sockets = pads.map((p) => square(p.x, p.y, 24.5, 3.4, H.socket)).join('');
   const grade = graded(cx, cy, Math.max(w, h) / 2 + 12);
   if (pads.length === 3) {
@@ -48,15 +75,23 @@ export function hub(pads: readonly Spot[], deck: string, height = H.deck, light 
     return {
       grade,
       heights: shape(1.5, H.apron) + shape(0, height) + sockets,
-      tint: shape(0.5, deck),
-      paint: shape(-2, 'none', EDGE) + lamp(x0 + 3, y0 + 3, light) + lamp(pads[2].x + 12, y1 - 3, light),
+      // The deck's colour reaches out over the apron round it, so no bare grey shows at its edge.
+      tint: (frame?.tint ? shape(1.5, frame.tint) + shape(-2.5, deck) : shape(1.5, deck)) + (wellArt.tint ?? ''),
+      paint:
+        (frame?.band ? shape(-0.8, 'none', bandOf(frame.band)) : '') +
+        shape(-2, 'none', EDGE) +
+        (wellArt.paint ?? '') +
+        lamp(x0 + 3, y0 + 3, light) +
+        lamp(pads[2].x + 12, y1 - 3, light),
     };
   }
   return {
     grade,
     heights: box(cx, cy, w + 3, h + 3, 4, H.apron) + box(cx, cy, w, h, 3.5, height) + sockets,
-    tint: box(cx, cy, w + 1, h + 1, 3.5, deck),
-    paint: box(cx, cy, w - 4, h - 4, 2.5, 'none', EDGE) + lamp(x0 + 3, y0 + 3, light) + lamp(x1 - 3, y1 - 3, light),
+    tint:
+      (frame?.tint ? box(cx, cy, w + 3, h + 3, 4, frame.tint) + box(cx, cy, w - 5, h - 5, 2, deck) : box(cx, cy, w + 3, h + 3, 4, deck)) +
+      (wellArt.tint ?? ''),
+    paint: box(cx, cy, w - 4, h - 4, 2.5, 'none', EDGE) + (wellArt.paint ?? '') + lamp(x0 + 3, y0 + 3, light) + lamp(x1 - 3, y1 - 3, light),
   };
 }
 
@@ -286,9 +321,10 @@ export function conduit(a: Spot, b: Spot, colour: string): Part {
   const d = `M${n(a.x)},${n(a.y)} L${n(b.x)},${n(b.y)}`;
   return {
     ...run(a, b, 4, '#2a282c', H.dark),
-    paint:
+    paint: LIT(
       `<path d="${d}" stroke="${colour}" stroke-width="3.5" opacity="0.5" filter="url(#rg-soft1)" style="mix-blend-mode: screen"/>` +
-      `<path d="${d}" stroke="#ffe2a0" stroke-width="0.6" stroke-dasharray="3 2"/>`,
+        `<path d="${d}" stroke="#ffe2a0" stroke-width="0.6" stroke-dasharray="3 2"/>`,
+    ),
   };
 }
 

@@ -1,8 +1,9 @@
 import type { Rng } from '../rng';
 import { n } from '../svg';
+import { KEEP, OUTER } from './inks';
 import { cubePadCentres, numberCorner, type Spot } from '../tile/geometry';
 import { SPACE, SCALE, SIZE, inside, polar, toward } from './core';
-import { H, biohazard, type Part, placed, type Drawn, merged, disc, box, graded, glow, pipe, run } from './parts';
+import { H, biohazard, nuclear, type Part, placed, type Drawn, merged, disc, box, graded, glow, pipe, run } from './parts';
 import {
   hub,
   dome,
@@ -43,6 +44,9 @@ function exits(r: Rng, at: Spot, numbered: boolean): number[] {
     .sort((p, q) => p.k - q.k)
     .map((p) => p.a);
 }
+
+/** What's out from the hub, its colour marked (inks.ts `OUTER`) so it's painted apart from the hub's. */
+const outer = (parts: Part[]): Part[] => parts.map((p) => ({ ...p, tint: p.tint && OUTER(p.tint), paint: p.paint && OUTER(p.paint) }));
 
 /** A clear circle where something stands. */
 type Taken = Spot & { r: number };
@@ -265,11 +269,11 @@ export function base(number: number, at: Spot, r: Rng): Drawn | undefined {
   const centre = { x: SIZE / 2 + at.x * SPACE, y: SIZE / 2 + at.y * SPACE };
   const taken: Taken[] = [];
   const links: [Spot, Spot][] = [];
-  const outskirtsOf = (hubReach: number, pool: Annex[]) => outskirts(r, ways, count, pool, centre, hubReach, taken, links);
+  const outskirtsOf = (hubReach: number, pool: Annex[]) => outer(outskirts(r, ways, count, pool, centre, hubReach, taken, links));
   // The hub (or the sinkhole) is taken, then the small things go round what stands.
   const around = (hubReach: number, light: string) => {
     taken.push({ x: 0, y: 0, r: hubReach });
-    return incidentals(r.fork('incidentals'), centre, taken, links, hubReach, light);
+    return outer(incidentals(r.fork('incidentals'), centre, taken, links, hubReach, light));
   };
   // Pipes run in under the hub (drawn over them): out of a hub's side square on, through a collar (drawn
   // over the hub, in `collars`), curving round to what they feed; or, where it has no sides (a dome or a
@@ -332,7 +336,8 @@ export function base(number: number, at: Spot, r: Rng): Drawn | undefined {
           annex(1.5, [0.6, 0.72], tube(3, '#c9c4bc'), flares, BIG, true),
           ...common('#ffcf4a'),
         ]),
-        hub(pads, deck),
+        // A dark deck in a bright Hazard frame that follows its outline, the wells plain grey.
+        hub(pads, '#3a3836', H.deck, undefined, { tint: '#c9c2b4' }, { tint: '#d9a020' }),
         ...collars,
         ...around(32, '#ffcf4a'),
       ]);
@@ -342,7 +347,7 @@ export function base(number: number, at: Spot, r: Rng): Drawn | undefined {
       return merged([
         {
           grade: disc(0, 0, frost, 'url(#rg-frost)', ' style="mix-blend-mode: lighten"'),
-          paint: glow(0, 0, frost, '#d6ecff', 0.28, 'rg-soft6'),
+          paint: glow(0, 0, frost, '#7fdcec', 0.1, 'rg-soft6'),
         },
         ...outskirtsOf(40, [
           annex(2.5, [0.74, 0.84], road, pit),
@@ -352,7 +357,8 @@ export function base(number: number, at: Spot, r: Rng): Drawn | undefined {
         ]),
         // Its tower, in a corner the three sockets leave, piped up into the deck's underside.
         run({ x: tower, y: 15 }, { x: tower, y: -4 }, 2.5, '#c9c4bc'),
-        hub(pads, deck, H.deck, '#ff3b2a'),
+        // A deep teal frame painted along its outline, the wells plain grey; the frost haze over it is thin, so it keeps its colour.
+        hub(pads, deck, H.deck, '#ff3b2a', { tint: '#9a9a9a' }, { tint: '#1e8597', band: ['#117487', 0.9] }),
         ...collars,
         collar({ x: tower, y: pads[0].y + 15 }, { x: 0, y: 1 }, 2.5, deck),
         // A biohazard sign on one of its sockets.
@@ -397,12 +403,15 @@ export function base(number: number, at: Spot, r: Rng): Drawn | undefined {
             `<polygon points="${octagon(45)}" fill="${H.apron}"/>` +
             `<polygon points="${octagon(44)}" fill="${H.dark}"/>` +
             `<g fill="rgb(150,40,90)">${vents.map(([x, y]) => `<rect x="-5" y="-5" width="10" height="10" transform="translate(${x},${y}) rotate(45)"/>`).join('')}</g>`,
-          tint: `<polygon points="${octagon(45)}" fill="#2e2c30"/>`,
+          // A bright frame round a dark body, so the colour follows the octagon.
+          tint: `<polygon points="${octagon(45)}" fill="#c0402a"/><polygon points="${octagon(41)}" fill="#2e2c30"/>`,
           paint:
             `<polygon points="${octagon(41)}" fill="none" stroke="#ff5a14" stroke-width="0.8" opacity="0.6"/>` +
-            vents.map(([x, y]) => glow(x, y, 5, '#ff4a0a', 0.8) + glow(x, y, 2, '#ffd27a', 1, 'rg-soft1')).join(''),
+            vents.map(([x, y]) => glow(x, y, 5, '#ff4a0a', 0.8) + KEEP(glow(x, y, 2, '#F2B233', 1, 'rg-soft1'))).join(''),
         },
-        hub(pads, '#3a383c', H.dark, '#ff7a1a'),
+        hub(pads, '#3a383c', H.dark, '#ff7a1a', { tint: '#4a4a4a' }),
+        // A radiation sign painted small in the middle of one of its four sockets, picked from the tile's seed, as the Ice Mine's sign is.
+        nuclear(r.pick(pads), 1.4),
         ...around(49, '#ff7a1a'),
       ]);
     }

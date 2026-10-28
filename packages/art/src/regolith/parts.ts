@@ -1,6 +1,7 @@
 import { n, turbulence } from '../svg';
 import type { Spot } from '../tile/geometry';
 import { polar, radial } from './core';
+import { KEEP, LIT } from './inks';
 
 /**
  * How a piece of a base is drawn: in layers (`Part`), with the height-map colours, gradients and small shapes
@@ -46,12 +47,36 @@ const BIOHAZARD = (() => {
   );
 })();
 
-/** The biohazard sign, painted red on a socket at (x, y): worn, and multiplied in, so the grime and light under it show through. */
+/** The biohazard sign, painted a muted red (the palette's Oxide, kept in every look) on a socket at (x, y): worn, and multiplied in, so the grime and light under it show through. */
 export const biohazard = (p: Spot) =>
-  `<g style="mix-blend-mode: multiply"><use href="#rg-biohazard" transform="translate(${n(p.x)},${n(p.y)}) scale(1.35)" color="#d8261c" filter="url(#rg-worn)"/></g>`;
+  KEEP(
+    `<g style="mix-blend-mode: multiply"><use href="#rg-biohazard" transform="translate(${n(p.x)},${n(p.y)}) scale(1.35)" color="#A8441A" filter="url(#rg-worn)"/></g>`,
+  );
+
+/** The radiation trefoil, 14 across: three blades of 60° round a hub, in the symbol's own dimensions. */
+const NUCLEAR = (() => {
+  const blade = (centre: number) => {
+    const [a0, a1] = [centre - 30, centre + 30];
+    const [p0, p1, q1, q0] = [polar(a0, 2.4), polar(a0, 7), polar(a1, 7), polar(a1, 2.4)];
+    return `M${n(p0.x)},${n(p0.y)} L${n(p1.x)},${n(p1.y)} A7,7 0 0 1 ${n(q1.x)},${n(q1.y)} L${n(q0.x)},${n(q0.y)} A2.4,2.4 0 0 0 ${n(p0.x)},${n(p0.y)} Z`;
+  };
+  return `<symbol id="rg-nuclear" overflow="visible"><g transform="translate(0,0.8)"><path d="${[-90, 30, 150].map(blade).join(' ')}" fill="currentColor"/><circle r="1.4" fill="currentColor"/></g></symbol>`;
+})();
+
+/**
+ * The radiation trefoil, `size` times its drawn size, painted at p: a muted Hazard amber laid on the lit relief (kept in every look,
+ * like all that's laid there) and a little over it, worn, so it follows the surface under it: brighter on the raised ground, darker in what's sunk.
+ */
+export const nuclear = (p: Spot, size: number): Part => {
+  const sign = (colour: string) =>
+    `<use href="#rg-nuclear" transform="translate(${n(p.x)},${n(p.y)}) scale(${size})" color="${colour}" filter="url(#rg-worn)"/>`;
+  // Its colour is laid on the relief, and a little of it painted over, so it holds its colour on the dark of the sunk wells.
+  return { tint: KEEP(sign('#c9983e')), paint: KEEP(`<g opacity="0.3">${sign('#c9983e')}</g>`) };
+};
 
 export const BUILDING_GRADIENTS =
   BIOHAZARD +
+  NUCLEAR +
   radial('rg-sphere', [
     [0, 'rgb(255,60,235)'],
     [0.8, 'rgb(228,60,215)'],
@@ -134,10 +159,10 @@ export const graded = (x: number, y: number, r: number) => disc(x, y, r, H.grade
 
 /** A glow of light, added to what's under it. */
 export const glow = (x: number, y: number, r: number, colour: string, opacity: number, soft = 'rg-soft3') =>
-  disc(x, y, r, colour, ` opacity="${opacity}" filter="url(#${soft})" style="mix-blend-mode: screen"`);
+  LIT(disc(x, y, r, colour, ` opacity="${opacity}" filter="url(#${soft})" style="mix-blend-mode: screen"`));
 
 /** A small light, with its glow. */
-export const lamp = (x: number, y: number, colour: string) => glow(x, y, 3.2, colour, 0.75, 'rg-soft1') + disc(x, y, 1, '#fff6e0');
+export const lamp = (x: number, y: number, colour: string) => glow(x, y, 3.2, colour, 0.75, 'rg-soft1') + LIT(disc(x, y, 1, '#fff6e0'));
 
 /** A raised run (a tube, a pipe or a conduit) from a to b, `w` wide, coloured `colour`. */
 export const run = (a: Spot, b: Spot, w: number, colour: string, height = H.pipe): Part =>
