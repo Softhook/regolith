@@ -1,5 +1,5 @@
 import { apply, checkInvariants, combatOutcome, RuleError, type Action, type GameState } from '@regolith/engine';
-import type { SceneName } from '../rulebook/scenes';
+import type { PictureName } from './pictures';
 import { stage, type Setup } from './stage';
 
 /**
@@ -7,6 +7,9 @@ import { stage, type Setup } from './stage';
  * every move, fight and claim it shows is one the rules allow, and what happens in it is what would happen at
  * the table. `buildLesson` plays the script once and keeps every position it passes through as a frame; the
  * demo only steps along the frames, which is what lets it pause, skip and go back.
+ *
+ * A lesson's beats are of two kinds: a picture on a screen of its own (pictures.tsx), which brings its own words
+ * and timing, and a caption over the training ground with the actions it acts out.
  */
 
 /** A fight the script needs to go one way. The seed is searched for rolls that make it. */
@@ -15,18 +18,6 @@ export interface Fight {
   wins: 'attacker' | 'defender';
 }
 type Step = Action | Fight;
-
-/** A picture of one idea, shown beside the caption: see rulebook/concepts.tsx. */
-interface Key {
-  /** The game's goal, on a screen of its own: no map, no counters. */
-  goal?: boolean;
-  /** One mech, on a screen of its own: its drawing and name, how far it moves and its power. */
-  mech?: number;
-  /** All six mechs together, each with its name. */
-  lineup?: boolean;
-  /** A picture lesson on a screen of its own, played in steps: see rulebook/scenes.tsx. */
-  scene?: SceneName;
-}
 
 /** What to light up while a caption is read. */
 export interface Show {
@@ -40,45 +31,46 @@ export interface Show {
   claim?: number;
 }
 
-interface Beat {
+/** A picture on a screen of its own, played once through. */
+interface PictureBeat {
+  picture: PictureName;
+}
+
+/** A caption over the training ground, and the actions it shows. */
+interface BoardBeat {
   /** The caption. `**bold**` marks the words to take away. */
   say: string;
   /** The actions made when the beat starts, one after another. */
   play?: readonly Step[];
   show?: Show;
-  /** The concept pictured while the caption is up. */
-  key?: Key;
   /** The show after the actions have been made, if it changes. */
   then?: Show;
-  /** The least time the beat stays up, in ms: for a picture that takes longer to play than its caption to read. */
-  hold?: number;
 }
+
+type Beat = PictureBeat | BoardBeat;
 
 export interface LessonDef {
   id: string;
   title: string;
   /** One line under the title, in the chapter list. */
   blurb: string;
-  /** The counters the lesson is about; the rest are left off the screen. */
-  hud: readonly Counter[];
-  setup: Setup;
+  /** The counters the lesson is about; the rest are left off the screen. None for a lesson of pictures only. */
+  hud?: readonly Counter[];
+  /** The training ground at the start, for a lesson with board beats. */
+  setup?: Setup;
   beats: readonly Beat[];
 }
 
 export type Counter = 'cubes' | 'power' | 'actions';
 
-/** One position of a lesson, held for `wait` ms. */
+/** One position of a lesson, held for `wait` ms, or, for a picture, as long as it takes to play. */
 interface Frame {
   game: GameState;
   beat: number;
-  /** The first position of its beat: where a skip lands. */
-  first: boolean;
   say: string;
   show: Show | undefined;
-  key: Key | undefined;
+  picture: PictureName | undefined;
   wait: number;
-  /** The fight on screen, if the position is one. */
-  battle: boolean;
 }
 
 export interface Lesson {
@@ -86,6 +78,8 @@ export interface Lesson {
   title: string;
   blurb: string;
   hud: readonly Counter[];
+  /** Whether the rival has mechs on the map, so has counters worth showing. */
+  rival: boolean;
   frames: readonly Frame[];
   /** The index of each beat's first frame. */
   starts: readonly number[];
@@ -115,17 +109,22 @@ const actionOf = (step: Step): Action => ('wins' in step ? step.act : step);
 
 /** Plays the script on one seed; a string says why not, if a rule refuses it or its fights don't go the way it says. */
 function play(def: LessonDef, seed: number): Lesson | string {
-  let game = stage(def.setup, seed);
+  const setup = def.setup ?? { you: [] };
+  let game = stage(setup, seed);
   const frames: Frame[] = [];
   const starts: number[] = [];
   for (const [beat, b] of def.beats.entries()) {
-    const reads = Math.max(reading(b.say), b.hold ?? 0);
     starts.push(frames.length);
+    if ('picture' in b) {
+      frames.push({ game, beat, say: '', show: undefined, picture: b.picture, wait: 0 });
+      continue;
+    }
+    const { say } = b;
+    const reads = reading(say);
     const steps = b.play ?? [];
-    const push = (first: boolean, wait: number, show: Show | undefined) =>
-      frames.push({ game, beat, first, say: b.say, show, key: b.key, wait, battle: game.pending[0]?.kind === 'combat' });
+    const push = (wait: number, show: Show | undefined) => frames.push({ game, beat, say, show, picture: undefined, wait });
     // The caption goes up on the position before the actions; with none, it is the only position.
-    push(true, steps.length ? 1800 : reads, b.show);
+    push(steps.length ? 1800 : reads, b.show);
     let spent = 1800;
     for (const [i, step] of steps.entries()) {
       const action = actionOf(step);
@@ -144,10 +143,11 @@ function play(def: LessonDef, seed: number): Lesson | string {
       spent += wait;
       const last = i === steps.length - 1;
       // The last position keeps the caption up until it has been read.
-      push(false, last ? Math.max(wait, reads - (spent - wait) + 600) : wait, last ? (b.then ?? b.show) : b.show);
+      push(last ? Math.max(wait, reads - (spent - wait) + 600) : wait, last ? (b.then ?? b.show) : b.show);
     }
   }
-  return { id: def.id, title: def.title, blurb: def.blurb, hud: def.hud, frames, starts };
+  const rival = !!setup.foe?.length;
+  return { id: def.id, title: def.title, blurb: def.blurb, hud: def.hud ?? [], rival, frames, starts };
 }
 
 /** How many seeds a lesson tries for rolls that fit its script. */

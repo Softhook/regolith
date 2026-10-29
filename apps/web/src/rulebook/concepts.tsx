@@ -12,6 +12,7 @@ import {
   cubeSpot,
   flower,
   reachable,
+  within,
   type At,
   type Who,
 } from './diagrams';
@@ -203,13 +204,6 @@ export function GoalAnimation() {
   );
 }
 
-/** The spaces within `radius` steps of `[0, 0]`, as the hex grid counts them. */
-const within = (radius: number): At[] => {
-  const cells: At[] = [];
-  for (let r = -radius; r <= radius; r++)
-    for (let c = -radius; c <= radius; c++) if (Math.max(Math.abs(r), Math.abs(c), Math.abs(r + c)) <= radius) cells.push([r, c]);
-  return cells;
-};
 const REACH_CELLS = within(MOVE_CAP);
 
 /** Each mech's ability in a line, for a screen with room for one. The manual has the rules text in full. */

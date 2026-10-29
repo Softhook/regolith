@@ -53,7 +53,7 @@ const COLOURS: Record<DieKind, { face: string; pip: string }> = {
 };
 
 /** A space's middle, in SVG units. */
-export const centre = ([r, c]: At) => ({ x: c * COLUMN, y: (r + c / 2) * S });
+const centre = ([r, c]: At) => ({ x: c * COLUMN, y: (r + c / 2) * S });
 
 /** The six steps out of a hex's sides, as the engine has them (board.ts `HEX_SIDES`). */
 const SIDES: At[] = [
@@ -70,6 +70,14 @@ const has = (list: readonly At[], p: At) => list.some((q) => same(q, p));
 
 /** The six spaces next to one: an objective's perimeter, or a mech's zone of control. */
 export const around = ([r, c]: At): At[] => SIDES.map(([dr, dc]) => [r + dr, c + dc]);
+
+/** The spaces within `radius` steps of `[0, 0]`, as the hex grid counts them. */
+export const within = (radius: number): At[] => {
+  const cells: At[] = [];
+  for (let r = -radius; r <= radius; r++)
+    for (let c = -radius; c <= radius; c++) if (Math.max(Math.abs(r), Math.abs(c), Math.abs(r + c)) <= radius) cells.push([r, c]);
+  return cells;
+};
 
 /** A hex tile's seven spaces, its middle `at` first. */
 export const flower = (at: At): At[] => [at, ...around(at)];
