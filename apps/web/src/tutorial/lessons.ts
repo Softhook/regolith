@@ -34,6 +34,28 @@ const goal: LessonDef = {
   ],
 };
 
+/** One screen for each mech, 1 to 6, with no map. */
+const MECH_SAY: Record<number, string> = {
+  1: 'The **Breacher** is a **1**: the strongest mech, but it moves only **1** space.',
+  2: 'The **Behemoth** is a **2**: strong, and it moves **2**.',
+  3: 'The **Tactician** is a **3**: it moves **3**, as far as any mech can go.',
+  4: 'The **Chameleon** is a **4**: it moves **3** too.',
+  5: 'The **Sniper** is a **5**: it moves **3**, and it shoots from afar.',
+  6: 'The **Wisp** is a **6**: the weakest in a fight, and still **3** at most.',
+};
+
+const mechs: LessonDef = {
+  id: 'mechs',
+  title: 'The mechs',
+  blurb: 'Six mechs, six abilities',
+  setup: { you: [], foe: [] },
+  hud: [],
+  beats: [
+    { say: 'Each die is a **mech**, and its number says which of the **six**. Meet them one by one.', key: { lineup: true } },
+    ...[1, 2, 3, 4, 5, 6].map((v) => ({ say: MECH_SAY[v], key: { mech: v } })),
+  ],
+};
+
 const board: LessonDef = {
   id: 'board',
   title: 'The board',
@@ -215,7 +237,7 @@ const holding: LessonDef = {
 
 const powers: LessonDef = {
   id: 'powers',
-  title: 'Mech powers',
+  title: 'Mech abilities',
   blurb: 'Every face has a trick',
   setup: {
     you: [
@@ -227,7 +249,7 @@ const powers: LessonDef = {
   hud: ['actions'],
   beats: [
     {
-      say: 'Each number is a different **kind of mech** with its own power. Here are two.',
+      say: 'Each number is a different **kind of mech** with its own **ability**. Here are two.',
       show: { look: [you(0), you(1)] },
     },
     {
@@ -281,7 +303,7 @@ const takeover: LessonDef = {
   ],
 };
 
-const defs: LessonDef[] = [goal, board, moving, claim, fight, holding, powers, takeover];
+const defs: LessonDef[] = [goal, mechs, board, moving, claim, fight, holding, powers, takeover];
 
 let built: Lesson[] | undefined;
 

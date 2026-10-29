@@ -7,7 +7,7 @@ const LEARN_HINT_KEY = appKey('learnHint');
 
 /**
  * A little box above the new game offering the demo (tutorial/Tutorial.tsx), until it is dismissed with its cross.
- * The "Watch the demo" button at the bottom of the lobby stays, to find it again.
+ * The "Tutorial" button at the bottom of the lobby stays, to find it again.
  */
 export function LearnHint({ onOpen }: { onOpen: () => void }) {
   const [shown, setShown] = useState(() => !stored(LEARN_HINT_KEY));
@@ -20,10 +20,10 @@ export function LearnHint({ onOpen }: { onOpen: () => void }) {
     <div className="home-hint learn-hint" role="note">
       <div className="home-hint-body">
         <strong>New to Regolith?</strong>
-        <span>A two-minute animated demo teaches you how to play.</span>
+        <span>A short animated tutorial teaches you how to play.</span>
       </div>
       <button className="btn btn-primary" onClick={onOpen}>
-        Learn to play
+        Tutorial
       </button>
       <button className="icon-btn" aria-label="Dismiss" title="Dismiss" onClick={dismiss}>
         <svg width="14" height="14" viewBox="0 0 14 14" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden="true">

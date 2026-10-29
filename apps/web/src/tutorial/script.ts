@@ -19,6 +19,10 @@ type Step = Action | Fight;
 interface Key {
   /** The game's goal, on a screen of its own: no map, no counters. */
   goal?: boolean;
+  /** One mech, on a screen of its own: its drawing and name, how far it moves and its power. */
+  mech?: number;
+  /** All six mechs together, each with its name. */
+  lineup?: boolean;
   /** "This die is this mech", for these numbers. */
   mechs?: readonly number[];
 }

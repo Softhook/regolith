@@ -4,7 +4,7 @@ import { Board } from '../components/Board';
 import { useController } from '../game/controller';
 import { useShortcut } from '../game/useShortcut';
 import css from '../rulebook/rulebook.css?raw';
-import { GoalAnimation, MechKeys } from '../rulebook/concepts';
+import { GoalAnimation, MechKeys, MechProfile } from '../rulebook/concepts';
 import { Battle } from './Battle';
 import { lessons } from './lessons';
 import { lit } from './lit';
@@ -112,7 +112,7 @@ function Stage({ game, show, scene }: { game: GameState; show: Parameters<typeof
 }
 
 /**
- * "Learn to play": the rules acted out on a small training ground, one lesson after another, with a caption
+ * The tutorial: the rules acted out on a small training ground, one lesson after another, with a caption
  * for each step. It plays by itself and can be paused, skipped and gone back in. It is the real board and the
  * real rules engine playing scripted turns (script.ts, lessons.ts), not a video.
  */
@@ -140,11 +140,11 @@ export function Tutorial({ onClose, onPlay }: { onClose: () => void; onPlay: () 
   );
 
   return (
-    <div className="demo" role="dialog" aria-label="Learn to play">
+    <div className="demo" role="dialog" aria-label="Tutorial">
       <style>{css}</style>
       <header className="demo-top">
         <div>
-          <small>Learn to play</small>
+          <small>Tutorial</small>
           <h2>
             <span>{p.at.lesson + 1}</span> {lesson.title}
           </h2>
@@ -154,9 +154,9 @@ export function Tutorial({ onClose, onPlay }: { onClose: () => void; onPlay: () 
         </button>
       </header>
 
-      {frame.key?.goal ? (
-        <div className="mn mn-dark demo-bare" key={`goal:${p.at.jumps}`}>
-          <GoalAnimation />
+      {frame.key?.goal || frame.key?.mech || frame.key?.lineup ? (
+        <div className="mn mn-dark demo-bare" key={`bare:${p.at.lesson}:${frame.beat}:${p.at.jumps}`}>
+          {frame.key.goal ? <GoalAnimation /> : frame.key.lineup ? <MechKeys /> : <MechProfile v={frame.key.mech!} />}
         </div>
       ) : (
         <>

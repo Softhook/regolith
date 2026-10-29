@@ -148,6 +148,17 @@ export function Diagram({
   );
 }
 
+/** A canvas of its own size for a drawing that isn't on the map's grid (dice, shots and barriers in a row). */
+export function Canvas({ w, h, label, children }: { w: number; h: number; label: string; children: ReactNode }) {
+  const id = useSvgId();
+  return (
+    <svg className="mn-svg" viewBox={`0 0 ${w} ${h}`} style={{ maxWidth: w * 3 }} role="img" aria-label={label}>
+      <DieDefs id={id} />
+      <Defs.Provider value={id}>{children}</Defs.Provider>
+    </svg>
+  );
+}
+
 // ------------------------------------------------------------------ the map
 
 /** A hex tile (`p8-01`…, `void`, `blank-01`) with its middle space at `at`. */
@@ -157,7 +168,7 @@ export function Tile({ id, at }: { id: string; at: At }) {
 }
 
 /** Glowing outlines on the given spaces (an objective's perimeter). */
-export function Glow({ cells, tone = 'orbit' }: { cells: readonly At[]; tone?: 'orbit' | 'zone' }) {
+export function Glow({ cells, tone = 'orbit' }: { cells: readonly At[]; tone?: 'orbit' | 'zone' | 'plain' }) {
   return (
     <g>
       {cells.map((p) => {

@@ -212,7 +212,7 @@ export function Lobby({
         <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor" aria-hidden="true">
           <path d="M2 1l9 5-9 5z" />
         </svg>
-        Watch the demo
+        Tutorial
       </button>
       <nav className="lobby-links">
         <button onClick={onRules}>How to play</button>

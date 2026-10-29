@@ -1,10 +1,25 @@
 import { useEffect, useRef, useState } from 'react';
 import { RULESETS } from '@regolith/engine';
-import { Diagram, CubeIcon, DieIcon, PlanetMarks, Tile, cubeSpot, flower, type At, type Who } from './diagrams';
+import {
+  CubeIcon,
+  Diagram,
+  DieIcon,
+  Dots,
+  Glow,
+  PlanetMarks,
+  Ship,
+  Tile,
+  cubeSpot,
+  flower,
+  reachable,
+  type At,
+  type Who,
+} from './diagrams';
+import { AbilityFigure } from './abilities';
 
 /**
  * One idea, one picture. Each concept here is the simplest drawing of a single rule idea, with its name on it,
- * and is used by both the manual and the "Learn to play" demo, so what a newcomer sees in the demo is what the
+ * and is used by both the manual and the tutorial, so what a newcomer sees in the demo is what the
  * manual shows afterwards. New concepts go here, one at a time.
  */
 
@@ -190,6 +205,67 @@ export function GoalAnimation() {
       <span className="mn-goalanim-flier" ref={flier}>
         <CubeIcon size={CUBE_PX} />
       </span>
+    </div>
+  );
+}
+
+/** The spaces within `radius` steps of `[0, 0]`, as the hex grid counts them. */
+const within = (radius: number): At[] => {
+  const cells: At[] = [];
+  for (let r = -radius; r <= radius; r++)
+    for (let c = -radius; c <= radius; c++) if (Math.max(Math.abs(r), Math.abs(c), Math.abs(r + c)) <= radius) cells.push([r, c]);
+  return cells;
+};
+const REACH_CELLS = within(MOVE_CAP);
+
+/** Each mech's ability in a line, for a screen with room for one. The manual has the rules text in full. */
+const POWER_LINE: Record<number, string> = {
+  1: 'Attacks an adjacent enemy for free, without using its move.',
+  2: 'Carries a nearby mech of yours as it moves, then sets it down beside it.',
+  3: 'Swaps places with any other mech of yours.',
+  4: 'Refits itself as a Tactician (3) or a Sniper (5).',
+  5: 'Shoots the first mech in a straight line, at any distance, without moving.',
+  6: 'Fires a barrier down a line. Nothing can pass it.',
+};
+
+/** How far a mech moves: the mech in the middle, and a dot on every space it can reach. */
+function ReachFigure({ v }: { v: number }) {
+  const steps = Math.min(v, MOVE_CAP);
+  const from: At = [0, 0];
+  const reach = reachable(REACH_CELLS, from, steps, []);
+  return (
+    <Diagram cells={REACH_CELLS} scale={1.6} label={`The ${SHIPS[v].name} moves up to ${steps} space${steps > 1 ? 's' : ''}.`}>
+      <Glow cells={REACH_CELLS} tone="plain" />
+      <Glow cells={reach} />
+      <Dots cells={reach} />
+      <Ship at={from} v={v} />
+    </Diagram>
+  );
+}
+
+/**
+ * One mech on a screen of its own: who it is (its die and its drawing, with its name), how far it moves, and its
+ * power. The same three things for each of the six, so they can be compared.
+ */
+export function MechProfile({ v }: { v: number }) {
+  const steps = Math.min(v, MOVE_CAP);
+  return (
+    <div className="mn-profile">
+      <div className="mn-profile-who">
+        <MechKey v={v} size={64} />
+        <figure className="mn-profile-move">
+          <ReachFigure v={v} />
+          <figcaption>
+            Moves up to <b>{steps}</b> {steps > 1 ? 'spaces' : 'space'}
+          </figcaption>
+        </figure>
+      </div>
+      <div className="mn-profile-power">
+        <small>Ability</small>
+        <span className="mn-ability">{SHIPS[v].ability.name}</span>
+        <p>{POWER_LINE[v]}</p>
+        <AbilityFigure v={v} />
+      </div>
     </div>
   );
 }
