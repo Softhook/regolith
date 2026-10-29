@@ -100,9 +100,7 @@ const TWO_TILES = [...flower(HERE), ...flower(RIGHT)];
 
 const LINEUP = picture(
   [
-    { hold: 0, say: 'Your pieces are **mechs**: dice on the map, numbered **1 to 6**. You start with **3**.' },
-    { hold: 0, say: 'A mech’s **number** is how far it moves, and what it adds up to when you claim.' },
-    { hold: 0, say: 'In a fight, **low is strong**.' },
+    { hold: 0, say: 'Your pieces are **mechs**: dice numbered **1 to 6**, each kind with its own name.' },
     { hold: 0, say: 'Each kind also has an **ability**. You’ll meet them at the end.' },
   ],
   () => <MechKeys />,
@@ -189,7 +187,7 @@ const HOME = picture(
   [
     { hold: 0, say: 'Each player has a **home** objective.' },
     { hold: 0, say: 'Each starts with a **cube** on it, and their **3 mechs** around it.' },
-    { hold: 0, say: 'Your other cubes wait beside the map. Place them **all** to win.' },
+    { hold: 0, say: 'The rest of your cubes wait beside the map.' },
   ],
   (s) => (
     <div className="mn-home">
@@ -252,19 +250,15 @@ const TURN = picture(
   },
 );
 
-/** The actions, one at a time from left to right, each with what it costs; each has a lesson of its own later. */
+/** The actions by name, with what they cost; what each does is its own lesson, next. */
 const ACTIONS = picture(
   [
-    { hold: 0, say: 'There are **five** actions.' },
-    { hold: 0, say: '**Move**: a mech walks up to its number of spaces. **1** action.' },
-    { hold: 0, say: '**Attack**: a mech moves into an enemy mech, and they fight. **1** action.' },
-    { hold: 0, say: '**Drop**: a destroyed mech comes back onto the map. **1** action.' },
-    { hold: 0, say: '**Refit**: re-roll a mech for a new number. **1** action.' },
-    { hold: 0, say: '**Claim**: your mechs add up to an objective’s number, and one of your cubes goes on. **2** actions.' },
+    { hold: 0, say: 'There are **five** actions. The next lessons take them one by one.' },
+    { hold: 0, say: '**Claim** costs **2** actions. The others cost **1**.' },
   ],
   (s) => {
-    // Step 0 shows them all; step k lights up the kth, from the left.
-    const [name, cost] = s ? MOVES[s - 1] : [undefined, 0];
+    // Step 0 shows them all; step 1 lights up Claim, the one that costs 2.
+    const [name, cost] = s ? MOVES[MOVES.length - 1] : [undefined, 0];
     return (
       <div className="mn-turn">
         <div className="mn-actionbar mn-spend" role="img" aria-label={name ? `${name} costs ${cost}` : 'Five actions'}>
@@ -292,7 +286,7 @@ const ACTIONS = picture(
 /** Open ground three steps all round a lone mech: nothing in its way, so only the steps are on show. */
 const FIELD = within(3);
 const WALK = [HERE, at(0, 1), at(0, 2), at(0, 3)];
-const STROLL = 'Pick a space and it walks there. Each mech moves (or attacks) **once** a turn.';
+const STROLL = 'Pick a space and it walks there. Each mech moves **once** a turn.';
 
 const REACH = picture(
   [
@@ -442,7 +436,7 @@ function FightSide({ role, roll, win, lose }: { role: 'Attacker' | 'Defender'; r
 
 const FIGHT = picture(
   [
-    { hold: 0, say: 'A mech **attacks** by moving into an enemy mech.' },
+    { hold: 0, say: 'A mech **attacks** by moving into an enemy mech: that’s its move for the turn.' },
     { hold: 0, say: 'Each side rolls a die and adds its mech’s number.' },
     { hold: 0, say: 'The attacker rolls the **black** die: 2 + 3 = 5.' },
     { hold: 0, say: 'The defender rolls the **white** die: 4 + 2 = 6.' },
@@ -483,11 +477,11 @@ const NEXT = at(0, 1);
 
 const OUTCOME = picture(
   [
-    { hold: 0, say: 'Our 2 attacks their 4, and has the **lower total**.' },
-    { hold: 0, say: 'The loser is **destroyed**: re-rolled, it goes to its owner’s **salvage yard**.' },
-    { hold: 0, say: 'The winner may **step in**.' },
-    { hold: 0, say: 'Next turn it attacks their 6, and its total is **higher**…' },
-    { hold: 0, say: '…so the attack **fails**: it goes back where it came from. Nothing is destroyed.' },
+    { hold: 0, say: 'Our 2 attacks their 4, and **wins**.' },
+    { hold: 0, say: 'The defender is **destroyed**: re-rolled, it goes to its owner’s **salvage yard**.' },
+    { hold: 0, say: 'Our 2 may **step in**.' },
+    { hold: 0, say: 'Next turn it attacks their 6, and **loses**…' },
+    { hold: 0, say: '…so it goes back where it came from. Nothing else happens.' },
   ],
   (s) => (
     <Diagram cells={flower(HERE)} left={78} scale={2.1} label="An attack that wins destroys the defender, and one that loses goes back.">
@@ -533,8 +527,8 @@ const ZONE_SCENE = picture(
 const CONTESTED = picture(
   [
     { hold: 0, say: 'Your 5 and 3 make **8** here…' },
-    { hold: 0, say: '…but an **enemy mech** on its perimeter makes it **contested**: nobody else can claim it.' },
-    { hold: 0, say: 'Attack it. Win, and it is **destroyed**…' },
+    { hold: 0, say: '…but an **enemy mech** on its perimeter makes it **contested**: you can’t claim it.' },
+    { hold: 0, say: 'Attack it and win: it’s **destroyed**…' },
     { hold: 0, say: '…so the 8 is open again: claim it.' },
   ],
   (s) => (
@@ -555,7 +549,7 @@ const CONTESTED = picture(
 const DROP = picture(
   [
     { hold: 0, say: 'A destroyed mech waits in your **salvage yard**.' },
-    { hold: 0, say: '**Drop** it, for 1 action: onto an empty perimeter space of an objective with **your cube** on it.' },
+    { hold: 0, say: '**Drop** it onto an empty perimeter space of an objective with **your cube** on it.' },
     { hold: 0, say: 'It comes back with the number it rolled, ready to fight.' },
     { hold: 0, say: 'Each claim is another place to drop. Not a **contested** one, but your **home** is always open.' },
   ],
@@ -585,7 +579,7 @@ const DROP = picture(
 const REFIT = picture(
   [
     { hold: 0, say: 'This **6** isn’t the number your claim needs.' },
-    { hold: 1200, say: '**Refit** it, for 1 action: **re-roll** the die.' },
+    { hold: 1200, say: '**Refit** it: **re-roll** the die.' },
     { hold: 0, say: 'It rolls **until** it shows a number it hasn’t shown this turn. A new number is a **new mech**.' },
     { hold: 0, say: 'A mech in your **salvage yard** can be refitted too.' },
   ],

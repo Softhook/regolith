@@ -114,7 +114,7 @@ const fight: LessonDef = {
     you: [[2, 2, 2]],
     foe: [[3, 3, 6]],
   },
-  hud: ['actions', 'power'],
+  hud: ['actions'],
   beats: [
     { picture: 'fight' },
     { picture: 'outcome' },
@@ -124,7 +124,7 @@ const fight: LessonDef = {
       play: [attack(you(0), foe(0), 'attacker')],
     },
     {
-      say: '…wins, and steps in. A win also builds **Power**: more on that soon.',
+      say: '…wins, and steps in.',
       play: [resolve, advance],
     },
   ],
