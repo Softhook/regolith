@@ -5,6 +5,7 @@ import { useController } from '../game/controller';
 import { useShortcut } from '../game/useShortcut';
 import css from '../rulebook/rulebook.css?raw';
 import { GoalAnimation, MechKeys, MechProfile } from '../rulebook/concepts';
+import { Scene } from '../rulebook/scenes';
 import { Battle } from './Battle';
 import { lessons } from './lessons';
 import { lit } from './lit';
@@ -154,9 +155,17 @@ export function Tutorial({ onClose, onPlay }: { onClose: () => void; onPlay: () 
         </button>
       </header>
 
-      {frame.key?.goal || frame.key?.mech || frame.key?.lineup ? (
+      {frame.key?.goal || frame.key?.mech || frame.key?.lineup || frame.key?.scene ? (
         <div className="mn mn-dark demo-bare" key={`bare:${p.at.lesson}:${frame.beat}:${p.at.jumps}`}>
-          {frame.key.goal ? <GoalAnimation /> : frame.key.lineup ? <MechKeys /> : <MechProfile v={frame.key.mech!} />}
+          {frame.key.scene ? (
+            <Scene name={frame.key.scene} />
+          ) : frame.key.goal ? (
+            <GoalAnimation />
+          ) : frame.key.lineup ? (
+            <MechKeys />
+          ) : (
+            <MechProfile v={frame.key.mech!} />
+          )}
         </div>
       ) : (
         <>
@@ -198,11 +207,6 @@ export function Tutorial({ onClose, onPlay }: { onClose: () => void; onPlay: () 
       )}
 
       <footer className="demo-foot">
-        {frame.key?.mechs && (
-          <div className="mn mn-dark demo-key" key={`key:${p.at.lesson}:${frame.beat}`}>
-            <MechKeys values={frame.key.mechs} facts />
-          </div>
-        )}
         <p key={`${p.at.lesson}:${frame.beat}`} className="demo-say" aria-live="polite">
           <Say text={frame.say} />
         </p>

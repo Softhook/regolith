@@ -404,3 +404,68 @@ body.rb-standalone { margin: 0; padding: 24px 12px; background: #e8ebf3; }
 /* All six mechs together: two across. */
 .demo-bare .mn-mechs { display: grid; grid-template-columns: repeat(2, auto); gap: 12px; justify-content: center; }
 .demo-bare .mn-mech { padding: 10px 8px; }
+
+/* The picture lessons (scenes.tsx): a drawing that plays in steps, with a line of words under it. */
+.mn-scene { display: grid; gap: 14px; justify-items: center; width: 100%; max-width: 620px; }
+.mn-scene-art { width: 100%; display: grid; place-items: center; min-height: 230px; }
+.mn-scene-art .mn-svg { margin: 0 auto; }
+.mn-scene-note { margin: 0; min-height: 3.2em; text-align: center; font-size: 17px; line-height: 1.4; color: var(--mn-ink); animation: demo-in .35s ease-out; }
+.mn-scene-note b { color: var(--mn-accent); }
+.mn-count circle { fill: var(--gold); stroke: rgba(0, 0, 0, .7); stroke-width: 1.2; }
+.mn-count text { font: 900 10px Inter, sans-serif; fill: #1a1408; }
+.mn-sizes-big { background: none; gap: 14px; align-items: flex-start; }
+.mn-sizes-big > div { transition: opacity .3s, transform .3s; }
+.mn-sizes-big > div.off { opacity: .28; transform: scale(.92); }
+.mn-sizes-big > div.on { transform: scale(1.04); }
+.mn-sizes-big small { min-height: 1.4em; font-size: 12px; }
+.mn-spaces { display: flex; gap: 2px; min-height: 18px; }
+.mn-sizes-big > div.off .mn-spaces { visibility: hidden; }
+.mn-home { display: grid; gap: 12px; justify-items: center; width: 100%; }
+.mn-tray { display: flex; gap: 8px; padding: 8px 14px; border-radius: 14px; border: 1px solid var(--mn-line); background: var(--mn-panel-2); opacity: 0; transition: opacity .4s; }
+.mn-tray.on { opacity: 1; }
+.mn-turn { display: grid; gap: 16px; justify-items: center; }
+.mn-actionbar { display: flex; gap: 10px; }
+.mn-scene .action-hex { color: var(--mn-action); transition: opacity .3s; }
+.mn-scene .action-hex:not(.on) { opacity: .35; }
+.mn-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.mn-chip { display: inline-flex; flex-direction: column; align-items: center; gap: 3px; padding: 7px 12px; border-radius: 12px; border: 1px solid var(--mn-line); background: var(--mn-panel); transition: transform .3s, border-color .3s, background .3s; }
+.mn-chip b { font: 700 13px Orbitron, Inter, sans-serif; letter-spacing: .04em; }
+.mn-chip i { display: flex; gap: 2px; min-height: 14px; }
+.mn-chip.on { transform: scale(1.12); border-color: var(--mn-action); background: color-mix(in srgb, var(--mn-action) 18%, transparent); }
+.mn-turn-over { margin: 0; min-height: 1.4em; font: 700 12px Orbitron, Inter, sans-serif; letter-spacing: .14em; text-transform: uppercase; color: var(--mn-foe); }
+.mn-sumscene, .mn-fightscene { display: grid; gap: 10px; justify-items: center; width: 100%; }
+.mn-sum-eq { display: grid; gap: 4px; justify-items: center; }
+.mn-sum-eq .mn-eq { min-height: 46px; }
+.mn-eq-none { font-size: 13px; color: var(--mn-muted); }
+.mn-total.no { border-color: var(--mn-no); color: var(--mn-no); }
+.mn-eq-result { min-height: 1.3em; }
+.mn-eq-result.mn-no { color: var(--mn-no); }
+.mn-sum-eq .mn-eq > b { font-size: 14px; }
+.mn-fightscene .mn-fight { width: 100%; margin: 0; }
+.mn-fightscene .mn-side { transition: opacity .3s; }
+.mn-fightscene .mn-side.lose { opacity: .4; }
+.mn-fightscene .mn-eq { gap: 6px; }
+.mn-slot { display: grid; place-items: center; width: 46px; height: 46px; border-radius: 10px; border: 2px dashed var(--mn-line); color: var(--mn-muted); font: 900 18px Orbitron, Inter, sans-serif; }
+.mn-roll { display: inline-block; line-height: 0; animation: mn-roll .6s cubic-bezier(.2, .9, .3, 1); }
+@keyframes mn-roll { from { transform: translateY(-26px) rotate(-300deg) scale(.6); opacity: 0; } 60% { opacity: 1; } }
+.mn-atomic { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 999px; border: 1px solid var(--mn-line); color: var(--mn-muted); font: 700 12px Orbitron, Inter, sans-serif; letter-spacing: .08em; text-transform: uppercase; opacity: .35; transition: opacity .3s, color .3s, border-color .3s; }
+.mn-atomic.on { opacity: 1; color: var(--bad); border-color: var(--bad); }
+.mn-refit { display: flex; align-items: center; gap: 18px; }
+.mn-refit-arrow { font-size: 44px; color: var(--mn-muted); line-height: 1; }
+.mn-refit-arrow.spin { animation: mn-spin 1.2s ease-in-out; color: var(--mn-accent); }
+@keyframes mn-spin { to { transform: rotate(360deg); } }
+.mn-powerscene { display: grid; gap: 22px; justify-items: center; }
+.mn-powerscene .mn-track { gap: 5px; flex-wrap: nowrap; }
+.mn-powerscene .mn-track > span:not(.mn-track-end) { width: 40px; height: 40px; font-size: 17px; transition: background .3s, color .3s; }
+.mn-powerscene .mn-track-end { margin-left: 8px; font-size: 22px; }
+.mn-power-target { display: grid; justify-items: center; gap: 4px; }
+@media (max-width: 480px) {
+  .mn-scene-note { font-size: 15px; }
+  .mn-powerscene .mn-track > span:not(.mn-track-end) { width: 32px; height: 32px; font-size: 14px; }
+  .mn-fightscene .mn-fight { grid-template-columns: 1fr; gap: 4px; }
+  .mn-vs { justify-self: center; }
+  .mn-fightscene .mn-eq-part > svg { width: 38px; height: 38px; }
+  .mn-slot { width: 38px; height: 38px; }
+}
+@media (prefers-reduced-motion: reduce) { .mn-roll, .mn-refit-arrow.spin, .mn-scene-note { animation: none; } }
+.mn-scene .mn-plain { stroke: rgba(255, 255, 255, .6); stroke-width: 1.8; }

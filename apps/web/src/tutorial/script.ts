@@ -1,4 +1,5 @@
 import { apply, checkInvariants, combatOutcome, RuleError, type Action, type GameState } from '@regolith/engine';
+import type { SceneName } from '../rulebook/scenes';
 import { stage, type Setup } from './stage';
 
 /**
@@ -23,8 +24,8 @@ interface Key {
   mech?: number;
   /** All six mechs together, each with its name. */
   lineup?: boolean;
-  /** "This die is this mech", for these numbers. */
-  mechs?: readonly number[];
+  /** A picture lesson on a screen of its own, played in steps: see rulebook/scenes.tsx. */
+  scene?: SceneName;
 }
 
 /** What to light up while a caption is read. */
@@ -51,6 +52,8 @@ interface Beat {
   key?: Key;
   /** The show after the actions have been made, if it changes. */
   then?: Show;
+  /** The least time the beat stays up, in ms: for a picture that takes longer to play than its caption to read. */
+  hold?: number;
 }
 
 export interface LessonDef {
@@ -118,7 +121,7 @@ function play(def: LessonDef, seed: number): Lesson | string {
   const frames: Frame[] = [];
   const starts: number[] = [];
   for (const [beat, b] of def.beats.entries()) {
-    const reads = reading(b.say);
+    const reads = Math.max(reading(b.say), b.hold ?? 0);
     starts.push(frames.length);
     const steps = b.play ?? [];
     const push = (first: boolean, wait: number, show: Show | undefined) =>

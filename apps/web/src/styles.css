@@ -2311,6 +2311,4 @@ body:has(.sheet-layout) { overflow: hidden; }
   .demo-foot { grid-area: foot; align-content: start; }
   .demo-say { font-size: 14px; }
 }
-.demo-key { animation: demo-in .35s ease-out; background: none; }
-.demo-key .mn-mechs { margin: 0; }
 .demo-bare { grid-row: 2 / 4; display: grid; place-items: center; animation: demo-in .35s ease-out; }

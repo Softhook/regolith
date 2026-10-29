@@ -31,7 +31,7 @@ const MOVE_CAP = 3;
  * "This die is this mech": the die face as it looks on the map (pips), equals the mech's drawing, with its name.
  * `who` colours the pips die; the drawing is the same for both players.
  */
-export function MechKey({ v, who = 'you', size = 64, facts }: { v: number; who?: Who; size?: number; facts?: boolean }) {
+export function MechKey({ v, who = 'you', size = 64 }: { v: number; who?: Who; size?: number }) {
   return (
     <figure className="mn-mech" aria-label={`Die ${v} is the ${SHIPS[v].name}`}>
       <div className="mn-mech-pair">
@@ -45,23 +45,17 @@ export function MechKey({ v, who = 'you', size = 64, facts }: { v: number; who?:
       </div>
       <figcaption>
         <b>{SHIPS[v].name}</b>
-        {facts && (
-          <small>
-            moves {Math.min(v, MOVE_CAP)}
-            {v === 1 ? ' · strongest' : v === 6 ? ' · weakest' : ''}
-          </small>
-        )}
       </figcaption>
     </figure>
   );
 }
 
 /** The key for some of the mechs, or for all six. */
-export function MechKeys({ values = [1, 2, 3, 4, 5, 6], who, facts }: { values?: readonly number[]; who?: Who; facts?: boolean }) {
+export function MechKeys({ values = [1, 2, 3, 4, 5, 6], who }: { values?: readonly number[]; who?: Who }) {
   return (
     <div className="mn-mechs">
       {values.map((v) => (
-        <MechKey key={v} v={v} who={who} facts={facts} />
+        <MechKey key={v} v={v} who={who} />
       ))}
     </div>
   );

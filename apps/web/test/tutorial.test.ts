@@ -5,7 +5,19 @@ describe('the learn-to-play lessons', () => {
   const all = lessons();
 
   it('play legally through the engine, fights going the way the captions say', () => {
-    expect(all.map((l) => l.id)).toEqual(['goal', 'mechs', 'board', 'move', 'claim', 'fight', 'holding', 'powers', 'takeover']);
+    expect(all.map((l) => l.id)).toEqual([
+      'goal',
+      'mechs',
+      'map',
+      'turn',
+      'move',
+      'claim',
+      'fight',
+      'holding',
+      'salvage',
+      'powers',
+      'takeover',
+    ]);
     for (const l of all) {
       expect(l.starts.length, l.id).toBeGreaterThan(0);
       expect(

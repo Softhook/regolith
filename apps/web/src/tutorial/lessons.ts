@@ -56,38 +56,46 @@ const mechs: LessonDef = {
   ],
 };
 
-const board: LessonDef = {
-  id: 'board',
-  title: 'The board',
-  blurb: 'Mechs, objectives and cubes',
-  setup: {
-    you: [
-      [2, 2, 5],
-      [3, 1, 3],
-    ],
-    foe: [[1, 3, 4]],
-  },
+const map: LessonDef = {
+  id: 'map',
+  title: 'The map',
+  blurb: 'Spaces, objectives and cubes',
+  setup: { you: [], foe: [] },
   hud: ['cubes'],
   beats: [
+    { say: 'The map is made of **spaces**, and each one holds **one mech**.', key: { scene: 'spaces' }, hold: 8800 },
     {
-      say: 'Each die is a **mech**. The dots on its top tell you which one.',
-      show: { look: [you(0), you(1)] },
-      key: { mechs: [5, 3] },
+      say: 'Some spaces are **objectives**, numbered **7 to 10**. A bigger one is harder to claim and holds more cubes.',
+      key: { scene: 'objective' },
+      hold: 12200,
+    },
+    { say: 'The six spaces around an objective are its **perimeter**. Mechs there claim it.', key: { scene: 'perimeter' }, hold: 9800 },
+    {
+      say: 'Each player starts with a cube on their **home** objective. **Place all 5 cubes** and you win.',
+      key: { scene: 'home' },
+      hold: 9800,
     },
     {
-      say: 'The big numbered hexes are **objectives**. Your cube already sits on your **home** objective.',
-      show: { planets: { [HOME.you]: 'Your home', [HOME.foe]: 'Rival’s home' } },
+      say: 'Here is the training ground we will play on: two homes, and the **Refinery**, an 8.',
+      show: { planets: { [HOME.you]: 'Your home', [HOME.foe]: 'Rival’s home', [REFINERY]: 'Refinery: an 8' } },
     },
     {
-      say: 'You win by placing **all 5 of your cubes** on objectives. The Refinery is next.',
-      show: { planets: { [REFINERY]: 'Next: a cube here' } },
+      say: 'Two ways to place cubes: **Claim** objectives with your mechs, or **Take Over** by winning fights. First, your turn.',
     },
+  ],
+};
+
+const turn: LessonDef = {
+  id: 'turn',
+  title: 'Your turn',
+  blurb: 'Three actions',
+  setup: { you: [], foe: [] },
+  hud: [],
+  beats: [
     {
-      say: 'A mech’s number is how **far it moves** (3 at most) and how **strong** it is. In a fight, **lower is stronger**.',
-      show: { look: [you(0), you(1)] },
-    },
-    {
-      say: 'Two ways to place cubes: **Claim** objectives with your mechs, or **Take Over** by winning fights. First, moving.',
+      say: 'A turn is **3 actions**. A move, an attack, a drop or a refit costs **1**, a claim **2**. Each mech moves or attacks **once** a turn.',
+      key: { scene: 'turn' },
+      hold: 11200,
     },
   ],
 };
@@ -105,7 +113,12 @@ const moving: LessonDef = {
   hud: ['actions'],
   beats: [
     {
-      say: 'A turn is **3 actions**. A **move** costs 1. The dots show where this 3 can go.',
+      say: 'A mech moves **one space at a time**, up to its number and **never more than 3**. Objectives and mechs are in the way.',
+      key: { scene: 'reach' },
+      hold: 11200,
+    },
+    {
+      say: 'On the board, the **dots** show every space this 3 can reach.',
       show: { pick: you(0) },
     },
     {
@@ -119,7 +132,7 @@ const moving: LessonDef = {
       play: [move(you(1), 3, 3)],
     },
     {
-      say: 'Each mech makes **one move or attack a turn**. Two actions spent, one left.',
+      say: 'Two actions spent, one left. A mech that has moved cannot move again this turn.',
     },
   ],
 };
@@ -136,6 +149,11 @@ const claim: LessonDef = {
   },
   hud: ['actions', 'cubes'],
   beats: [
+    {
+      say: 'To **claim** an objective, your mechs on its perimeter must add up to its number **exactly**, with no enemy there.',
+      key: { scene: 'sum' },
+      hold: 13800,
+    },
     {
       say: 'The Refinery is an **8**. To claim it, your mechs on the six spaces around it, its **perimeter**, must add up to **exactly 8**.',
       show: { planets: { [REFINERY]: 'Needs 8' }, look: [you(0)] },
@@ -176,7 +194,17 @@ const fight: LessonDef = {
   hud: ['actions', 'power'],
   beats: [
     {
-      say: 'To **attack**, move into an enemy mech: 1 action. Each side rolls a die and adds its mech’s number. **Lower total wins.**',
+      say: 'To **attack**, move into an enemy mech. Each side rolls a die and adds its mech’s number. **Lower total wins**, and ties go to the attacker.',
+      key: { scene: 'fight' },
+      hold: 19000,
+    },
+    {
+      say: 'The loser of the fight is **destroyed**. If the attacker loses, it just **bounces back**.',
+      key: { scene: 'outcome' },
+      hold: 13000,
+    },
+    {
+      say: 'Now on the board: our 5 is slow, and about to attack a fast 1.',
       show: { pick: you(0) },
     },
     {
@@ -215,22 +243,44 @@ const holding: LessonDef = {
   hud: ['actions'],
   beats: [
     {
-      say: 'An enemy mech controls the **spaces next to it**. Move into one and you **must stop**.',
-      show: { pick: you(0), look: [foe(0)] },
+      say: 'An enemy mech controls the **spaces next to it**. A mech that moves into one **must stop**, but can still attack.',
+      key: { scene: 'zone' },
+      hold: 9800,
     },
     {
-      say: 'Our 3 had moves to spare, but it stops here. It could still attack from this space.',
+      say: 'An enemy mech on an objective’s perimeter makes it **contested**: nobody else can claim it until it is pushed off.',
+      key: { scene: 'contested' },
+      hold: 10600,
+    },
+    {
+      say: 'On the board, our 3 had moves to spare, but it stops beside the enemy.',
       show: { pick: you(0), look: [foe(0)] },
       play: [move(you(0), 2, 3)],
       then: { look: [you(0), foe(0)] },
     },
     {
-      say: 'A rival’s mech on an objective’s perimeter makes it **contested**: nobody else can claim it.',
+      say: 'The enemy 4 is on the Refinery’s perimeter, so the Refinery is **contested**.',
       show: { planets: { [REFINERY]: 'Contested' }, look: [foe(0)] },
     },
+  ],
+};
+
+const salvage: LessonDef = {
+  id: 'salvage',
+  title: 'Drop and Refit',
+  blurb: 'Bringing mechs back',
+  setup: { you: [], foe: [] },
+  hud: [],
+  beats: [
     {
-      say: 'To claim the Refinery, you would first have to **push that mech off**.',
-      show: { planets: { [REFINERY]: 'Contested' } },
+      say: 'A destroyed mech waits in your **salvage yard**. A **drop** puts it back on the map, next to an objective of yours.',
+      key: { scene: 'drop' },
+      hold: 8800,
+    },
+    {
+      say: 'A **refit** re-rolls a mech. A new number is a **new mech**, and it can change a sum.',
+      key: { scene: 'refit' },
+      hold: 8000,
     },
   ],
 };
@@ -249,7 +299,7 @@ const powers: LessonDef = {
   hud: ['actions'],
   beats: [
     {
-      say: 'Each number is a different **kind of mech** with its own **ability**. Here are two.',
+      say: 'You met each mech’s **ability** earlier. Here are two at work on the map.',
       show: { look: [you(0), you(1)] },
     },
     {
@@ -280,6 +330,11 @@ const takeover: LessonDef = {
   hud: ['power', 'cubes'],
   beats: [
     {
+      say: 'Each fight you win raises your **Power**, and each fight you lose in defence lowers it. At **6**, you take over.',
+      key: { scene: 'power' },
+      hold: 19500,
+    },
+    {
       say: 'Your **Power** is 5. Each fight you win raises it. At **6** you take over.',
       show: { look: [you(0), foe(0)] },
     },
@@ -303,7 +358,7 @@ const takeover: LessonDef = {
   ],
 };
 
-const defs: LessonDef[] = [goal, mechs, board, moving, claim, fight, holding, powers, takeover];
+const defs: LessonDef[] = [goal, mechs, map, turn, moving, claim, fight, holding, salvage, powers, takeover];
 
 let built: Lesson[] | undefined;
 

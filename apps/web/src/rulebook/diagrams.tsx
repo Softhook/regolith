@@ -53,7 +53,7 @@ const COLOURS: Record<DieKind, { face: string; pip: string }> = {
 };
 
 /** A space's middle, in SVG units. */
-const centre = ([r, c]: At) => ({ x: c * COLUMN, y: (r + c / 2) * S });
+export const centre = ([r, c]: At) => ({ x: c * COLUMN, y: (r + c / 2) * S });
 
 /** The six steps out of a hex's sides, as the engine has them (board.ts `HEX_SIDES`). */
 const SIDES: At[] = [
