@@ -1683,6 +1683,9 @@ svg.zones polygon {
 }
 .home-hint-step svg { color: var(--accent); }
 .home-hint .icon-btn { flex: none; color: var(--text); }
+.learn-hint .home-hint-body { gap: 2px; }
+.learn-hint .home-hint-body span { font-size: 13px; color: var(--text-2); }
+.learn-hint .btn { flex: none; }
 
 .lobby-card {
   width: min(520px, 100%);
@@ -1831,6 +1834,7 @@ svg.zones polygon {
   .lab-body, .lab-aid-page { padding: 16px; }
 }
 
+.lobby-demo { margin: 18px auto 0; display: flex; }
 .lobby-links { display: flex; gap: 18px; justify-content: center; margin-top: 18px; font-size: 13px; }
 .lobby-links { flex-wrap: wrap; }
 .lobby-links a, .lobby-links button { color: var(--accent); text-decoration: none; background: none; border: 0; padding: 0; font: inherit; cursor: pointer; }
@@ -2199,3 +2203,114 @@ body:has(.sheet-layout) { overflow: hidden; }
 .crash-detail { color: var(--bad); overflow-wrap: anywhere; }
 .crash-hint { color: var(--muted); }
 .crash-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+
+/* ------------------------------------------------------------------ learn to play (tutorial/Tutorial.tsx) */
+
+/* Over the lobby: a status strip, the map, and under it the caption, the controls and the lessons. */
+.demo {
+  position: fixed; inset: 0; z-index: 45;
+  display: grid; grid-template-rows: auto auto minmax(0, 1fr) auto;
+  width: 100%; max-width: 1100px; margin: 0 auto;
+  padding: var(--safe-top) 12px max(10px, env(safe-area-inset-bottom));
+  background: var(--bg);
+  animation: fade .25s ease-out;
+}
+@media (min-width: 1101px) { .demo { border-inline: 1px solid var(--line); } }
+.demo-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0 6px; }
+.demo-top small { color: var(--muted); text-transform: uppercase; letter-spacing: .14em; font-size: 10.5px; }
+.demo-top h2 { margin: 0; font-family: var(--display); font-size: 20px; letter-spacing: .04em; display: flex; align-items: center; gap: 8px; }
+.demo-top h2 span {
+  display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%;
+  background: var(--accent); color: var(--on-accent); font-family: var(--body); font-weight: 800; font-size: 13px;
+}
+
+.demo-status { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.demo-status.solo { grid-template-columns: 1fr; }
+.demo-side {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; padding: 6px 10px; min-width: 0;
+  border-radius: 10px; border: 1px solid var(--line); background: rgb(var(--shade-2) / .6); opacity: .62;
+  transition: opacity .3s, border-color .3s;
+}
+.demo-side.active { opacity: 1; border-color: var(--pc); }
+.demo-side strong { color: var(--pc); font-family: var(--display); letter-spacing: .04em; font-size: 14px; }
+.demo-stat { display: flex; align-items: center; gap: 6px; }
+.demo-stat small { color: var(--muted); text-transform: uppercase; letter-spacing: .08em; font-size: 10px; }
+.demo-stat.track { width: 104px; }
+.demo-cubes, .demo-actions { display: flex; gap: 3px; }
+.demo-cubes i { width: 9px; height: 9px; border-radius: 2px; background: var(--pc); }
+.demo-actions i { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid var(--pc); transition: background .3s; }
+.demo-actions i.on { background: var(--pc); }
+
+.demo-stage { position: relative; min-height: 0; padding: 4px; display: flex; overflow: hidden; overflow: clip; }
+.demo-stage .board-wrap { margin-top: 0; }
+/* A fight over the map's lower middle, so the caption below it and most of the map stay in view. */
+.demo-battle { position: absolute; left: 0; right: 0; display: grid; place-items: center; padding: 0 8px; pointer-events: none; z-index: 8; }
+.demo-battle.top { top: 8px; }
+.demo-battle.bottom { bottom: 8px; }
+.demo-battle .combat-card { width: min(560px, 100%); padding: 10px 14px 12px; border-radius: 16px; }
+.demo-battle .combat-side { padding: 8px 8px 6px; }
+.demo-battle .combat-who small { display: none; }
+.demo-battle .combat-dice { margin: 8px 0 2px; gap: 12px; }
+.demo-battle .combat-die-col { gap: 6px; }
+.demo-battle .combat-plus { margin-bottom: 16px; }
+.demo-battle .combat-total { font-size: 26px; margin-top: 0; line-height: 1.1; }
+.demo-battle .combat-vs { padding-top: 12px; font-size: 18px; }
+.demo-battle .combat-verdict { min-height: 20px; margin-top: 6px; font-size: 14px; }
+
+.demo-end {
+  position: absolute; inset: 0; z-index: 20; display: grid; align-content: center; justify-items: center; gap: 10px; padding: 24px;
+  text-align: center; background: rgb(var(--shade) / .82); backdrop-filter: blur(4px);
+  animation: fade .3s ease-out;
+}
+.demo-end h3 { margin: 0; font-family: var(--display); font-size: 26px; letter-spacing: .06em; }
+.demo-end ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; max-width: 420px; text-align: left; color: var(--text-2); }
+.demo-end p { margin: 0; max-width: 420px; color: var(--muted); font-size: 13px; }
+.demo-end .modal-actions { justify-content: center; }
+
+.demo-foot { display: grid; gap: 10px; padding-top: 8px; }
+.demo-say {
+  margin: 0; min-height: 3.2em; font-size: 17px; line-height: 1.45; color: var(--text); text-wrap: pretty;
+  animation: demo-in .35s ease-out;
+}
+.demo-say b { color: var(--accent); background: rgb(var(--accent-rgb) / .1); padding: 0 .2em; border-radius: 3px; }
+@keyframes demo-in { from { opacity: 0; transform: translateY(4px); } }
+.demo-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.demo-controls { display: flex; gap: 6px; }
+.demo-btn { min-width: 40px; height: 40px; justify-content: center; padding: 0 10px; font-size: 15px; }
+.demo-btn.demo-play { min-width: 56px; background: var(--accent); color: var(--on-accent); border-color: transparent; }
+.demo-dots { display: flex; gap: 6px; align-items: center; }
+.demo-dots button { width: 22px; height: 6px; padding: 0; border: 0; border-radius: 3px; background: rgb(var(--accent-rgb) / .18); cursor: pointer; position: relative; }
+.demo-dots button::after { content: ''; position: absolute; inset: -10px -2px; }
+.demo-dots button.seen { background: rgb(var(--accent-rgb) / .5); }
+.demo-dots button.on { background: var(--accent); }
+.demo-lessons { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: thin; }
+.demo-lessons button {
+  flex: none; display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 999px; cursor: pointer;
+  border: 1px solid var(--line); background: transparent; color: var(--muted); font-weight: 600; font-size: 12.5px; white-space: nowrap;
+}
+.demo-lessons button span { display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: rgb(var(--accent-rgb) / .14); font-size: 11px; }
+.demo-lessons button.on { color: var(--on-accent); background: var(--accent); border-color: transparent; }
+.demo-lessons button.on span { background: rgb(var(--shade) / .18); }
+@media (hover: hover) { .demo-lessons button:not(.on):hover { color: var(--text); border-color: var(--line-2); } }
+@media (max-width: 600px) {
+  .demo { padding-inline: 8px; }
+  .demo-status { grid-template-columns: 1fr; gap: 4px; }
+  .demo-side { padding: 4px 8px; gap: 2px 10px; }
+  .demo-stat.track { width: 90px; }
+  .demo-say { font-size: 15px; }
+  .demo-battle .combat-card { padding: 8px 8px 10px; }
+  .demo-battle .combat-grid { gap: 6px; }
+  .demo-battle .combat-dice { gap: 8px; }
+}
+@media (max-height: 520px) {
+  .demo { grid-template-columns: minmax(0, 1fr) 320px; grid-template-rows: auto auto minmax(0, 1fr); grid-template-areas: 'top top' 'status foot' 'stage foot'; max-width: none; }
+  .demo-top { grid-area: top; padding: 2px 0; }
+  .demo-status { grid-area: status; grid-template-columns: 1fr 1fr; }
+  .demo-stage { grid-area: stage; }
+  .demo-bare { grid-area: status / status / stage / stage; }
+  .demo-foot { grid-area: foot; align-content: start; }
+  .demo-say { font-size: 14px; }
+}
+.demo-key { animation: demo-in .35s ease-out; background: none; }
+.demo-key .mn-mechs { margin: 0; }
+.demo-bare { grid-row: 2 / 4; display: grid; place-items: center; animation: demo-in .35s ease-out; }

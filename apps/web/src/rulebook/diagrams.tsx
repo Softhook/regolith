@@ -1,5 +1,18 @@
 import { createContext, useContext, useId, type ReactNode } from 'react';
-import { TILE, cardBackSvg, dataUrl, icon, numberPlacement, mechDie, tileSpec, tileSvg, type CardDeck, type World } from '@regolith/art';
+import {
+  CUBE_PAD,
+  TILE,
+  cardBackSvg,
+  cubePadCentres,
+  dataUrl,
+  icon,
+  numberPlacement,
+  mechDie,
+  tileSpec,
+  tileSvg,
+  type CardDeck,
+  type World,
+} from '@regolith/art';
 import { BarrierBubble } from '../components/board/BarrierBubble';
 import { PlanetMarkings } from '../components/board/PlanetMarkings';
 import { PIPS } from '../components/Die3D';
@@ -196,6 +209,13 @@ export function PlanetIcon({ n, size = 34, cubes = [] }: { n: number; size?: num
   );
 }
 
+/** Where an objective's cube space `i` is, in SVG units: its middle and its width. For flying a cube onto it. */
+export function cubeSpot(at: At, n: number, i = 0) {
+  const { x, y } = centre(at);
+  const pad = cubePadCentres(n - 6, 0, 0)[i];
+  return { x: x + pad.x * MM, y: y + pad.y * MM, size: CUBE_PAD.size * MM };
+}
+
 /** A barrier on a space, as the Wisp fires it (the board's BarrierBubble). */
 export function Barrier({ at }: { at: At }) {
   const { x, y } = centre(at);
@@ -217,6 +237,7 @@ export function DieFace({
   ghost,
   dim,
   shipIllustration,
+  portrait,
 }: {
   x: number;
   y: number;
@@ -226,6 +247,7 @@ export function DieFace({
   ghost?: boolean;
   dim?: boolean;
   shipIllustration?: boolean;
+  portrait?: boolean;
 }) {
   const defs = useContext(Defs);
   const h = size / 2;
@@ -243,7 +265,7 @@ export function DieFace({
     );
   if (shipIllustration) {
     // Mechs are drawn as on the player aid: the mech printed on its die face.
-    const face = mechDie(v, x, y, size);
+    const face = mechDie(v, x, y, size, portrait);
     return <g className={cls} dangerouslySetInnerHTML={{ __html: face.body }} />;
   }
   const { face, pip } = COLOURS[kind];
@@ -272,11 +294,13 @@ export function DieIcon({
   kind = 'you',
   size = 26,
   shipIllustration,
+  portrait,
 }: {
   v: number;
   kind?: DieKind;
   size?: number;
   shipIllustration?: boolean;
+  portrait?: boolean;
 }) {
   const id = useSvgId();
   const label = kind === 'atk' ? `attack die ${v}` : kind === 'def' ? `defence die ${v}` : `mech ${v}`;
@@ -284,7 +308,7 @@ export function DieIcon({
     <svg className="mn-die-icon" width={size} height={size} viewBox="0 0 40 40" aria-label={label} role="img">
       <DieDefs id={id} />
       <Defs.Provider value={id}>
-        <DieFace x={20} y={20} v={v} size={36} kind={kind} shipIllustration={shipIllustration} />
+        <DieFace x={20} y={20} v={v} size={36} kind={kind} shipIllustration={shipIllustration} portrait={portrait} />
       </Defs.Provider>
     </svg>
   );

@@ -135,7 +135,7 @@ body.rb-standalone { margin: 0; padding: 24px 12px; background: #e8ebf3; }
 .mn-ships { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 22px; margin-top: 10px; }
 .mn-ship { display: flex; gap: 10px; align-items: flex-start; }
 .mn-ship p { margin: 2px 0 0; font-size: 13px; color: var(--mn-soft); }
-.mn-ability { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--mn-accent); margin-left: 4px; }
+.mn-ability { margin-left: 0; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--mn-accent); margin-left: 4px; }
 
 /* ------------------------------------------------------------------ map */
 .mn-map figure { display: flex; flex-direction: column; justify-content: space-between; padding: 12px; border-radius: 12px; background: var(--mn-panel); }
@@ -258,3 +258,34 @@ body.rb-standalone { margin: 0; padding: 24px 12px; background: #e8ebf3; }
   #mn-combat, .mn-table-wrap { break-inside: avoid; }
   .mn-cover { padding-top: 20mm; }
 }
+
+/* ------------------------------------------------------------------ concept keys (concepts.tsx) */
+.mn-mechs { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 16px; margin: 12px 0; }
+.mn-mech { margin: 0; display: grid; justify-items: center; gap: 4px; padding: 8px 12px; border-radius: 12px; background: var(--mn-panel); }
+.mn-mech-pair { display: flex; align-items: center; gap: 8px; }
+.mn-mech-eq { font: 700 22px Orbitron, Inter, sans-serif; color: var(--mn-muted); }
+.mn .mn-mech figcaption { display: grid; justify-items: center; line-height: 1.2; }
+.mn .mn-mech figcaption b { font: 700 13px Orbitron, Inter, sans-serif; letter-spacing: .04em; color: var(--mn-ink); }
+.mn .mn-mech figcaption small { font-size: 11px; color: var(--mn-muted); }
+/* The mech is a black shape on the page; on the dark page it is drawn light. */
+.mn-mech-art svg { overflow: visible; }
+.mn-dark .mn-mech-art { filter: invert(1); }
+
+/* The goal, animated (concepts.tsx GoalAnimation): objectives on the map, a tray of cubes to fly onto them. */
+.mn-goalanim { position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 4px 10px; width: 100%; max-width: 520px; }
+.mn-goalanim-side { display: grid; justify-items: center; gap: 6px; }
+.mn-goalanim small { font: 700 10.5px Inter, sans-serif; letter-spacing: .14em; text-transform: uppercase; color: var(--mn-muted); }
+.mn-goalanim-map { position: relative; width: 100%; }
+.mn-goalanim-map .mn-svg { display: block; margin: 0 auto; width: 100%; }
+.mn-goalanim-win { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; }
+.mn-goalanim-win strong {
+  font: 900 34px Orbitron, Inter, sans-serif; letter-spacing: .08em; text-transform: uppercase; color: #fff;
+  padding: 8px 22px; border-radius: 14px; background: rgb(10 14 26 / .72); border: 2px solid var(--mn-orbit-edge);
+  text-shadow: 0 0 18px var(--mn-orbit-edge); animation: mn-win .5s cubic-bezier(.2, 1.4, .4, 1);
+}
+@keyframes mn-win { from { transform: scale(.4); opacity: 0; } }
+.mn-goalanim-tray { display: flex; flex-direction: column; gap: 8px; min-height: 164px; justify-content: center; padding: 14px 12px; border-radius: 14px; background: var(--mn-panel-2); border: 1px solid var(--mn-line); }
+.mn-goalanim-tray > span { display: block; line-height: 0; transition: opacity .2s; }
+.mn-goalanim-tray > span.gone { opacity: 0; }
+.mn-goalanim-flier { position: absolute; left: 0; top: 0; display: none; line-height: 0; pointer-events: none; z-index: 2; filter: drop-shadow(0 6px 6px rgba(0, 0, 0, .35)); }
+@media (prefers-reduced-motion: reduce) { .mn-goalanim-win strong { animation: none; } }

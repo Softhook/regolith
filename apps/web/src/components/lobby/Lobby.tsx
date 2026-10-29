@@ -1,4 +1,4 @@
-import { useRef, useState, type CSSProperties } from 'react';
+import { lazy, Suspense, useRef, useState, type CSSProperties } from 'react';
 import { defaultMapFor, MAPS, MODES, playerCounts, RULESETS, type GameMode, type GameState, type PlayerConfig } from '@regolith/engine';
 import { Segmented } from '../Segmented';
 import { Confirm } from '../Dialog';
@@ -10,6 +10,7 @@ import { PLAYER_COLORS } from '../../theme';
 import { COARSE } from '../../game/useMediaQuery';
 import { LobbyBackdrop } from './Backdrop';
 import { HomeScreenHint } from './HomeScreenHint';
+import { LearnHint } from './LearnHint';
 import { VersionLine } from './VersionLine';
 import { WhereIcon } from './WhereIcon';
 import { YourGames } from './YourGames';
@@ -19,6 +20,9 @@ import { INTRO_RISE_MS, useIntro } from './useIntro';
 import { MODE_KEY, PLAYER_COUNTS, isFriendSeat, mapKey, storedAiLevel, storedMap, storedMode } from './choices';
 import { GAME_NAME } from '../../appId';
 import { useWarmMapImages } from '../../art/tileImages';
+
+// Loaded when first wanted, with the lessons it plays through the rules engine.
+const Tutorial = lazy(() => import('../../tutorial/Tutorial').then((m) => ({ default: m.Tutorial })));
 
 export interface LobbyResult {
   players: PlayerConfig[];
@@ -84,17 +88,30 @@ export function Lobby({
   const canStart = !online || friendSeats > 0;
 
   // Starting a new game here discards the one in progress on this device: asked first.
-  const [confirmingNew, setConfirmingNew] = useState(false);
-  const start = () => {
-    setConfirmingNew(false);
-    onStart({
-      players: playing.map((s, i) => ({
-        ...s,
-        name: isFriendSeat(s, i, online) ? `Player ${i + 1}` : s.name.trim() || `Player ${i + 1}`,
-      })),
-      mapId: map.id,
-      mode,
-      online,
+  const [confirming, setConfirming] = useState<LobbyResult | null>(null);
+  const begin = (r: LobbyResult) => {
+    setConfirming(null);
+    onStart(r);
+  };
+  const ask = (r: LobbyResult) => (!r.online && saved ? setConfirming(r) : begin(r));
+  const gameOnScreen = (): LobbyResult => ({
+    players: playing.map((s, i) => ({
+      ...s,
+      name: isFriendSeat(s, i, online) ? `Player ${i + 1}` : s.name.trim() || `Player ${i + 1}`,
+    })),
+    mapId: map.id,
+    mode,
+    online,
+  });
+
+  // The end of the demo: Basic, against the easiest AI, on the first two-player map.
+  const [demo, setDemo] = useState(false);
+  const practice = () => {
+    setDemo(false);
+    ask({
+      players: [defaultSeat(0, false, storedAiLevel()), defaultSeat(1, true, 1)],
+      mapId: defaultMapFor(RULESETS.basic, 2)!.id,
+      mode: 'basic',
     });
   };
 
@@ -115,6 +132,7 @@ export function Lobby({
         <FullscreenButton />
       </div>
       <HomeScreenHint />
+      <LearnHint onOpen={() => setDemo(true)} />
 
       <YourGames saved={saved} onResume={() => saved && onResume(saved)} onDiscard={discard} />
 
@@ -171,24 +189,31 @@ export function Lobby({
 
         {!canStart && <p className="field-hint">Make at least one seat a Friend to play online.</p>}
         <div className="modal-actions">
-          <button
-            className="btn btn-primary btn-lg"
-            disabled={!canStart}
-            onClick={() => (!online && saved ? setConfirmingNew(true) : start())}
-          >
+          <button className="btn btn-primary btn-lg" disabled={!canStart} onClick={() => ask(gameOnScreen())}>
             {online ? 'Create online game' : 'Drop your mechs'}
           </button>
         </div>
       </div>
-      {confirmingNew && (
+      {confirming && (
         <Confirm
           title="Start a new game?"
           message="The game in progress on this device is discarded."
           yes="Start new game"
-          onYes={start}
-          onNo={() => setConfirmingNew(false)}
+          onYes={() => begin(confirming)}
+          onNo={() => setConfirming(null)}
         />
       )}
+      {demo && (
+        <Suspense fallback={null}>
+          <Tutorial onClose={() => setDemo(false)} onPlay={practice} />
+        </Suspense>
+      )}
+      <button className="btn lobby-demo" onClick={() => setDemo(true)}>
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor" aria-hidden="true">
+          <path d="M2 1l9 5-9 5z" />
+        </svg>
+        Watch the demo
+      </button>
       <nav className="lobby-links">
         <button onClick={onRules}>How to play</button>
         <a href="#rulebook">Manual (PDF)</a>

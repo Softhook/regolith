@@ -28,6 +28,7 @@ import {
   reachable,
   type At,
 } from './diagrams';
+import { GoalKey, MechKey } from './concepts';
 
 /**
  * The player's manual: the same text and diagrams in the in-game "How to play" dialog (dark) and on
@@ -408,17 +409,7 @@ export function Manual({ dark }: { dark?: boolean }) {
       {/* ---------------------------------------------------------------- goal */}
       <section id="mn-goal">
         <h2>The goal</h2>
-        <div className="mn-hero">
-          <div className="mn-hero-cubes" aria-label="Four cubes placed, one to go">
-            {[1, 2, 3, 4, 5].map((n) => (
-              <CubeIcon key={n} size={34} empty={n === 5} />
-            ))}
-          </div>
-          <p className="mn-lead">
-            Be the first to place <b>all your cubes</b> on objectives.
-          </p>
-          <p className="mn-hero-sub">Most maps give each player 5. You win the moment your last one lands.</p>
-        </div>
+        <GoalKey />
         <div className="mn-two">
           <div className="mn-route">
             <h3>Claim an objective</h3>
@@ -470,9 +461,9 @@ export function Manual({ dark }: { dark?: boolean }) {
         <div className="mn-ships">
           {[1, 2, 3, 4, 5, 6].map((v) => (
             <div key={v} className="mn-ship">
-              <DieIcon v={v} size={64} shipIllustration />
+              <MechKey v={v} />
               <div>
-                <b>{SHIPS[v].name}</b> <span className="mn-ability">{SHIPS[v].ability.name}</span>
+                <span className="mn-ability">{SHIPS[v].ability.name}</span>
                 <p>{SHIPS[v].ability.text}</p>
               </div>
             </div>
