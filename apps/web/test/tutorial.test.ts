@@ -7,16 +7,16 @@ describe('the learn-to-play lessons', () => {
   it('play legally through the engine, fights going the way the captions say', () => {
     expect(all.map((l) => l.id)).toEqual([
       'goal',
-      'mechs',
       'map',
+      'mechs',
       'turn',
       'move',
       'claim',
       'fight',
+      'takeover',
       'holding',
       'salvage',
-      'powers',
-      'takeover',
+      'abilities',
     ]);
     for (const l of all) {
       expect(l.starts.length, l.id).toBeGreaterThan(0);
@@ -31,7 +31,6 @@ describe('the learn-to-play lessons', () => {
     const last = (id: string) => all.find((l) => l.id === id)!.frames.at(-1)!.game;
     expect(last('claim').board.planets[2].cubes).toEqual([0]);
     expect(last('fight').players[0].dominance).toBe(2);
-    expect(last('powers').barriers).toHaveLength(1);
     expect(last('takeover').board.planets[2].cubes).toEqual([0]);
     expect(last('takeover').players[0].dominance).toBe(1);
   });

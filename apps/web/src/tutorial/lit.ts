@@ -11,7 +11,7 @@ import { HOME } from './stage';
  */
 export function lit(game: GameState, show: Show | undefined): Highlights {
   if (!show) return noHighlights();
-  const sel = show.aim ? ({ kind: 'power', die: show.aim } as const) : show.pick ? ({ kind: 'ship', die: show.pick } as const) : undefined;
+  const sel = show.pick ? ({ kind: 'ship', die: show.pick } as const) : undefined;
   const h = sel ? highlightsFor(game, sel, legalFor(game), true) : noHighlights();
   for (const [id, label] of Object.entries(show.planets ?? {})) {
     h.planets.set(Number(id), { tone: Number(id) === HOME.you || Number(id) === HOME.foe ? 'start' : 'conquer', label });

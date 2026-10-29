@@ -32,8 +32,6 @@ interface Key {
 export interface Show {
   /** A mech to select, as a tap would: the spaces it can reach, the mechs it can attack, the zones that stop it. */
   pick?: string;
-  /** A mech whose power is being aimed: the mechs or spaces it can reach. */
-  aim?: string;
   /** Objectives to mark, with a label. */
   planets?: Record<number, string>;
   /** Mechs to point at. */
