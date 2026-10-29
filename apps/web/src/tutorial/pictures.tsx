@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { Fragment, useEffect, useRef, useState, type ReactNode } from 'react';
 import { ActionHex, MissileIcon } from '../components/Card';
 import {
   Arrow,
@@ -20,18 +20,20 @@ import {
   type At,
 } from '../rulebook/diagrams';
 import { GoalAnimation, MechKey, MechKeys, MechProfile } from '../rulebook/concepts';
+import { reading } from './reading';
 
 /**
  * The tutorial's pictures: one idea per screen, drawn with the game's own artwork and played once through, a
  * step at a time, with a line of words under each step. A picture is its steps (how long each is held and
  * what it says) and a drawing of each step, kept together here so changing one means looking in one place.
- * Without motion it shows its last step, where everything it explains is on show.
+ * Every step is held at least as long as its words take to read (reading.ts). Without motion the steps still
+ * follow one another, each drawn still (the animations are off: rulebook.css).
  *
  * To add one: write its `Picture` below and list it in `PICTURES`; a lesson then shows it as `{ picture: name }`.
  */
 
 interface Step {
-  /** How long the step is held, in ms. */
+  /** How long the step is held at least, in ms: the drawing's pace. Words are always given time to be read. */
   hold: number;
   /** What it says, under the drawing; `**bold**` is what to take away. Empty for a drawing that says it all. */
   say: string;
@@ -43,19 +45,38 @@ interface Picture {
   draw: (s: number) => ReactNode;
 }
 
-const still = () => typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+/**
+ * The steps, held long enough to read: steps in a row under the same words share their time, and the last of
+ * them is held on until those words have had the time they need.
+ */
+function readable(steps: readonly Step[]): Step[] {
+  const out = steps.map((s) => ({ ...s }));
+  for (let i = 0; i < out.length;) {
+    let j = i;
+    let held = 0;
+    while (j < out.length && out[j].say === out[i].say) held += out[j++].hold;
+    if (out[i].say) out[j - 1].hold += Math.max(0, reading(out[i].say) - held);
+    i = j;
+  }
+  return out;
+}
 
-/** The step a picture is at: on to the next after the time held, resting on the last. */
-function useStep(steps: readonly Step[]): number {
+const picture = (steps: readonly Step[], draw: Picture['draw']): Picture => ({ steps: readable(steps), draw });
+
+/** The step a picture is at: on to the next after the time held, while playing; `onEnd` once the last has been held. */
+function useStep(steps: readonly Step[], playing: boolean, onEnd?: () => void): number {
   const [step, setStep] = useState(0);
-  const calm = useMemo(still, []);
+  const end = useRef(onEnd);
+  useEffect(() => {
+    end.current = onEnd;
+  });
   const last = steps.length - 1;
   useEffect(() => {
-    if (calm || step === last) return;
-    const t = window.setTimeout(() => setStep(step + 1), steps[step].hold);
+    if (!playing) return;
+    const t = window.setTimeout(() => (step === last ? end.current?.() : setStep(step + 1)), steps[step].hold);
     return () => window.clearTimeout(t);
-  }, [step, calm, steps, last]);
-  return calm ? last : step;
+  }, [step, playing, steps, last]);
+  return step;
 }
 
 /** Words with `**bold**` set in bold. */
@@ -75,15 +96,27 @@ const HERE = at(0, 0);
 const RIGHT = at(-2, 3);
 const TWO_TILES = [...flower(HERE), ...flower(RIGHT)];
 
+// ------------------------------------------------------------------ the mechs
+
+const LINEUP = picture(
+  [
+    { hold: 0, say: 'Your pieces are **mechs**: dice on the map, numbered **1 to 6**. You start with **3**.' },
+    { hold: 0, say: 'A mech’s **number** is how far it moves, and what it adds up to when you claim.' },
+    { hold: 0, say: 'In a fight, **low is strong**.' },
+    { hold: 0, say: 'Each kind also has an **ability**. You’ll meet them at the end.' },
+  ],
+  () => <MechKeys />,
+);
+
 // ------------------------------------------------------------------ the map
 
-const SPACES: Picture = {
-  steps: [
-    { hold: 2000, say: 'The map is made of **hexagon spaces**.' },
-    { hold: 2000, say: 'A mech stands on a space.' },
-    { hold: 3000, say: 'Each space holds **one mech**.' },
+const SPACES = picture(
+  [
+    { hold: 0, say: 'The map is made of **hexagon spaces**.' },
+    { hold: 0, say: 'A mech stands on a space.' },
+    { hold: 0, say: 'Each space holds **one mech**.' },
   ],
-  draw: (s) => (
+  (s) => (
     <Diagram cells={flower(HERE)} scale={2.1} label="A map of hexagon spaces, with a mech on some of them.">
       <Tile id="blank-01" at={HERE} />
       <Glow cells={flower(HERE)} tone="plain" />
@@ -91,20 +124,25 @@ const SPACES: Picture = {
       {s >= 2 && <Ship at={at(0, 1)} v={3} />}
     </Diagram>
   ),
-};
+);
 
-const OBJECTIVE: Picture = {
-  steps: [
-    { hold: 3000, say: 'An **objective** is a numbered building, from **7** to **10**. The bigger the number, the harder to claim.' },
-    { hold: 2400, say: 'A **7** has room for **1** cube.' },
-    { hold: 2400, say: 'An **8** has room for **2** cubes.' },
-    { hold: 2400, say: 'A **9** has room for **3** cubes.' },
-    { hold: 2400, say: 'A **10** has room for **4** cubes. Only one of them can be yours.' },
+const OBJECTIVE = picture(
+  [
+    { hold: 0, say: 'An **objective** is a numbered building, from **7** to **10**.' },
+    { hold: 0, say: 'A **7** has room for **1** cube.' },
+    { hold: 0, say: 'An **8** has room for **2** cubes.' },
+    { hold: 0, say: 'A **9** has room for **3** cubes.' },
+    { hold: 0, say: 'A **10** has room for **4** cubes.' },
+    { hold: 0, say: 'Each holds **at most one** of your cubes, so you need **several** objectives.' },
   ],
-  draw: (s) => (
-    <div className="mn-sizes mn-sizes-big" role="img" aria-label="A 7 holds 1 cube, an 8 holds 2, a 9 holds 3 and a 10 holds 4.">
+  (s) => (
+    <div
+      className="mn-sizes mn-sizes-big"
+      role="img"
+      aria-label="A 7 holds 1 cube, an 8 holds 2, a 9 holds 3 and a 10 holds 4, at most one of each player's."
+    >
       {[7, 8, 9, 10].map((n) => {
-        const on = s === 0 || s === n - 6;
+        const on = s === 0 || s === 5 || s === n - 6;
         return (
           <div key={n} className={on ? 'on' : 'off'}>
             <PlanetIcon n={n} size={80} />
@@ -119,46 +157,61 @@ const OBJECTIVE: Picture = {
       })}
     </div>
   ),
-};
+);
 
 const RING = around(HERE);
-const PERIMETER: Picture = {
-  steps: [
-    { hold: 2000, say: 'This is an objective, an **8**.' },
+const PERIMETER = picture(
+  [
+    { hold: 0, say: 'This is an objective, an **8**.' },
     // The six spaces light up one at a time, under the same words.
-    ...[450, 450, 450, 450, 450, 3400].map((hold) => ({ hold, say: 'The six spaces around it are its **perimeter**.' })),
+    ...[450, 450, 450, 450, 450, 1500].map((hold) => ({ hold, say: 'The six spaces around it are its **perimeter**.' })),
   ],
-  draw: (s) => (
+  (s) => (
     <Diagram cells={flower(HERE)} scale={2.6} label="An 8, and the six spaces around it, its perimeter.">
       <Tile id="p8-01" at={HERE} />
       <Glow cells={RING.slice(0, Math.min(s, 6))} />
       <PlanetMarks at={HERE} n={8} />
     </Diagram>
   ),
-};
+);
 
-const HOME: Picture = {
-  steps: [
-    { hold: 2200, say: 'Each player has a **home** objective.' },
-    { hold: 3600, say: 'Each starts with a **cube** on their home. Yours is the one in your colour.' },
-    { hold: 3800, say: 'You have **5 cubes** in all: one down, four to go.' },
+/** Where each side's 3 mechs start: round its home, on the sides away from the other home. */
+const HOME_MECHS: readonly (readonly [At, number, 'you' | 'foe'])[] = [
+  [at(1, 0), 5, 'you'],
+  [at(0, -1), 3, 'you'],
+  [at(1, -1), 2, 'you'],
+  [at(-3, 3), 4, 'foe'],
+  [at(-2, 4), 6, 'foe'],
+  [at(-3, 4), 1, 'foe'],
+];
+
+const HOME = picture(
+  [
+    { hold: 0, say: 'Each player has a **home** objective.' },
+    { hold: 0, say: 'Each starts with a **cube** on it, and their **3 mechs** around it.' },
+    { hold: 0, say: 'Your other cubes wait beside the map. Place them **all** to win.' },
   ],
-  draw: (s) => (
+  (s) => (
     <div className="mn-home">
-      <Diagram cells={TWO_TILES} scale={2.1} label="Two home objectives, each with its player's cube.">
+      <Diagram cells={TWO_TILES} scale={2.1} label="Two home objectives, each with its player's cube and 3 mechs.">
         <Tile id="p7-01" at={HERE} />
         <Tile id="p7-01" at={RIGHT} />
         <PlanetMarks at={HERE} n={7} cubes={s >= 1 ? ['you'] : []} />
         <PlanetMarks at={RIGHT} n={7} cubes={s >= 1 ? ['foe'] : []} />
+        {s >= 1 && HOME_MECHS.map(([p, v, who]) => <Ship key={p.join()} at={p} v={v} who={who} />)}
       </Diagram>
-      <div className={s >= 2 ? 'mn-tray on' : 'mn-tray'} aria-label="Your 5 cubes, 1 placed">
-        {Array.from({ length: 5 }, (_, i) => (
+      {/* However many cubes the map gives: one placed, the rest to go. */}
+      <div className={s >= 2 ? 'mn-tray on' : 'mn-tray'} aria-label="Your cubes: one placed, the rest to go">
+        {Array.from({ length: 4 }, (_, i) => (
           <CubeIcon key={i} size={30} empty={i > 0} />
         ))}
+        <span className="mn-tray-more" aria-hidden="true">
+          …
+        </span>
       </div>
     </div>
   ),
-};
+);
 
 // ------------------------------------------------------------------ the turn
 
@@ -170,16 +223,20 @@ const MOVES = [
   ['Claim', 2],
 ] as const;
 
-const TURN: Picture = {
-  steps: [
-    { hold: 2800, say: 'On your turn you have **3 actions** to spend.' },
-    { hold: 2600, say: 'A **claim** costs **2** actions.' },
-    { hold: 3800, say: 'A **move** or an **attack** costs **1**. Each mech moves or attacks **once** a turn.' },
-    { hold: 3200, say: 'No actions left: the turn passes to your **rival**.' },
+/** The actions left at each step: 3, spent one at a time, then none. */
+const LEFT = [3, 2, 1, 0, 0];
+const SPEND = 'Spend them in any order, on any of your mechs…';
+
+const TURN = picture(
+  [
+    { hold: 0, say: 'On your turn you have **3 actions** to spend.' },
+    { hold: 900, say: SPEND },
+    { hold: 900, say: SPEND },
+    { hold: 900, say: SPEND },
+    { hold: 0, say: 'No actions left: the turn passes to your **rival**.' },
   ],
-  draw: (s) => {
-    const left = [3, 1, 0, 0][s];
-    const used = [undefined, 'Claim', 'Move', undefined][s];
+  (s) => {
+    const left = LEFT[s];
     return (
       <div className="mn-turn">
         <div className="mn-actionbar" role="img" aria-label={`${left} of 3 actions left`}>
@@ -187,58 +244,85 @@ const TURN: Picture = {
             <ActionHex key={i} size={56} off={i >= left} />
           ))}
         </div>
+        <p className="mn-turn-over" aria-hidden={s !== 4}>
+          {s === 4 ? 'Rival’s turn' : ''}
+        </p>
+      </div>
+    );
+  },
+);
+
+/** The actions, one at a time from left to right, each with what it costs; each has a lesson of its own later. */
+const ACTIONS = picture(
+  [
+    { hold: 0, say: 'There are **five** actions.' },
+    { hold: 0, say: '**Move**: a mech walks up to its number of spaces. **1** action.' },
+    { hold: 0, say: '**Attack**: a mech moves into an enemy mech, and they fight. **1** action.' },
+    { hold: 0, say: '**Drop**: a destroyed mech comes back onto the map. **1** action.' },
+    { hold: 0, say: '**Refit**: re-roll a mech for a new number. **1** action.' },
+    { hold: 0, say: '**Claim**: your mechs add up to an objective’s number, and one of your cubes goes on. **2** actions.' },
+  ],
+  (s) => {
+    // Step 0 shows them all; step k lights up the kth, from the left.
+    const [name, cost] = s ? MOVES[s - 1] : [undefined, 0];
+    return (
+      <div className="mn-turn">
+        <div className="mn-actionbar mn-spend" role="img" aria-label={name ? `${name} costs ${cost}` : 'Five actions'}>
+          {Array.from({ length: cost }, (_, i) => (
+            <ActionHex key={`${name}${i}`} size={56} />
+          ))}
+        </div>
         <div className="mn-chips">
-          {MOVES.map(([name, cost]) => (
-            <span key={name} className={name === used ? 'mn-chip on' : 'mn-chip'}>
-              <b>{name}</b>
+          {MOVES.map(([n, c]) => (
+            <span key={n} className={n === name ? 'mn-chip on' : name ? 'mn-chip off' : 'mn-chip'}>
+              <b>{n}</b>
               <i>
-                {Array.from({ length: cost }, (_, i) => (
+                {Array.from({ length: c }, (_, i) => (
                   <ActionHex key={i} size={14} />
                 ))}
               </i>
             </span>
           ))}
         </div>
-        <p className="mn-turn-over" aria-hidden={s !== 3}>
-          {s === 3 ? 'Rival’s turn' : ''}
-        </p>
       </div>
     );
   },
-};
+);
 
-/** Open ground three steps all round a lone 3: nothing in its way, so only the steps are on show. */
+/** Open ground three steps all round a lone mech: nothing in its way, so only the steps are on show. */
 const FIELD = within(3);
 const WALK = [HERE, at(0, 1), at(0, 2), at(0, 3)];
+const STROLL = 'Pick a space and it walks there. Each mech moves (or attacks) **once** a turn.';
 
-const REACH: Picture = {
-  steps: [
-    { hold: 2400, say: 'A mech moves **one space at a time**.' },
-    { hold: 1800, say: 'Then another…' },
-    { hold: 3400, say: '…up to its number, but **never more than 3**.' },
-    { hold: 1100, say: 'Pick a space, and it walks there, a step at a time.' },
-    { hold: 1100, say: 'Pick a space, and it walks there, a step at a time.' },
-    { hold: 3000, say: 'Pick a space, and it walks there, a step at a time.' },
+const REACH = picture(
+  [
+    { hold: 0, say: 'A mech moves **one space** at a time…' },
+    { hold: 0, say: '…up to its **number**: this 2 goes **2**. The whole move is **1 action**.' },
+    { hold: 0, say: 'But **never more than 3**: a 5 or a 6 goes 3.' },
+    { hold: 900, say: STROLL },
+    { hold: 900, say: STROLL },
+    { hold: 1500, say: STROLL },
   ],
-  draw: (s) => {
-    // From step 3 on, the 3 walks along WALK, one space a step, leaving its trail behind.
+  (s) => {
+    // A 2 shows a mech's number; a 5, the cap of 3, and then it walks along WALK, one space a step.
+    const v = s < 2 ? 2 : 5;
     const walked = Math.max(0, s - 2);
     return (
-      <Diagram cells={FIELD} scale={1.9} label="A 3 on open ground, and every space it can reach in up to 3 steps.">
+      <Diagram cells={FIELD} scale={1.9} label="A 2 reaches 2 spaces; a 5 reaches 3, never more.">
         <Glow cells={FIELD} tone="plain" />
         {s < 3 && <Dots cells={within(s + 1).filter((p) => p[0] || p[1])} />}
         {walked > 0 && (
           <>
-            <Ship at={HERE} v={3} ghost />
+            <Ship at={HERE} v={v} ghost />
             <Dots cells={WALK.slice(walked + 1)} />
             <Path cells={WALK.slice(0, walked + 1)} />
           </>
         )}
-        <Ship at={WALK[walked]} v={3} />
+        <Ship at={WALK[walked]} v={v} />
       </Diagram>
     );
   },
-};
+);
 
 // ------------------------------------------------------------------ claiming
 
@@ -246,44 +330,38 @@ interface Sum {
   mine: readonly (readonly [At, number])[];
   /** What the sum is and whether it counts. */
   result?: { ok: boolean; text: string };
+  claimed?: boolean;
 }
+
+const SIX: readonly [At, number] = [at(-1, 0), 6];
+const THREE: readonly [At, number] = [at(0, 1), 3];
+const TWO: readonly [At, number] = [at(1, 0), 2];
 
 const SUMS: Sum[] = [
   { mine: [] },
-  { mine: [[at(-1, 0), 6]] },
-  {
-    mine: [
-      [at(-1, 0), 6],
-      [at(0, 1), 3],
-    ],
-    result: { ok: true, text: 'exactly 9: claimed' },
-  },
-  {
-    mine: [
-      [at(-1, 0), 6],
-      [at(0, 1), 3],
-      [at(1, 0), 2],
-    ],
-    result: { ok: false, text: 'not 9: no claim' },
-  },
+  { mine: [SIX], result: { ok: false, text: 'not enough' } },
+  { mine: [SIX, THREE, TWO], result: { ok: false, text: 'too many: no claim' } },
+  { mine: [SIX, THREE], result: { ok: true, text: 'exactly 9' } },
+  { mine: [SIX, THREE], result: { ok: true, text: 'claimed' }, claimed: true },
 ];
 
-const SUM: Picture = {
-  steps: [
-    { hold: 3000, say: 'To **claim** an objective, your mechs on its **perimeter** must add up to its number.' },
-    { hold: 2400, say: 'This is a **9**. A 6 stands on its perimeter, so the sum is 6.' },
-    { hold: 3000, say: '6 + 3 = **9**. Exactly right: a cube of yours lands on it.' },
-    { hold: 3400, say: '**Every** mech of yours there counts. 6 + 3 + 2 is 11, not 9.' },
+const SUM = picture(
+  [
+    { hold: 0, say: 'To **claim** an objective, your mechs on its **perimeter** must add up to **exactly** its number.' },
+    { hold: 0, say: 'This is a **9**. A 6 on its perimeter makes 6: not enough.' },
+    { hold: 0, say: 'A 3 and a 2 join it: 11. **Every** mech of yours there counts, so that’s too many.' },
+    { hold: 0, say: 'The 2 steps away: 6 + 3 = **9**.' },
+    { hold: 0, say: '**Claim** it: one of your cubes goes on. **One fewer** to place.' },
   ],
-  draw: (s) => {
-    const { mine, result } = SUMS[s];
+  (s) => {
+    const { mine, result, claimed } = SUMS[s];
     const total = mine.reduce((n, [, v]) => n + v, 0);
     return (
       <div className="mn-sumscene">
         <Diagram cells={flower(HERE)} scale={2.3} label="A 9 and the mechs on its perimeter.">
           <Tile id="p9-01" at={HERE} />
           <Glow cells={RING} />
-          <PlanetMarks at={HERE} n={9} cubes={s === 2 ? ['you'] : []} />
+          <PlanetMarks at={HERE} n={9} cubes={claimed ? ['you'] : []} />
           {mine.map(([p, v]) => (
             <Ship key={p.join()} at={p} v={v} />
           ))}
@@ -307,7 +385,7 @@ const SUM: Picture = {
       </div>
     );
   },
-};
+);
 
 // ------------------------------------------------------------------ fighting
 
@@ -321,14 +399,16 @@ interface Fight {
   win?: 'a' | 'd';
   atomic?: boolean;
 }
+/** One fight, our 2 against their 4, rolled and then rolled again to show a tie and an atomic. */
 const FIGHTS: Fight[] = [
+  { a: { mech: 2 }, d: { mech: 4 } },
   { a: { mech: 2 }, d: { mech: 4 } },
   { a: { mech: 2, die: 3 }, d: { mech: 4 } },
   { a: { mech: 2, die: 3 }, d: { mech: 4, die: 2 } },
   { a: { mech: 2, die: 3 }, d: { mech: 4, die: 2 }, win: 'a' },
-  { a: { mech: 3, die: 2 }, d: { mech: 4, die: 1 }, win: 'a' },
-  { a: { mech: 3, die: 5 }, d: { mech: 4, die: 2 }, win: 'd', atomic: true },
-  { a: { mech: 3, die: 1 }, d: { mech: 4, die: 2 }, win: 'a', atomic: true },
+  { a: { mech: 2, die: 3 }, d: { mech: 4, die: 1 }, win: 'a' },
+  { a: { mech: 2, die: 5 }, d: { mech: 4, die: 2 }, win: 'd', atomic: true },
+  { a: { mech: 2, die: 1 }, d: { mech: 4, die: 2 }, win: 'a', atomic: true },
 ];
 
 function FightSide({ role, roll, win, lose }: { role: 'Attacker' | 'Defender'; roll: Roll; win: boolean; lose: boolean }) {
@@ -360,17 +440,18 @@ function FightSide({ role, roll, win, lose }: { role: 'Attacker' | 'Defender'; r
   );
 }
 
-const FIGHT: Picture = {
-  steps: [
-    { hold: 2400, say: 'To **attack**, move into an enemy mech. Both players roll a die and add their mech’s number.' },
-    { hold: 2400, say: 'The attacker rolls the **black** die: 2 + 3 = 5.' },
-    { hold: 2400, say: 'The defender rolls the **white** die: 4 + 2 = 6.' },
-    { hold: 3200, say: 'The **lower total wins**. 5 beats 6.' },
-    { hold: 3400, say: 'A tie? **The attacker wins ties.**' },
-    { hold: 3000, say: 'Losing the roll? Spend your **atomic**: it turns your die into a **1**.' },
-    { hold: 3600, say: 'Now 3 + 1 = 4 beats 6. You get **one** atomic each.' },
+const FIGHT = picture(
+  [
+    { hold: 0, say: 'A mech **attacks** by moving into an enemy mech.' },
+    { hold: 0, say: 'Each side rolls a die and adds its mech’s number.' },
+    { hold: 0, say: 'The attacker rolls the **black** die: 2 + 3 = 5.' },
+    { hold: 0, say: 'The defender rolls the **white** die: 4 + 2 = 6.' },
+    { hold: 0, say: 'The **lower total wins**: 5 beats 6.' },
+    { hold: 0, say: 'A tie? **The attacker wins ties.**' },
+    { hold: 0, say: 'Losing the roll? Spend your **atomic**: it turns your die into a **1**.' },
+    { hold: 0, say: 'Now 2 + 1 = 3 beats 6. You have **one** atomic for the **whole game**.' },
   ],
-  draw: (s) => {
+  (s) => {
     const f = FIGHTS[s];
     return (
       <div className="mn-fightscene">
@@ -385,7 +466,7 @@ const FIGHT: Picture = {
       </div>
     );
   },
-};
+);
 
 const OUT_YARD = (
   <>
@@ -396,34 +477,32 @@ const OUT_YARD = (
   </>
 );
 
-const OUTCOME: Picture = {
-  steps: [
-    { hold: 2200, say: 'After the roll, the loser pays. Our 2 attacks their 4.' },
-    { hold: 2200, say: 'The attacker rolled **lower**, so it wins.' },
-    { hold: 3200, say: 'The loser is **destroyed** and goes to its owner’s **salvage yard**. The winner steps in.' },
-    { hold: 2400, say: 'Now our 2 attacks their 6, and rolls higher…' },
-    { hold: 3200, say: '…the attacker **bounces back**. Nothing is destroyed, and a failed attack costs nothing else.' },
+/** Where our 2 attacks from, then where the next enemy stands. */
+const FROM = at(0, -1);
+const NEXT = at(0, 1);
+
+const OUTCOME = picture(
+  [
+    { hold: 0, say: 'Our 2 attacks their 4, and has the **lower total**.' },
+    { hold: 0, say: 'The loser is **destroyed**: re-rolled, it goes to its owner’s **salvage yard**.' },
+    { hold: 0, say: 'The winner may **step in**.' },
+    { hold: 0, say: 'Next turn it attacks their 6, and its total is **higher**…' },
+    { hold: 0, say: '…so the attack **fails**: it goes back where it came from. Nothing is destroyed.' },
   ],
-  draw: (s) => {
-    return (
-      <Diagram
-        cells={flower(HERE)}
-        left={78}
-        scale={2.1}
-        label="An attack that wins destroys the defender, and one that loses bounces back."
-      >
-        {OUT_YARD}
-        <Tile id="blank-01" at={HERE} />
-        {s === 2 && <DieFace x={-97} y={6} v={4} kind="foe" />}
-        {(s === 0 || s === 1) && <Ship at={HERE} v={4} who="foe" />}
-        {s >= 3 && <Ship at={HERE} v={6} who="foe" />}
-        {s === 1 && <Path cells={[at(0, -1), HERE]} attack />}
-        {s === 3 && <Path cells={[at(0, -1), HERE]} attack />}
-        {s === 2 ? <Ship at={HERE} v={2} /> : <Ship at={at(0, -1)} v={2} />}
-      </Diagram>
-    );
-  },
-};
+  (s) => (
+    <Diagram cells={flower(HERE)} left={78} scale={2.1} label="An attack that wins destroys the defender, and one that loses goes back.">
+      {OUT_YARD}
+      <Tile id="blank-01" at={HERE} />
+      {/* The destroyed 4, re-rolled: it waits in the yard as a 1. */}
+      {s >= 1 && <DieFace x={-97} y={6} v={1} kind="foe" />}
+      {s === 0 && <Ship at={HERE} v={4} who="foe" />}
+      {s === 0 && <Path cells={[FROM, HERE]} attack />}
+      {s >= 3 && <Ship at={NEXT} v={6} who="foe" />}
+      {s === 3 && <Path cells={[HERE, NEXT]} attack />}
+      <Ship at={s >= 2 ? HERE : FROM} v={2} />
+    </Diagram>
+  ),
+);
 
 // ------------------------------------------------------------------ holding ground
 
@@ -432,14 +511,14 @@ const GROUND = within(2);
 const ZONE = around(HERE);
 const ZONE_ROUTE = [at(2, -1), at(1, -1), at(0, -1), at(-1, -1)];
 
-const ZONE_SCENE: Picture = {
-  steps: [
-    { hold: 2600, say: 'An enemy mech controls the **spaces next to it**: its **zone**.' },
-    { hold: 2400, say: 'Our 3 wants to walk past it…' },
-    { hold: 2800, say: '…but entering the zone, it **must stop**, even with steps to spare.' },
-    { hold: 2800, say: 'A stopped mech can still **attack** from there.' },
+const ZONE_SCENE = picture(
+  [
+    { hold: 0, say: 'An enemy mech controls the **spaces next to it**: its **zone**.' },
+    { hold: 0, say: 'Our 3 wants to walk past it…' },
+    { hold: 0, say: '…but entering the zone, it **must stop**, even with steps to spare.' },
+    { hold: 0, say: 'With steps left, the same move can still **attack** it.' },
   ],
-  draw: (s) => (
+  (s) => (
     <Diagram cells={GROUND} scale={2.1} label="A mech that moves next to an enemy must stop there, and can still attack it.">
       <Glow cells={GROUND} tone="plain" />
       <Glow cells={ZONE} tone="zone" />
@@ -449,16 +528,16 @@ const ZONE_SCENE: Picture = {
       <Ship at={s >= 2 ? ZONE_ROUTE[1] : ZONE_ROUTE[0]} v={3} />
     </Diagram>
   ),
-};
+);
 
-const CONTESTED: Picture = {
-  steps: [
-    { hold: 2600, say: 'Your 5 and 3 make **8** here…' },
-    { hold: 3000, say: '…but an **enemy mech** on the perimeter makes it **contested**.' },
-    { hold: 2600, say: '**Push the enemy off**: attack it.' },
-    { hold: 3000, say: 'The enemy is gone: now the 8 can be claimed.' },
+const CONTESTED = picture(
+  [
+    { hold: 0, say: 'Your 5 and 3 make **8** here…' },
+    { hold: 0, say: '…but an **enemy mech** on its perimeter makes it **contested**: nobody else can claim it.' },
+    { hold: 0, say: 'Attack it. Win, and it is **destroyed**…' },
+    { hold: 0, say: '…so the 8 is open again: claim it.' },
   ],
-  draw: (s) => (
+  (s) => (
     <Diagram cells={flower(HERE)} scale={2.6} label="Your 5 and 3 make 8, but an enemy 6 on the perimeter blocks the claim.">
       <Tile id="p8-01" at={HERE} />
       <Glow cells={RING} />
@@ -469,17 +548,18 @@ const CONTESTED: Picture = {
       <Ship at={at(1, 0)} v={3} />
     </Diagram>
   ),
-};
+);
 
 // ------------------------------------------------------------------ bringing mechs back
 
-const DROP: Picture = {
-  steps: [
-    { hold: 2800, say: 'A destroyed mech waits in your **salvage yard**.' },
-    { hold: 3200, say: '**Drop** it: put it on an empty perimeter space of an objective that holds **your cube**.' },
-    { hold: 3000, say: 'It keeps its number, and it is back in the fight.' },
+const DROP = picture(
+  [
+    { hold: 0, say: 'A destroyed mech waits in your **salvage yard**.' },
+    { hold: 0, say: '**Drop** it, for 1 action: onto an empty perimeter space of an objective with **your cube** on it.' },
+    { hold: 0, say: 'It comes back with the number it rolled, ready to fight.' },
+    { hold: 0, say: 'Each claim is another place to drop. Not a **contested** one, but your **home** is always open.' },
   ],
-  draw: (s) => (
+  (s) => (
     <Diagram
       cells={flower(HERE)}
       left={78}
@@ -497,45 +577,48 @@ const DROP: Picture = {
           <Arrow x1={-78} y1={-4} x2={-46} y2={-16} curve={14} />
         </>
       )}
-      {s === 2 && <Ship at={at(0, -1)} v={4} />}
+      {s >= 2 && <Ship at={at(0, -1)} v={4} />}
     </Diagram>
   ),
-};
+);
 
-const REFIT: Picture = {
-  steps: [
-    { hold: 2600, say: 'A **6**, the Wisp. Not the mech you need right now.' },
-    { hold: 2800, say: '**Refit**: re-roll it. A new number is a **new mech**.' },
-    { hold: 3000, say: 'It must show a number it **hasn’t shown yet this turn**.' },
+const REFIT = picture(
+  [
+    { hold: 0, say: 'This **6** isn’t the number your claim needs.' },
+    { hold: 1200, say: '**Refit** it, for 1 action: **re-roll** the die.' },
+    { hold: 0, say: 'It rolls **until** it shows a number it hasn’t shown this turn. A new number is a **new mech**.' },
+    { hold: 0, say: 'A mech in your **salvage yard** can be refitted too.' },
   ],
-  draw: (s) => (
+  (s) => (
     <div className="mn-refit">
-      <MechKey v={s === 0 ? 6 : 2} />
+      <MechKey v={s < 2 ? 6 : 2} />
       <span className={s === 1 ? 'mn-refit-arrow spin' : 'mn-refit-arrow'} aria-hidden="true">
         ↻
       </span>
     </div>
   ),
-};
+);
 
 // ------------------------------------------------------------------ power
 
-/** Power, step by step: each win raises it and a loss in defence lowers it, until it reaches 6. */
-const POWERS = [1, 2, 3, 2, 3, 4, 5, 6, 6, 1];
-const POWER: Picture = {
-  steps: [
-    { hold: 1900, say: 'Your **Power** starts at **1**.' },
-    { hold: 1700, say: 'Win a fight as the attacker: **+1 Power**.' },
-    { hold: 1700, say: 'Win again: **+1**.' },
-    { hold: 1900, say: 'Lose a fight as the defender: **−1**.' },
-    { hold: 1500, say: 'Back to winning: **+1**…' },
-    { hold: 1500, say: '…**+1**…' },
-    { hold: 1500, say: '…**+1**…' },
-    { hold: 2400, say: 'At **6** you **take over**!' },
-    { hold: 2800, say: 'Place a cube on **any** objective, even a contested one.' },
-    { hold: 2800, say: 'Then your Power drops back to **1**.' },
+/** Power, step by step: wins as the attacker raise it, losses as the defender lower it, until it reaches 6. */
+const POWERS = [1, 2, 3, 2, 2, 3, 4, 5, 6, 6, 1];
+const STREAK = 'Win, win, win: **+1** each time…';
+const POWER = picture(
+  [
+    { hold: 0, say: 'Your **Power** starts at **1**.' },
+    { hold: 0, say: 'Win a fight as the **attacker**: **+1**.' },
+    { hold: 0, say: 'And again: **+1**.' },
+    { hold: 0, say: 'Lose a fight as the **defender**: **−1**.' },
+    { hold: 0, say: 'Any other fight changes **nothing**.' },
+    { hold: 800, say: STREAK },
+    { hold: 800, say: STREAK },
+    { hold: 800, say: STREAK },
+    { hold: 0, say: 'At **6**: **Take Over**!' },
+    { hold: 0, say: 'Place a cube on **any** objective with room for yours, even a **contested** one.' },
+    { hold: 0, say: 'Then your Power drops back to **1**.' },
   ],
-  draw: (s) => {
+  (s) => {
     const power = POWERS[s];
     return (
       <div className="mn-powerscene">
@@ -551,29 +634,26 @@ const POWER: Picture = {
           </span>
         </div>
         <div className="mn-power-target">
-          <PlanetIcon n={9} size={74} cubes={s >= 8 ? ['you'] : []} />
-          <small>{s >= 8 ? 'a free cube' : 'any objective'}</small>
+          <PlanetIcon n={9} size={74} cubes={s >= 9 ? ['you'] : []} />
+          <small>{s >= 9 ? 'placed, free' : 'any objective'}</small>
         </div>
       </div>
     );
   },
-};
+);
 
 // ------------------------------------------------------------------ screens with one step
 
 /** A picture with nothing to play: one drawing, held for `hold` ms with `say` under it. */
-const single = (hold: number, say: string, drawing: ReactNode): Picture => ({ steps: [{ hold, say }], draw: () => drawing });
+const single = (hold: number, say: string, drawing: ReactNode) => picture([{ hold, say }], () => drawing);
 
 /** One mech on a screen of its own. Its drawing names it and shows its reach and ability, so it says nothing more. */
-const mech = (v: number) => single(7000, '', <MechProfile v={v} />);
+const mech = (v: number) => single(8000, '', <MechProfile v={v} />);
 
 const PICTURES = {
-  goal: single(7000, 'Welcome to **Regolith**. Be the first to place **all your cubes** on **objectives**.', <GoalAnimation />),
-  lineup: single(
-    9000,
-    'Your pieces are **mechs**: dice on the map, numbered **1 to 6**. In a fight **low is strong**. Each kind has an **ability**.',
-    <MechKeys />,
-  ),
+  // Long enough for the animation to place its last cube and say you win.
+  goal: single(8000, 'Welcome to **Regolith**. Be the first to place **all your cubes** on **objectives**.', <GoalAnimation />),
+  lineup: LINEUP,
   mech1: mech(1),
   mech2: mech(2),
   mech3: mech(3),
@@ -585,6 +665,7 @@ const PICTURES = {
   perimeter: PERIMETER,
   home: HOME,
   turn: TURN,
+  actions: ACTIONS,
   reach: REACH,
   sum: SUM,
   fight: FIGHT,
@@ -598,13 +679,10 @@ const PICTURES = {
 
 export type PictureName = keyof typeof PICTURES;
 
-/** How long a picture takes to play once through, in ms. */
-export const pictureLength = (name: PictureName) => PICTURES[name].steps.reduce((n, { hold }) => n + hold, 0);
-
-/** A picture, played once through from its first step. */
-export function PictureView({ name }: { name: PictureName }) {
+/** A picture, played once through from its first step while `playing`, then `onEnd`. */
+export function PictureView({ name, playing, onEnd }: { name: PictureName; playing: boolean; onEnd: () => void }) {
   const { steps, draw } = PICTURES[name];
-  const step = useStep(steps);
+  const step = useStep(steps, playing, onEnd);
   const { say } = steps[step];
   return (
     <div className="mn-scene">

@@ -36,10 +36,10 @@ function End({ again, onPlay }: { again: () => void; onPlay: () => void }) {
       <h3>That’s the game</h3>
       <ul>
         <li>
-          <b>Claim</b> an objective with mechs whose numbers add up exactly.
+          <b>Claim</b> an objective with mechs whose numbers add up exactly: one of your cubes goes on it.
         </li>
         <li>
-          <b>Fight</b>: lower totals win, and winning builds Power for a free cube.
+          <b>Fight</b>: lower totals win. Clear the enemies off an objective, and build Power to place a cube for free.
         </li>
         <li>
           <b>Win</b> by placing all your cubes first.
@@ -106,7 +106,7 @@ export function Tutorial({ onClose, onPlay }: { onClose: () => void; onPlay: () 
       {frame.picture ? (
         // A picture carries its own words, right under it.
         <div className="mn mn-dark demo-bare" key={`bare:${p.at.lesson}:${frame.beat}:${p.at.jumps}`}>
-          <PictureView name={frame.picture} />
+          <PictureView name={frame.picture} playing={p.playing && !p.done} onEnd={p.pictureEnded} />
         </div>
       ) : (
         <>

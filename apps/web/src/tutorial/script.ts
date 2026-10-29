@@ -1,5 +1,6 @@
 import { apply, checkInvariants, combatOutcome, RuleError, type Action, type GameState } from '@regolith/engine';
 import type { PictureName } from './pictures';
+import { reading } from './reading';
 import { stage, type Setup } from './stage';
 
 /**
@@ -84,9 +85,6 @@ export interface Lesson {
   /** The index of each beat's first frame. */
   starts: readonly number[];
 }
-
-/** How long a caption needs on screen, in ms. */
-const reading = (say: string) => Math.min(9000, 2600 + 48 * say.length);
 
 /** How long a position stays, once the action that made it has been seen. */
 function settle(before: GameState, after: GameState, action: Action): number {

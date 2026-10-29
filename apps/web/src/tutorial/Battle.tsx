@@ -69,7 +69,7 @@ export function Battle({ game, combat }: { game: GameState; combat: CombatPendin
         <div className={`combat-verdict ${revealed ? 'show' : ''}`} style={{ '--pc': leader.color } as CSSProperties}>
           {revealed && (
             <>
-              <strong>{leader.name}</strong> {out.attackerWins ? 'wins: lower total' : 'holds: the attacker needs a lower total'}
+              <strong>{leader.name}</strong> {out.attackerWins ? 'will destroy the defender' : 'will repel the attack'}
             </>
           )}
         </div>

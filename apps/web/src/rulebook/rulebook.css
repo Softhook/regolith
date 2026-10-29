@@ -421,6 +421,7 @@ body.rb-standalone { margin: 0; padding: 24px 12px; background: #e8ebf3; }
 .mn-home { display: grid; gap: 12px; justify-items: center; width: 100%; }
 .mn-tray { display: flex; gap: 8px; padding: 8px 14px; border-radius: 14px; border: 1px solid var(--mn-line); background: var(--mn-panel-2); opacity: 0; transition: opacity .4s; }
 .mn-tray.on { opacity: 1; }
+.mn-tray-more { align-self: center; font-size: 22px; font-weight: 700; color: var(--mn-ink); }
 .mn-turn { display: grid; gap: 16px; justify-items: center; }
 .mn-actionbar { display: flex; gap: 10px; }
 .mn-scene .action-hex { color: var(--mn-action); transition: opacity .3s; }
@@ -430,6 +431,8 @@ body.rb-standalone { margin: 0; padding: 24px 12px; background: #e8ebf3; }
 .mn-chip b { font: 700 13px Orbitron, Inter, sans-serif; letter-spacing: .04em; }
 .mn-chip i { display: flex; gap: 2px; min-height: 14px; }
 .mn-chip.on { transform: scale(1.12); border-color: var(--mn-action); background: color-mix(in srgb, var(--mn-action) 18%, transparent); }
+.mn-chip.off { opacity: .4; }
+.mn-spend { min-height: 64px; align-items: center; }
 .mn-turn-over { margin: 0; min-height: 1.4em; font: 700 12px Orbitron, Inter, sans-serif; letter-spacing: .14em; text-transform: uppercase; color: var(--mn-foe); }
 .mn-sumscene, .mn-fightscene { display: grid; gap: 10px; justify-items: center; width: 100%; }
 .mn-sum-eq { display: grid; gap: 4px; justify-items: center; }
