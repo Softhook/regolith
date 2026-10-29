@@ -43,6 +43,8 @@ interface Picture {
   steps: readonly Step[];
   /** The drawing at step `s`, counted from 0. */
   draw: (s: number) => ReactNode;
+  /** Pictures in a row with the same scene share one screen: going from one to the next, only what differs changes. */
+  scene?: string;
 }
 
 /**
@@ -101,7 +103,7 @@ const TWO_TILES = [...flower(HERE), ...flower(RIGHT)];
 const LINEUP = picture(
   [
     { hold: 0, say: 'Your pieces are **mechs**: dice numbered **1 to 6**, each kind with its own name.' },
-    { hold: 0, say: 'Each kind also has an **ability**. You’ll meet them at the end.' },
+    { hold: 0, say: 'Each kind also has an **ability**. Here they are, one by one.' },
   ],
   () => <MechKeys />,
 );
@@ -641,19 +643,26 @@ const POWER = picture(
 /** A picture with nothing to play: one drawing, held for `hold` ms with `say` under it. */
 const single = (hold: number, say: string, drawing: ReactNode) => picture([{ hold, say }], () => drawing);
 
-/** One mech on a screen of its own. Its drawing names it and shows its reach and ability, so it says nothing more. */
-const mech = (v: number) => single(8000, '', <MechProfile v={v} />);
+/** One mech on screens of its own: who it is and how far it moves, then its ability. The drawings say it all. */
+const mech = (v: number): Picture => ({ ...single(4000, '', <MechProfile v={v} part="who" />), scene: `mech${v}` });
+const ability = (v: number): Picture => ({ ...single(6000, '', <MechProfile v={v} part="ability" />), scene: `mech${v}` });
 
 const PICTURES = {
   // Long enough for the animation to place its last cube and say you win.
   goal: single(8000, 'Welcome to **Regolith**. Be the first to place **all your cubes** on **objectives**.', <GoalAnimation />),
   lineup: LINEUP,
   mech1: mech(1),
+  ability1: ability(1),
   mech2: mech(2),
+  ability2: ability(2),
   mech3: mech(3),
+  ability3: ability(3),
   mech4: mech(4),
+  ability4: ability(4),
   mech5: mech(5),
+  ability5: ability(5),
   mech6: mech(6),
+  ability6: ability(6),
   spaces: SPACES,
   objective: OBJECTIVE,
   perimeter: PERIMETER,
@@ -672,6 +681,9 @@ const PICTURES = {
 } satisfies Record<string, Picture>;
 
 export type PictureName = keyof typeof PICTURES;
+
+/** The scene a picture shares with its neighbours, if any. */
+export const pictureScene = (name: PictureName): string | undefined => (PICTURES[name] as Picture).scene;
 
 /** A picture, played once through from its first step while `playing`, then `onEnd`. */
 export function PictureView({ name, playing, onEnd }: { name: PictureName; playing: boolean; onEnd: () => void }) {

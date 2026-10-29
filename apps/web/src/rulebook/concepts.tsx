@@ -1,21 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { RULESETS } from '@regolith/engine';
-import {
-  CubeIcon,
-  Diagram,
-  DieIcon,
-  Dots,
-  Glow,
-  PlanetMarks,
-  Ship,
-  Tile,
-  cubeSpot,
-  flower,
-  reachable,
-  within,
-  type At,
-  type Who,
-} from './diagrams';
+import { CubeIcon, Diagram, DieIcon, PlanetMarks, Tile, cubeSpot, flower, type At, type Who } from './diagrams';
 import { AbilityFigure } from './abilities';
 
 /**
@@ -204,8 +189,6 @@ export function GoalAnimation() {
   );
 }
 
-const REACH_CELLS = within(MOVE_CAP);
-
 /** Each mech's ability in a line, for a screen with room for one. The manual has the rules text in full. */
 const POWER_LINE: Record<number, string> = {
   1: 'Attacks an adjacent enemy for free, without using its move.',
@@ -216,44 +199,38 @@ const POWER_LINE: Record<number, string> = {
   6: 'Fires a barrier down a line. Nothing can pass it.',
 };
 
-/** How far a mech moves: the mech in the middle, and a dot on every space it can reach. */
-function ReachFigure({ v }: { v: number }) {
-  const steps = Math.min(v, MOVE_CAP);
-  const from: At = [0, 0];
-  const reach = reachable(REACH_CELLS, from, steps, []);
-  return (
-    <Diagram cells={REACH_CELLS} scale={1.6} label={`The ${SHIPS[v].name} moves up to ${steps} space${steps > 1 ? 's' : ''}.`}>
-      <Glow cells={REACH_CELLS} tone="plain" />
-      <Glow cells={reach} />
-      <Dots cells={reach} />
-      <Ship at={from} v={v} />
-    </Diagram>
-  );
-}
-
 /**
- * One mech on a screen of its own: who it is (its die and its drawing, with its name), how far it moves, and its
- * power. The same three things for each of the six, so they can be compared.
+ * One mech on a screen of its own, its drawing below, in two parts so each has room: first its die (the mech as
+ * the map shows it) with its name and how far it moves, then its ability. The same for each of the six, so they
+ * can be compared.
  */
-export function MechProfile({ v }: { v: number }) {
+export function MechProfile({ v, part }: { v: number; part: 'who' | 'ability' }) {
   const steps = Math.min(v, MOVE_CAP);
   return (
     <div className="mn-profile">
-      <div className="mn-profile-who">
-        <MechKey v={v} size={64} />
-        <figure className="mn-profile-move">
-          <ReachFigure v={v} />
-          <figcaption>
+      {part === 'who' ? (
+        <div className="mn-profile-who">
+          <figure className="mn-profile-die">
+            <DieIcon v={v} size={72} />
+            <figcaption>
+              <b>{SHIPS[v].name}</b>
+            </figcaption>
+          </figure>
+          <p className="mn-profile-move">
             Moves up to <b>{steps}</b> {steps > 1 ? 'spaces' : 'space'}
-          </figcaption>
-        </figure>
-      </div>
-      <div className="mn-profile-power">
-        <small>Ability</small>
-        <span className="mn-ability">{SHIPS[v].ability.name}</span>
-        <p>{POWER_LINE[v]}</p>
-        <AbilityFigure v={v} />
-      </div>
+          </p>
+        </div>
+      ) : (
+        <div className="mn-profile-power">
+          <small>{SHIPS[v].name}’s ability</small>
+          <span className="mn-ability">{SHIPS[v].ability.name}</span>
+          <p>{POWER_LINE[v]}</p>
+          <AbilityFigure v={v} />
+        </div>
+      )}
+      <span className="mn-profile-art mn-mech-art" aria-hidden="true">
+        <DieIcon v={v} size={340} shipIllustration portrait />
+      </span>
     </div>
   );
 }

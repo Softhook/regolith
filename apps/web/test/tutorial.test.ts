@@ -17,7 +17,6 @@ describe('the learn-to-play lessons', () => {
       'holding',
       'takeover',
       'salvage',
-      'abilities',
     ]);
     for (const l of all) {
       expect(l.starts.length, l.id).toBeGreaterThan(0);

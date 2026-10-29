@@ -291,14 +291,16 @@ body.rb-standalone { margin: 0; padding: 24px 12px; background: #e8ebf3; }
 @media (prefers-reduced-motion: reduce) { .mn-goalanim-win strong { animation: none; } }
 
 /* One mech on its own screen (concepts.tsx MechProfile): who it is and how far it moves, then its power. */
-.mn-profile { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: center; width: 100%; max-width: 560px; }
+.mn-profile { display: grid; grid-template-rows: 160px auto; gap: 64px; justify-items: center; width: 100%; max-width: 420px; }
+.mn-profile > :first-child { align-self: end; animation: demo-in .35s ease-out; }
+/* The mech's drawing, below its die or its ability, in the same place on both (the Sniper's rifle reaches above it). */
+.mn-profile-art svg { display: block; width: min(100%, 300px); height: auto; }
 .mn-profile-who { display: grid; justify-items: center; gap: 10px; }
-.mn-profile .mn-mech { padding: 10px 12px; }
-.mn-profile .mn-mech figcaption b { font-size: 16px; }
-.mn-profile-move { margin: 0; display: grid; gap: 4px; justify-items: center; width: 100%; }
-.mn-profile-move .mn-svg { width: 100%; max-height: 240px; }
-.mn-profile-move figcaption { font-size: 13px; color: var(--mn-soft); }
-.mn-profile-power { display: grid; gap: 6px; align-content: center; padding-left: 14px; border-left: 2px solid var(--mn-orbit-edge); }
+.mn-profile-die { margin: 0; display: grid; justify-items: center; gap: 6px; }
+.mn .mn-profile-die figcaption b { font: 700 16px Orbitron, Inter, sans-serif; letter-spacing: .04em; color: var(--mn-ink); }
+.mn-profile-move { margin: 0; font-size: 14px; color: var(--mn-soft); }
+.mn-profile-power { display: grid; gap: 6px; justify-items: center; text-align: center; }
+.mn-profile-power .mn-svg { height: 64px; width: auto; }
 .mn-profile-power small { font: 700 10.5px Inter, sans-serif; letter-spacing: .14em; text-transform: uppercase; color: var(--mn-muted); }
 .mn-profile-power .mn-ability { margin: 0; font-size: 15px; }
 .mn-profile-power p { margin: 0; font-size: 15px; line-height: 1.45; color: var(--mn-ink); }

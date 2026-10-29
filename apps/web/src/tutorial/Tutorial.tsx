@@ -8,7 +8,7 @@ import { Battle } from './Battle';
 import { lessons } from './lessons';
 import { lit } from './lit';
 import { usePlayer } from './player';
-import { PictureView, Words } from './pictures';
+import { PictureView, pictureScene, Words } from './pictures';
 import { Status } from './Status';
 
 const NO_DISPATCH = () => false;
@@ -105,8 +105,9 @@ export function Tutorial({ onClose, onPlay }: { onClose: () => void; onPlay: () 
 
       {frame.picture ? (
         // A picture carries its own words, right under it.
-        <div className="mn mn-dark demo-bare" key={`bare:${p.at.lesson}:${frame.beat}:${p.at.jumps}`}>
-          <PictureView name={frame.picture} playing={p.playing && !p.done} onEnd={p.pictureEnded} />
+        // Kept from one picture to the next of the same scene, so only what changes is redrawn.
+        <div className="mn mn-dark demo-bare" key={`bare:${p.at.lesson}:${pictureScene(frame.picture) ?? `${frame.beat}:${p.at.jumps}`}`}>
+          <PictureView key={`${frame.beat}:${p.at.jumps}`} name={frame.picture} playing={p.playing && !p.done} onEnd={p.pictureEnded} />
         </div>
       ) : (
         <>

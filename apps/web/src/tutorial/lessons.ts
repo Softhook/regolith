@@ -31,8 +31,22 @@ const goal: LessonDef = {
 const mechs: LessonDef = {
   id: 'mechs',
   title: 'Your mechs',
-  blurb: 'Dice numbered 1 to 6',
-  beats: [{ picture: 'lineup' }],
+  blurb: 'Dice numbered 1 to 6, and what each can do',
+  beats: [
+    { picture: 'lineup' },
+    { picture: 'mech1' },
+    { picture: 'ability1' },
+    { picture: 'mech2' },
+    { picture: 'ability2' },
+    { picture: 'mech3' },
+    { picture: 'ability3' },
+    { picture: 'mech4' },
+    { picture: 'ability4' },
+    { picture: 'mech5' },
+    { picture: 'ability5' },
+    { picture: 'mech6' },
+    { picture: 'ability6' },
+  ],
 };
 
 const map: LessonDef = {
@@ -166,21 +180,7 @@ const salvage: LessonDef = {
   beats: [{ picture: 'drop' }, { picture: 'refit' }],
 };
 
-const abilities: LessonDef = {
-  id: 'abilities',
-  title: 'Abilities',
-  blurb: 'What each kind of mech can do',
-  beats: [
-    { picture: 'mech1' },
-    { picture: 'mech2' },
-    { picture: 'mech3' },
-    { picture: 'mech4' },
-    { picture: 'mech5' },
-    { picture: 'mech6' },
-  ],
-};
-
-const defs: LessonDef[] = [goal, mechs, map, turn, actions, moving, claim, fight, holding, takeover, salvage, abilities];
+const defs: LessonDef[] = [goal, mechs, map, turn, actions, moving, claim, fight, holding, takeover, salvage];
 
 let built: Lesson[] | undefined;
 
