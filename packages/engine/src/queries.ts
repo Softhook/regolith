@@ -754,6 +754,8 @@ export function missileRefusal(state: GameState, combat: CombatPending, by: Play
   if (by !== combat.attacker.player && by !== combat.defender.player) return 'Only the attacker and defender may fire an atomic';
   if (combat[side].player !== by || combatOutcome(state, combat).attackerWins === (side === 'attacker'))
     return 'You may only fire an atomic on your own roll, while losing';
+  const fired = { ...combat, [side]: { ...combat[side], missile: true } };
+  if (combatOutcome(state, fired).attackerWins !== (side === 'attacker')) return 'An atomic would not win this battle';
   return null;
 }
 

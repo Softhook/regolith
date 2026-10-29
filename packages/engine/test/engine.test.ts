@@ -110,15 +110,15 @@ describe('combat', () => {
   it('a missile sets a combat roll to 1', () => {
     let s = quickStart();
     s.turn.player = 0;
-    s = arrange(s, { p0d0: [0, 5, 6], p1d0: [0, 6, 1] });
+    s = arrange(s, { p0d0: [0, 5, 2], p1d0: [0, 6, 6] });
     s = apply(s, { type: 'attack', die: 'p0d0', target: 'p1d0' });
     if (s.pending[0].kind !== 'combat') throw new Error();
     s.pending[0].attacker.dice = [6];
     s.pending[0].defender.dice = [1];
-    s = apply(s, { type: 'missile', by: 0, side: 'attacker' }); // 1+6=7 vs 1+1=2: still loses
+    s = apply(s, { type: 'missile', by: 0, side: 'attacker' }); // 2+1=3 vs 6+1=7: turns a loss (8 vs 7) into a win
     expect(s.players[0].missiles).toBe(0);
     s = apply(s, { type: 'resolveCombat' });
-    expect(s.dice.find((d) => d.id === 'p0d0')!.loc).toEqual({ zone: 'board', r: 0, c: 5 });
+    expect(s.dice.find((d) => d.id === 'p1d0')!.loc.zone).toBe('scrapyard');
   });
 });
 
@@ -143,11 +143,11 @@ describe('missiles', () => {
     return [o.attacker.total, o.defender.total];
   };
 
-  it('sets the roll to 1 before modifiers (the logged 3 vs 5 battle)', () => {
-    const s = battle({ skills: ['r-ferocious'] }, [1, 4]);
-    expect(totals(s)).toEqual([3, 8]);
+  it('sets the roll to 1 before modifiers (the logged 8 vs 5 battle)', () => {
+    const s = battle({ skills: ['r-ferocious'] }, [6, 4]);
+    expect(totals(s)).toEqual([8, 8]);
     const fired = apply(s, { type: 'missile', by: 0, side: 'defender' });
-    expect(totals(fired)).toEqual([3, 5]);
+    expect(totals(fired)).toEqual([8, 5]);
     expect(fired.players[0].missiles).toBe(0);
   });
 
@@ -158,8 +158,8 @@ describe('missiles', () => {
 
   it('is offered to a combatant only on their own roll, and only while losing', () => {
     const missiles = (s: GameState) => legalActions(s).filter((a) => a.type === 'missile');
-    // Attacker 3+2=5 vs defender 4+5=9: the attacker (player 1) is winning.
-    expect(missiles(battle({}, [3, 4]))).toEqual([{ type: 'missile', by: 0, side: 'defender' }]);
+    // Attacker 6+2=8 vs defender 4+5=9: the attacker (player 1) is winning.
+    expect(missiles(battle({}, [6, 4]))).toEqual([{ type: 'missile', by: 0, side: 'defender' }]);
     // Attacker 6+2=8 vs defender 1+5=6: the defender (player 0) is winning.
     expect(missiles(battle({}, [6, 1]))).toEqual([{ type: 'missile', by: 1, side: 'attacker' }]);
   });
@@ -175,9 +175,9 @@ describe('missiles', () => {
   });
 
   it('overrides Rational', () => {
-    const s = battle({ skills: ['r-rational'] }, [1, 6]);
-    expect(totals(s)).toEqual([3, 8]);
-    expect(totals(apply(s, { type: 'missile', by: 0, side: 'defender' }))).toEqual([3, 6]);
+    const s = battle({ skills: ['r-rational'] }, [6, 6]);
+    expect(totals(s)).toEqual([8, 8]);
+    expect(totals(apply(s, { type: 'missile', by: 0, side: 'defender' }))).toEqual([8, 6]);
   });
 });
 
