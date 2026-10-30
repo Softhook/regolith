@@ -80,6 +80,15 @@ Elsewhere in `apps/web/src`: `art/` (tile and card artwork drawn once to images 
 IndexedDB), `lab/` (the Art Lab pages), `print/` (print exports and sheets, shared by every lab page),
 `rulebook/` (the manual and its diagrams), `pwa.ts` (the service worker, and checking for updates).
 
+- **`tutorial/`**: the animated tutorial, offered from the lobby. Its lessons (`lessons.ts`) play real actions
+  through the engine on a laid-out training ground (`stage.ts`, `script.ts`), so what it teaches is what the game
+  does. Each rule is taught once, by a picture that carries its own words (`pictures.tsx`); `player.ts` and
+  `Tutorial.tsx` step through them. It ends in a practice game of Basic against the Cadet.
+- **Sound** is synthesised with Web Audio, with no sound files. `audio.ts` holds the shared plumbing and the sound
+  and music switches; `sound.ts` the game's effects; `openingSound.ts` and `gameOverSound.ts` the opening and
+  the end; `ambience.ts` the music, a drone score for each world, all rooted on D so the opening flows into any
+  of them.
+
 ## Finding bugs
 
 - `checkInvariants(state)` lists everything wrong with a state: cube totals, every card in exactly one

@@ -40,7 +40,7 @@ The engine keeps its original identifiers; players read Regolith's words (REGOLI
 ## Components
 
 Per player: 7 dice (3 mechs to start, 2 in reserve, one each to mark Power and Research), cubes (as many as the
-map says, usually 5), a player aid, 1 atomic. Shared: hex tiles (one objective or Sinkhole or blank ground
+map says, 4 to 7), a player aid, 1 atomic. Shared: hex tiles (one objective or Sinkhole or blank ground
 each, laid as the map's setup sheet shows), barrier tokens, and in Regolith the Skill and Tactic decks and the
 Reinforcements pile.
 

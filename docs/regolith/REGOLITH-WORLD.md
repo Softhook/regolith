@@ -157,5 +157,8 @@ What a Regolith game shows today:
 - **Hex maps only**, on Phobos's, Deimos's and Mars's ground.
 - **The words** in the table above, across the game's text: log, hints, cards, panels and errors
   ([REGOLITH.md](REGOLITH.md) §7).
+- **The objectives' buildings**, each number's base drawn on its tile, and the Reactor's radiation sign. The
+  tutorial names them (Habitat, Refinery); the game itself still shows only their numbers.
+- **The seat colours** of the five sides, and a score for each world's ground.
 
-Not yet: the objective names, the sides.
+Not yet: the objective names in the game, the sides' names, the Mass Driver and Skyhook (11 and 12).

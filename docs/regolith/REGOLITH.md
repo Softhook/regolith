@@ -216,7 +216,8 @@ words are written straight into the data, the engine's log and the UI strings, a
    tiles' buildings and small things, crews, each world's ground, and a scene for every card.
 5. **Moving away, card by card.** Renames with the new words and their own scenes, then reworked and new
    actions, with the card-hook surface built for the first one. Playtest and AI self-play as they land.
-6. **Words and aid.** A Regolith player aid and rulebook pages (the mode-wide vocabulary is done, §7).
+6. **Words and aid.** *Done (October 2026):* the Regolith player aid (Art Lab, `#lab/aid`), the manual
+   (in-game *How to play* and the printable `#rulebook`), the animated tutorial, and the mode-wide vocabulary (§7).
 
 Steps 1–4 need no card designed.
 

@@ -92,6 +92,28 @@ and setup economies:
 | Mare Trigonum | 3 | Equal 9 starts around a 10, with threefold rings of 7s and 8s |
 | Fourfold Confluence | 4 | Equal 8 starts on four arms, with 7s on the approaches and a 10 at the crossing |
 
+Three more ask fewer cubes, since a game's length goes with the cubes times the players: 5 for two players, 4
+for three or four. Olympus Mons (2, open ground) has a 10 on the summit between two voids, an 8 and a 7 beside
+each start. Triple Junction (3) is a void ringed by 7s and 8s, a 9 start at each of three corners. Cydonia (4)
+has four 8 starts at the corners of a diamond, a void between them and a pair of 9s on its long diagonal. Each
+is the base of a prepared-ground map below.
+
+### Five players
+
+A hexagon of tiles can't be turned into fifths, so the three five-player maps are balanced by a mirror instead:
+two pairs of seats that mirror each other, and one seat on the axis. Each asks 4 cubes, since a fifth player
+lengthens every round.
+
+| Map | World | The idea |
+|---|---|---|
+| Pentagon Plains | Mars | A 10 in the middle of a ring of open ground; five 8 starts round the rim, 9s between pairs of them, and a void |
+| Ouroboros | Deimos | A ring of twelve round an empty middle, a start every two or three tiles; two starts share a 9 |
+| Crescent Bay | Phobos | Five of the hexagon's six corners hold starts; the sixth is a bay of open ground, with a 10 in the middle |
+
+These are the only maps whose seats match by a mirror, not a turn. A mirror turns the flowers' lattice the other
+way (see *The basic maps*), so the mirrored seats are close, not identical. No self-play measure of their seats
+is recorded yet ([ROADMAP.md](ROADMAP.md)).
+
 ### Prepared ground
 
 Seven maps start with something already on the ground: an Ice Tunnel (`tunnel:`), a wormhole (`wormhole:`, a tunnel the Ice Tunnel tactic can't close), barriers (`barriers:`) or any of them,

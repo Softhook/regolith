@@ -395,7 +395,7 @@ export function Manual({ dark }: { dark?: boolean }) {
       <header className="mn-cover">
         <p className="mn-kicker">How to play</p>
         <h1>{GAME_NAME.toUpperCase()}</h1>
-        <p className="mn-tagline">Mechs fight for the ice of Mars · 2–4 players · about 60 minutes</p>
+        <p className="mn-tagline">Mechs fight for the ice of Mars · 2–5 players · about 60 minutes</p>
       </header>
 
       <nav className="mn-toc" aria-label="Sections">
