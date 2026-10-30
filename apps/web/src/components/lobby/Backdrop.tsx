@@ -72,7 +72,7 @@ function inView(ox: number, oy: number, w: number, h: number, cell: number) {
   return { i0, i1, j0, j1 };
 }
 
-function Ground({ board, cell, speed, still }: { board: Board; cell: number; speed: number; still: boolean }) {
+function Ground({ board, cell, speed, still, paused }: { board: Board; cell: number; speed: number; still: boolean; paused: boolean }) {
   const world = board.world;
   const mapSets = useMemo(() => inSets(tileArt(board).filter((t) => !t.id.startsWith('blank'))), [board]);
   /** The tile laid at (i, j): the same each time it comes round. A map with fewer than three tiles leaves a set blanks only. */
@@ -86,14 +86,16 @@ function Ground({ board, cell, speed, still }: { board: Board; cell: number; spe
   const [view, setView] = useState(() => inView(0, 0, innerWidth, innerHeight, cell));
   const shown = useRef(view);
   const [heading] = useState(() => Math.random() * 2 * Math.PI);
+  /** How far the ground has drifted, px: kept through a pause, so it goes on from there. */
+  const drifted = useRef({ x: 0, y: 0 });
   useEffect(() => {
     const [vx, vy] = [speed * Math.cos(heading), speed * Math.sin(heading)];
-    let [ox, oy] = [0, 0];
+    const at = drifted.current;
     let last = performance.now();
     let frame = 0;
     const place = () => {
-      if (drift.current) drift.current.style.transform = `translate3d(${-ox}px, ${-oy}px, 0)`;
-      const next = inView(ox, oy, innerWidth, innerHeight, cell);
+      if (drift.current) drift.current.style.transform = `translate3d(${-at.x}px, ${-at.y}px, 0)`;
+      const next = inView(at.x, at.y, innerWidth, innerHeight, cell);
       const v = shown.current;
       if (v.i0 !== next.i0 || v.i1 !== next.i1 || v.j0 !== next.j0 || v.j1 !== next.j1) setView((shown.current = next));
     };
@@ -101,20 +103,20 @@ function Ground({ board, cell, speed, still }: { board: Board; cell: number; spe
       // Not catching up after the tab was away.
       const dt = Math.min(now - last, 100) / 1000;
       last = now;
-      ox += vx * dt;
-      oy += vy * dt;
+      at.x += vx * dt;
+      at.y += vy * dt;
       place();
       frame = requestAnimationFrame(tick);
     };
     place();
-    // Under reduced motion, the ground stays put.
-    if (!still) frame = requestAnimationFrame(tick);
+    // Under reduced motion, the ground stays put; and while paused.
+    if (!still && !paused) frame = requestAnimationFrame(tick);
     addEventListener('resize', place);
     return () => {
       cancelAnimationFrame(frame);
       removeEventListener('resize', place);
     };
-  }, [cell, speed, still, heading]);
+  }, [cell, speed, still, paused, heading]);
 
   const laid: { key: string; x: number; y: number; tile: TileRef }[] = [];
   for (let i = view.i0; i <= view.i1; i++)
@@ -199,7 +201,11 @@ const Laid = memo(function Laid({ x, y, tile, world, cell }: { x: number; y: num
   );
 });
 
-export function LobbyBackdrop({ map }: { map: MapDef }) {
+/**
+ * `paused`: the ground holds still where it is, with something over it (the tutorial). Mostly hidden there, its
+ * drifting cost frames the tutorial needs: on a large high-density screen, about a third of those it dropped.
+ */
+export function LobbyBackdrop({ map, paused = false }: { map: MapDef; paused?: boolean }) {
   const still = useMediaQuery(REDUCED_MOTION);
   const phone = useMediaQuery(PHONE);
   const board = useMemo(() => buildBoard(map), [map]);
@@ -212,6 +218,7 @@ export function LobbyBackdrop({ map }: { map: MapDef }) {
         cell={phone ? PHONE_CELL : CELL}
         speed={phone ? PHONE_SPEED : SPEED}
         still={still}
+        paused={paused}
       />
       <div className="backdrop-shade" />
     </div>

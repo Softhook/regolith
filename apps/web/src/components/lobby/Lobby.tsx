@@ -120,7 +120,7 @@ export function Lobby({
       className={`lobby${intro.phase ? ` intro-${intro.phase}` : ''}`}
       style={{ '--intro-y': `${intro.offset}px`, '--intro-rise': `${INTRO_RISE_MS}ms` } as CSSProperties}
     >
-      <LobbyBackdrop map={map} />
+      <LobbyBackdrop map={map} paused={demo} />
       <div className="lobby-hero">
         <h1 ref={title}>{GAME_NAME}</h1>
         {intro.phase && (
