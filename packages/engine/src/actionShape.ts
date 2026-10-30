@@ -38,6 +38,7 @@ export const SHAPES: { [K in Action['type']]: Shape<K> } = {
   placeShip: { die: str, to: cell },
   move: { die: str, to: cell },
   attack: { die: str, target: str, from: opt(cell) },
+  breakBarrier: { die: str, cell },
   power: { die: str, target: opt(str), to: opt(cell) },
   deploy: { die: str, to: cell },
   reconfigure: { die: str },

@@ -1,5 +1,6 @@
 /** Legal action enumeration, used by the AI and for UI hints. */
 import { same, spaces } from './board';
+import { barrierBreaks } from './breakBarriers';
 import { tryApply } from './engine';
 import type { PendingOf } from './core';
 import { barrierAt, reserve, scrapyard, shipsOnBoard } from './lookups';
@@ -155,6 +156,7 @@ function actionPhaseOptions(s: GameState, opts: { includeCarry?: boolean }): Act
         }
       }
     }
+    for (const { cell } of barrierBreaks(s, d)) out.push({ type: 'breakBarrier', die: d.id, cell });
     const action = hooksOf(s, d)?.action;
     if (action) for (const c of action.options(s, d)) out.push({ type: 'power', die: d.id, ...c });
     if (actions > 0 && canReconfigure(s, d)) out.push({ type: 'reconfigure', die: d.id });

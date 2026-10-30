@@ -567,6 +567,60 @@ describe('Barrier (6 Wisp)', () => {
   });
 });
 
+describe('breaking barriers (on trial: RuleSet.breakBarriers)', () => {
+  /** p0's `dice` with an opponent's barrier on (r, c), and the rule set to `rule` while `check` runs. */
+  const trial = (
+    rule: 'smash' | 'attack' | undefined,
+    dice: Record<string, [number, number, number]>,
+    [r, c]: [number, number],
+    check: (s: GameState) => void,
+  ) => {
+    const s = scenario(dice);
+    s.barriers = [{ r, c, owner: 1 }];
+    const rules = rulesOf(s);
+    const was = rules.breakBarriers;
+    rules.breakBarriers = rule;
+    try {
+      check(s);
+    } finally {
+      rules.breakBarriers = was;
+    }
+  };
+  const breaks = (s: GameState) =>
+    offered(s, 'breakBarrier').map((a) => (a.type === 'breakBarrier' ? `${a.die}>${a.cell.r},${a.cell.c}` : ''));
+
+  it('is off as the rules are', () => {
+    trial(undefined, { p0d0: [7, 3, 3] }, [7, 4], (s) => expect(breaks(s)).toEqual([]));
+  });
+
+  it('smash: a mech next to a barrier breaks it as its action, and stays put', () => {
+    trial('smash', { p0d0: [7, 2, 3] }, [7, 4], (s) => expect(breaks(s)).toEqual([]));
+    trial('smash', { p0d0: [7, 3, 3] }, [7, 4], (s) => {
+      expect(breaks(s)).toEqual(['p0d0>7,4']);
+      const next = apply(s, { type: 'breakBarrier', die: 'p0d0', cell: { r: 7, c: 4 } });
+      expect(next.barriers).toEqual([]);
+      expect(next.turn.actionsLeft).toBe(s.turn.actionsLeft - 1);
+      expect(at(next, 'p0d0').loc).toEqual({ zone: 'board', r: 7, c: 3 });
+      expect(offered(next, 'move').some((a) => 'die' in a && a.die === 'p0d0')).toBe(false);
+    });
+  });
+
+  it('attack: a mech moves up to the barrier and breaks it; a Sniper shoots it', () => {
+    trial('attack', { p0d0: [7, 2, 3] }, [7, 4], (s) => {
+      const next = apply(s, { type: 'breakBarrier', die: 'p0d0', cell: { r: 7, c: 4 } });
+      expect(next.barriers).toEqual([]);
+      expect(at(next, 'p0d0').loc).toEqual({ zone: 'board', r: 7, c: 3 });
+    });
+    trial('attack', { p0d0: [2, 5, 5] }, [7, 5], (s) => {
+      const next = apply(s, { type: 'breakBarrier', die: 'p0d0', cell: { r: 7, c: 5 } });
+      expect(next.barriers).toEqual([]);
+      expect(at(next, 'p0d0').loc).toEqual({ zone: 'board', r: 2, c: 5 });
+    });
+    // Out of a Tactician's reach down the same column.
+    trial('attack', { p0d0: [2, 5, 3] }, [7, 5], (s) => expect(breaks(s)).toEqual([]));
+  });
+});
+
 describe('contested orbit', () => {
   /** p0's ships making a free planet's number in its orbit, and `enemy` (p1's ship) in another of its spaces or beside the orbit. */
   const siege = (enemy: 'orbit' | 'outside' | 'none' = 'orbit') => {

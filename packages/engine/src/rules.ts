@@ -26,6 +26,8 @@ export interface RuleSet {
   ships: ShipTable;
   /** A fully occupied planet can still be conquered by an orbit summing to 12, displacing an opponent's cube (PROTOTYPING.md §6.10). */
   overConquest?: boolean;
+  /** Mechs may destroy barriers, on trial in self-play (breakBarriers.ts); off in every mode. */
+  breakBarriers?: 'smash' | 'attack';
 }
 
 export interface CardRules {

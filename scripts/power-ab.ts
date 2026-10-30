@@ -6,17 +6,20 @@
  * a turn (canUseAbility); a power still offered after that stops the run. Several ships may be given,
  * each tested on its own: `ships=3,6`.
  *
- *   npm run selfplay:powers -- [games=400] [level=3] [mode=regolith] [ships=6] [jobs=fast cores] [margin=5] [seed=0]
+ *   npm run selfplay:powers -- [games=400] [level=3] [mode=regolith] [ships=6] [jobs=fast cores] [margin=5] [seed=0] [breaks=off]
+ *
+ * `breaks=smash` or `breaks=attack` plays every game with breakable barriers (RuleSet.breakBarriers), for
+ * what the Wisp's Barrier is worth when barriers don't stay for good.
  *
  * Any argument may be given by name instead, in any order: `--ships=6 --seed=1` (args.ts).
  */
 import type { AiLevel } from '../packages/ai/src';
-import { actor, die, legalActions, type GameState } from '../packages/engine/src';
+import { actor, die, legalActions, RULESETS, type GameState } from '../packages/engine/src';
 import { runAb } from './ab';
 import { args } from './args';
 import { defaultJobs } from './pool';
 
-const { games, level, mode, ships, jobs, margin, seed } = args({
+const { games, level, mode, ships, jobs, margin, seed, breaks } = args({
   games: '400',
   level: '3',
   mode: 'regolith',
@@ -24,7 +27,10 @@ const { games, level, mode, ships, jobs, margin, seed } = args({
   jobs: defaultJobs,
   margin: '5',
   seed: '0',
+  breaks: 'off',
 });
+if (breaks !== 'off' && breaks !== 'smash' && breaks !== 'attack') throw new Error(`breaks=${breaks}: off, smash or attack`);
+for (const rules of Object.values(RULESETS)) rules.breakBarriers = breaks === 'off' ? undefined : breaks;
 
 /** The state as side B sees it: its `ship`s' power already used this turn. */
 function withoutPower(s: GameState, ship: number): GameState {

@@ -17,7 +17,8 @@
  * (Ctrl-C reports on what is done) and run again to carry on: games already in the file are left out, the
  * same games as before, as each has its own seeds. `fresh=1` starts the file over; `games=0` only reports. Variants: `on` (as the rules are), `off` (no Wisp barriers; Barricade
  * still deals them), `capN` (at most N barriers per player on the map, the oldest removed), `oldai` (the AI
- * without PLANNING.walls) and `abwalls` (PLANNING.walls for one seat only; the report adds that seat's wins).
+ * without PLANNING.walls), `abwalls` (PLANNING.walls for one seat only; the report adds that seat's wins), and
+ * `smash` and `attack` (mechs can break barriers, RuleSet.breakBarriers: from where they stand, or as an attack).
  */
 import { appendFileSync, existsSync, mkdirSync, readFileSync, rmSync } from 'node:fs';
 import { dirname } from 'node:path';
@@ -83,6 +84,9 @@ interface GameResult extends Task {
   longestDrought: number;
   barriers: number;
   barriersByCard: number;
+  /** Barriers mechs broke (`smash`, `attack`), and of those, an opponent's. */
+  broken?: number;
+  brokenEnemy?: number;
   tunnels: number;
   infamy: number;
   conquests: number;
@@ -162,6 +166,8 @@ function play({ variant, players, game }: Task): GameResult {
     mapId: map.id,
   });
   const cap = variant.startsWith('cap') ? Number(variant.slice(3)) : Infinity;
+  const breaks = variant === 'smash' || variant === 'attack' ? variant : undefined;
+  for (const rules of Object.values(RULESETS)) rules.breakBarriers = breaks;
   // With `abwalls`, side A (seat game % 2) has what side B lacks.
   const sideA = game % players;
   const level = Number(o.level) as AiLevel;
@@ -175,6 +181,8 @@ function play({ variant, players, game }: Task): GameResult {
     longestDrought: 0,
     barriers: 0,
     barriersByCard: 0,
+    broken: 0,
+    brokenEnemy: 0,
     tunnels: 0,
     infamy: 0,
     conquests: 0,
@@ -214,6 +222,11 @@ function play({ variant, players, game }: Task): GameResult {
     action ??= chooseAction(chooser(s, variant), { level, random });
     if (!action) throw new Error(`no action, ${variant} game ${game}`);
     const before = { cubes: cubesOnBoard(s), barriers: s.barriers?.length ?? 0, gates: JSON.stringify(s.gates) };
+    if (action.type === 'breakBarrier') {
+      r.broken!++;
+      const owner = barrierAt(s, action.cell)?.owner;
+      if (owner !== null && owner !== undefined && owner !== actor(s)) r.brokenEnemy!++;
+    }
     s = apply(s, action);
     const placed = s.phase !== 'setup' && cubesOnBoard(s) > before.cubes;
     if (placed && s.turn.number > 0) {
@@ -297,9 +310,9 @@ function report() {
   const pct = (n: number, d: number) => `${d ? Math.round((100 * n) / d) : 0}%`;
   const avg = (xs: number[]) => (xs.length ? (xs.reduce((a, b) => a + b, 0) / xs.length).toFixed(1) : '–');
   console.log(
-    '| Players | Variant | Games | Unfinished | Rounds | Barriers | Longest drought | Drought ≥ 5 rounds | Any player locked out | Full shutout | Full seal | Shutout ends (conquer/infamy/tunnel/other/unfinished) | Side A wins |',
+    '| Players | Variant | Games | Unfinished | Rounds | Barriers | Broken (enemy) | Longest drought | Drought ≥ 5 rounds | Any player locked out | Full shutout | Full seal | Shutout ends (conquer/infamy/tunnel/other/unfinished) | Side A wins |',
   );
-  console.log('|--:|---|--:|--:|--:|--:|--:|--:|--:|--:|--:|---|--:|');
+  console.log('|--:|---|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|---|--:|');
   for (const players of o.players.split(',').map(Number))
     for (const variant of o.variants.split(',')) {
       const rs = results.filter(
@@ -309,7 +322,7 @@ function report() {
       const ends = { conquer: 0, infamy: 0, tunnel: 0, other: 0, unfinished: 0 };
       for (const r of rs) for (const x of r.shutouts) ends[x.end]++;
       console.log(
-        `| ${players} | ${variant} | ${rs.length} | ${rs.filter((r) => !r.finished).length} | ${avg(rs.filter((r) => r.finished).map((r) => r.rounds))} | ${avg(rs.map((r) => r.barriers))} | ${avg(rs.map((r) => r.longestDrought))} | ${pct(rs.filter((r) => r.longestDrought >= 5).length, rs.length)} | ${pct(
+        `| ${players} | ${variant} | ${rs.length} | ${rs.filter((r) => !r.finished).length} | ${avg(rs.filter((r) => r.finished).map((r) => r.rounds))} | ${avg(rs.map((r) => r.barriers))} | ${avg(rs.map((r) => r.broken ?? 0))} (${avg(rs.map((r) => r.brokenEnemy ?? 0))}) | ${avg(rs.map((r) => r.longestDrought))} | ${pct(rs.filter((r) => r.longestDrought >= 5).length, rs.length)} | ${pct(
           rs.reduce((a, r) => a + r.anyLockedTurns, 0),
           rs.reduce((a, r) => a + r.turns, 0),
         )} of turns | ${pct(shut.length, rs.length)} (avg ${avg(shut.flatMap((r) => r.shutouts.map((x) => x.turns / players)))} rounds) | ${pct(rs.filter((r) => r.shutouts.some((x) => x.sealed)).length, rs.length)} | ${Object.values(ends).join('/')} | ${variant === 'abwalls' ? pct(rs.filter((r) => r.sideAWon).length, rs.filter((r) => r.finished).length) : '–'} |`,

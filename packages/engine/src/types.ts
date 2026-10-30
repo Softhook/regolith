@@ -313,6 +313,8 @@ export type Action =
   /** A ship power's action (ShipHooks.action), aimed at a ship, a space or both. */
   | { type: 'power'; die: string; target?: string; to?: Cell }
   | { type: 'deploy'; die: string; to: Cell }
+  /** Destroy the barrier on `cell` (RuleSet.breakBarriers, breakBarriers.ts). */
+  | { type: 'breakBarrier'; die: string; cell: Cell }
   | { type: 'reconfigure'; die: string }
   | { type: 'research' }
   | { type: 'conquer'; planet: number; replace?: PlayerId }

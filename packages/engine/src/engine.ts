@@ -27,6 +27,7 @@ import { abilityHandlers } from './abilities';
 import './rulesets';
 import { isWellFormed } from './actionShape';
 import { actionHandlers } from './actions';
+import { barrierBreakHandlers } from './breakBarriers';
 import { cardHandlers } from './cards';
 import { combatHandlers } from './combat';
 import type { Handlers } from './core';
@@ -40,6 +41,7 @@ import { RuleError, type Action, type GameState, type PlayerId } from './types';
 const HANDLERS: Handlers = {
   ...setupHandlers,
   ...actionHandlers,
+  ...barrierBreakHandlers,
   ...abilityHandlers,
   ...combatHandlers,
   ...cardHandlers,
