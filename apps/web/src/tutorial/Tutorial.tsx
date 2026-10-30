@@ -82,6 +82,8 @@ export function Tutorial({ onClose, onPlay }: { onClose: () => void; onPlay: () 
   );
 
   const beats = lesson.starts.length;
+  /** This showing of the beat: a jump back to it shows it afresh. */
+  const shown = `${frame.beat}:${p.at.jumps}`;
   const control = (label: string, run: () => void, icon: ReactNode, extra = '') => (
     <button type="button" className={`btn demo-btn ${extra}`} onClick={run} aria-label={label} title={label}>
       {icon}
@@ -106,8 +108,8 @@ export function Tutorial({ onClose, onPlay }: { onClose: () => void; onPlay: () 
       {frame.picture ? (
         // A picture carries its own words, right under it.
         // Kept from one picture to the next of the same scene, so only what changes is redrawn.
-        <div className="mn mn-dark demo-bare" key={`bare:${p.at.lesson}:${pictureScene(frame.picture) ?? `${frame.beat}:${p.at.jumps}`}`}>
-          <PictureView key={`${frame.beat}:${p.at.jumps}`} name={frame.picture} playing={p.playing && !p.done} onEnd={p.pictureEnded} />
+        <div className="mn mn-dark demo-bare" key={`bare:${p.at.lesson}:${pictureScene(frame.picture) ?? shown}`}>
+          <PictureView key={shown} name={frame.picture} playing={p.playing && !p.done} onEnd={p.pictureEnded} />
         </div>
       ) : (
         <>

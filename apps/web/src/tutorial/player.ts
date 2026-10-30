@@ -30,6 +30,10 @@ export function usePlayer(list: readonly Lesson[]) {
   const last = at.frame === lesson.frames.length - 1;
   const finale = at.lesson === list.length - 1;
   const waiting = !!frame.picture && ended !== at;
+  const finish = () => {
+    setDone(true);
+    setPlaying(false);
+  };
 
   useEffect(() => {
     since.current = Date.now();
@@ -41,10 +45,7 @@ export function usePlayer(list: readonly Lesson[]) {
       () => {
         if (!last) setAt((a) => ({ ...a, frame: a.frame + 1 }));
         else if (!finale) setAt((a) => ({ lesson: a.lesson + 1, frame: 0, jumps: a.jumps + 1 }));
-        else {
-          setDone(true);
-          setPlaying(false);
-        }
+        else finish();
       },
       (frame.picture ? 0 : frame.wait) + (last ? SECTION_PAUSE : 0),
     );
@@ -67,8 +68,11 @@ export function usePlayer(list: readonly Lesson[]) {
   const forward = () => {
     if (beat < lesson.starts.length - 1) return toBeat(at.lesson, beat + 1);
     if (!finale) return go({ lesson: at.lesson + 1, frame: 0 });
-    setDone(true);
-    setPlaying(false);
+    finish();
+  };
+  const again = () => {
+    go({ lesson: 0, frame: 0 });
+    setPlaying(true);
   };
   return {
     at,
@@ -76,16 +80,13 @@ export function usePlayer(list: readonly Lesson[]) {
     frame,
     playing,
     done,
-    toggle: () => (done ? (go({ lesson: 0, frame: 0 }), setPlaying(true)) : setPlaying((p) => !p)),
+    toggle: () => (done ? again() : setPlaying((p) => !p)),
     back,
     forward,
     toBeat,
     restart: () => go({ lesson: at.lesson, frame: 0 }),
     lessonAt: (l: number) => go({ lesson: l, frame: 0 }),
-    again: () => {
-      go({ lesson: 0, frame: 0 });
-      setPlaying(true);
-    },
+    again,
     pictureEnded: () => setEnded(at),
   };
 }

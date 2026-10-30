@@ -65,6 +65,9 @@ function readable(steps: readonly Step[]): Step[] {
 
 const picture = (steps: readonly Step[], draw: Picture['draw']): Picture => ({ steps: readable(steps), draw });
 
+/** Steps under the same words, held `holds` ms each: the drawing moves on while the words stay. */
+const under = (say: string, holds: readonly number[]): Step[] => holds.map((hold) => ({ hold, say }));
+
 /** The step a picture is at: on to the next after the time held, while playing; `onEnd` once the last has been held. */
 function useStep(steps: readonly Step[], playing: boolean, onEnd?: () => void): number {
   const [step, setStep] = useState(0);
@@ -164,7 +167,7 @@ const PERIMETER = picture(
   [
     { hold: 0, say: 'This is an objective, an **8**.' },
     // The six spaces light up one at a time, under the same words.
-    ...[450, 450, 450, 450, 450, 1500].map((hold) => ({ hold, say: 'The six spaces around it are its **perimeter**.' })),
+    ...under('The six spaces around it are its **perimeter**.', [450, 450, 450, 450, 450, 1500]),
   ],
   (s) => (
     <Diagram cells={flower(HERE)} scale={2.6} label="An 8, and the six spaces around it, its perimeter.">
@@ -225,14 +228,11 @@ const MOVES = [
 
 /** The actions left at each step: 3, spent one at a time, then none. */
 const LEFT = [3, 2, 1, 0, 0];
-const SPEND = 'Spend them in any order, on any of your mechs…';
 
 const TURN = picture(
   [
     { hold: 0, say: 'On your turn you have **3 actions** to spend.' },
-    { hold: 900, say: SPEND },
-    { hold: 900, say: SPEND },
-    { hold: 900, say: SPEND },
+    ...under('Spend them in any order, on any of your mechs…', [900, 900, 900]),
     { hold: 0, say: 'No actions left: the turn passes to your **rival**.' },
   ],
   (s) => {
@@ -288,16 +288,13 @@ const ACTIONS = picture(
 /** Open ground three steps all round a lone mech: nothing in its way, so only the steps are on show. */
 const FIELD = within(3);
 const WALK = [HERE, at(0, 1), at(0, 2), at(0, 3)];
-const STROLL = 'Pick a space and it walks there. Each mech moves **once** a turn.';
 
 const REACH = picture(
   [
     { hold: 0, say: 'A mech moves **one space** at a time…' },
     { hold: 0, say: '…up to its **number**: this 2 goes **2**. The whole move is **1 action**.' },
     { hold: 0, say: 'But **never more than 3**: a 5 or a 6 goes 3.' },
-    { hold: 900, say: STROLL },
-    { hold: 900, say: STROLL },
-    { hold: 1500, say: STROLL },
+    ...under('Pick a space and it walks there. Each mech moves **once** a turn.', [900, 900, 1500]),
   ],
   (s) => {
     // A 2 shows a mech's number; a 5, the cap of 3, and then it walks along WALK, one space a step.
@@ -504,7 +501,6 @@ const OUTCOME = picture(
 
 /** Open ground round an enemy 4: its zone, and the walk past it that our 3 wants. */
 const GROUND = within(2);
-const ZONE = around(HERE);
 const ZONE_ROUTE = [at(2, -1), at(1, -1), at(0, -1), at(-1, -1)];
 
 const ZONE_SCENE = picture(
@@ -517,7 +513,7 @@ const ZONE_SCENE = picture(
   (s) => (
     <Diagram cells={GROUND} scale={2.1} label="A mech that moves next to an enemy must stop there, and can still attack it.">
       <Glow cells={GROUND} tone="plain" />
-      <Glow cells={ZONE} tone="zone" />
+      <Glow cells={RING} tone="zone" />
       <Ship at={HERE} v={4} who="foe" />
       {s === 1 && <Path cells={ZONE_ROUTE} />}
       {s === 3 && <Path cells={[ZONE_ROUTE[1], HERE]} attack />}
@@ -599,7 +595,6 @@ const REFIT = picture(
 
 /** Power, step by step: wins as the attacker raise it, losses as the defender lower it, until it reaches 6. */
 const POWERS = [1, 2, 3, 2, 2, 3, 4, 5, 6, 6, 1];
-const STREAK = 'Win, win, win: **+1** each time…';
 const POWER = picture(
   [
     { hold: 0, say: 'Your **Power** starts at **1**.' },
@@ -607,9 +602,7 @@ const POWER = picture(
     { hold: 0, say: 'And again: **+1**.' },
     { hold: 0, say: 'Lose a fight as the **defender**: **−1**.' },
     { hold: 0, say: 'Any other fight changes **nothing**.' },
-    { hold: 800, say: STREAK },
-    { hold: 800, say: STREAK },
-    { hold: 800, say: STREAK },
+    ...under('Win, win, win: **+1** each time…', [800, 800, 800]),
     { hold: 0, say: 'At **6**: **Take Over**!' },
     { hold: 0, say: 'Place a cube on **any** objective with room for yours, even a **contested** one.' },
     { hold: 0, say: 'Then your Power drops back to **1**.' },
