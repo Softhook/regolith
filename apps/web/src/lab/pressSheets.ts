@@ -6,16 +6,14 @@ import {
   mapSheetSvg,
   playerAidSvg,
   tileGroundSvg,
-  tileSpec,
   tileSvg,
   type AidEdition,
-  type MapSheetMark,
   type TileOptions,
   type TileSpec,
   type World,
 } from '@regolith/art';
-import { MAPS, buildBoard, drawing, startingGround, type Cell, type MapDef } from '@regolith/engine';
-import { tileArt } from '../art/boardTiles';
+import { MAPS, type MapDef } from '@regolith/engine';
+import { mapSheet } from '../art/mapSheet';
 import { blobToDataUrl, rasterise } from '../files';
 import type { PressSheets } from '../print/exports';
 import { PIECES, slugOf, type Printable } from '../print/pieces';
@@ -127,23 +125,7 @@ export const printableAid = (edition: AidEdition, fontCss: string): Printable =>
 
 /** A map's setup sheet as a printable face: each tile where the map lays it, as the game draws it. */
 export function printableMap(map: MapDef, fontCss: string): Printable {
-  const board = buildBoard(map);
-  const { at, cols, rows } = drawing(board);
-  const starts = new Set(board.planets.filter((p) => p.start).map((p) => board.cells[p.r][p.c].tile));
-  const tiles = tileArt(board).map((t) => {
-    const middle = at(t);
-    return {
-      x: middle.c + 0.5,
-      y: middle.r + 0.5,
-      number: tileSpec(t.id).number,
-      at: t.at,
-      start: starts.has(t.tile),
-    };
-  });
-  const ground = startingGround(map);
-  const mark = (kind: MapSheetMark['kind']) => (cell: Cell) => ({ kind, x: at(cell).c + 0.5, y: at(cell).r + 0.5 });
-  const marks = [...ground.gates.map(mark('tunnel')), ...ground.wormhole.map(mark('wormhole')), ...ground.barriers.map(mark('barrier'))];
-  const sheet = { name: map.name, players: map.players, cubes: map.cubes, world: board.world, cols, rows, tiles, marks, fontCss };
+  const sheet = { ...mapSheet(map), fontCss };
   return { name: map.id, svg: (bleed) => mapSheetSvg({ ...sheet, bleed }) };
 }
 

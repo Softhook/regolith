@@ -29,6 +29,7 @@ import {
   type At,
 } from './diagrams';
 import { GoalKey, MechKey } from './concepts';
+import { MapList } from './maps';
 
 /**
  * The player's manual: the same text and diagrams in the in-game "How to play" dialog (dark) and on
@@ -61,6 +62,7 @@ const SECTIONS: [id: string, title: string][] = [
   ['mn-cards', 'Cards'],
   ['mn-modes', 'Rule sets'],
   ['mn-setup', 'Setup'],
+  ['mn-maps', 'Maps'],
 ];
 
 // Scroll within the page without touching location.hash, which the app uses for routing.
@@ -778,12 +780,16 @@ export function Manual({ dark }: { dark?: boolean }) {
         <p className="mn-legend">The app sets everything up for you. To play at a table:</p>
         <ol className="mn-setup">
           <li>
-            Lay out the map tiles as the chosen map shows. <Tag>{REGOLITH.name}</Tag> Shuffle each card deck and deal 3 cards face up beside
+            Lay out the map tiles as the chosen map shows (
+            <a href="#mn-maps" onClick={jump}>
+              Maps
+            </a>
+            ), with anything it starts with on the ground. <Tag>{REGOLITH.name}</Tag> Shuffle each card deck and deal 3 cards face up beside
             it. Lay out players + 1 {REGOLITH.cards!.expansion.name} cards as a face-up pile.
           </li>
           <li>
-            Each player takes 7 dice, their cubes, a player board and 1 atomic. Put a die on 1 on your Power and Research tracks, and 2 dice
-            aside as your reserve.
+            Each player takes 7 dice, as many cubes as the map gives, a player board and 1 atomic. Put a die on 1 on your Power and Research
+            tracks, and 2 dice aside as your reserve.
           </li>
           <li>
             <Tag>{REGOLITH.name}</Tag> Each player draws 2 {REGOLITH.cards!.terms.skillDeck}, keeps 1 and puts the other on the bottom of
@@ -813,6 +819,17 @@ export function Manual({ dark }: { dark?: boolean }) {
             a card is played at once, and any cards still owed are taken at the end of it.
           </li>
         </ul>
+      </section>
+
+      {/* ---------------------------------------------------------------- maps */}
+      <section id="mn-maps">
+        <h2>Maps</h2>
+        <p>
+          Every map, with what to lay out for it. Each tile is drawn where the map puts it, its objective on the space it sits on. Each
+          player takes the cubes the map gives and starts on one of the starting objectives. New to a player count? Start with its{' '}
+          <span className="mn-tag">Basic</span> map.
+        </p>
+        <MapList />
       </section>
 
       <footer className="mn-credits">

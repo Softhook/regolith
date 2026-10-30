@@ -472,3 +472,41 @@ body.rb-standalone { margin: 0; padding: 24px 12px; background: #e8ebf3; }
 }
 @media (prefers-reduced-motion: reduce) { .mn-roll, .mn-refit-arrow.spin, .mn-scene-note { animation: none; } }
 .mn-scene .mn-plain { stroke: rgba(255, 255, 255, .6); stroke-width: 1.8; }
+
+/* ------------------------------------------------------------------ maps (maps.tsx) */
+.mn { --mn-start: #f2b233; --mn-sink: color-mix(in srgb, #a9c9d3 45%, var(--mn-panel)); --mn-tunnel: #4f8ea0; --mn-wormhole: #7a62b0; }
+.mn-dark { --mn-tunnel: #a9c9d3; --mn-wormhole: #9c86c9; }
+.mn-maplegend { display: flex; flex-wrap: wrap; gap: 6px 18px; list-style: none; padding: 0; margin: 12px 0; font-size: 12.5px; color: var(--mn-muted); }
+.mn-maplegend li { display: inline-flex; align-items: center; gap: 6px; }
+.mn-swatch { width: 18px; height: 18px; }
+.mn-mapgroup h3 { margin: 22px 0 8px; font-size: 14px; }
+.mn-maps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.mn-mapcard { display: flex; flex-direction: column; gap: 8px; padding: 12px; border: 1px solid var(--mn-line); border-radius: 12px; break-inside: avoid; }
+.mn-mapcard header { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.mn-mapcard h4 { margin: 0 auto 0 0; font: 700 13px Orbitron, Inter, sans-serif; letter-spacing: .03em; }
+.mn-mapsvg { display: block; width: 100%; height: 190px; }
+.mn-mapcard dl { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; margin: 0; font-size: 12.5px; }
+.mn-mapcard dt { color: var(--mn-muted); }
+.mn-mapcard dd { margin: 0; }
+.mn-mt-obj polygon { fill: color-mix(in srgb, var(--mn-ink) 10%, var(--mn-panel)); }
+.mn-mt-sink polygon { fill: var(--mn-sink); }
+.mn-mt-blank polygon { fill: var(--mn-panel); }
+.mn-mapsvg polygon, .mn-swatch polygon { stroke: var(--mn-line); stroke-width: .25; }
+.mn-mt-edge { fill: none; stroke: var(--mn-muted); stroke-width: .5; stroke-linecap: round; }
+.mn-mo circle { fill: var(--mn-panel); stroke: var(--mn-ink); stroke-width: .5; }
+.mn-mo.start circle { fill: var(--mn-start); stroke: none; }
+.mn-mo text { font: 800 6.4px Inter, sans-serif; text-anchor: middle; fill: var(--mn-ink); }
+.mn-mo.start text { fill: #141a2e; }
+.mn-mk circle { fill: none; stroke-width: .9; }
+.mn-mk.tunnel circle { stroke: var(--mn-tunnel); }
+.mn-mk.tunnel .core { fill: var(--mn-tunnel); stroke: none; }
+.mn-mk.wormhole circle { stroke: var(--mn-wormhole); }
+.mn-mk.barrier circle { fill: var(--mn-ink); stroke: none; }
+.mn-mk.barrier path { stroke: var(--mn-panel); stroke-width: .8; stroke-linecap: round; }
+.mn-mk-link { fill: none; stroke-width: .5; stroke-dasharray: 1.5 1.5; }
+.mn-mk-link.tunnel { stroke: var(--mn-tunnel); }
+.mn-mk-link.wormhole { stroke: var(--mn-wormhole); }
+@media (max-width: 720px) { .mn-maps { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 480px) { .mn-maps { grid-template-columns: 1fr; } }
+@media print { .mn-mapgroup h3 { break-after: avoid; } }
+@media (min-width: 481px) { .mn-mapcard.mn-wide { grid-column: span 2; } }
