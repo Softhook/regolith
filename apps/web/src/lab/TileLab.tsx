@@ -4,18 +4,11 @@ import { blobToDataUrl, download } from '../files';
 import { svgToPng } from '../print/exports';
 import { PIECES, fileName, pieceSize } from '../print/pieces';
 import { PrintPanel, Space } from '../print/PrintPanel';
-import { tileFontCss, useFontCss, useSvgUrl } from './cards';
+import { tileFontCss } from '../art/cards';
+import { useFontCss, useSvgUrl } from './hooks';
 import { LabHeader } from './LabHeader';
-import {
-  TILE_SHEETS,
-  groundDrawn,
-  latestThumbnail,
-  litGround,
-  printableTile,
-  printedTileSvg,
-  printedTileSvgNow,
-  thumbnail,
-} from './pressSheets';
+import { TILE_SHEETS, printableTile } from './pressSheets';
+import { groundDrawn, latestThumbnail, litGround, printedTileSvg, printedTileSvgNow, thumbnail } from './tileDrawing';
 
 /**
  * Art Lab, tiles page (#lab): every tile of the physical set, die-cut along its flower, on Phobos, Deimos or
@@ -183,8 +176,7 @@ export function TileLab() {
             notes={markings ? '' : 'Without print markings.\n'}
             sheets={() => specs.map((t) => ({ front: printable(t) }))}
             cmyk={cmyk}
-            ready={fonts !== null}
-            fontsMissing={fonts === ''}
+            fonts={fonts}
             cmykDiffers={
               [
                 Object.keys(overrides).length > 0 && 'seeds changed here',

@@ -26,10 +26,11 @@ interface Props {
   /** Offer the "All copies" and "Backs (duplex)" options on the print sheets. */
   copies?: boolean;
   backs?: boolean;
-  /** False while the faces can't be drawn yet (fonts loading). */
-  ready?: boolean;
-  /** The fonts didn't load (offline): exports are off, so no print file falls back to system fonts. */
-  fontsMissing?: boolean;
+  /**
+   * The faces' fonts, as `useFontCss` has them: null while loading (the faces can't be drawn yet), empty when
+   * they didn't load (offline), when exports are off so no print file falls back to system fonts.
+   */
+  fonts: string | null;
   /** Why the press sheets aren't the faces as shown, when they aren't: they print the set as it ships. */
   cmykDiffers?: string;
   /** More single-face exports, beside the standard one. */
@@ -95,8 +96,7 @@ export function PrintPanel({
   cmyk,
   copies,
   backs,
-  ready = true,
-  fontsMissing,
+  fonts,
   cmykDiffers,
   extra,
 }: Props) {
@@ -105,7 +105,8 @@ export function PrintPanel({
   const [paper, setPaper] = useState<Paper>('a4');
   const [deep, setDeep] = useDeepBlack();
   const { run, progress, error } = useExport();
-  const busy = progress !== null || !ready || !!fontsMissing;
+  const fontsMissing = fonts === '';
+  const busy = progress !== null || fonts === null || fontsMissing;
 
   return (
     <>

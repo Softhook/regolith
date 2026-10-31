@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { MAPS } from '@regolith/engine';
-import { cardFontCss, useFontCss, useSvgUrl } from './cards';
+import { cardFontCss } from '../art/cards';
+import { useFontCss, useSvgUrl } from './hooks';
 import { PIECES } from '../print/pieces';
 import { PrintPanel } from '../print/PrintPanel';
-import { LabHeader } from './LabHeader';
+import { LabPage } from './LabPage';
 import { SheetPreview } from './SheetPreview';
 import { MAP_SHEETS, printableMap } from './pressSheets';
 
@@ -23,37 +24,30 @@ export function MapLab() {
   const all = () => MAPS.map((m) => printableMap(m, fonts ?? ''));
 
   return (
-    <div className="lab">
-      <LabHeader page="maps" />
-      <div className="lab-page">
-        <SheetPreview src={detail} alt={`${map.name} setup`} w={PIECES.map.w} h={PIECES.map.h} />
-        <div className="lab-side">
-          <div className="lab-controls">
-            <label>
-              Map
-              <select data-lab-nav value={id} onChange={(e) => setId(e.target.value)}>
-                {MAPS.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.name}, {m.players} players
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
-          <p className="lab-note">One sheet per map · 180 × 120 mm · which tile goes where, starting objectives in amber</p>
-          <PrintPanel
-            piece={PIECES.map}
-            item={sheet}
-            bleed={bleed}
-            onBleed={setBleed}
-            set={all()}
-            sheets={() => all().map((front) => ({ front }))}
-            cmyk={MAP_SHEETS}
-            ready={fonts !== null}
-            fontsMissing={fonts === ''}
-          />
-        </div>
+    <LabPage page="maps" main={<SheetPreview src={detail} alt={`${map.name} setup`} w={PIECES.map.w} h={PIECES.map.h} />}>
+      <div className="lab-controls">
+        <label>
+          Map
+          <select data-lab-nav value={id} onChange={(e) => setId(e.target.value)}>
+            {MAPS.map((m) => (
+              <option key={m.id} value={m.id}>
+                {m.name}, {m.players} players
+              </option>
+            ))}
+          </select>
+        </label>
       </div>
-    </div>
+      <p className="lab-note">One sheet per map · 180 × 120 mm · which tile goes where, starting objectives in amber</p>
+      <PrintPanel
+        piece={PIECES.map}
+        item={sheet}
+        bleed={bleed}
+        onBleed={setBleed}
+        set={all()}
+        sheets={() => all().map((front) => ({ front }))}
+        cmyk={MAP_SHEETS}
+        fonts={fonts}
+      />
+    </LabPage>
   );
 }

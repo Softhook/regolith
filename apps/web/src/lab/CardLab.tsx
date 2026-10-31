@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { CARD_CATEGORIES, cardBackSvg, cardIllustration, cardSvg, deckInfo, type CardDeck, type CardFace } from '@regolith/art';
-import { DECKS, cardFontCss, cardNote, measure, useFontCss, useSvgUrl, type Deck } from './cards';
+import { card } from '@regolith/engine';
+import { DECKS, cardFontCss, measure, type Deck } from '../art/cards';
+import { svgBlobUrl, useFontCss, useSvgUrl } from './hooks';
 import { PIECES, slugOf, type Printable } from '../print/pieces';
 import { PrintPanel } from '../print/PrintPanel';
 import { LabHeader } from './LabHeader';
@@ -40,6 +42,18 @@ const SORTERS: Record<Sort, (a: CardFace, b: CardFace) => number> = {
   category: (a, b) => categoryRank(a) - categoryRank(b) || byName(a, b),
 };
 
+/** Where a card came from (its `from` and `status` in data/regolith.yaml), and the brief its art is drawn from. */
+function cardNote(face: CardFace): string {
+  const def = card(face.id);
+  const from = def.from && def.from.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+  const where = !from
+    ? 'New in Regolith'
+    : def.status === 'community'
+      ? `Copy of Community ${from}`
+      : `From Community ${from} (${def.status})`;
+  return `${where}${def.art ? ` · art: ${def.art.title}` : ''}`;
+}
+
 const copiesOf = (c: CardFace) => c.copies ?? 1;
 const totalCopies = (cards: CardFace[]) => cards.reduce((s, c) => s + copiesOf(c), 0);
 const countNote = (cards: CardFace[]) => {
@@ -62,10 +76,9 @@ export function CardLab() {
     [fonts],
   );
 
-  // Thumbnails as blob URLs: cheaper than data URLs for documents carrying their fonts.
   const thumbs = useMemo(() => {
     if (fonts === null) return new Map<string, string>();
-    return new Map(all.map((i) => [i.key, URL.createObjectURL(new Blob([svgOf(i, { rounded: true })], { type: 'image/svg+xml' }))]));
+    return new Map(all.map((i) => [i.key, svgBlobUrl(svgOf(i, { rounded: true }))]));
   }, [all, fonts, svgOf]);
   useEffect(() => () => thumbs.forEach((u) => URL.revokeObjectURL(u)), [thumbs]);
 
@@ -164,8 +177,7 @@ export function CardLab() {
             cmyk="files"
             copies
             backs
-            ready={fonts !== null}
-            fontsMissing={fonts === ''}
+            fonts={fonts}
           />
         </aside>
       </div>

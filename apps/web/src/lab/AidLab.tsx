@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { cardFontCss, useFontCss, useSvgUrl } from './cards';
+import { cardFontCss } from '../art/cards';
+import { useFontCss, useSvgUrl } from './hooks';
 import { PIECES } from '../print/pieces';
 import { PrintPanel } from '../print/PrintPanel';
-import { LabHeader } from './LabHeader';
+import { LabPage } from './LabPage';
 import { SheetPreview } from './SheetPreview';
 import { AID_COPIES, AID_SHEETS, printableAid } from './pressSheets';
 
@@ -19,27 +20,20 @@ export function AidLab() {
   const detail = useSvgUrl(fonts === null ? '' : board.svg(bleed));
 
   return (
-    <div className="lab">
-      <LabHeader page="aid" />
-      <div className="lab-page">
-        <SheetPreview src={detail} alt="Player aid" w={PIECES.aid.w} h={PIECES.aid.h} />
-        <div className="lab-side">
-          <p className="lab-note">One board per player · A6 landscape, 148 × 105 mm · pads for the 19 mm power and research dice</p>
-          <PrintPanel
-            piece={PIECES.aid}
-            item={board}
-            bleed={bleed}
-            onBleed={setBleed}
-            set={[board]}
-            notes={`The same board for every player: print one each (${AID_COPIES} for a full table).\n`}
-            sheets={(copies) => Array(copies ? AID_COPIES : 1).fill({ front: board })}
-            cmyk={AID_SHEETS}
-            copies
-            ready={fonts !== null}
-            fontsMissing={fonts === ''}
-          />
-        </div>
-      </div>
-    </div>
+    <LabPage page="aid" main={<SheetPreview src={detail} alt="Player aid" w={PIECES.aid.w} h={PIECES.aid.h} />}>
+      <p className="lab-note">One board per player · A6 landscape, 148 × 105 mm · pads for the 19 mm power and research dice</p>
+      <PrintPanel
+        piece={PIECES.aid}
+        item={board}
+        bleed={bleed}
+        onBleed={setBleed}
+        set={[board]}
+        notes={`The same board for every player: print one each (${AID_COPIES} for a full table).\n`}
+        sheets={(copies) => Array(copies ? AID_COPIES : 1).fill({ front: board })}
+        cmyk={AID_SHEETS}
+        copies
+        fonts={fonts}
+      />
+    </LabPage>
   );
 }
