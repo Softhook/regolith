@@ -422,12 +422,14 @@ input { font: inherit; }
   animation: hl-in .25s ease-out both;
 }
 @media (hover: hover) { .hl:hover span { transform: scale(1.5); opacity: 1; } }
+/* Dashed marks (where to drop or deploy, which ship to swap or carry): cyan stands out from every world's ground and every player's colour. */
+.board { --mark: #3EE6FF; }
 .hl-deploy span, .hl-drop span {
   width: 70%; height: 70%;
   border-radius: 22%;
-  background: rgba(127,176,138, .08);
-  border: var(--bw) dashed var(--good);
-  box-shadow: 0 0 14px rgba(127,176,138, .25);
+  background: color-mix(in srgb, var(--mark) 8%, transparent);
+  border: var(--bw) dashed var(--mark);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--mark) 35%, transparent);
 }
 .hl-barrier span { width: 70%; height: 70%; border-radius: 50%; background: transparent; border: var(--bw) solid var(--accent); box-shadow: 0 0 10px var(--accent); }
 .hl-gate span { width: 56%; height: 56%; background: transparent; border: var(--bw) solid var(--good); box-shadow: 0 0 10px rgba(127,176,138,.4); opacity: .45; }
@@ -606,8 +608,8 @@ svg.zones polygon {
   animation: ring 1.1s ease-in-out infinite;
 }
 .ship-swap .ship-ring, .ship-passenger .ship-ring {
-  opacity: 1; border-color: var(--good); inset: 2%; border-style: dashed;
-  box-shadow: 0 0 12px rgba(127,176,138,.6);
+  opacity: 1; border-color: var(--mark); inset: 2%; border-style: dashed;
+  box-shadow: 0 0 12px color-mix(in srgb, var(--mark) 60%, transparent);
   cursor: pointer;
 }
 .ship-swap, .ship-passenger { cursor: pointer; }
