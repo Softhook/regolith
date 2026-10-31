@@ -45,6 +45,8 @@
   --card-expansion-ink: #dcf1f3;
   --pc: var(--accent);
   --good: #7FB08A;
+  /* What you can tap on the map: cyan stands out from every world's ground and every player's colour. */
+  --mark: #3EE6FF;
   --bad: #C8423B;
   --gold: #F2B233;
   --violet: #9C86C9;
@@ -422,8 +424,6 @@ input { font: inherit; }
   animation: hl-in .25s ease-out both;
 }
 @media (hover: hover) { .hl:hover span { transform: scale(1.5); opacity: 1; } }
-/* Dashed marks (where to drop or deploy, which ship to swap or carry): cyan stands out from every world's ground and every player's colour. */
-.board { --mark: #3EE6FF; }
 .hl-deploy span, .hl-drop span {
   width: 70%; height: 70%;
   border-radius: 22%;
@@ -432,7 +432,7 @@ input { font: inherit; }
   box-shadow: 0 0 14px color-mix(in srgb, var(--mark) 35%, transparent);
 }
 .hl-barrier span { width: 70%; height: 70%; border-radius: 50%; background: transparent; border: var(--bw) solid var(--accent); box-shadow: 0 0 10px var(--accent); }
-.hl-gate span { width: 56%; height: 56%; background: transparent; border: var(--bw) solid var(--good); box-shadow: 0 0 10px rgba(127,176,138,.4); opacity: .45; }
+.hl-gate span { width: 56%; height: 56%; background: transparent; border: var(--bw) solid var(--mark); box-shadow: 0 0 10px color-mix(in srgb, var(--mark) 40%, transparent); opacity: .7; }
 /* A space to attack from: its way (.route) marks it, so the space only takes the tap and shows the odds when they differ.
    Without a way drawn, its dot shows. */
 .hl-launch.routed span { opacity: 0; }
@@ -473,14 +473,14 @@ input { font: inherit; }
   pointer-events: auto;
 }
 .board .ship.struck::before { pointer-events: none; }
-/* Enemy zones of control, with a ship selected: a faint amber hatching on each hex, under the highlights, its edge as a stroke. */
+/* Enemy zones of control, with a ship selected: an amber hatching on each hex, under the highlights, its edge as a stroke. */
 .zones { position: absolute; inset: 0; pointer-events: none; }
 svg.zones { overflow: visible; }
-svg.zones pattern rect { fill: rgba(242,178,51, .14); }
+svg.zones pattern rect { fill: rgba(242,178,51, .32); }
 svg.zones polygon {
   fill: url(#zone-hatch);
-  stroke: rgba(242,178,51, .22);
-  stroke-width: 1px;
+  stroke: rgba(242,178,51, .6);
+  stroke-width: 1.5px;
   animation: route-in .2s ease-out both;
 }
 /* Where another player's ship could move: shown only, in its owner's colour, under the ships. */
@@ -516,13 +516,14 @@ svg.zones polygon {
   position: absolute;
   inset: 2%;
   border-radius: 50%;
-  border: calc(var(--bw) * 1.5) solid var(--good);
-  box-shadow: 0 0 18px var(--good), inset 0 0 14px rgba(127,176,138,.4);
+  border: calc(var(--bw) * 1.5) solid var(--mark);
+  box-shadow: 0 0 18px var(--mark), inset 0 0 14px color-mix(in srgb, var(--mark) 40%, transparent);
   animation: ring 1.4s ease-in-out infinite;
 }
 .planet-infamy::before { border-color: var(--gold); box-shadow: 0 0 18px var(--gold), inset 0 0 14px rgba(242,178,51,.4); }
 .planet-start::before { border-color: #fff; box-shadow: 0 0 16px rgba(255,255,255,.7); }
 @keyframes ring { 0%, 100% { transform: scale(1); opacity: .9; } 50% { transform: scale(1.1); opacity: .55; } }
+.planet-tag { position: absolute; z-index: 4; pointer-events: none; }
 .planet-label {
   position: absolute;
   left: 50%;
@@ -534,13 +535,13 @@ svg.zones polygon {
   letter-spacing: .04em;
   padding: 3px 8px;
   border-radius: 999px;
-  background: var(--good);
-  color: #04140d;
+  background: var(--mark);
+  color: #002229;
   box-shadow: 0 4px 14px rgba(0,0,0,.5);
   pointer-events: none;
 }
-.planet-infamy .planet-label { background: var(--gold); color: #1c1300; }
-.planet-start .planet-label { background: #fff; color: #0a0f1e; }
+.planet-tag.infamy .planet-label { background: var(--gold); color: #1c1300; }
+.planet-tag.start .planet-label { background: #fff; color: #0a0f1e; }
 /* Contested orbit: the sum is made, but enemy ships in orbit block the conquest. A still ring: nothing to do here yet. */
 .planet-blocked { cursor: help; z-index: 2; }
 .planet-blocked::before {
@@ -551,7 +552,7 @@ svg.zones polygon {
   border: calc(var(--bw) * 1.5) dashed var(--bad);
   box-shadow: 0 0 12px rgba(200,66,59,.6);
 }
-.planet-blocked .planet-label { background: var(--bad); color: #2a0008; }
+.planet-tag.blocked .planet-label { background: var(--bad); color: #2a0008; }
 
 .ship {
   position: absolute;

@@ -136,9 +136,7 @@ export function Board({
                 style={box(p)}
                 onClick={() => ctl.onPlanet(p.id) === false && show({ planet: p.id })}
                 title={`${planetLabel(game, p.id)} · ${free} of ${p.capacity} cube location${p.capacity > 1 ? 's' : ''} free`}
-              >
-                {hl && <span className="planet-label">{hl.label}</span>}
-              </button>
+              />
             );
           })}
 
@@ -161,6 +159,17 @@ export function Board({
               if (touch) setHeld(id);
             }}
           />
+          {/* A planet's label, over the ships in its orbit. */}
+          {planets.map((p) => {
+            const hl = ctl.highlights.planets.get(p.id);
+            return (
+              hl && (
+                <span key={p.id} className={`planet-tag ${hl.tone}`} style={box(p)}>
+                  <span className="planet-label">{hl.label}</span>
+                </span>
+              )
+            );
+          })}
           <ActionEffects key={`fx:${scene}`} game={game} cell={cell} />
           <Explosions key={scene} game={game} cell={cell} />
           <CardEffects key={`cfx:${scene}`} game={game} cell={cell} />

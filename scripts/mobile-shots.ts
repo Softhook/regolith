@@ -111,7 +111,7 @@ async function playToMyTurn(page: Page) {
       }
       if (document.querySelector('.turn-actions .btn-primary:not([disabled])')) return 'mine';
       const target =
-        document.querySelector('.planet-label')?.closest('.planet-hit') ??
+        document.querySelector('.planet-start, .planet-conquer, .planet-infamy') ??
         document.querySelector('.hl') ??
         document.querySelector('.turn-scrap .scrap-die.clickable');
       (target as HTMLElement | null)?.click();
