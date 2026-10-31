@@ -582,8 +582,8 @@ export const SKILL_SCENES: Record<string, SpScene> = {
     draw: (s) =>
       outdoors(s, 32, { planet: { x: 50, y: 8, r: 6 } }) +
       mech(s, 'behemoth', 32, 39, 0.135) +
-      mech(s, 'sniper', 16, 41, 0.085, { yaw: -32, aim: -25 }) +
-      mech(s, 'breacher', 48, 41, 0.085, { yaw: 25 }),
+      mech(s, 'sniper', 16, 41, 0.085, { yaw: 32, aim: -25 }) +
+      mech(s, 'breacher', 48, 41, 0.085, { yaw: -25 }),
   },
   'r-stubborn': {
     world: 'mars',

@@ -132,9 +132,9 @@ export const TACTIC_SCENES: Record<string, SpScene> = {
     caption: 'mechs advancing at dawn, long shadows ahead of them',
     draw: (s) => {
       const poses = [
-        { yaw: 30, legs: { plus: [-9, 12], minus: [7, 4] } },
-        { yaw: 30, legs: { plus: [-10, 13], minus: [8, 4] } },
-        { yaw: 30, legs: { plus: [-8, 10], minus: [7, 3] } },
+        { yaw: -30, legs: { plus: [-9, 12], minus: [7, 4] } },
+        { yaw: -30, legs: { plus: [-10, 13], minus: [8, 4] } },
+        { yaw: -30, legs: { plus: [-8, 10], minus: [7, 3] } },
       ];
       const walk = (i: number) => poses[i] ?? poses[0];
       const shadow = (x: number, y: number, len: number) =>
@@ -287,17 +287,17 @@ export const TACTIC_SCENES: Record<string, SpScene> = {
     draw: (s) =>
       outdoors(s, 30, { planet: { x: 50, y: 7, r: 7 } }) +
       mech(s, 'breacher', 15, 40, 0.11, {
-        yaw: 32,
+        yaw: -32,
         lean: -4,
         legs: { plus: [-16, 22], minus: [18, -8] },
         arms: { plus: [-45, -35], minus: [16, 14] },
       }) +
-      stroke('M35,28 Q46,26 57,27', INKS.amber, 1, ' stroke-dasharray="3 1.5"') +
-      stroke('M35,28.4 Q46,26.5 57,27.5', INKS.bone, 0.5) +
-      rings(35, 28, 4, 4.4, 5, INKS.amber, 0.65, 285, 435) +
+      stroke('M36,21.8 Q47,22 57,27', INKS.amber, 1, ' stroke-dasharray="3 1.5"') +
+      stroke('M36,22.2 Q47,22.5 57,27.5', INKS.bone, 0.5) +
+      rings(35.5, 21.8, 4, 4.4, 5, INKS.amber, 0.65, 285, 435) +
       `<ellipse cx="59" cy="38" rx="8" ry="2.6" fill="${INKS.dust}" opacity="0.6"/>` +
       rings(59, 38, 3, 2, 2.5, INKS.dust, 0.5, 0, 360) +
-      mech(s, 'chameleon', 59, 38, 0.09, { yaw: -30, lean: 24, legs: { plus: [20, 10], minus: [-25, 20] } }, { plate: INKS.oxide }),
+      mech(s, 'chameleon', 59, 38, 0.09, { yaw: 30, lean: 24, legs: { plus: [20, 10], minus: [-25, 20] } }, { plate: INKS.oxide }),
   },
   'r-expansion': {
     world: 'mars',

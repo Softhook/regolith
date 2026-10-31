@@ -1,4 +1,5 @@
-import { useEffect, useState, type CSSProperties } from 'react';
+import { useEffect, useMemo, useState, type CSSProperties } from 'react';
+import { dataUrl, mechFighterSvg, type Stance } from '@regolith/art';
 import {
   cardName,
   shipOf,
@@ -176,6 +177,12 @@ function Battle({
     <div className="overlay combat-overlay" onClick={(e) => ready && e.target === e.currentTarget && ok?.()}>
       <div className="combat-card">
         <h2>Battle</h2>
+        <Arena
+          game={game}
+          combat={combat}
+          winner={revealed ? (out.attackerWins ? 'attacker' : 'defender') : null}
+          stubborn={out.stubborn}
+        />
         <div className="combat-grid">
           {side('attacker')}
           <div className="combat-vs">VS</div>
@@ -219,6 +226,55 @@ function Battle({
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+/**
+ * The two mechs squared up, printed as the cards print them: the attacker on the left facing right, the
+ * defender facing it. Once the dice are in, the winner lunges and the loser is knocked back.
+ * A shot (`ranged`, the Sniper's Shoot) is fought apart: the Sniper braced at one end, its target at the
+ * other, and the reveal fires the shot. It hits (the target is knocked back) or misses, flying past, and
+ * then nobody is hurt: the Sniper is only beaten when the target holds firm.
+ */
+function Arena({
+  game,
+  combat,
+  winner,
+  stubborn,
+}: {
+  game: GameState;
+  combat: CombatPending;
+  winner: CombatRole | null;
+  stubborn: boolean;
+}) {
+  const a = combat.attacker;
+  const d = combat.defender;
+  const ac = game.players[a.player].color;
+  const dc = game.players[d.player].color;
+  const ranged = !!combat.ranged;
+  // Both stances of both mechs, made once a battle: the swap on the reveal mustn't wait on a redraw.
+  const arts = useMemo(() => {
+    const art = (ship: number, plate: string, flip: boolean, stance: Stance) =>
+      [stance, 'struck' as const].map((st) => dataUrl(mechFighterSvg(ship, { flip, plate, stance: st })));
+    return { attacker: art(a.ship, ac, false, ranged ? 'aim' : 'ready'), defender: art(d.ship, dc, true, 'ready') };
+  }, [a.ship, ac, d.ship, dc, ranged]);
+  const missed = ranged && winner === 'defender';
+  const fighter = (role: CombatRole) => {
+    const lost = winner !== null && winner !== role && !(missed && !stubborn);
+    return (
+      <img
+        className={`arena-mech ${role} ${winner === role ? 'won' : ''} ${lost ? 'lost' : ''}`}
+        src={arts[role][lost ? 1 : 0]}
+        alt={`${game.players[combat[role].player].name}'s ${shipOf(game, combat[role].ship).name}`}
+      />
+    );
+  };
+  return (
+    <div className={['combat-arena', ranged && 'ranged', winner && 'clash', missed && 'missed'].filter(Boolean).join(' ')}>
+      {fighter('attacker')}
+      {ranged && winner && <span className="arena-tracer" />}
+      {fighter('defender')}
     </div>
   );
 }
