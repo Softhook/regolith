@@ -21,9 +21,6 @@ export const REGOLITH_DECKS: { skills: CardDef[]; tactics: CardDef[]; expansion:
  */
 export const REGOLITH_OVER_CONQUEST = false;
 
-/** The words Regolith describes itself with in the lobby, after what each mode adds. */
-const RULES_TEXT = `moves capped at 3, zones of control (a mech moving next to an enemy mech, not diagonally, stops there), a ranged Sniper, a Wisp that fires barriers and contested perimeters (no claiming or dropping, except to your home objective, while an enemy mech is on the perimeter)${REGOLITH_OVER_CONQUEST ? ' and over-claiming, displacing an opponent cube' : ''}`;
-
 /**
  * Regolith (docs/regolith/REGOLITH.md): missiles, a starting skill drafted from its own decks (REGOLITH_DECKS) and
  * a card market with peeking. It plays the hex maps only, the hex, open-ground and off-centre (drift) ones, on
@@ -31,9 +28,9 @@ const RULES_TEXT = `moves capped at 3, zones of control (a mech moving next to a
  */
 const REGOLITH: RuleSet = {
   id: 'regolith',
-  name: 'Regolith',
+  name: 'Full Game',
   title: 'Regolith',
-  summary: `Mechs fight over the ice of Mars and its moons, on hex maps, with their own deck, ${RULES_TEXT}.`,
+  summary: 'The full game with cards and research.',
   actionsPerTurn: 3,
   researchLimit: 6,
   cards: {
@@ -59,7 +56,7 @@ const BASIC: RuleSet = {
   id: 'basic',
   name: 'Basic',
   title: 'Basic',
-  summary: `Regolith without cards, for learning: ${RULES_TEXT}.`,
+  summary: 'The game without any cards or research.',
   cards: null,
 };
 

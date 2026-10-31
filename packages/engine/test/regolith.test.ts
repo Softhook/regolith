@@ -89,7 +89,7 @@ describe('Regolith mode', () => {
   it('is listed after Basic, and plays like Community otherwise', () => {
     expect(MODES.map((m) => m.id)).toEqual(['basic', 'regolith'] satisfies GameMode[]);
     const regolith = rulesOf(BASE.regolith);
-    expect(regolith.name).toBe('Regolith');
+    expect(regolith.name).toBe('Full Game');
     // Its own decks: each card plays by the rules (`effect`) of the Community card it started as (`from`) under
     // its own id and name, unless reworked or new.
     const own = regolith.cards!;
@@ -141,7 +141,7 @@ describe('Regolith mode', () => {
   it('has Basic, Regolith without its cards, as its learning game', () => {
     const { id, name, title, summary, cards, ...basic } = RULESETS.basic;
     expect([id, name, title, cards]).toEqual(['basic', 'Basic', 'Basic', null]);
-    expect(summary).toMatch(/without cards/);
+    expect(summary).toMatch(/without any cards/);
     const { id: _id, name: _name, title: _title, summary: _summary, cards: _cards, ...regolith } = RULESETS.regolith;
     expect(basic).toEqual(regolith);
     const s = scenario({ p0d0: [7, 2, 5], p1d0: [7, 4, 4], p1d1: [12, 2, 6] });
