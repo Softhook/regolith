@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useRef, useState, type CSSProperties, type MouseEvent, type ReactNode } from 'react';
+import { Fragment, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type MouseEvent, type ReactNode } from 'react';
 import { actor, cellAtPoint, die, dieAt, drawing, key, moveOptions, orbitals, same, shipOf, type GameState } from '@regolith/engine';
 import type { Controller } from '../game/controller';
 import { BoardArt, tileArtOf } from './board/BoardArt';
@@ -15,6 +15,7 @@ import { OffscreenHints, ZoomControls, useFollowMoves, useFollowTurn, useZoomInt
 import { Die3D, DieShadow } from './Die3D';
 import { pieceShadowOpacity } from './board/shadows';
 import { REGOLITH_SHADOW, TILE } from '@regolith/art';
+import { SHIP } from '../beats';
 import { planetNames } from '../art/boardTiles';
 import { InfoPop, useAnchorName } from './InfoPop';
 
@@ -55,6 +56,7 @@ export function Board({
   const cast = REGOLITH_SHADOW.blur * (cell / TILE.cell);
   const spots = shipSpots(game);
   const staging = useStaging(game, scene);
+  useLayoutEffect(() => glideAlong(boardRef.current, staging.paths), [staging]);
   const tip = useZoomIntro(game, ctl, zoom, !!introduce);
   useFollowMoves(game, ctl, spots, zoom, scene);
   useFollowTurn(game, ctl, spots, zoom, scene);
@@ -228,6 +230,41 @@ function Reach({ game, id, cell, spots }: { game: GameState; id: string; cell: n
   );
 }
 
+/** How a ship flies its way (glideAlong): eased in a little and out, so it doesn't rush the first space. */
+const PATH_EASING = 'cubic-bezier(.45,.1,.25,1)';
+
+/**
+ * Flies each ship in `paths` (staging) along its spots, and its shadow and odds with it, in the time of a
+ * straight glide (beats.ts), at an even speed: they're `.pathed`, without the glide. A step across a joined
+ * edge or through a Warp Gate jumps.
+ */
+function glideAlong(board: HTMLElement | null, paths: Staging['paths']) {
+  if (!board) return;
+  for (const [id, path] of paths) {
+    const hops = path.slice(1).map((p, i) => {
+      const len = Math.hypot(p.r - path[i].r, p.c - path[i].c);
+      return len < 1.8 ? len : 0;
+    });
+    const total = hops.reduce((a, b) => a + b, 0) || 1;
+    let gone = 0;
+    const frames = path.flatMap((p, i) => {
+      const at = { transform: `translate(${p.c * 100}%, ${p.r * 100}%)` };
+      if (i === 0) return [{ ...at, offset: 0 }];
+      const jump = hops[i - 1] === 0;
+      gone += hops[i - 1];
+      const offset = Math.min(1, gone / total);
+      return jump
+        ? [
+            { transform: `translate(${path[i - 1].c * 100}%, ${path[i - 1].r * 100}%)`, offset },
+            { ...at, offset },
+          ]
+        : [{ ...at, offset }];
+    });
+    for (const el of board.querySelectorAll<HTMLElement>(`[data-glide="${CSS.escape(id)}"]`))
+      el.animate(frames, { duration: SHIP.glide, easing: PATH_EASING });
+  }
+}
+
 /** A ship's die, as a part of its space: the shadows it casts (ShipShadows) are made for the same size. */
 const DIE_SIZE = 0.56;
 
@@ -268,7 +305,8 @@ function ShipShadows({
     return (
       <div
         key={d.id}
-        className={late === undefined ? 'ship-shadow' : 'ship-shadow late'}
+        className={['ship-shadow', late !== undefined && 'late', staging.paths.has(d.id) && 'pathed'].filter(Boolean).join(' ')}
+        data-glide={d.id}
         style={{ ...placeAt(at.r, at.c, cell), '--late': `${late ?? 0}ms` } as CSSProperties}
       >
         <DieShadow
@@ -378,11 +416,13 @@ function Ships({
             ctl.actionPhase && d.owner === me && 'own',
             yours(d.owner) && 'yours',
             late !== undefined && 'late',
+            staging.paths.has(d.id) && 'pathed',
           ]
             .filter(Boolean)
             .join(' ')}
           data-r={r}
           data-c={c}
+          data-glide={d.id}
           style={{ ...place, '--pc': game.players[d.owner].color, '--late': `${late ?? 0}ms` } as CSSProperties}
           onClick={() => ctl.onDie(d.id) === false && onInfo(d.id)}
           onPointerDown={yours(d.owner) ? undefined : (e) => onPress(d.id, e.pointerType !== 'mouse')}
@@ -415,7 +455,7 @@ function Ships({
         </div>
         {/* Over the ship, in a layer of its own, so no other ship's die covers it where it sticks out. */}
         {attack && (
-          <div className="ship-odds-spot" style={place}>
+          <div className={`ship-odds-spot${staging.paths.has(d.id) ? ' pathed' : ''}`} data-glide={d.id} style={place}>
             <OddsBadge chance={attack.chance} cell={cell} zoomed={zoomed} />
           </div>
         )}
