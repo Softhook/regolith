@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { AidLab } from './AidLab';
 import { CardLab } from './CardLab';
+import { ManualLab } from './ManualLab';
 import { MapLab } from './MapLab';
 import { ProofLab } from './ProofLab';
 import { TileLab } from './TileLab';
@@ -9,7 +10,7 @@ import { useLabArrowNav } from './labNav';
 /**
  * Art Lab (open with #lab): print artwork for tiles (#lab), cards (#lab/cards), the player aid (#lab/aid) and the maps'
  * setup sheets (#lab/maps),
- * and the press test (#lab/proof). See docs/GRAPHICS.md.
+ * the press test (#lab/proof) and the manual (#lab/manual). See docs/GRAPHICS.md.
  */
 export function Lab() {
   const [hash, setHash] = useState(location.hash);
@@ -23,5 +24,6 @@ export function Lab() {
   if (hash.startsWith('#lab/aid')) return <AidLab />;
   if (hash.startsWith('#lab/maps')) return <MapLab />;
   if (hash.startsWith('#lab/proof')) return <ProofLab />;
+  if (hash.startsWith('#lab/manual')) return <ManualLab />;
   return <TileLab />;
 }

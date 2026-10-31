@@ -3,6 +3,7 @@ import { cardFontCss, useFontCss, useSvgUrl } from './cards';
 import { PIECES } from '../print/pieces';
 import { PrintPanel } from '../print/PrintPanel';
 import { LabHeader } from './LabHeader';
+import { SheetPreview } from './SheetPreview';
 import { AID_COPIES, AID_SHEETS, printableAid } from './pressSheets';
 
 /**
@@ -20,9 +21,9 @@ export function AidLab() {
   return (
     <div className="lab">
       <LabHeader page="aid" />
-      <div className="lab-aid-page">
-        {detail ? <img className="lab-aid" src={detail} alt="Player aid" /> : <span className="lab-aid lab-aid-ph" />}
-        <div className="lab-aid-side">
+      <div className="lab-page">
+        <SheetPreview src={detail} alt="Player aid" w={PIECES.aid.w} h={PIECES.aid.h} />
+        <div className="lab-side">
           <p className="lab-note">One board per player · A6 landscape, 148 × 105 mm · pads for the 19 mm power and research dice</p>
           <PrintPanel
             piece={PIECES.aid}

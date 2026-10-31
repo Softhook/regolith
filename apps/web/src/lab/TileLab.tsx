@@ -115,31 +115,7 @@ export function TileLab() {
 
   return (
     <div className="lab">
-      <LabHeader page="tiles">
-        <label>
-          <input type="checkbox" checked={markings} onChange={(e) => setMarkings(e.target.checked)} /> Print markings
-        </label>
-        <label>
-          World
-          <select value={world} onChange={(e) => setWorld(e.target.value as World)}>
-            {Object.entries(WORLD_NAMES).map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label title="Where each objective sits on its tile, as a map's layout token says (7ne)">
-          Objective
-          <select value={planetAt} onChange={(e) => setPlanetAt(e.target.value)}>
-            {Object.keys(TILE_SPOTS).map((d) => (
-              <option key={d} value={d}>
-                {d || 'middle'}
-              </option>
-            ))}
-          </select>
-        </label>
-      </LabHeader>
+      <LabHeader page="tiles" />
       <div className="lab-body">
         <div className="lab-grid">
           {thumbs.map(({ spec: t, url }) => (
@@ -151,6 +127,31 @@ export function TileLab() {
         </div>
         <aside className="lab-detail">
           <img src={detail} alt={spec.id} />
+          <div className="lab-controls">
+            <label>
+              <input type="checkbox" checked={markings} onChange={(e) => setMarkings(e.target.checked)} /> Print markings
+            </label>
+            <label>
+              World
+              <select value={world} onChange={(e) => setWorld(e.target.value as World)}>
+                {Object.entries(WORLD_NAMES).map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label title="Where each objective sits on its tile, as a map's layout token says (7ne)">
+              Objective
+              <select value={planetAt} onChange={(e) => setPlanetAt(e.target.value)}>
+                {Object.keys(TILE_SPOTS).map((d) => (
+                  <option key={d} value={d}>
+                    {d || 'middle'}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
           <div className="lab-controls">
             <label>
               Seed

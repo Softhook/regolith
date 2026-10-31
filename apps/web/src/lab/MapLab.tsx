@@ -4,6 +4,7 @@ import { cardFontCss, useFontCss, useSvgUrl } from './cards';
 import { PIECES } from '../print/pieces';
 import { PrintPanel } from '../print/PrintPanel';
 import { LabHeader } from './LabHeader';
+import { SheetPreview } from './SheetPreview';
 import { MAP_SHEETS, printableMap } from './pressSheets';
 
 /**
@@ -23,21 +24,22 @@ export function MapLab() {
 
   return (
     <div className="lab">
-      <LabHeader page="maps">
-        <label>
-          Map
-          <select data-lab-nav value={id} onChange={(e) => setId(e.target.value)}>
-            {MAPS.map((m) => (
-              <option key={m.id} value={m.id}>
-                {m.name}, {m.players} players
-              </option>
-            ))}
-          </select>
-        </label>
-      </LabHeader>
-      <div className="lab-aid-page">
-        {detail ? <img className="lab-aid" src={detail} alt={`${map.name} setup`} /> : <span className="lab-aid lab-aid-ph" />}
-        <div className="lab-aid-side">
+      <LabHeader page="maps" />
+      <div className="lab-page">
+        <SheetPreview src={detail} alt={`${map.name} setup`} w={PIECES.map.w} h={PIECES.map.h} />
+        <div className="lab-side">
+          <div className="lab-controls">
+            <label>
+              Map
+              <select data-lab-nav value={id} onChange={(e) => setId(e.target.value)}>
+                {MAPS.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.name}, {m.players} players
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
           <p className="lab-note">One sheet per map · 180 × 120 mm · which tile goes where, starting objectives in amber</p>
           <PrintPanel
             piece={PIECES.map}

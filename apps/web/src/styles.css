@@ -1769,7 +1769,7 @@ svg.zones polygon {
 .lab-tabs a { padding: 5px 12px; border-radius: 999px; color: var(--muted); }
 @media (hover: hover) { .lab-tabs a:hover { color: var(--text); } }
 .lab-tabs a.on { background: var(--panel-solid); color: var(--text); box-shadow: inset 0 0 0 1px var(--line-2); }
-.lab-head-controls { display: flex; align-items: center; gap: 18px; margin-left: auto; flex-wrap: wrap; }
+.lab-head > .btn { margin-left: auto; }
 .lab-body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(320px, 520px); gap: 20px; padding: 20px; align-items: start; }
 .lab-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
 .lab-thumb { display: flex; flex-direction: column; gap: 4px; padding: 4px; border: 1px solid transparent; border-radius: 10px; background: none; cursor: pointer; font-size: 11px; color: var(--muted); }
@@ -1805,11 +1805,12 @@ svg.zones polygon {
 .lab-sort { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); font-size: 12px; }
 .lab-sort .segmented button { white-space: nowrap; }
 .lab-detail > img.lab-card, .lab-detail > .lab-card { aspect-ratio: auto; width: min(100%, 360px); align-self: center; filter: drop-shadow(0 12px 30px rgba(0, 0, 0, .5)); }
-.lab-aid-page { display: grid; grid-template-columns: minmax(0, 1fr) minmax(300px, 420px); gap: 24px; padding: 20px; align-items: start; }
-.lab-aid { width: 100%; aspect-ratio: 148 / 105; display: block; filter: drop-shadow(0 12px 30px rgba(0, 0, 0, .5)); }
-.lab-aid-ph { background: var(--panel-solid); border-radius: 6px; }
-.lab-aid-side { display: flex; flex-direction: column; gap: 12px; }
-@media (max-width: 800px) { .lab-aid-page { grid-template-columns: 1fr; } }
+/* A page of one big sheet (player aid, maps, press test, manual), its controls on the side. */
+.lab-page { display: grid; grid-template-columns: minmax(0, 1fr) minmax(300px, 420px); gap: 24px; padding: 20px; align-items: start; }
+.lab-sheet { width: 100%; display: block; filter: drop-shadow(0 12px 30px rgba(0, 0, 0, .5)); }
+.lab-sheet-ph { background: var(--panel-solid); border-radius: 6px; }
+.lab-side { display: flex; flex-direction: column; gap: 12px; }
+@media (max-width: 800px) { .lab-page { grid-template-columns: 1fr; } }
 .lab-sub { font-family: var(--display); font-size: 13px; letter-spacing: .04em; margin: 8px 0 0; }
 .lab-progress { margin: 0; font-size: 13px; color: var(--gold); }
 .lab-error { margin: 0; font-size: 13px; color: var(--bad); }
@@ -1817,23 +1818,14 @@ svg.zones polygon {
 .lab-spec { margin: 0; padding: 8px 10px; font-size: 11.5px; background: var(--panel-solid); border: 1px solid var(--line); border-radius: 6px; white-space: pre-wrap; word-break: break-all; }
 @media (max-width: 800px) { .lab-body { grid-template-columns: 1fr; } .lab-detail { position: static; order: -1; } }
 /* No label in the header breaks over two lines. */
-.lab-head h1, .lab-tabs a, .lab-head > .btn, .lab-head-controls .segmented button { white-space: nowrap; }
-/* Tablets: the page's controls don't fit beside the tabs, so they get a row of their own under them. */
-@media (max-width: 1280px) {
-  .lab-head { flex-wrap: wrap; gap: 10px 18px; }
-  .lab-head > .btn { margin-left: auto; }
-  .lab-head-controls { order: 1; flex-basis: 100%; min-width: 0; margin-left: 0; gap: 8px 12px; }
-}
-/* Phones: the header wraps — title and the way back on top, then the tabs, then the page's controls;
-   a segmented control still too wide scrolls sideways rather than pushing the page wider. */
+.lab-head h1, .lab-tabs a, .lab-head > .btn { white-space: nowrap; }
+/* Phones: the header wraps — title and the way back on top, then the tabs, which scroll sideways
+   rather than pushing the page wider. */
 @media (max-width: 800px) {
   .lab-head { gap: 10px 12px; padding: calc(10px + var(--safe-top)) 16px 10px; }
   .lab-head > .btn { order: 1; }
   .lab-tabs { order: 2; flex-basis: 100%; overflow-x: auto; scrollbar-width: none; }
-  .lab-head-controls { order: 3; }
-  .lab-head-controls .segmented { max-width: 100%; overflow-x: auto; scrollbar-width: none; }
-  .lab-head-controls .segmented button { flex-shrink: 0; }
-  .lab-body, .lab-aid-page { padding: 16px; }
+  .lab-body, .lab-page { padding: 16px; }
 }
 
 .lobby-demo { margin: 18px auto 0; display: flex; }

@@ -7,6 +7,7 @@ import { DEEP_NOTE, DeepBlack, ExportStatus, Space, useDeepBlack } from '../prin
 import { PRESS } from '../print/press';
 import { useExport } from '../print/useExport';
 import { LabHeader } from './LabHeader';
+import { SheetPreview } from './SheetPreview';
 
 /** The tile and the dark card the test prints at 100 %: a dark tile, where the shadows matter most. */
 const TILE_ID = 'p10-02';
@@ -40,13 +41,9 @@ export function ProofLab() {
   return (
     <div className="lab">
       <LabHeader page="proof" />
-      <div className="lab-aid-page">
-        {detail ? (
-          <img className="lab-aid" style={{ aspectRatio: '210 / 297' }} src={detail} alt="Press test" />
-        ) : (
-          <span className="lab-aid lab-aid-ph" style={{ aspectRatio: '210 / 297' }} />
-        )}
-        <div className="lab-aid-side">
+      <div className="lab-page">
+        <SheetPreview src={detail} alt="Press test" w={PAGE.w} h={PAGE.h} />
+        <div className="lab-side">
           <p className="lab-note">
             Print it at 100 % (no fit to page) on the press and stock of the real run, from the same file the pieces will go as: the CMYK
             PDF for a service that wants CMYK, the PNG for one that converts RGB itself. Check that the ramp steps stay apart, the wells and

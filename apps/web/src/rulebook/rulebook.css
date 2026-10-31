@@ -250,6 +250,10 @@ body.rb-standalone { margin: 0; padding: 24px 12px; background: #e8ebf3; }
   body::before, body::after { display: none !important; }
   .rb-screen { height: auto; overflow: visible; padding: 0; }
   .rb-toolbar, .mn-toc { display: none; }
+  /* The Art Lab's manual page (ManualLab): only the manual. */
+  .lab-manual { height: auto; overflow: visible; }
+  .lab-manual .lab-head, .lab-manual .lab-side { display: none; }
+  .lab-manual .lab-page { display: block; padding: 0; }
   body.rb-standalone { padding: 0; background: #fff; }
   .rb-page { max-width: none; padding: 0; box-shadow: none; background: #fff; }
   .mn { font-size: 10pt; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
