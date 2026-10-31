@@ -35,6 +35,8 @@ export interface AbOptions {
   start?: (s: GameState, variant: string, a: PlayerId) => void;
   /** The state side B chooses from, for `variant` (side A always sees the game as it is). */
   sideB?: (s: GameState, variant: string) => GameState;
+  /** Whether side A may not take `action`: it then chooses again from the state side B sees. */
+  veto?: (s: GameState, variant: string, action: Action) => boolean;
 }
 
 interface Result {
@@ -65,6 +67,8 @@ function play(o: AbOptions, variant: string, from: number, to: number): Result {
       let action: Action | null = null;
       if (s.pending[0]?.kind === 'combat') for (const p of s.players) action ??= chooseCombatResponse(s, p.id, { level, random });
       action ??= chooseAction(actor(s) === a || !o.sideB ? s : o.sideB(s, variant), { level, random });
+      if (action && actor(s) === a && o.sideB && o.veto?.(s, variant, action))
+        action = chooseAction(o.sideB(s, variant), { level, random });
       if (!action) throw new Error(`no action, game ${g}`);
       s = apply(s, action);
     }

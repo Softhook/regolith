@@ -6,20 +6,32 @@
  * a turn (canUseAbility); a power still offered after that stops the run. Several ships may be given,
  * each tested on its own: `ships=3,6`.
  *
- *   npm run selfplay:powers -- [games=400] [level=3] [mode=regolith] [ships=6] [jobs=fast cores] [margin=5] [seed=0] [breaks=off]
+ *   npm run selfplay:powers -- [games=400] [level=3] [mode=regolith] [ships=6] [jobs=fast cores] [margin=5] [seed=0] [breaks=off] [aim=any]
  *
  * `breaks=smash` or `breaks=attack` plays every game with breakable barriers (RuleSet.breakBarriers), for
- * what the Wisp's Barrier is worth when barriers don't stay for good.
+ * what the Wisp's Barrier is worth when barriers don't stay for good. `aim=strict` lets side A fire a barrier
+ * only where it takes more of the spaces the opponent's mechs can move to than of its own.
  *
  * Any argument may be given by name instead, in any order: `--ships=6 --seed=1` (args.ts).
  */
 import type { AiLevel } from '../packages/ai/src';
-import { actor, die, legalActions, RULESETS, type GameState } from '../packages/engine/src';
+import {
+  actor,
+  apply,
+  die,
+  legalActions,
+  moveOptions,
+  RULESETS,
+  shipsOnBoard,
+  type Action,
+  type GameState,
+  type PlayerId,
+} from '../packages/engine/src';
 import { runAb } from './ab';
 import { args } from './args';
 import { defaultJobs } from './pool';
 
-const { games, level, mode, ships, jobs, margin, seed, breaks } = args({
+const { games, level, mode, ships, jobs, margin, seed, breaks, aim } = args({
   games: '400',
   level: '3',
   mode: 'regolith',
@@ -28,7 +40,9 @@ const { games, level, mode, ships, jobs, margin, seed, breaks } = args({
   margin: '5',
   seed: '0',
   breaks: 'off',
+  aim: 'any',
 });
+if (aim !== 'any' && aim !== 'strict') throw new Error(`aim=${aim}: any or strict`);
 if (breaks !== 'off' && breaks !== 'smash' && breaks !== 'attack') throw new Error(`breaks=${breaks}: off, smash or attack`);
 for (const rules of Object.values(RULESETS)) rules.breakBarriers = breaks === 'off' ? undefined : breaks;
 
@@ -45,6 +59,19 @@ function withoutPower(s: GameState, ship: number): GameState {
   return masked;
 }
 
+/** Spaces `p`'s mechs can move to, all told. */
+const reach = (s: GameState, p: PlayerId) => shipsOnBoard(s, p).reduce((n, d) => n + moveOptions(s, d.id).moves.size, 0);
+
+/** With aim=strict: a barrier that takes as much of side A's own movement as of the opponents'. */
+function badBarrier(s: GameState, action: Action): boolean {
+  if (aim !== 'strict' || action.type !== 'power' || !action.to || die(s, action.die).value !== 6) return false;
+  const me = die(s, action.die).owner;
+  const next = apply(s, action);
+  const lost = (p: PlayerId) => reach(s, p) - reach(next, p);
+  const theirs = s.players.filter((p) => p.id !== me).reduce((n, p) => n + lost(p.id), 0);
+  return theirs <= lost(me);
+}
+
 await runAb({
   script: import.meta.url,
   name: 'ship',
@@ -57,4 +84,5 @@ await runAb({
   seed: Number(seed),
   mapSeeds: 700,
   sideB: (s, ship) => withoutPower(s, Number(ship)),
+  veto: (s, _, action) => badBarrier(s, action),
 });
