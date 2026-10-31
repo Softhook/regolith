@@ -178,46 +178,36 @@ describe('tile shape', () => {
 });
 
 describe('player aid', () => {
-  it('renders both editions without bad numbers or broken references', () => {
-    for (const edition of ['regolith', 'basic'] as const) {
-      const trim = playerAidSvg({ edition });
-      const svg = playerAidSvg({ edition, bleed: true });
-      checkSvg(svg, edition);
-      expect(svg).toContain(`viewBox="-3 -3 154 111"`);
-      expect(trim.slice(trim.indexOf('>') + 1)).toBe(svg.slice(svg.indexOf('>') + 1));
-    }
+  it('renders without bad numbers or broken references', () => {
+    const trim = playerAidSvg();
+    const svg = playerAidSvg({ bleed: true });
+    checkSvg(svg, 'aid');
+    expect(svg).toContain(`viewBox="-3 -3 154 111"`);
+    expect(trim.slice(trim.indexOf('>') + 1)).toBe(svg.slice(svg.indexOf('>') + 1));
   });
 
   it('keeps every line of text readable', () => {
-    for (const edition of ['regolith', 'basic'] as const) {
-      const sizes = [...playerAidSvg({ edition }).matchAll(/font-size="([\d.]+)"/g)].map((m) => Number(m[1]));
-      expect(sizes.length).toBeGreaterThan(20);
-      expect(Math.min(...sizes)).toBeGreaterThanOrEqual(MIN_TEXT);
-    }
+    const sizes = [...playerAidSvg().matchAll(/font-size="([\d.]+)"/g)].map((m) => Number(m[1]));
+    expect(sizes.length).toBeGreaterThan(20);
+    expect(Math.min(...sizes)).toBeGreaterThanOrEqual(MIN_TEXT);
   });
 
-  it('has a pad that fits a 19 mm die for power, and for research with cards', () => {
+  it('has a pad that fits a 19 mm die for power and for research', () => {
     expect(TILE.pad).toBeGreaterThanOrEqual(DIE + 4);
     const svg = playerAidSvg();
     expect(svg).toContain('POWER');
     expect(svg).toContain('RESEARCH');
     expect(svg.match(/width="24" height="24"/g)).toHaveLength(2);
-    const basic = playerAidSvg({ edition: 'basic' });
-    expect(basic).not.toContain('RESEARCH');
-    expect(basic.match(/width="24" height="24"/g)).toHaveLength(1);
   });
 
-  it('gives atomics and the rules that hold ground in both editions', () => {
-    for (const edition of ['regolith', 'basic'] as const)
-      for (const word of ['ATOMIC', 'ZONES', 'CONTESTED']) expect(playerAidSvg({ edition })).toContain(word);
+  it('gives atomics and the rules that hold ground', () => {
+    for (const word of ['ATOMIC', 'ZONES', 'CONTESTED']) expect(playerAidSvg()).toContain(word);
   });
 
   it('has a pad for each of up to 7 cubes, with the win condition beside them', () => {
-    for (const edition of ['regolith', 'basic'] as const) {
-      const svg = playerAidSvg({ edition });
-      expect(svg.match(new RegExp(`width="${CUBE_PAD.size}" height="${CUBE_PAD.size}"`, 'g'))).toHaveLength(7);
-      expect(svg).toContain('PLACE YOUR LAST CUBE TO WIN');
-    }
+    const svg = playerAidSvg();
+    expect(svg.match(new RegExp(`width="${CUBE_PAD.size}" height="${CUBE_PAD.size}"`, 'g'))).toHaveLength(7);
+    expect(svg).toContain('PLACE YOUR LAST CUBE TO WIN');
   });
 
   it('draws six different mechs on their dice', () => {

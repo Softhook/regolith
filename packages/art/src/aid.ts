@@ -10,7 +10,7 @@ import { ACTION_HUE, CUBE_PAD, FONTS, INK, TILE, TRACK_INK } from './tokens';
 /**
  * The player aid: an A6 board, landscape, the same for every player. Down the left edge, a rail of
  * seven cube pads holds the player's cubes, with the win condition beside it; then the pads for the
- * power and (with cards) research dice (19 mm), and beside them the actions and the rules that hold
+ * power and research dice (19 mm), and beside them the actions and the rules that hold
  * ground; along the bottom, the six mechs on their die faces with what each can do.
  *
  * Kept deliberately quiet: the night paper of the cards with a few faint craters for ground, one accent colour
@@ -30,12 +30,7 @@ export const AID = {
 /** The smallest text on the aid, mm (2 mm ≈ 5.7 pt), so it reads at arm's length on the table. */
 export const MIN_TEXT = 2;
 
-/** The rule set it is for: Basic has no cards, so no research. */
-export type AidEdition = 'basic' | 'regolith';
-
 export interface AidOptions {
-  /** Regolith (the default) or Basic. */
-  edition?: AidEdition;
   /** Add the bleed around the trim. */
   bleed?: boolean;
   /** Text widths with the embedded fonts; estimated when absent. */
@@ -58,20 +53,20 @@ const SHIPS: { value: number; text: [string, string] }[] = [
   { value: 6, text: ['Free barrier', 'down a clear line'] },
 ];
 
-const actions = (edition: AidEdition): { name: string; cost: number; text: string }[] => [
+const ACTIONS: { name: string; cost: number; text: string }[] = [
   { name: 'Claim', cost: 2, text: 'Your perimeter mechs sum to exactly the objective' },
   { name: 'Drop', cost: 1, text: 'Salvage mech onto the perimeter of your cube' },
   { name: 'Move / Attack', cost: 1, text: 'Up to its value, at most 3; attack ends it' },
   { name: 'Refit', cost: 1, text: 'Re-roll to a value not seen this turn' },
-  ...(edition === 'regolith' ? [{ name: 'Research', cost: 1, text: '+1 research' }] : []),
+  { name: 'Research', cost: 1, text: '+1 research' },
 ];
 
-const rules = (edition: AidEdition): [label: string, text: string][] => [
+const RULES: [label: string, text: string][] = [
   ['Combat', 'Die + mech value: lower wins, ties to attacker'],
   ['Zones', 'Entering a space next to an enemy mech: stop'],
   ['Contested', 'Enemy on the perimeter: no claim, no drop but home'],
   ['Atomic', 'One combat roll of yours becomes 1'],
-  ...(edition === 'regolith' ? ([['Cards', 'At turn end: 1 per claim · 1 at research 6']] as [string, string][]) : []),
+  ['Cards', 'At turn end: 1 per claim · 1 at research 6'],
 ];
 
 // ---------------------------------------------------------------------------
@@ -153,9 +148,8 @@ const MAX_CUBES = 7;
 
 /** The player aid as a standalone SVG document. */
 export function playerAidSvg(o: AidOptions = {}): string {
-  const edition = o.edition ?? 'regolith';
   const measure = o.measure ?? estimateWidth;
-  const id = o.idPrefix ?? `aid-${edition}`;
+  const id = o.idPrefix ?? 'aid';
   const { w: W, h: H, safe: M, bleed: B } = AID;
   const b = o.bleed ? B : 0;
   const full = { x: -B, y: -B, w: W + 2 * B, h: H + 2 * B };
@@ -181,7 +175,7 @@ export function playerAidSvg(o: AidOptions = {}): string {
   );
   const left = spine + 4;
 
-  // --- Power and research: label, pad, what moves the die, what 6 does. Basic has no research.
+  // --- Power and research: label, pad, what moves the die, what 6 does.
   const colW = 26;
   const side = (x: number, kind: 'dominance' | 'research') => {
     const tone = TRACK_INK[kind];
@@ -208,18 +202,17 @@ export function playerAidSvg(o: AidOptions = {}): string {
     lines.then.forEach((t, i) => out.push(line(cx, y + 3.5 + i * 3.2, t, 2.2, colW, measure, { fill: MUTED, anchor: 'middle' })));
   };
   side(left, 'dominance');
-  const research = edition === 'regolith';
-  if (research) side(W - M - colW, 'research');
+  side(W - M - colW, 'research');
 
-  // --- The turn, in the middle column, and the right one too without research.
+  // --- The turn, in the middle column.
   const x0 = left + colW + 4;
-  const cw = W - M - (research ? colW + 4 : 0) - x0;
+  const cw = W - M - (colW + 4) - x0;
   const rule = (y: number) => `<path d="M${n(x0)} ${n(y)}H${n(x0 + cw)}" stroke="${HAIR}" stroke-width=".25"/>`;
   out.push(text(x0, M + 4.6, '3 actions', 3.2, { font: 'bold', fill: WHITE, upper: true, track: 0.06 }));
   for (let i = 0; i < 3; i++) out.push(hex(x0 + cw - 2.2 - i * 5, M + 3.5, 2.25, `${id}-glow`));
   out.push(rule(M + 7.6));
   const textX = x0 + 7.8;
-  actions(edition).forEach((a, i) => {
+  ACTIONS.forEach((a, i) => {
     const y = M + 12.6 + i * 6.8;
     for (let k = 0; k < a.cost; k++) out.push(hex(x0 + 1.6 + k * 3.6, y - 0.8, 1.6, `${id}-glow`));
     out.push(text(textX, y, a.name, 2.6, { font: 'bold', fill: WHITE }));
@@ -228,9 +221,8 @@ export function playerAidSvg(o: AidOptions = {}): string {
   out.push(rule(M + 45.6));
   // The rules' text starts past the widest label.
   const labelSize = 2.1;
-  const ruleX =
-    x0 + 3.5 + Math.max(...rules(edition).map(([label]) => (measure(label.toUpperCase(), 1, 'bold') + 0.08 * label.length) * labelSize));
-  rules(edition).forEach(([label, s], i) => {
+  const ruleX = x0 + 3.5 + Math.max(...RULES.map(([label]) => (measure(label.toUpperCase(), 1, 'bold') + 0.08 * label.length) * labelSize));
+  RULES.forEach(([label, s], i) => {
     const y = M + 49.6 + i * 3.6;
     out.push(text(x0, y, label, labelSize, { font: 'bold', fill: WHITE, track: 0.08, upper: true }));
     out.push(line(ruleX, y, s, 2.2, x0 + cw - ruleX, measure, { fill: MUTED }));

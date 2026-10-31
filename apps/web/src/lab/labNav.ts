@@ -59,8 +59,8 @@ export function findAdjacentItem<T extends HasRect>(items: readonly T[], current
 const NAV = 'button[data-lab-nav], [data-lab-nav] button';
 
 /**
- * Art Lab keyboard shortcut: the arrow keys move between the page's items (tiles in TileLab, cards in CardLab,
- * player aid editions in AidLab), those it marks `data-lab-nav`.
+ * Art Lab keyboard shortcut: the arrow keys move between the page's items (tiles in TileLab, cards in CardLab),
+ * those it marks `data-lab-nav`.
  */
 export function useLabArrowNav() {
   useEffect(() => {

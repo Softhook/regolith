@@ -11,10 +11,9 @@ import { Segmented } from '../components/Segmented';
  * deck, and exports for print: single cards, a ZIP of the whole set, CMYK PDFs for a press, and print sheets.
  */
 
-type Sort = 'deck' | 'name' | 'category';
+type Sort = 'name' | 'category';
 
 const SORTS: [Sort, string][] = [
-  ['deck', 'Deck order'],
   ['name', 'Name'],
   ['category', 'Category'],
 ];
@@ -37,7 +36,6 @@ const categoryRank = (c: CardFace) => {
 };
 const byName = (a: CardFace, b: CardFace) => a.name.localeCompare(b.name);
 const SORTERS: Record<Sort, (a: CardFace, b: CardFace) => number> = {
-  deck: (a, b) => (a.index ?? 0) - (b.index ?? 0),
   name: byName,
   category: (a, b) => categoryRank(a) - categoryRank(b) || byName(a, b),
 };
@@ -50,7 +48,7 @@ const countNote = (cards: CardFace[]) => {
 };
 
 export function CardLab() {
-  const [sort, setSort] = useState<Sort>('deck');
+  const [sort, setSort] = useState<Sort>('name');
   const [selected, setSelected] = useState(() => itemOf(DECKS[0].cards[0]).key);
   const [bleed, setBleed] = useState(true);
   const fonts = useFontCss(cardFontCss);
@@ -104,12 +102,7 @@ export function CardLab() {
   );
   return (
     <div className="lab">
-      <LabHeader page="cards">
-        <span className="lab-sort">
-          Sort
-          <Segmented small options={SORTS} value={sort} onPick={setSort} />
-        </span>
-      </LabHeader>
+      <LabHeader page="cards" />
       <div className="lab-body">
         <div>
           {fonts === null && (
@@ -117,18 +110,28 @@ export function CardLab() {
               <span className="spinner" /> Loading fonts…
             </p>
           )}
-          {DECKS.map((d) => (
+          {DECKS.map((d, i) => (
             <section key={d.id} className="lab-deck">
-              <h2>
-                {d.name} <span className="muted">· {countNote(d.cards)}</span>
-              </h2>
+              <div className="lab-deck-head">
+                <h2>
+                  {d.name} <span className="muted">· {countNote(d.cards)}</span>
+                </h2>
+                {i === 0 && (
+                  <span className="lab-sort">
+                    Sort
+                    <Segmented small options={SORTS} value={sort} onPick={setSort} />
+                  </span>
+                )}
+              </div>
               <div className="lab-grid cards">{[...d.cards].sort(order).map((c) => thumb(itemOf(c)))}</div>
             </section>
           ))}
           <section className="lab-deck">
-            <h2>
-              Backs <span className="muted">· one per deck</span>
-            </h2>
+            <div className="lab-deck-head">
+              <h2>
+                Backs <span className="muted">· one per deck</span>
+              </h2>
+            </div>
             <div className="lab-grid cards">{DECKS.map(backOf).map(thumb)}</div>
           </section>
         </div>

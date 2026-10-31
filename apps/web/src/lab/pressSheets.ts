@@ -7,7 +7,6 @@ import {
   playerAidSvg,
   tileGroundSvg,
   tileSvg,
-  type AidEdition,
   type TileOptions,
   type TileSpec,
   type World,
@@ -117,10 +116,10 @@ function objectiveId(t: TileSpec): string {
   return `${slugOf(objective)}-${String(n).padStart(2, '0')}`;
 }
 
-/** A player aid as a printable face. */
-export const printableAid = (edition: AidEdition, fontCss: string): Printable => ({
-  name: edition,
-  svg: (bleed) => playerAidSvg({ edition, bleed, measure, fontCss }),
+/** The player aid as a printable face. */
+export const printableAid = (fontCss: string): Printable => ({
+  name: 'aid',
+  svg: (bleed) => playerAidSvg({ bleed, measure, fontCss }),
 });
 
 /** A map's setup sheet as a printable face: each tile where the map lays it, as the game draws it. */
@@ -141,18 +140,18 @@ export const MAP_SHEETS: PressSheets = {
   },
 };
 
-/** The player aids on the sheets: two of each edition. */
-const AIDS: AidEdition[] = ['regolith', 'regolith', 'basic', 'basic'];
+/** How many player aids go on the sheets: one per player. */
+const AIDS = 4;
 
 /** The player aids on press sheets of their own. */
 export const AID_SHEETS: PressSheets = {
   name: 'aids',
   label: 'Aids',
-  contents: `${AIDS.length} player aids, 2 Regolith and 2 Basic (${PIECES.aid.cols * PIECES.aid.rows} a page)`,
+  contents: `${AIDS} player aids (${PIECES.aid.cols * PIECES.aid.rows} a page)`,
   async groups() {
     const card = await cardFontCss();
     if (!card) throw new Error('the fonts didn’t load');
-    return [{ piece: PIECES.aid, faces: AIDS.map((edition) => printableAid(edition, card)) }];
+    return [{ piece: PIECES.aid, faces: Array(AIDS).fill(printableAid(card)) }];
   },
 };
 

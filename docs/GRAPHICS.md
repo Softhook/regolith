@@ -17,7 +17,7 @@ That look is gone; it is in the history if a piece of it is wanted.
 |---|---|---|
 | Map tiles | `tileSvg` in [`packages/art`](../packages/art) ([`tile/`](../packages/art/src/tile), [`regolith/`](../packages/art/src/regolith)), in mm and seeded: hex tiles on Phobos, Deimos or Mars, each objective a building. The game draws a map in layers (see *Tiles*): each tile's raster layers (`rasterLayerSvg`) drawn once to images kept in IndexedDB ([`tileImages.ts`](../apps/web/src/art/tileImages.ts)), the spaces live ([`MapTiles.tsx`](../apps/web/src/components/board/MapTiles.tsx)) | Yes, from the Art Lab (`#lab`) |
 | Cards | `cardSvg` / `cardBackSvg` ([`card.ts`](../packages/art/src/card.ts)), drawn by the screenprint renderer ([`screenprint/`](../packages/art/src/screenprint)): poker size, SVG text, one scene per card. The game's card pop-ups show the same drawing as an image ([`cardImages.ts`](../apps/web/src/art/cardImages.ts)) | Yes, from `#lab/cards` |
-| Player aid | `playerAidSvg` ([`aid.ts`](../packages/art/src/aid.ts)), A6, Basic or Regolith | Yes, from `#lab/aid` |
+| Player aid | `playerAidSvg` ([`aid.ts`](../packages/art/src/aid.ts)), A6 | Yes, from `#lab/aid` |
 | Map setup sheets | `mapSheetSvg` ([`mapSheet.ts`](../packages/art/src/mapSheet.ts)), 180 × 120 mm, one per map: which tile goes where | Yes, from `#lab/maps` |
 | Ice Tunnels, spaces, objective numbers and cube slots | SVG in [`board/BoardArt.tsx`](../apps/web/src/components/board/BoardArt.tsx), in screen pixels | Tunnels no (tokens); numbers and cube slots are on the printed tiles |
 | Dice / mechs | CSS 3D cube ([`Die3D.tsx`](../apps/web/src/components/Die3D.tsx)); the screenprint mech on its die face in the aid and the manual (`mechDie`) | No (physical dice) |
@@ -164,8 +164,8 @@ shown and exported in the Art Lab (`#lab/cards`).
 
 ### Player aid
 
-`playerAidSvg` ([`aid.ts`](../packages/art/src/aid.ts)), in the Art Lab at `#lab/aid`, in two editions: Basic
-(no research pad) and Regolith.
+`playerAidSvg` ([`aid.ts`](../packages/art/src/aid.ts)), in the Art Lab at `#lab/aid`: one board, the same for
+every player.
 
 - **Size**: A6 landscape, 148 × 105 mm, 3 mm bleed; two to an A4 sheet.
 - **Quiet**: the cards' night paper with a few faint craters, one accent (the cards' yellow, on the action
@@ -198,7 +198,7 @@ A route in the web app, `#lab`, for exploring the art and exporting it:
 |---|---|
 | `#lab` | Every tile, on a chosen world, with its objective on a chosen spot; seed per tile, reroll, print markings on or off; SVG for Illustrator |
 | `#lab/cards` | Regolith's decks and backs |
-| `#lab/aid` | The player aid, Basic or Regolith |
+| `#lab/aid` | The player aid |
 | `#lab/maps` | Each map's setup sheet |
 | `#lab/proof` | The press test (§4) |
 
@@ -243,7 +243,7 @@ Every printed piece goes through one module, `apps/web/src/print/`, so all piece
     marks; how many of each to order is in `order.csv`.
   - **Tiles, aids and map sheets: press sheets** ([`lab/pressSheets.ts`](../apps/web/src/lab/pressSheets.ts)):
     one PDF of A4 sheets per set: each world's 40 tiles (`regolith-tiles-mars-a4-fogra39.pdf`, 2 × 2 a page,
-    with their cut lines), the player aids (2 Regolith, 2 Basic, 1 × 2 a page), the map sheets (1 × 2 a page).
+    with their cut lines), the player aids (4, 1 × 2 a page), the map sheets (1 × 2 a page).
     Faces are butted so one cut serves two pieces, each block with its 3 mm bleed all round; crop marks start
     clear of the bleed. Single-sided, the set as it ships, with print markings.
 - `sheets.ts` lays out print sheets for home printers: pieces at trim size in a grid (cards 3 × 3, tiles
