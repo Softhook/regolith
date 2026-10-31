@@ -351,12 +351,12 @@ input { font: inherit; }
 .zoom-hint {
   position: absolute; z-index: 5; display: flex; align-items: center; justify-content: center; gap: 2px;
   min-width: 30px; height: 30px; padding: 0 6px; border-radius: 15px; cursor: pointer;
-  border: 1px solid var(--good); background: rgb(var(--shade-2) / .8); color: var(--good); font: inherit; font-size: 12px; font-weight: 700;
-  box-shadow: 0 0 2px color-mix(in srgb, var(--good) 30%, transparent);
+  border: 1px solid var(--mark); background: rgb(var(--shade-2) / .8); color: var(--mark); font: inherit; font-size: 12px; font-weight: 700;
+  box-shadow: 0 0 2px color-mix(in srgb, var(--mark) 30%, transparent);
 }
 .zoom-hint::before {
   content: ''; position: absolute; inset: -1px; border-radius: inherit; pointer-events: none;
-  box-shadow: 0 0 12px color-mix(in srgb, var(--good) 45%, transparent);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--mark) 45%, transparent);
   animation: hint-pulse 1.6s ease-in-out infinite;
 }
 .zoom-hint svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
@@ -417,8 +417,8 @@ input { font: inherit; }
 .hl span {
   width: 28%; height: 28%;
   border-radius: 50%;
-  background: var(--accent);
-  box-shadow: 0 0 12px var(--accent), 0 0 2px #fff inset;
+  background: var(--pc);
+  box-shadow: 0 0 12px var(--pc), 0 0 2px #fff inset;
   opacity: .75;
   transition: transform .15s, opacity .15s;
   animation: hl-in .25s ease-out both;

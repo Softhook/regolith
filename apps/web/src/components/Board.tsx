@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useRef, useState, type CSSProperties, type MouseEvent, type ReactNode } from 'react';
-import { cellAtPoint, die, dieAt, drawing, key, moveOptions, orbitals, same, shipOf, type GameState } from '@regolith/engine';
+import { actor, cellAtPoint, die, dieAt, drawing, key, moveOptions, orbitals, same, shipOf, type GameState } from '@regolith/engine';
 import type { Controller } from '../game/controller';
 import { BoardArt, tileArtOf } from './board/BoardArt';
 import { ActionEffects } from './board/ActionEffects';
@@ -95,7 +95,8 @@ export function Board({
       >
         <BoardArt game={game} cell={cell} lateCube={staging.cube} />
 
-        <div className="board-layer" onClick={onBoardClick}>
+        {/* The player acting: their colour marks the spaces they can pick and the ways their ships would fly. */}
+        <div className="board-layer" style={{ '--pc': game.players[actor(game)].color } as CSSProperties} onClick={onBoardClick}>
           {ctl.highlights.zones.length > 0 && <Zones board={game.board} cells={ctl.highlights.zones} cell={cell} />}
           {[...ctl.highlights.cells.values()].map(({ cell: c, tone }) => {
             const route = ctl.routes.find((r) => same(r.from, c));
