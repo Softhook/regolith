@@ -3,6 +3,12 @@ import { SIDES, adjacent, cellAt, cellOf, delta, drawing, type Board, type Cell,
 /** Where each ship on the map is drawn, by id, in cell units from the map's top left (engine drawing). */
 export type ShipSpots = Map<string, { r: number; c: number }>;
 
+/**
+ * Whether two drawn spots are next to each other on the map (diagonally too: an Interceptor's step), not a way
+ * across a joined edge or through a Warp Gate. A hex's diagonal is √3 spaces away.
+ */
+export const touching = (p: { r: number; c: number }, q: { r: number; c: number }) => Math.hypot(p.r - q.r, p.c - q.c) < 1.8;
+
 /** The pixel box (one space square) at a drawn spot, in spaces from the map's top left. */
 export const spotBox = (spot: Cell, cell: number) => ({ left: spot.c * cell, top: spot.r * cell, width: cell, height: cell });
 

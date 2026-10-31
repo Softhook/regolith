@@ -1,16 +1,12 @@
 import type { CSSProperties } from 'react';
 import { drawing, key, type Board, type Cell } from '@regolith/engine';
 import type { Route } from '../../game/controller';
-import { placement } from './geometry';
+import { placement, touching as touchingSpots } from './geometry';
 
-/**
- * Next to each other on the map as drawn (diagonally too: an Interceptor's step): not across a joined
- * edge or through a Warp Gate. A hex's diagonal is √3 spaces away.
- */
+/** Next to each other on the map as drawn (geometry `touching`). */
 const touching = (board: Board, a: Cell, b: Cell) => {
   const { at } = drawing(board);
-  const [p, q] = [at(a), at(b)];
-  return Math.hypot(p.r - q.r, p.c - q.c) < 1.8;
+  return touchingSpots(at(a), at(b));
 };
 
 /**

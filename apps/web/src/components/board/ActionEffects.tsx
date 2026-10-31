@@ -1,9 +1,9 @@
-import { cellOf, drawing, same, type Cell, type GameState } from '@regolith/engine';
+import { cellOf, same, type Cell, type GameState } from '@regolith/engine';
 import { SHIP } from '../../beats';
 import { lastLogId, useStepEffects } from '../../game/useTransient';
 import { cardEffectsOf } from './CardEffects';
 import { EffectBox, cubeCount, type MapEffect } from './EffectBox';
-import { glidePath } from './staging';
+import { flightOf } from './staging';
 
 /**
  * A short effect on the map for one action: a ship warping in, flying (from `at` to `to`, `ms` into its flight: one
@@ -43,24 +43,14 @@ function effectsOf(before: GameState, game: GameState): Effect[] {
 
 /**
  * The trail of ship `id` flying from `from` to `to`: straight, or a part for each space it crosses (staging
- * glidePath), each as the ship gets there; none across a joined edge or through a Warp Gate.
+ * flightOf), each as the ship gets there; none where it jumps.
  */
 function trails(before: GameState, game: GameState, id: string, from: Cell, to: Cell) {
-  const path = glidePath(before, game, id);
-  if (!path.length) return [{ kind: 'trail' as const, at: from, to, ms: 0 }];
-  const { at } = drawing(game.board);
-  const lens = path.slice(1).map((p, i) => {
-    const [a, b] = [at(path[i]), at(p)];
-    return Math.hypot(a.r - b.r, a.c - b.c);
-  });
-  const total = lens.reduce((a, b) => (b < 1.8 ? a + b : a), 0) || 1;
-  let gone = 0;
-  return lens.flatMap((len, i) => {
-    if (len >= 1.8) return [];
-    const ms = (gone / total) * SHIP.glide;
-    gone += len;
-    return [{ kind: 'trail' as const, at: path[i], to: path[i + 1], ms }];
-  });
+  const way = flightOf(before, game, id);
+  if (!way.length) return [{ kind: 'trail' as const, at: from, to, ms: 0 }];
+  return way
+    .slice(1)
+    .flatMap((p, i) => (p.at > way[i].at ? [{ kind: 'trail' as const, at: way[i].cell, to: p.cell, ms: way[i].at * SHIP.glide }] : []));
 }
 
 /** Over the ships, under explosions. Remounted for a jump to another position (`key`), so that shows none. */

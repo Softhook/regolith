@@ -234,32 +234,15 @@ function Reach({ game, id, cell, spots }: { game: GameState; id: string; cell: n
 const PATH_EASING = 'cubic-bezier(.45,.1,.25,1)';
 
 /**
- * Flies each ship in `paths` (staging) along its spots, and its shadow and odds with it, in the time of a
- * straight glide (beats.ts), at an even speed: they're `.pathed`, without the glide. A step across a joined
- * edge or through a Warp Gate jumps.
+ * Flies each ship in `paths` (staging) along its way, and its shadow and odds with it, in the time of a
+ * straight glide (beats.ts): they're `.pathed`, without the glide.
  */
 function glideAlong(board: HTMLElement | null, paths: Staging['paths']) {
   if (!board) return;
-  for (const [id, path] of paths) {
-    const hops = path.slice(1).map((p, i) => {
-      const len = Math.hypot(p.r - path[i].r, p.c - path[i].c);
-      return len < 1.8 ? len : 0;
-    });
-    const total = hops.reduce((a, b) => a + b, 0) || 1;
-    let gone = 0;
-    const frames = path.flatMap((p, i) => {
-      const at = { transform: `translate(${p.c * 100}%, ${p.r * 100}%)` };
-      if (i === 0) return [{ ...at, offset: 0 }];
-      const jump = hops[i - 1] === 0;
-      gone += hops[i - 1];
-      const offset = Math.min(1, gone / total);
-      return jump
-        ? [
-            { transform: `translate(${path[i - 1].c * 100}%, ${path[i - 1].r * 100}%)`, offset },
-            { ...at, offset },
-          ]
-        : [{ ...at, offset }];
-    });
+  const to = (p: { r: number; c: number }, offset: number) => ({ transform: `translate(${p.c * 100}%, ${p.r * 100}%)`, offset });
+  for (const [id, way] of paths) {
+    // A jump leaves the space before it and lands at once.
+    const frames = way.flatMap((p, i) => (i && p.at === way[i - 1].at ? [to(way[i - 1], p.at), to(p, p.at)] : [to(p, p.at)]));
     for (const el of board.querySelectorAll<HTMLElement>(`[data-glide="${CSS.escape(id)}"]`))
       el.animate(frames, { duration: SHIP.glide, easing: PATH_EASING });
   }
