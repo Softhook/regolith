@@ -45,7 +45,7 @@ export const mechDieSvg = (value: number, size = 20): string =>
   document(mechDie(value, size / 2, size / 2, size), { x: 0, y: 0, w: size, h: size });
 
 /** How a mech stands in a battle: squared up to strike (`ready`), braced to shoot (`aim`), or knocked back, beaten (`struck`). */
-export type Stance = 'ready' | 'aim' | 'struck';
+type Stance = 'ready' | 'aim' | 'struck';
 
 const STANCES: Record<Stance, Pose> = {
   ready: { yaw: -32, lean: -4, legs: { plus: [-16, 22], minus: [18, -8] }, arms: { plus: [-45, -35], minus: [16, 14] }, aim: 115 },
