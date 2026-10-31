@@ -13,7 +13,7 @@ Regolith was split off from Cubic on 2026-10-27 ([SPLIT.md](regolith/SPLIT.md)).
 | | Basic | Regolith |
 |---|---|---|
 | Who it is for | Learning: the game without cards | The full game |
-| Cards, Research, Sinkhole research | No | Yes |
+| Cards, Research, Alien Artefact research | No | Yes |
 | Starting skill | No | Draw 2 Skills, keep 1 |
 | Everything else | Same | Same |
 
@@ -34,20 +34,20 @@ The engine keeps its original identifiers; players read Regolith's words (REGOLI
 | salvage yard | scrapyard | Destroyed mechs, waiting to drop |
 | Power | dominance | |
 | atomic | missile | |
-| Sinkhole | void | A tile with no objective |
+| Alien Artefact | void | A tile with no objective |
 | Ice Tunnel | warp gate | Made by the Ice Tunnel tactic |
 
 ## Components
 
 Per player: 7 dice (3 mechs to start, 2 in reserve, one each to mark Power and Research), cubes (as many as the
-map says, 4 to 7), a player aid, 1 atomic. Shared: hex tiles (one objective or Sinkhole or blank ground
+map says, 4 to 7), a player aid, 1 atomic. Shared: hex tiles (one objective or Alien Artefact or blank ground
 each, laid as the map's setup sheet shows), barrier tokens, and in Regolith the Skill and Tactic decks and the
 Reinforcements pile.
 
 ## The map
 
 Hex maps of 7-hex tiles ([`data/maps.yaml`](../data/maps.yaml), [HEX.md](HEX.md)). A tile is an objective with
-its six spaces, a Sinkhole, or blank ground. An objective may sit off the middle of its tile, and two perimeters
+its six spaces, an Alien Artefact, or blank ground. An objective may sit off the middle of its tile, and two perimeters
 may share a space: a mech there is on both.
 
 - An objective numbered *n* holds *n* − 6 cubes, at most one per player.
@@ -70,7 +70,7 @@ may share a space: a mech there is on both.
 
 ## A turn
 
-1. **Start.** Regolith: +1 Research for each of your mechs on a Sinkhole.
+1. **Start.** Regolith: +1 Research for each of your mechs on an Alien Artefact.
 2. **Up to 3 actions**, any order, any repeats. Each mech makes at most one move, attack or shot a turn.
    Mech powers and cards may also be used after the last action.
 3. **Cards** (Regolith): take 1 for each objective you claimed this turn (Take Over included), and 1 if your
@@ -119,7 +119,7 @@ A power is used on your turn, on the map, once per die per turn, even if the die
 | 6 | Wisp | **Barrier:** for no action, besides its move, fire a barrier onto any empty space down a clear straight line. |
 
 **Lines** (Shoot, Barrier) run straight out of a side of the mech's space. Mechs, objectives, barriers and the
-map's edge stop them; Sinkholes and Ice Tunnels don't, but a barrier can't land on a tunnel's space.
+map's edge stop them; Alien Artefacts and Ice Tunnels don't, but a barrier can't land on a tunnel's space.
 
 **Barriers** stay where they are put, unless Kinetic Shunt pushes one. No mech moves, drops or shoots through one. On a perimeter space a barrier holds
 it, as a mech would, but never counts towards a claim.

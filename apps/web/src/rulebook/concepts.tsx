@@ -57,9 +57,9 @@ export function GoalKey({ cubes = 5, placed = cubes - 1, size = 34 }: { cubes?: 
         ))}
       </div>
       <p className="mn-lead">
-        Be the first to place <b>all your cubes</b> on objectives.
+        Be the first to place <b>all your cubes</b>.
       </p>
-      <p className="mn-hero-sub">Most maps give each player {cubes}. You win the moment your last one lands.</p>
+      <p className="mn-hero-sub">You win the moment your last one is placed.</p>
     </div>
   );
 }

@@ -24,7 +24,7 @@
 #
 # start: what the map starts with on the ground, optional. A space is named `row:col:side`, the layout's tile row
 #   and the tile's place in its row (counting its gaps), then the tile's space: n ne se s sw nw round its middle,
-#   or m for the middle itself (on a Sinkhole or blank tile; an objective in the middle leaves no space there).
+#   or m for the middle itself (on an Alien Artefact or blank tile; an objective in the middle leaves no space there).
 #     tunnel:   [space, space]   an Ice Tunnel, open from the first turn (the Ice Tunnel tactic still moves it)
 #     wormhole: [space, space]   a pair linked like the tunnel's but for good: the tactic can't close it or land on it
 #     barriers: [space, …]       barriers nobody fired, like the Wisp's (only Kinetic Shunt moves one)

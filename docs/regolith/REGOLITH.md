@@ -188,7 +188,7 @@ packages/art/src/screenprint/
 
 The names, words and story are kept in one place, [REGOLITH-WORLD.md](REGOLITH-WORLD.md): the six mechs
 (Breacher, Behemoth, Tactician, Chameleon, Sniper, Wisp), the objectives (Habitat, Refinery, Ice Mine, Reactor,
-Sinkhole), the sides, and how each original term reads in Regolith.
+Alien Artefact), the sides, and how each original term reads in Regolith.
 
 The game says them everywhere. Before the split, the engine, its log and the card data kept Quantum's words and
 the web app reworded what it showed (`reword` / `say`). With Cubic gone there is one vocabulary, so the

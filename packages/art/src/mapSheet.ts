@@ -10,7 +10,7 @@ import { TILE } from './tokens';
 /**
  * A map's setup sheet: a landscape board for setting a map up at a table, which tile goes where. Each tile is its
  * flower, drawn as the map lays it, with what to look for on it: an objective's number (on the hex it sits on, as
- * the layout puts it), a Sinkhole, or blank ground. The starting objectives are amber. A map that starts with an Ice
+ * the layout puts it), an Alien Artefact, or blank ground. The starting objectives are amber. A map that starts with an Ice
  * Tunnel or barriers shows them, to lay down with the tiles. On the aid's night paper.
  */
 
@@ -28,7 +28,7 @@ export interface MapSheetTile {
   /** Its middle, in spaces from the drawing's top left (a space is one unit tall). */
   x: number;
   y: number;
-  /** An objective's number (7–10), 0 for a Sinkhole (the engine's Void), or BLANK. */
+  /** An objective's number (7–10), 0 for an Alien Artefact (the engine's Void), or BLANK. */
   number: number;
   /** Where the objective sits, in spaces from the tile's middle (x right, y down). */
   at: Spot;
@@ -59,8 +59,8 @@ export interface MapSheetOptions {
   fontCss?: string;
 }
 
-/** A Sinkhole's tile: the night paper tinted towards ice. */
-const SINKHOLE = '#2C3538';
+/** An Alien Artefact's tile: the night paper tinted towards ice. */
+const ARTEFACT = '#2C3538';
 
 const HEADER = 22;
 
@@ -112,7 +112,7 @@ export function mapSheetSvg(o: MapSheetOptions): string {
 
   for (const t of o.tiles) {
     const at = place(t);
-    const fill = t.number === BLANK ? GROUND : t.number === 0 ? SINKHOLE : PAD;
+    const fill = t.number === BLANK ? GROUND : t.number === 0 ? ARTEFACT : PAD;
     for (const hex of hexTileShape()) {
       const pts = hex.map((p) => at(p.x, p.y).map(n).join(',')).join(' ');
       out.push(`<polygon points="${pts}" fill="${fill}" stroke="${HAIR}" stroke-width=".25"/>`);
@@ -144,7 +144,7 @@ export function mapSheetSvg(o: MapSheetOptions): string {
   const keys: [swatch: string, label: string][] = [
     [objective(0, 0, r, { number: 0, start: false }), 'Objective, on its space'],
     [objective(0, 0, r, { number: 0, start: true }), 'Starting objective'],
-    [swatch(0, 0, r, SINKHOLE), 'Sinkhole'],
+    [swatch(0, 0, r, ARTEFACT), 'Alien Artefact'],
     [swatch(0, 0, r, GROUND), 'Blank ground'],
     ...(marks.some((m) => m.kind === 'tunnel') ? [[mark(0, 0, r * 0.8, 'tunnel'), 'Ice Tunnel (a pair)'] as [string, string]] : []),
     ...(marks.some((m) => m.kind === 'wormhole')

@@ -96,7 +96,7 @@ export const latestThumbnail = (t: TileSpec, world: TileOptions['world']) => lat
 
 /**
  * A tile as a printable face, named for its objective, where its planet sits when that's not the middle, and
- * its world: `habitat-01-phobos`, `habitat-01-ne-mars`, `sinkhole-02-mars` (a Void has no spot).
+ * its world: `habitat-01-phobos`, `habitat-01-ne-mars`, `alien-artefact-02-mars` (a Void has no spot).
  */
 export const printableTile = (t: TileSpec, fontCss: string, markings = true, view: TileView = {}): Printable => {
   const id = objectiveId(t);
@@ -107,7 +107,7 @@ export const printableTile = (t: TileSpec, fontCss: string, markings = true, vie
   };
 };
 
-/** A tile's id with its objective for its planet: `p7-01` → `habitat-01`, `void-2` → `sinkhole-02` (blanks as they are). */
+/** A tile's id with its objective for its planet: `p7-01` → `habitat-01`, `void-2` → `alien-artefact-02` (blanks as they are). */
 function objectiveId(t: TileSpec): string {
   const objective = OBJECTIVE_NAMES[t.number];
   if (!objective) return t.id;

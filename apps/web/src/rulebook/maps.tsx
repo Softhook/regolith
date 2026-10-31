@@ -15,7 +15,7 @@ const K = U / TILE.cell;
 const MID = TILE.size / 2;
 
 const LENGTHS: Record<NonNullable<MapDef['length']>, string> = { short: 'Short', medium: 'Medium', long: 'Long' };
-/** Tiles in the order the list names them: objectives by size, then Sinkholes and blank ground. */
+/** Tiles in the order the list names them: objectives by size, then Alien Artefacts and blank ground. */
 const TILE_ORDER = [7, 8, 9, 10, 0, BLANK];
 const tileName = (n: number) => (n === BLANK ? 'Blank' : OBJECTIVE_NAMES[n]);
 
@@ -170,7 +170,7 @@ function MapLegend() {
   const keys: [ReactNode, string][] = [
     [<Objective x={0} y={0} number={0} start={false} />, 'Objective, on its space'],
     [<Objective x={0} y={0} number={0} start />, 'Starting objective'],
-    [hexSwatch(fillOf(0)), 'Sinkhole'],
+    [hexSwatch(fillOf(0)), 'Alien Artefact'],
     [hexSwatch(fillOf(BLANK)), 'Blank ground'],
     [<Mark x={0} y={0} kind="tunnel" r={U * 0.36} />, 'Ice Tunnel'],
     [<Mark x={0} y={0} kind="wormhole" r={U * 0.36} />, 'Wormhole'],

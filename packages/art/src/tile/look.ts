@@ -12,5 +12,5 @@ export const OBJECTIVE_NAMES: Record<number, string> = {
   10: 'Reactor',
   11: 'Mass Driver',
   12: 'Skyhook',
-  0: 'Sinkhole',
+  0: 'Alien Artefact',
 };

@@ -184,7 +184,7 @@ export function MapPicker({ map, choices, onChoose }: { map: MapDef; choices: Ma
         <span className="muted">
           {map.cubes} cubes each ·{' '}
           {map.stats.shared === null ? 'too few spaces for every cube' : `${map.stats.shared}/${map.stats.planets} objectives shared`}
-          {map.layout.flat().includes('0') && ' · sinkholes'}
+          {map.layout.flat().includes('0') && ' · Alien Artefacts'}
         </span>
       </div>
       <MiniMap map={map} />

@@ -133,7 +133,7 @@ one home's perimeter to another's:
 | Ice Bridge | 4 | 4 | Cydonia cut into two islands of two starts; the wormhole is the only way across, and an island has too few objectives for its players' cubes | 6 on an island, 9–11 across |
 
 Naming a space: `row:col:side` is the layout's tile row, the tile's place in its row (gaps count) and the tile's
-space, a compass side from its middle (`n ne se s sw nw`) or `m` (the middle, on a Sinkhole or blank tile; an
+space, a compass side from its middle (`n ne se s sw nw`) or `m` (the middle, on an Alien Artefact or blank tile; an
 objective in the middle leaves none). `npm run map:show -- <id>` prints a map with every space named,
 `--spin=2@<row:col> --pick=…` lays the turned copies of a space, `--ring=` and `--line=` list a ring or a wall's
 spaces, and `npm run map:design -- <id> --spin=…` searches for barriers that lengthen the walk (Rubble Field's) or a

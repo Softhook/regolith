@@ -42,6 +42,16 @@ const SHIPS = REGOLITH.ships;
 /** How far a mech's number takes it: never more than 3 spaces. */
 const MOVE_CAP = 3;
 
+/** The manual's short form of each mech's ability; the game's tooltips keep the full text from RULESETS. */
+const ABILITY_TEXT: Record<number, string> = {
+  1: 'Attack an adjacent enemy without using the mech’s normal move.',
+  2: SHIPS[2].ability.text,
+  3: SHIPS[3].ability.text,
+  4: 'Refit to become a Tactician or a Sniper.',
+  5: 'Instead of moving or attacking, it can shoot in any straight line unless blocked by an obstruction.',
+  6: 'As a free ability, fire a permanent barrier onto any empty space in a straight line.',
+};
+
 const CARD_TYPES: [deck: CardDeck, name: string, text: string][] = [
   [
     'skill',
@@ -190,7 +200,7 @@ function MoveFigure() {
   const reach = reachable(spaces, from, MOVE_CAP, [HERE, RIGHT, friend]);
   const route: At[] = [from, [1, 0], [0, 1], [0, 2]];
   return (
-    <Diagram cells={spaces} label="A 5 moves at most 3 spaces: the dots show where it can go, around the objectives and your 2.">
+    <Diagram cells={spaces} label="A 5 mech moves at most 3 spaces; the dots show where it can go.">
       <Tile id="p9-01" at={HERE} />
       <Tile id="p8-01" at={RIGHT} />
       <PlanetMarks at={HERE} n={9} />
@@ -361,7 +371,7 @@ function DropFigure() {
     <Diagram
       cells={flower(HERE)}
       left={78}
-      label="A mech goes from your salvage yard onto an empty perimeter space of an objective holding your cube."
+      label="Drop a mech from your salvage yard onto an empty perimeter space of an objective you own."
     >
       <rect className="mn-yard" x={-128} y={-34} width={62} height={68} rx={8} />
       <Note x={-97} y={-25}>
@@ -419,7 +429,7 @@ export function Manual({ dark }: { dark?: boolean }) {
               <DieIcon v={5} /> <b>+</b> <DieIcon v={3} /> <b>=</b> <PlanetIcon n={8} size={28} />
             </div>
             <p>
-              Stand mechs around an objective so their numbers add up <b>exactly</b> to its number.{' '}
+              Stand mechs around an objective so their numbers add up <b>exactly</b> to its number, so that you can place a cube.{' '}
               <a href="#mn-conquer" onClick={jump}>
                 How →
               </a>
@@ -444,8 +454,8 @@ export function Manual({ dark }: { dark?: boolean }) {
       <section id="mn-ships">
         <h2>Your mechs</h2>
         <p>
-          Each die is a mech, and its number tells you two things: <b>how far it moves</b> and <b>how strong it is in a fight</b>.{' '}
-          <b>Lower numbers win fights.</b> No mech moves more than {MOVE_CAP} spaces.
+          Each die is a mech, and its number tells you <b>how strong it is in a fight</b>. <b>Lower numbers win fights.</b> It also shows
+          how far it moves, but no mech moves more than {MOVE_CAP} spaces.
         </p>
         <div className="mn-scale">
           <div className="mn-scale-bar mn-strong">◀ stronger in a fight</div>
@@ -459,14 +469,14 @@ export function Manual({ dark }: { dark?: boolean }) {
           </div>
           <div className="mn-scale-bar mn-fast">faster ▶</div>
         </div>
-        <p>Each mech also has an ability of its own, used on your turn, once per turn:</p>
+        <p>Each mech also has an ability that can be used once per turn:</p>
         <div className="mn-ships">
           {[1, 2, 3, 4, 5, 6].map((v) => (
             <div key={v} className="mn-ship">
               <MechKey v={v} />
               <div>
                 <span className="mn-ability">{SHIPS[v].ability.name}</span>
-                <p>{SHIPS[v].ability.text}</p>
+                <p>{ABILITY_TEXT[v]}</p>
               </div>
             </div>
           ))}
@@ -482,8 +492,7 @@ export function Manual({ dark }: { dark?: boolean }) {
           <figure>
             <BarrierFigure />
             <figcaption>
-              <b>{SHIPS[6].ability.name}.</b> The {SHIPS[6].name}’s barrier stays put (only Kinetic Shunt moves it), and here holds a space
-              of the 9’s perimeter.
+              <b>{SHIPS[6].ability.name}.</b> The {SHIPS[6].name}’s barrier blocks a space of the 9’s perimeter.
             </figcaption>
           </figure>
         </div>
@@ -502,24 +511,20 @@ export function Manual({ dark }: { dark?: boolean }) {
           <figure>
             <PlanetSizes />
             <figcaption>
-              <b>Bigger objectives hold more cubes</b>, one per player. You can never have two cubes on the same objective.
+              <b>Bigger objectives hold more cubes</b>, one per player. You can never place more than one of your cubes on the same
+              objective.
             </figcaption>
           </figure>
         </div>
         <ul className="mn-facts">
           <li>
-            <b>Objectives, mechs and barriers block movement.</b> Nothing moves through them.
+            <b>Objectives, mechs and barriers block movement.</b>
           </li>
           <li>
-            <b>Prepared ground.</b> Some maps start with an Ice Tunnel, a wormhole (a tunnel the Ice Tunnel tactic can’t close) or barriers
-            already on them, as the map shows. They work as the ones a game makes.
+            <b>Habitat 7, Refinery 8, Ice Mine 9, Reactor 10.</b> The bigger the objective, the harder it is to claim.
           </li>
           <li>
-            <b>Habitat 7, Refinery 8, Ice Mine 9, Reactor 10.</b> The bigger the site, the harder it is to claim.
-          </li>
-          <li>
-            <b>The Sinkhole</b> has no objective. <Tag>{REGOLITH.name}</Tag> At the start of your turn, gain 1 Research for each of your
-            mechs on it.
+            <b>Alien Artefact.</b> <Tag>{REGOLITH.name}</Tag> At the start of your turn, gain 1 Research for each of your mechs on the tile.
           </li>
         </ul>
       </section>
@@ -532,16 +537,16 @@ export function Manual({ dark }: { dark?: boolean }) {
             <span className="mn-step">1</span>
             <div>
               <b>Take up to 3 actions</b>
-              <small>In any order. The same action twice is fine.</small>
+              <small>Each mech moves only once per turn. Abilities and cards can still be used after your last action.</small>
             </div>
           </div>
           <span className="mn-flow-arrow">→</span>
           <div>
             <span className="mn-step">2</span>
             <div>
-              <b>Take the cards you earned</b>
+              <b>Take any cards you earned</b>
               <small>
-                One per objective claimed, plus Research.{' '}
+                You get one card per objective claimed, plus Research.{' '}
                 <a href="#mn-cards" onClick={jump}>
                   Cards →
                 </a>
@@ -549,19 +554,12 @@ export function Manual({ dark }: { dark?: boolean }) {
             </div>
           </div>
         </div>
-        <p className="mn-center">
-          <b>Each mech moves only once per turn.</b> Abilities and cards can still be used after your last action.
-        </p>
-
         <div className="mn-actions">
           <Action name="Move" cost={1} wide figure={<MoveFigure />}>
             <p>
               Move a mech <b>up to its number</b> of spaces, <b>at most {MOVE_CAP}</b>, one step at a time out of a side of its space.
-              Turning is fine. Objectives, mechs and barriers are not.
             </p>
-            <p className="mn-legend">
-              The dots show where this 5 can go: no more than 3 spaces, and around the objectives and your 2, which are in the way.
-            </p>
+            <p className="mn-legend">The dots show where this 5 can go.</p>
           </Action>
 
           <Action name="Attack" cost={1} figure={<AttackFigure />}>
@@ -578,7 +576,7 @@ export function Manual({ dark }: { dark?: boolean }) {
           <Action name="Drop" cost={1} figure={<DropFigure />}>
             <p>
               Bring a destroyed mech back. Take it from your salvage yard, <b>keeping its number</b>, and put it on an empty perimeter space
-              of an objective that holds <b>your cube</b>.
+              of an objective that you own.
             </p>
           </Action>
 

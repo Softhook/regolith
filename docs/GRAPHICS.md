@@ -74,7 +74,7 @@ data/regolith.yaml (cards)   data/maps.yaml
 
 ### Tiles
 
-A tile is a 7-hex flower: an objective's space and its perimeter, a Sinkhole, or blank ground, on one of three
+A tile is a 7-hex flower: an objective's space and its perimeter, an Alien Artefact, or blank ground, on one of three
 worlds (`World`, [`tile/look.ts`](../packages/art/src/tile/look.ts)): grey, cratered Phobos; Deimos, redder,
 its craters buried in dust; Mars, with dunes and dust devils' tracks. A map names its world, and every tile on
 it shows that ground.
@@ -82,7 +82,7 @@ it shows that ground.
 - **The ground** ([`regolith/`](../packages/art/src/regolith), its `index.ts` lists the parts) is a height map
   painted in colour and lit once by one filter, with each tile's craters, pits and boulders from its seed. An
   objective is a building on its space (Habitat 7, Refinery 8, Ice Mine 9, Reactor 10, `OBJECTIVE_NAMES`); a
-  Sinkhole is a pit ringed by violet crystals, its cracks glowing. Chrome ignores the lighting's `kernelUnitLength`, so the light depends on the
+  Alien Artefact is drawn as a pit ringed by violet crystals, its cracks glowing. Chrome ignores the lighting's `kernelUnitLength`, so the light depends on the
   size the ground is drawn at: print draws the lit ground as a bitmap first, at the size it is made for, and
   scales it up (`tileGroundSvg`), and the Art Lab shows tiles as they print.
 - **Layers.** Every tile stacks in one order (`TILE_LAYERS`): `ground` (with the building), `spaces` (a well
@@ -138,7 +138,7 @@ tile needs a start version. The map setup sheets show which.
 | Refinery 8 | 8 |
 | Ice Mine 9 | 6 |
 | Reactor 10 | 5 |
-| Sinkhole | 3 |
+| Alien Artefact | 3 |
 | Blank ground | 10 |
 | **Total** | **40** |
 
@@ -180,7 +180,7 @@ every player.
 
 `mapSheetSvg` ([`mapSheet.ts`](../packages/art/src/mapSheet.ts)), in the Art Lab at `#lab/maps`: one 180 ×
 120 mm sheet per map, two to an A4 page, for setting a map up at a table. Each tile is its flower as the map
-lays it, with its objective's number on the hex it sits on, starting objectives in amber, Sinkholes tinted
+lays it, with its objective's number on the hex it sits on, starting objectives in amber, Alien Artefacts tinted
 ice, blank ground plain. The lobby's small map preview uses the same marks.
 
 ### Iconography

@@ -1,11 +1,11 @@
 /**
  * A map as text, for laying out its `start` features (data/maps.yaml): every space labelled `row:col:side`, as
- * a start list names it, objectives as [number], Sinkholes with ~, and what the map starts with marked: tunnel
+ * a start list names it, objectives as [number], Alien Artefacts with ~, and what the map starts with marked: tunnel
  * ends as (T), barriers as #.
  *
  *   npm run map:show -- <map id> [--labels=1]
  *
- * With --labels=0 the spaces show only their kind (. open, ~ Sinkhole), for judging a layout at a glance.
+ * With --labels=0 the spaces show only their kind (. open, ~ Alien Artefact), for judging a layout at a glance.
  *
  * To lay a symmetric start list, give --spin=<fold>@<row:col> (2, 3 or 6, round the middle of that tile) and
  * --pick=<space>,<space>…: it prints each space and its turns, ready for maps.yaml.
