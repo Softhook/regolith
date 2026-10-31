@@ -66,9 +66,9 @@ function play(o: AbOptions, variant: string, from: number, to: number): Result {
       }
       let action: Action | null = null;
       if (s.pending[0]?.kind === 'combat') for (const p of s.players) action ??= chooseCombatResponse(s, p.id, { level, random });
-      action ??= chooseAction(actor(s) === a || !o.sideB ? s : o.sideB(s, variant), { level, random });
-      if (action && actor(s) === a && o.sideB && o.veto?.(s, variant, action))
-        action = chooseAction(o.sideB(s, variant), { level, random });
+      const sideA = actor(s) === a;
+      action ??= chooseAction(sideA || !o.sideB ? s : o.sideB(s, variant), { level, random });
+      if (action && sideA && o.sideB && o.veto?.(s, variant, action)) action = chooseAction(o.sideB(s, variant), { level, random });
       if (!action) throw new Error(`no action, game ${g}`);
       s = apply(s, action);
     }

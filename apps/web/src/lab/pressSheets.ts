@@ -140,18 +140,18 @@ export const MAP_SHEETS: PressSheets = {
   },
 };
 
-/** How many player aids go on the sheets: one per player. */
-const AIDS = 4;
+/** How many player aids a full table needs: one per player, for the largest player count. */
+export const AID_COPIES = 4;
 
 /** The player aids on press sheets of their own. */
 export const AID_SHEETS: PressSheets = {
   name: 'aids',
   label: 'Aids',
-  contents: `${AIDS} player aids (${PIECES.aid.cols * PIECES.aid.rows} a page)`,
+  contents: `${AID_COPIES} player aids (${PIECES.aid.cols * PIECES.aid.rows} a page)`,
   async groups() {
     const card = await cardFontCss();
     if (!card) throw new Error('the fonts didn’t load');
-    return [{ piece: PIECES.aid, faces: Array(AIDS).fill(printableAid(card)) }];
+    return [{ piece: PIECES.aid, faces: Array(AID_COPIES).fill(printableAid(card)) }];
   },
 };
 

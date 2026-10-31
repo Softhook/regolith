@@ -9,6 +9,7 @@ export {
   playerCounts,
   rulesOf,
   shipOf,
+  type BarrierBreakRule,
   type CardRules,
   type RuleSet,
 } from './rules';

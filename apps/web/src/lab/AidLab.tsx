@@ -3,10 +3,7 @@ import { cardFontCss, useFontCss, useSvgUrl } from './cards';
 import { PIECES } from '../print/pieces';
 import { PrintPanel } from '../print/PrintPanel';
 import { LabHeader } from './LabHeader';
-import { AID_SHEETS, printableAid } from './pressSheets';
-
-/** How many boards "All copies" prints: one per player, for the largest player count. */
-const PLAYERS = 4;
+import { AID_COPIES, AID_SHEETS, printableAid } from './pressSheets';
 
 /**
  * Art Lab, player aid page (#lab/aid): the A6 board every player gets, with the dominance and research
@@ -33,8 +30,8 @@ export function AidLab() {
             bleed={bleed}
             onBleed={setBleed}
             set={[board]}
-            notes={`The same board for every player: print one each (${PLAYERS} for a full table).\n`}
-            sheets={(copies) => Array(copies ? PLAYERS : 1).fill({ front: board })}
+            notes={`The same board for every player: print one each (${AID_COPIES} for a full table).\n`}
+            sheets={(copies) => Array(copies ? AID_COPIES : 1).fill({ front: board })}
             cmyk={AID_SHEETS}
             copies
             ready={fonts !== null}

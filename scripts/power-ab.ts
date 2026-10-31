@@ -64,8 +64,9 @@ const reach = (s: GameState, p: PlayerId) => shipsOnBoard(s, p).reduce((n, d) =>
 
 /** With aim=strict: a barrier that takes as much of side A's own movement as of the opponents'. */
 function badBarrier(s: GameState, action: Action): boolean {
-  if (aim !== 'strict' || action.type !== 'power' || !action.to || die(s, action.die).value !== 6) return false;
-  const me = die(s, action.die).owner;
+  if (aim !== 'strict' || action.type !== 'power' || !action.to) return false;
+  const { value, owner: me } = die(s, action.die);
+  if (value !== 6) return false;
   const next = apply(s, action);
   const lost = (p: PlayerId) => reach(s, p) - reach(next, p);
   const theirs = s.players.filter((p) => p.id !== me).reduce((n, p) => n + lost(p.id), 0);

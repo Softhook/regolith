@@ -41,6 +41,7 @@ import {
   stopZone,
   tryApply,
   type Action,
+  type BarrierBreakRule,
   type GameMode,
   type GameState,
   MAPS,
@@ -570,7 +571,7 @@ describe('Barrier (6 Wisp)', () => {
 describe('breaking barriers (on trial: RuleSet.breakBarriers)', () => {
   /** p0's `dice` with an opponent's barrier on (r, c), and the rule set to `rule` while `check` runs. */
   const trial = (
-    rule: 'smash' | 'attack' | undefined,
+    rule: BarrierBreakRule | undefined,
     dice: Record<string, [number, number, number]>,
     [r, c]: [number, number],
     check: (s: GameState) => void,

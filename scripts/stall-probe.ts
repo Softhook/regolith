@@ -224,8 +224,8 @@ function play({ variant, players, game }: Task): GameResult {
     const before = { cubes: cubesOnBoard(s), barriers: s.barriers?.length ?? 0, gates: JSON.stringify(s.gates) };
     if (action.type === 'breakBarrier') {
       r.broken!++;
-      const owner = barrierAt(s, action.cell)?.owner;
-      if (owner !== null && owner !== undefined && owner !== actor(s)) r.brokenEnemy!++;
+      const b = barrierAt(s, action.cell);
+      if (b && b.owner !== null && b.owner !== actor(s)) r.brokenEnemy!++;
     }
     s = apply(s, action);
     const placed = s.phase !== 'setup' && cubesOnBoard(s) > before.cubes;

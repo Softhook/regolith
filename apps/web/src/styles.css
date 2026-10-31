@@ -1791,8 +1791,7 @@ svg.zones polygon {
 .space-tag.rgb::before { background: linear-gradient(90deg, #f33 0 33.3%, #2c4 0 66.6%, #36f 0); }
 .space-tag.cmyk::before { background: linear-gradient(90deg, #0ae 0 25%, #e0a 0 50%, #fd0 0 75%, #111 0); box-shadow: 0 0 0 .5px rgba(255,255,255,.4); }
 .lab-deck-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 4px 0 12px; flex-wrap: wrap; }
-.lab-deck h2 { font-family: var(--display); font-size: 14px; letter-spacing: .04em; margin: 4px 0 12px; }
-.lab-deck-head h2 { margin: 0; }
+.lab-deck h2 { font-family: var(--display); font-size: 14px; letter-spacing: .04em; margin: 0; }
 .lab-deck h2 .muted { font-family: var(--body); font-weight: 400; font-size: 12px; letter-spacing: 0; }
 .lab-deck + .lab-deck { margin-top: 28px; }
 .lab-grid.cards { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }

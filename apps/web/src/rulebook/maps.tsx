@@ -67,7 +67,6 @@ function TileShape({ t }: { t: MapSheetTile }) {
 
 function MapDrawing({ sheet }: { sheet: ReturnType<typeof mapSheet> }) {
   const marks = sheet.marks ?? [];
-  const spot = (m: MapSheetMark) => [m.x * U, m.y * U];
   const pad = U * 0.2;
   return (
     <svg
@@ -83,22 +82,22 @@ function MapDrawing({ sheet }: { sheet: ReturnType<typeof mapSheet> }) {
         (t, i) => t.number > 0 && <Objective key={i} x={(t.x + t.at.x) * U} y={(t.y + t.at.y) * U} number={t.number} start={t.start} />,
       )}
       {(['tunnel', 'wormhole'] as const).map((kind) => {
-        const pair = marks.filter((m) => m.kind === kind).map(spot);
+        const pair = marks.filter((m) => m.kind === kind);
         return (
           pair.length === 2 && (
-            <path key={kind} className={`mn-mk-link ${kind}`} d={`M${pair[0][0]},${pair[0][1]}L${pair[1][0]},${pair[1][1]}`} />
+            <path key={kind} className={`mn-mk-link ${kind}`} d={`M${pair[0].x * U},${pair[0].y * U}L${pair[1].x * U},${pair[1].y * U}`} />
           )
         );
       })}
       {marks.map((m, i) => (
-        <Mark key={i} x={spot(m)[0]} y={spot(m)[1]} kind={m.kind} />
+        <Mark key={i} x={m.x * U} y={m.y * U} kind={m.kind} />
       ))}
     </svg>
   );
 }
 
 /** What a map starts with on the ground, in words, or nothing. */
-function startingGround(marks: readonly MapSheetMark[]): string | undefined {
+function groundNote(marks: readonly MapSheetMark[]): string | undefined {
   const count = (kind: MapSheetMark['kind']) => marks.filter((m) => m.kind === kind).length;
   const barriers = count('barrier');
   const parts = [
@@ -112,7 +111,7 @@ function startingGround(marks: readonly MapSheetMark[]): string | undefined {
 function MapCard({ map }: { map: MapDef }) {
   const sheet = mapSheet(map);
   const counts = TILE_ORDER.map((n) => [n, sheet.tiles.filter((t) => t.number === n).length] as const).filter(([, k]) => k);
-  const ground = startingGround(sheet.marks ?? []);
+  const ground = groundNote(sheet.marks ?? []);
   return (
     // A wide map takes two columns, to be drawn as large as the others.
     <div className={sheet.cols > sheet.rows * 1.6 ? 'mn-mapcard mn-wide' : 'mn-mapcard'}>
@@ -157,21 +156,22 @@ function Swatch({ children }: { children: ReactNode }) {
   );
 }
 
-const hexAt = (cls: string) => (
-  <polygon
-    className={cls}
-    points={Array.from({ length: 6 }, (_, i) => `${0.46 * U * Math.cos((Math.PI / 3) * i)},${0.46 * U * Math.sin((Math.PI / 3) * i)}`).join(
-      ' ',
-    )}
-  />
+const HEX = Array.from({ length: 6 }, (_, i) => `${0.46 * U * Math.cos((Math.PI / 3) * i)},${0.46 * U * Math.sin((Math.PI / 3) * i)}`).join(
+  ' ',
+);
+/** A tile's hex, filled as `fill` (a `fillOf` class). */
+const hexSwatch = (fill: string) => (
+  <g className={fill}>
+    <polygon points={HEX} />
+  </g>
 );
 
 function MapLegend() {
   const keys: [ReactNode, string][] = [
     [<Objective x={0} y={0} number={0} start={false} />, 'Objective, on its space'],
     [<Objective x={0} y={0} number={0} start />, 'Starting objective'],
-    [<g className="mn-mt-sink">{hexAt('')}</g>, 'Sinkhole'],
-    [<g className="mn-mt-blank">{hexAt('')}</g>, 'Blank ground'],
+    [hexSwatch(fillOf(0)), 'Sinkhole'],
+    [hexSwatch(fillOf(BLANK)), 'Blank ground'],
     [<Mark x={0} y={0} kind="tunnel" r={U * 0.36} />, 'Ice Tunnel'],
     [<Mark x={0} y={0} kind="wormhole" r={U * 0.36} />, 'Wormhole'],
     [<Mark x={0} y={0} kind="barrier" r={U * 0.36} />, 'Barrier'],
