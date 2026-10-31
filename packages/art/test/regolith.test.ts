@@ -1,5 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import { BLED, REGOLITH_GROUND_PX, TILE_SPOTS, rasterLayerSvg, tileGroundSvg, tileSpec, tileSvg, type World } from '../src';
+import {
+  BLED,
+  REGOLITH_GROUND_PX,
+  REGOLITH_SHADOW,
+  TILE_SPOTS,
+  rasterLayerSvg,
+  tileGroundSvg,
+  tileSpec,
+  tileSvg,
+  type World,
+} from '../src';
 import { LIT, SCALE } from '../src/regolith/core';
 
 /**
@@ -58,6 +68,26 @@ describe('regolith ground in print', () => {
     expect(deimos).not.toContain('rg-dunes');
     expect(phobos).not.toContain('#rg-cr-b"');
     expect(mars).not.toContain('#rg-cr-b"');
+  });
+
+  it("is Phobos's own: grooved, dark and lit by a low sun, where Deimos is light under a high one", () => {
+    const [phobos, deimos, mars] = (['phobos', 'deimos', 'mars'] as const).map((world) => groundOf(world));
+    const grooved = 'stroke="rgb(238,255,255)"';
+    expect(phobos).toContain(grooved);
+    expect(deimos).not.toContain(grooved);
+    expect(mars).not.toContain(grooved);
+    expect(phobos).toContain('elevation="15"');
+    expect(deimos).toContain('elevation="34"');
+  });
+
+  it("casts every shadow from its world's sun: long and dark on Phobos, short and faint on Deimos, Mars's as tuned", () => {
+    expect(REGOLITH_SHADOW.length.mars).toBe(1);
+    expect(REGOLITH_SHADOW.length.phobos).toBeGreaterThan(1);
+    expect(REGOLITH_SHADOW.length.deimos).toBeLessThan(1);
+    expect(REGOLITH_SHADOW.opacity.phobos).toBeGreaterThan(REGOLITH_SHADOW.opacity.deimos);
+    // The buildings lit 16° above the ground, from the same sun.
+    const built = (world: World) => tileSvg(spec, { world, bleed: true }).match(/id="rg-built".*?elevation="(\d+)"/)?.[1];
+    expect([built('phobos'), built('deimos'), built('mars')]).toEqual(['31', '50', '38']);
   });
 
   it('is lit by its filter when no bitmap is given', () => {

@@ -4,7 +4,8 @@ import { playRoll } from '../sound';
 import { APPLE_TOUCH } from '../platform';
 import { useEffectEvent } from '../game/useEffectEvent';
 import { PIP } from '../theme';
-import { PIECE_SHADOW_LENGTH, castShadow } from './board/shadows';
+import type { World } from '@regolith/art';
+import { castShadow, pieceShadowLength } from './board/shadows';
 
 /**
  * A CSS 3D die. Faces sit on a cube; the cube rotates so the face for `value` points at
@@ -261,19 +262,21 @@ function Face({ n, className }: { n: number; className?: string }) {
 }
 
 /**
- * The hard shadow a die `size` across casts on the ground (board/shadows.ts): its rounded footprint swept down and
+ * The hard shadow a die `size` across casts on `world`'s ground (board/shadows.ts): its rounded footprint swept down and
  * to the right, blurred `blur` px, with a hint of the die's `color`. Opaque, so where shadows meet they don't darken each
  * other: the layer they're all in sets how dark they are. While its die hops on a roll (`rolls`, as Die3D's) it
  * falls that much further away; not when the die only jumps to another position (`scene`).
  */
 export const DieShadow = memo(function DieShadow({
   size,
+  world,
   blur,
   color,
   rolls = 0,
   scene,
 }: {
   size: number;
+  world: World;
   blur: number;
   color: string;
   rolls?: number;
@@ -285,15 +288,15 @@ export const DieShadow = memo(function DieShadow({
     const was = last.current;
     last.current = { rolls, scene };
     if (rolls === was.rolls || scene !== was.scene) return;
-    const away = (h: number) => size * h * PIECE_SHADOW_LENGTH;
+    const away = (h: number) => size * h * pieceShadowLength(world);
     const hop = el.current?.animate(
       HOP_HEIGHTS.map((h, i) => ({ transform: `translate(${away(h)}px, ${away(h)}px)`, offset: HOP_AT[i] })),
       { duration: DICE.hop, easing: HOP_EASING },
     );
     return () => hop?.cancel();
-  }, [rolls, scene, size]);
+  }, [rolls, scene, size, world]);
   // Its corners rounded as the faces' are (16%).
-  const far = size * PIECE_SHADOW_LENGTH;
+  const far = size * pieceShadowLength(world);
   return (
     <div className="die3d-cast" ref={el} style={{ width: size, height: size }}>
       <svg width={size + far} height={size + far} style={{ filter: `blur(${blur}px)` }}>

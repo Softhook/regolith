@@ -153,7 +153,7 @@ packages/art/src/screenprint/
   stacks and pipework; the ice mine's rig, shed, silos and ice heap; the reactor's cooling tower and
   radiators; the sinkhole's crystals; landing pads, containers, dishes, rovers, crates, beacons, an old
   probe. Each objective prints in its tile's own colour as a spot ink. Each scene stands on one world:
-  Phobos grey and cratered, Deimos dusty and streaked, Mars rust with dunes and dust devils' tracks; on the
+  Phobos dark, cratered and grooved, Deimos light, dusty and streaked, Mars rust with dunes and dust devils' tracks; on the
   moons Mars hangs in the sky, on Mars the two moons do.
 - **Printed matter.** Every part prints in passes: a colour plate a little off register, the key ink, the
   amber accent, the spot. Halftone for shade, no gradients.

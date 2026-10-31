@@ -98,7 +98,7 @@ export const BoardArt = memo(function BoardArt({
                 corner={numberCorner(game.board, p)}
                 numberClass="planet-num"
                 cubeClass="cube"
-                cast="cube-shadow"
+                cast={{ className: 'cube-shadow', world }}
               />
             </g>
           );

@@ -1,6 +1,6 @@
 import type { World } from '@regolith/art';
 import { REGOLITH_SHADOW } from '@regolith/art';
-import { PIECE_SHADOW_LENGTH, PIECE_SHADOW_OPACITY, pieceShadowTint } from './shadows';
+import { pieceShadowLength, pieceShadowOpacity, pieceShadowTint } from './shadows';
 
 /**
  * A barrier, as the Wisp makes it: a soft glass bubble on the planet's surface. The drone's flash-thermal
@@ -104,7 +104,7 @@ export interface BarrierBubbleProps {
 
 /**
  * A barrier on the space centered on (x, y): a soft glass bubble resting on the planet's surface.
- * `cast`: on a world's ground, it casts a lens-focused shadow and caustic hotspot.
+ * `cast`: on `world`'s ground, it casts a lens-focused shadow and caustic hotspot.
  */
 export function BarrierBubble({ r, c, x, y, cell, mm, cast, world }: BarrierBubbleProps) {
   const rand = seeded(r, c);
@@ -124,8 +124,9 @@ export function BarrierBubble({ r, c, x, y, cell, mm, cast, world }: BarrierBubb
   const patch = fusedBasePatch(R, rand);
   const bouncePath = bounceArc(R);
 
-  // Cast shadow offset along the light direction (top-left to bottom-right)
-  const far = cell * HEIGHT * PIECE_SHADOW_LENGTH;
+  // Its world's ground, if it casts a shadow on one: offset along the light (top left to bottom right), as long and dark as its sun makes it.
+  const ground = cast ? world : undefined;
+  const far = ground ? cell * HEIGHT * pieceShadowLength(ground) : 0;
   const id = `barrier-b-${r}-${c}`;
 
   return (
@@ -174,7 +175,7 @@ export function BarrierBubble({ r, c, x, y, cell, mm, cast, world }: BarrierBubb
       <path d={patch} fill={tint.fused} style={{ filter: `blur(${cell * 0.025}px)` }} />
 
       {/* 2. Cast ground shadow and focused caustic spot */}
-      {cast && (
+      {ground && (
         <g transform={`translate(${far} ${far})`}>
           {/* Soft diffuse dome shadow */}
           <ellipse
@@ -184,7 +185,7 @@ export function BarrierBubble({ r, c, x, y, cell, mm, cast, world }: BarrierBubb
             ry={R * 0.88}
             transform="rotate(45)"
             fill={pieceShadowTint(tint.glass)}
-            opacity={PIECE_SHADOW_OPACITY * 0.72}
+            opacity={pieceShadowOpacity(ground) * 0.72}
             style={{ filter: `blur(${REGOLITH_SHADOW.blur * mm * 0.65}px)` }}
           />
           {/* Optical caustic spot: sunlight refracted and concentrated through the dome */}

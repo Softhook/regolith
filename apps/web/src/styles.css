@@ -567,7 +567,7 @@ svg.zones polygon {
 .ship.struck { pointer-events: none; animation: ship-struck 0s var(--late) forwards; }
 @keyframes ship-struck { to { visibility: hidden; } }
 /* The dice's shadows on the ground (ShipShadows): under the ships and the ways, each placed and moving as its ship.
-   How dark they are is PIECE_SHADOW_OPACITY (board/shadows.ts), set where they're drawn. */
+   How dark they are is the world's (pieceShadowOpacity, board/shadows.ts), set where they're drawn. */
 .ship-shadows { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
 .ship-shadow {
   position: absolute; left: 0; top: 0; display: grid; place-items: center;

@@ -1,11 +1,12 @@
 import type { Rng } from '../rng';
 import { n, region, turbulence } from '../svg';
 import type { World } from '../tile/look';
-import { DRAWN, SIZE, anywhere, radial, stops } from './core';
+import { DRAWN, SIZE, anywhere, inside, polar, radial, stops } from './core';
+import type { Spot } from '../tile/geometry';
 
 /**
  * The Regolith ground's terrain, as a height map: craters of every age, pits, boulders, ridges, on Mars dunes
- * and dust devils' tracks, and on Deimos craters buried in dust and bright streaks where it slid downhill.
+ * and dust devils' tracks, on Phobos grooves, and on Deimos craters buried in dust and bright streaks where it slid downhill.
  */
 
 /** Craters carve: the bowl multiplies height (red only), the rim is screened on, so overlaps cut each other. */
@@ -224,6 +225,74 @@ function deimos(r: Rng): string {
   );
 }
 
+/**
+ * Which way Phobos's grooves run, degrees: the same on every tile, so across a map they line up, as the
+ * moon's own do, in long parallel lines.
+ */
+const GROOVE_ANGLE = -24;
+
+/** How much wider a groove's shoulders, where it starts to dip, are than its trough. */
+const SHOULDER = 1.5;
+
+/** How far a groove's shoulders stop short of the flower's edge, past its half width: as far as its blur (`rg-soft1`, 1) reaches, three times over, and a little more. */
+const GROOVE_CLEAR = 3 * 1 + 2;
+
+/** The shortest groove worth drawing, once cut back from the edge. */
+const GROOVE_MIN = 40;
+
+/** The longest stretch, from `t0` to `t1`, of the line `at` (t 0 to 1) that keeps `clear` inside the hex flower. */
+function clearStretch(at: (t: number) => Spot, clear: number): [t0: number, t1: number] {
+  const STEPS = 60;
+  let best: [number, number] = [0, 0];
+  let start = -1;
+  for (let i = 0; i <= STEPS; i++) {
+    const p = at(i / STEPS);
+    const ok = inside(p.x, p.y) >= clear;
+    if (ok && start < 0) start = i;
+    if ((!ok || i === STEPS) && start >= 0) {
+      const end = ok ? i : i - 1;
+      if (end - start > (best[1] - best[0]) * STEPS) best = [start / STEPS, end / STEPS];
+      start = -1;
+    }
+  }
+  return best;
+}
+
+/**
+ * Phobos's grooves: a few long, shallow troughs side by side, each a furrow cut into the ground, V-shaped,
+ * gently bowed, all the same way (`GROOVE_ANGLE`). Each is cut back to its longest stretch clear of the
+ * flower's edge (core `inside`), so none runs into a seam where tiles meet: too short then, it's left out.
+ */
+function grooves(r: Rng): string {
+  const { x: ux, y: uy } = polar(GROOVE_ANGLE, 1);
+  const [vx, vy] = [-uy, ux];
+  const centre = anywhere(r, 30);
+  let [shoulders, troughs, floors] = ['', '', ''];
+  for (let i = r.int(2, 4), off = r.range(-50, -20); i > 0; i--, off += r.range(16, 30)) {
+    const len = r.range(90, 190);
+    const along = r.range(-30, 30);
+    const bow = r.range(-6, 6);
+    const at = (t: number) => {
+      const s = along + (t - 0.5) * len;
+      const o = off + bow * 4 * t * (1 - t);
+      return { x: centre.x + s * ux + o * vx, y: centre.y + s * uy + o * vy };
+    };
+    const width = r.range(1.8, 3);
+    const [t0, t1] = clearStretch(at, (width * SHOULDER) / 2 + GROOVE_CLEAR);
+    if ((t1 - t0) * len < GROOVE_MIN) continue;
+    // A stretch of a quadratic curve is one too: its control point from its ends and middle.
+    const [p0, pm, p1] = [at(t0), at((t0 + t1) / 2), at(t1)];
+    const d = `d="M${n(p0.x)},${n(p0.y)} Q${n(2 * pm.x - (p0.x + p1.x) / 2)},${n(2 * pm.y - (p0.y + p1.y) / 2)} ${n(p1.x)},${n(p1.y)}"`;
+    shoulders += `<path ${d} stroke-width="${n(width * SHOULDER)}"/>`;
+    troughs += `<path ${d} stroke-width="${n(width)}"/>`;
+    floors += `<path ${d} stroke-width="${n(width * 0.4)}"/>`;
+  }
+  const cut = (depth: number, blur: string, paths: string) =>
+    `<g fill="none" stroke="rgb(${depth},255,255)" stroke-linecap="round" style="mix-blend-mode: multiply" filter="url(#${blur})">${paths}</g>`;
+  // Cut into the ground, nothing raised: each step narrower and deeper, so its sides slope down to a sharp floor, a V.
+  return cut(248, 'rg-soft1', shoulders) + cut(238, 'rg-soft1', troughs) + cut(228, 'rg-soft1', floors);
+}
+
 /** Up to `max` low ridges. */
 const ridges = (r: Rng, max: number) =>
   Array.from({ length: r.int(0, max) }, () => {
@@ -233,7 +302,7 @@ const ridges = (r: Rng, max: number) =>
 
 /**
  * A tile's terrain on `world` as a height map over all that's drawn (`DRAWN`): level ground, on Mars dunes
- * and dust devils' tracks, a ridge or two, craters of every age, pits and boulders; Deimos's its own. Each
+ * and dust devils' tracks, on Phobos its grooves, a ridge or two, craters of every age, pits and boulders; Deimos's its own. Each
  * feature goes anywhere on the hex flower (core `anywhere`).
  */
 export function terrain(r: Rng, world: World): string {
@@ -243,7 +312,7 @@ export function terrain(r: Rng, world: World): string {
   const mars = world === 'mars';
   return (
     level +
-    (mars ? dunes(r.fork('dunes')) + tracks(r.fork('tracks')) : '') +
+    (mars ? dunes(r.fork('dunes')) + tracks(r.fork('tracks')) : grooves(r.fork('grooves'))) +
     ridges(r, 2) +
     craters(r, 'o', r.int(1, 2), 0.6, 1.4) +
     (r.chance(0.25) ? craters(r, 'big', 1, 0.8, 1.05) : '') +

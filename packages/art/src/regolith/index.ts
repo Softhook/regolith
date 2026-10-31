@@ -16,8 +16,8 @@ import { inked } from './inks';
  * a height map painted in colour (red is height, 128 the ground; green marks smooth areas; blue is
  * brightness), then lit once by one filter. Drawn in the board's own units, where a space is 69.3 tall,
  * so its numbers carry over; the tile is scaled to millimetres at the end. Each tile's craters, pits and
- * boulders come from its seed; the world changes its colour, adds Mars's dunes, tracks and dust, and on
- * Deimos buries most craters in dust, smooths the ground and streaks it bright.
+ * boulders come from its seed; the world changes its colour and light, adds Mars's dunes, tracks and dust and
+ * Phobos's grooves, and on Deimos buries most craters in dust, smooths the ground and streaks it bright.
  *
  * Chrome ignores the lighting's `kernelUnitLength`, so its relief differs from Firefox's and Safari's
  * (the mood board's Surface study); the game draws each tile once to a bitmap, in the player's browser.
@@ -58,8 +58,8 @@ function scene(spec: TileSpec, at: Spot, world: World): Scene {
     (mars ? DUNES : '') +
     filters +
     ground(r.fork('ground'), DRAWN, world) +
-    built(r.fork('built'), DRAWN) +
-    cast(DRAWN) +
+    built(r.fork('built'), DRAWN, world) +
+    cast(DRAWN, world) +
     (mars ? dust(r.noiseSeed(), DRAWN) : '') +
     CRATERS +
     (world === 'deimos' ? BURIED : '') +
@@ -84,7 +84,7 @@ const LIT_AREA = { x: BLED.x / SCALE, y: BLED.y / SCALE, w: BLED.w / SCALE, h: B
 const litGround = (scene: Scene, image?: string) =>
   image ? `<image href="${image}" ${region(LIT_AREA)} preserveAspectRatio="none"/>` : scene.lit;
 
-/** The buildings' cast shadows (light.ts `SHADOW`), their blur in mm: for the dice and cubes the game stands on the ground. */
+/** Each world's cast shadows (light.ts `SHADOW`), their blur in mm: for the dice and cubes the game stands on the ground. */
 export const REGOLITH_SHADOW = { ...SHADOW, blur: SHADOW.blur * SCALE };
 
 /** The size, px, to draw `regolithGroundSvg` at: a pixel the size its light is made for (`LIT`). */

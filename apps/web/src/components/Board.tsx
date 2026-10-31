@@ -13,7 +13,7 @@ import { useStaging, type Staging } from './board/staging';
 import { useBoardZoom } from './board/useBoardZoom';
 import { OffscreenHints, ZoomControls, useFollowMoves, useFollowTurn, useZoomIntro } from './board/ZoomUi';
 import { Die3D, DieShadow } from './Die3D';
-import { PIECE_SHADOW_OPACITY } from './board/shadows';
+import { pieceShadowOpacity } from './board/shadows';
 import { REGOLITH_SHADOW, TILE } from '@regolith/art';
 import { planetNames } from '../art/boardTiles';
 import { InfoPop, useAnchorName } from './InfoPop';
@@ -248,7 +248,7 @@ function ShipShadows({
   const edge = hexMapPath(game.board, cell, tileArtOf(game.board));
   const struck = staging.struck.map(({ die: d, r, c, ms }) => (
     <div key={`struck:${d.id}`} className="ship-shadow struck" style={{ ...placeAt(r, c, cell), '--late': `${ms}ms` } as CSSProperties}>
-      <DieShadow size={cell * DIE_SIZE} blur={blur} color={game.players[d.owner].color} />
+      <DieShadow size={cell * DIE_SIZE} world={game.board.world} blur={blur} color={game.players[d.owner].color} />
     </div>
   ));
   const shadows = game.dice.map((d) => {
@@ -261,12 +261,23 @@ function ShipShadows({
         className={late === undefined ? 'ship-shadow' : 'ship-shadow late'}
         style={{ ...placeAt(at.r, at.c, cell), '--late': `${late ?? 0}ms` } as CSSProperties}
       >
-        <DieShadow size={cell * DIE_SIZE} blur={blur} color={game.players[d.owner].color} rolls={d.rolls} scene={scene} />
+        <DieShadow
+          size={cell * DIE_SIZE}
+          world={game.board.world}
+          blur={blur}
+          color={game.players[d.owner].color}
+          rolls={d.rolls}
+          scene={scene}
+        />
       </div>
     );
   });
   return (
-    <div className="ship-shadows" style={{ opacity: PIECE_SHADOW_OPACITY, clipPath: edge && `path('${edge}')` }} aria-hidden>
+    <div
+      className="ship-shadows"
+      style={{ opacity: pieceShadowOpacity(game.board.world), clipPath: edge && `path('${edge}')` }}
+      aria-hidden
+    >
       {shadows}
       {struck}
     </div>

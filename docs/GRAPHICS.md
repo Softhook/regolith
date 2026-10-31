@@ -75,8 +75,9 @@ data/regolith.yaml (cards)   data/maps.yaml
 ### Tiles
 
 A tile is a 7-hex flower: an objective's space and its perimeter, an Alien Artefact, or blank ground, on one of three
-worlds (`World`, [`tile/look.ts`](../packages/art/src/tile/look.ts)): grey, cratered Phobos; Deimos, redder,
-its craters buried in dust; Mars, with dunes and dust devils' tracks. A map names its world, and every tile on
+worlds (`World`, [`tile/look.ts`](../packages/art/src/tile/look.ts)), told apart by lightness first: dark, cool
+Phobos under a low sun, cratered and grooved; light, warm Deimos under a high one, its craters buried in dust;
+Mars, rust, with dunes and dust devils' tracks. A map names its world, and every tile on
 it shows that ground.
 
 - **The ground** ([`regolith/`](../packages/art/src/regolith), its `index.ts` lists the parts) is a height map

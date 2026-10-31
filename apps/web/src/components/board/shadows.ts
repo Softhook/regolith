@@ -1,14 +1,17 @@
+import { REGOLITH_SHADOW, type World } from '@regolith/art';
+
 /**
  * The shadows the dice and cubes cast on a world's ground: hard-edged and blurred as the buildings' are (art
  * `REGOLITH_SHADOW`), but shorter and lighter, as pieces on the map rather than part of it, and with a hint of the
- * piece's colour.
+ * piece's colour. As long and as dark as its world's buildings' against Mars's: longer and darker under Phobos's
+ * low sun, shorter and fainter under Deimos's high one.
  */
 
-/** How far a piece's shadow reaches, down and to the right along each axis, for its height. */
-export const PIECE_SHADOW_LENGTH = 0.55;
+/** How far a piece's shadow reaches on `world`, down and to the right along each axis, for its height. */
+export const pieceShadowLength = (world: World) => 0.55 * REGOLITH_SHADOW.length[world];
 
-/** How dark the pieces' shadows are: each is drawn opaque, in a layer this opaque, so where two meet it's no darker. */
-export const PIECE_SHADOW_OPACITY = 0.7;
+/** How dark the pieces' shadows are on `world`: each is drawn opaque, in a layer this opaque, so where two meet it's no darker. */
+export const pieceShadowOpacity = (world: World) => (0.7 * REGOLITH_SHADOW.opacity[world]) / REGOLITH_SHADOW.opacity.mars;
 
 /** A shadow's colour, for a piece of colour `color`: nearly black. */
 export const pieceShadowTint = (color: string) => `color-mix(in srgb, ${color} 14%, #000)`;

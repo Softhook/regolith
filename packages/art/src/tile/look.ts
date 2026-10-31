@@ -1,4 +1,4 @@
-/** Which world a map is on, which its tiles show: grey Phobos, smooth reddish Deimos, or Mars. */
+/** Which world a map is on, which its tiles show: dark, grooved Phobos, light, smooth Deimos, or rust Mars. */
 export type World = 'phobos' | 'deimos' | 'mars';
 
 /** Each world's name, as players read it. */
