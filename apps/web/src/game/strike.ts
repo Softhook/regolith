@@ -1,27 +1,27 @@
-import { effectOf, type CombatPending, type Die, type GameState } from '@regolith/engine';
+import type { CombatPending, Die, GameState, Pending } from '@regolith/engine';
 import { ARC, LANCE, SHOT } from '../beats';
-import { lastLogId } from './useTransient';
+import { cardsUsed } from './useTransient';
 
 /**
  * When a card's blow lands, in ms (beats.ts): Show of Force's lance reaches the ship (.cfx-lance),
  * Dangerous's arc joins the two (.cfx-arc). The ships it destroys stay until then, and blow up then: seen
  * (staging, Explosions) and heard (sounds).
  */
-const STRIKE_MS: Partial<Record<string, number>> = { showOfForce: LANCE.delay + LANCE.strike, dangerous: ARC.span };
+const STRIKE_MS: Partial<Record<Pending['kind'], number>> = { showOfForce: LANCE.delay + LANCE.strike, dangerous: ARC.span };
 
 /** The step from `before`'s card blow, in ms; 0 when it isn't one. */
-export const strikeOf = (before: GameState) => STRIKE_MS[before.pending[0]?.kind ?? ''] ?? 0;
+export const strikeOf = (before: GameState) => (before.pending[0] && STRIKE_MS[before.pending[0].kind]) ?? 0;
 
 /**
  * The ships the step from `before` to `game` destroys, in `before`'s order: from the map to the scrapyard.
- * Unveil the Fleet, Reorganization and Resourceful take the player's own ships there too — recalled or
- * scrapped rather than blown up (CardEffects draws their cloak or fold). One list for all three, so each
+ * Unveil the Fleet and Resourceful take the player's own ships there too — recalled or
+ * scrapped rather than blown up (CardEffects draws their cloak or fold). One list, so each
  * ship's boom, blast and wait line up: heard (sounds), seen (Explosions) and kept on the map until then
  * (staging).
  */
 export function destroyedOf(before: GameState, game: GameState): Die[] {
-  const last = lastLogId(before);
-  if (game.log.some((e) => e.id > last && e.card && ['unveil-the-fleet', 'resourceful'].includes(effectOf(e.card)))) return [];
+  const used = cardsUsed(before, game);
+  if (used.has('unveil-the-fleet') || used.has('resourceful')) return [];
   return before.dice.filter((d) => d.loc.zone === 'board' && game.dice.find((x) => x.id === d.id)?.loc.zone === 'scrapyard');
 }
 

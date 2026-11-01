@@ -1,9 +1,9 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type RefObject } from 'react';
 import { createPortal } from 'react-dom';
-import { drawing, effectOf, same, type Cell, type GameState, type LogEntry, type PlayerId } from '@regolith/engine';
+import { drawing, same, type Cell, type GameState, type LogEntry, type PlayerId } from '@regolith/engine';
 import { castOf, landing } from '../game/cast';
 import { reducedMotion } from '../game/useMediaQuery';
-import { lastLogId, useTransient } from '../game/useTransient';
+import { cardsUsed, lastLogId, useTransient } from '../game/useTransient';
 import { cardEffectsOf } from './board/CardEffects';
 import { panelEffectsOf } from './panelEffects';
 
@@ -141,11 +141,7 @@ function stepTargets(before: GameState, game: GameState, player: number): Target
     out.push(panelTarget(e.player, e.spot === 'skills' ? undefined : e.spot));
   }
   // Sabotage played at the end of a turn: the next player's penalty is already taken from their new turn's actions.
-  if (
-    game.turn.number !== before.turn.number &&
-    game.turn.player !== player &&
-    game.log.some((e) => e.id > last && e.card && ['sabotage', 'sabotage-double'].includes(effectOf(e.card)))
-  ) {
+  if (game.turn.number !== before.turn.number && game.turn.player !== player && cardsUsed(before, game).has('sabotage-double')) {
     out.push(actionsTarget(game, game.turn.player));
   }
   if (!out.length && !landing(before) && !landing(game)) out.push(panelTarget(player));

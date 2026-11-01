@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
-import { cellOf, effectOf, same, type Cell, type GameState } from '@regolith/engine';
-import { lastLogId, useStepEffects } from '../../game/useTransient';
+import { cellOf, same, type Cell, type GameState } from '@regolith/engine';
+import { cardsUsed, lastLogId, useStepEffects } from '../../game/useTransient';
 import { GATE_COLOR } from '../../theme';
 import { EffectBox, type MapEffect } from './EffectBox';
 
@@ -11,7 +11,7 @@ import { EffectBox, type MapEffect } from './EffectBox';
  * (Resourceful), and the two ships Dangerous destroys. `replaces` names what the effect stands in for an action's effect on
  * (ActionEffects): a ship, or `planet:<id>` for the planet a cube was relocated to.
  */
-type CardEffect = MapEffect & { replaces?: string } & (
+export type CardEffect = MapEffect & { replaces?: string } & (
     { kind: 'strike' | 'expansion' | 'cloak' | 'decloak' | 'implode' | 'raise' | 'lower' | 'blink' } | { kind: 'beam' | 'arc'; to: Cell }
   );
 
@@ -27,8 +27,7 @@ export function cardEffectsOf(before: GameState, game: GameState): CardEffect[] 
   const head = before.pending[0];
   const colorOf = (p: number) => game.players[p].color;
   const was = new Map(before.dice.map((d) => [d.id, d]));
-  // The cards this step played or used (the engine names each on the entry its owner logged).
-  const used = new Set(game.log.filter((e) => e.id > lastLogId(before) && e.card).map((e) => effectOf(e.card!)));
+  const used = cardsUsed(before, game);
   // Unveil the Fleet takes the player's ships off the map as it is played (a Clever choice for each
   // may come before the unveil itself).
   const unveiling = used.has('unveil-the-fleet');

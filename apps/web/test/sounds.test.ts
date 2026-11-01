@@ -1,6 +1,6 @@
 /** Sounds heard from a step: worked out from what changed, so AI and online moves sound like local ones. */
 import { describe, expect, it, vi } from 'vitest';
-import type { CombatOutcome, CombatPending, GameState, LogEntry } from '@regolith/engine';
+import type { Cell, CombatOutcome, CombatPending, GameState, LogEntry } from '@regolith/engine';
 import { arrange, quickStart } from '../../../packages/engine/test/helpers';
 import { EXPANSION } from '../src/beats';
 
@@ -88,13 +88,57 @@ describe('soundsFor', () => {
       s.log.push(e);
       return [e];
     });
-    expect(resourceful.first).toEqual(['skill']);
+    expect(resourceful.first).toEqual(['implode']);
     expect(resourceful.destroyed).toBe(0);
   });
 
-  it('still hears a card played when its discards were shuffled back into the deck', () => {
+  it('hears a card played by the card its entry names', () => {
     expect(step((s) => [entry(s, 'cardPlayed')]).first).toEqual(['card']);
     expect(step((s) => [{ ...entry(s, 'cardPlayed'), card: 'r-change-of-heart' }]).first).toEqual(['shuffle']);
+  });
+
+  it('hears a barrier blown, and each card that blows or pushes one as its own', () => {
+    const blown = (s: GameState) => void (s.barriers = [...(s.barriers ?? []), { r: 2, c: 2, owner: 0 }]);
+    expect(step(blown).first).toEqual(['barrier']);
+    expect(step((s) => [{ ...entry(s, 'cardPlayed'), card: 'r-barricade' }]).first).toEqual(['barrier']);
+    expect(step((s) => [{ ...entry(s, 'cardPlayed'), card: 'r-kinetic-shunt' }]).first).toEqual(['shunt']);
+  });
+
+  it('hears Kinetic Shunt push a ship or a barrier as a shove rather than a flight', () => {
+    const shunting = (s: GameState) => void s.pending.unshift({ kind: 'kineticShunt', player: 0 });
+    expect(step((s) => void (die(s, 'p0d0').loc = { zone: 'board', r: 1, c: 0 }), shunting).first).toEqual(['shunt']);
+    const barrier = step(
+      (s) => void (s.barriers = [{ r: 3, c: 2, owner: 0 }]),
+      (s) => {
+        shunting(s);
+        s.barriers = [{ r: 2, c: 2, owner: 0 }];
+      },
+    );
+    expect(barrier.first).toEqual(['shunt']);
+  });
+
+  it('hears a new pair of gates, even one replacing the old pair, under which a gate closing is silent', () => {
+    const gates =
+      (...cells: Cell[]) =>
+      (s: GameState) =>
+        void (s.gates = cells);
+    const open = gates({ r: 1, c: 1 }, { r: 3, c: 3 });
+    expect(step(open).first).toEqual(['portal']);
+    expect(step(gates({ r: 2, c: 2 }, { r: 3, c: 3 }), open).first).toEqual(['portal']);
+    expect(step(() => {}, open).first).toEqual([]);
+  });
+
+  it('hears a card’s blow before the ships it destroys', () => {
+    const blow = (pending: Partial<GameState['pending'][number]>) =>
+      step(
+        (s) => {
+          die(s, 'p0d0').loc = { zone: 'scrapyard' };
+          die(s, 'p1d0').loc = { zone: 'scrapyard' };
+        },
+        (s) => void s.pending.unshift({ player: 0, ...pending } as GameState['pending'][number]),
+      ).first;
+    expect(blow({ kind: 'showOfForce' })).toEqual(['lance', 'explode']);
+    expect(blow({ kind: 'dangerous', attacker: 'p0d0', defender: 'p1d0' })).toEqual(['arc', 'explode']);
   });
 
   it('hears a ship renumbered without a roll', () => {
@@ -103,9 +147,8 @@ describe('soundsFor', () => {
 
   it('plays a Tactic’s own sound first, then its effect', () => {
     const { first, then } = step((s) => {
-      s.market.tacticDiscard.push('r-black-market');
       s.players[0].missiles += 2;
-      return [entry(s, 'cardPlayed')];
+      return [{ ...entry(s, 'cardPlayed'), card: 'r-black-market' }];
     });
     expect(first).toEqual(['coins']);
     expect(then).toEqual(['missileLoad']);
@@ -152,6 +195,17 @@ describe('soundsFor', () => {
       s.players[0].dominance++;
     });
     expect(first).toEqual(['research', 'dominance']);
+  });
+
+  it('hears a Take Over after the kill that earned it', () => {
+    const { first, then } = step((s) => {
+      die(s, 'p1d0').loc = { zone: 'scrapyard' };
+      s.players[0].dominance++;
+      return [entry(s, 'infamy')];
+    });
+    expect(first).toEqual(['explode']);
+    expect(then).toEqual(['infamy']);
+    expect(step((s) => [entry(s, 'infamy')]).first).toEqual(['infamy']);
   });
 
   it('hears no dominance chime under a kill’s explosion', () => {

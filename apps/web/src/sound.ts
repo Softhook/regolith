@@ -151,9 +151,9 @@ export const sfx = {
     tone(330, 0.09, 'square', 0.025, 0.08, 440);
     noise(0.04, 0.1, { delay: 0.17, type: 'bandpass', from: 3200, q: 2.5, rise: 0.003 });
   },
-  /** A ship destroyed. `count` > 1 stagger a few booms, as Explosions does (beats.ts). */
-  explode: (count = 1) => {
-    for (let i = 0; i < Math.min(count, MOST_BOOMS); i++) boom(boomAt(i) / 1000, i ? 0.8 : 1);
+  /** A ship destroyed, `after` ms from now. `count` > 1 stagger a few booms, as Explosions does (beats.ts). */
+  explode: (count = 1, after = 0) => {
+    for (let i = 0; i < Math.min(count, MOST_BOOMS); i++) boom((after + boomAt(i)) / 1000, i ? 0.8 : 1);
   },
   /** A mech beaten in a battle's strip: the blow, metal crumpling, debris and the fire catching. Its boom is for the map, as the battle closes. */
   wreck: () => {
@@ -261,6 +261,41 @@ export const sfx = {
     tone(660, 0.12, 'triangle', 0.05, 0, 1320);
     tone(1320, 0.18, 'sine', 0.035, 0.08, 1760);
   },
+  /** A ship scrapped by Resourceful: everything rushing inward, then a small dull pop as it's gone. */
+  implode: () => {
+    tone(900, 0.28, 'sine', 0.06, 0, 90, 0.02);
+    noise(0.28, 0.09, { type: 'bandpass', from: 5000, to: 300, q: 2, rise: 0.2 });
+    tone(60, 0.12, 'sine', 0.25, 0.28, 35, 0.002);
+    tick(0.18, 700, 0.28);
+  },
+  /** A barrier blown (the Wisp, Barricade): the pulse's hiss, the blister swelling, then the glass ringing as it freezes. */
+  barrier: () => {
+    noise(0.12, 0.18, { type: 'highpass', from: 3000, to: 1200, rise: 0.003 });
+    tone(jitter(260), 0.16, 'triangle', 0.08, 0, 620);
+    [2093, 3136, 4186].forEach((f, i) => tone(jitter(f, 0.02), 0.5 - i * 0.1, 'sine', 0.03 - i * 0.007, 0.14, undefined, 0.002));
+  },
+  /** Kinetic Shunt: a heavy shove, then what it pushed scraping along for as long as it glides (beats.ts). */
+  shunt: () => {
+    tone(jitter(70), 0.2, 'sine', 0.35, 0, 40, 0.003);
+    noise(0.05, 0.3, { type: 'lowpass', from: 1600, rise: 0.002 });
+    noise(SHIP.glide / 1000, 0.1, { delay: 0.03, type: 'bandpass', from: 700, to: 300, q: 2, rise: 0.02 });
+  },
+  /** Show of Force's lance: a charging whine, then the crack as it strikes, `strike` ms in (game/strike). */
+  lance: (strike = 0) => {
+    const at = strike / 1000;
+    if (at) {
+      tone(500, at, 'sawtooth', 0.025, 0, 3200, at * 0.6);
+      noise(at, 0.06, { type: 'highpass', from: 2000, to: 8000, rise: at * 0.8 });
+    }
+    noise(0.06, 0.4, { delay: at, type: 'highpass', from: 2500, rise: 0.001 });
+    tone(1800, 0.22, 'sine', 0.05, at, 300, 0.002);
+  },
+  /** Dangerous's arc: an electric buzz and crackle as it reaches across, joining the two ships `strike` ms in (game/strike). */
+  arc: (strike = 0) => {
+    const dur = strike / 1000 + 0.15;
+    tone(jitter(120), dur, 'sawtooth', 0.04);
+    for (let i = 0; i < 10; i++) tick(0.12, 2500 + Math.random() * 3500, (i * dur) / 10 + Math.random() * 0.01);
+  },
   /** A Warp Gate opening: a wobbling hum that swells. */
   portal: () => {
     tone(110, 0.9, 'sine', 0.08, 0, 220, 0.3);
@@ -309,7 +344,7 @@ export const sfx = {
   },
   /** Show of Force: a klaxon while a target is chosen. */
   alarm: () => [0, 0.22, 0.44, 0.66].forEach((d, i) => tone(i % 2 ? 440 : 560, 0.2, 'square', 0.025, d)),
-  /** Unveil the Fleet / Reorganisation: a deep swell as the fleet is recalled. */
+  /** Unveil the Fleet: a deep swell as the fleet is recalled. */
   unveil: () => {
     tone(55, 1.2, 'sawtooth', 0.05, 0, 110, 0.6);
     noise(1.1, 0.08, { type: 'bandpass', from: 200, to: 2500, q: 1.5, rise: 0.8 });
