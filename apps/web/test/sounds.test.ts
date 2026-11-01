@@ -1,11 +1,11 @@
 /** Sounds heard from a step: worked out from what changed, so AI and online moves sound like local ones. */
 import { describe, expect, it, vi } from 'vitest';
-import type { GameState, LogEntry } from '@regolith/engine';
+import type { CombatOutcome, CombatPending, GameState, LogEntry } from '@regolith/engine';
 import { arrange, quickStart } from '../../../packages/engine/test/helpers';
 import { EXPANSION } from '../src/beats';
 
 vi.mock('../src/sound', () => ({ sfx: {} }));
-const { soundsFor } = await import('../src/game/sounds');
+const { battleSounds, soundsFor } = await import('../src/game/sounds');
 
 const start = () => arrange(quickStart(2, 1, 'basic'), { p0d0: [0, 0, 6], p0d1: [4, 4, 2], p1d0: [0, 1, 3] });
 const die = (s: GameState, id: string) => s.dice.find((d) => d.id === id)!;
@@ -169,5 +169,39 @@ describe('soundsFor', () => {
 
   it('plays the lament for a screen whose players all lost', () => {
     expect(step(victory, undefined, (p) => p === 0).first).toEqual(['lose']);
+  });
+
+  it('hears an atomic as an atomic, and a repelled battle only as its result showed', () => {
+    expect(step((s) => [entry(s, 'missile')]).first).toEqual(['atomic']);
+    expect(step((s) => [entry(s, 'repelled')]).first).toEqual([]);
+  });
+});
+
+describe('battleSounds', () => {
+  const battle = (ranged?: true) => ({ attacker: { player: 0 }, defender: { player: 1 }, ranged }) as CombatPending;
+  const won = { winner: 'attacker', destroyed: 'defender' } as CombatOutcome;
+  const repelled = { winner: 'defender', destroyed: null } as CombatOutcome;
+  const stubborn = { winner: 'defender', destroyed: 'attacker' } as CombatOutcome;
+  const me = (p: number) => p === 0;
+
+  it('hears a mech destroyed as a triumph for the winner and a defeat for the loser', () => {
+    expect(battleSounds(battle(), won, me).now).toEqual(['wreck', 'triumph']);
+    expect(battleSounds(battle(), won, (p) => p === 1).now).toEqual(['wreck', 'defeat']);
+  });
+
+  it('hears neither for a screen playing for both sides or for neither', () => {
+    expect(battleSounds(battle(), won, () => true).now).toEqual(['wreck']);
+    expect(battleSounds(battle(), won, () => false).now).toEqual(['wreck']);
+  });
+
+  it('hears a repelled attack alike on every screen', () => {
+    for (const mine of [me, (p: number) => p === 1, () => false])
+      expect(battleSounds(battle(), repelled, mine)).toEqual({ now: ['repel'], hit: [] });
+  });
+
+  it('hears a shot fired, then what it does as it reaches its target', () => {
+    expect(battleSounds(battle(true), won, me)).toEqual({ now: ['gunshot'], hit: ['wreck', 'triumph'] });
+    expect(battleSounds(battle(true), repelled, me)).toEqual({ now: ['gunshot', 'whizz'], hit: [] });
+    expect(battleSounds(battle(true), stubborn, me)).toEqual({ now: ['gunshot', 'whizz'], hit: ['wreck', 'defeat'] });
   });
 });

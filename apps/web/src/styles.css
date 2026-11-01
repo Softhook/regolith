@@ -1441,10 +1441,10 @@ svg.zones polygon {
   overflow: hidden;
   background: linear-gradient(180deg, var(--sky) 0 78%, var(--ground) 78%);
 }
-.arena-fighter { position: relative; flex: none; width: var(--w); height: var(--m); margin-bottom: calc(var(--sink) * -1); }
-/* --dir: which way the mech faces, so each side's lunge, knock-back and entrance are one rule mirrored. */
-.arena-mech { --dir: 1; display: block; width: 100%; height: 100%; transform-origin: 50% 86%; transition: transform .35s cubic-bezier(.2,.9,.3,1.3), filter .35s; animation: arena-in .5s cubic-bezier(.2,.9,.3,1.1); }
-.arena-mech.defender { --dir: -1; }
+/* --dir: which way the mech faces, so each side's lunge, knock-back and entrance are one rule mirrored. Its entrance is on the frame: the mech's own animation changes with the result, and an atomic changes that. */
+.arena-fighter { --dir: 1; position: relative; flex: none; width: var(--w); height: var(--m); margin-bottom: calc(var(--sink) * -1); animation: arena-in .5s cubic-bezier(.2,.9,.3,1.1); }
+.arena-fighter.defender { --dir: -1; }
+.arena-mech { display: block; width: 100%; height: 100%; transform-origin: 50% 86%; transition: transform .35s cubic-bezier(.2,.9,.3,1.3), filter .35s; }
 .arena-mech.won { transform: translateX(calc(14% * var(--dir))); }
 /* Destroyed: thrown back and over, burnt out, smoke rising from it. */
 .arena-mech.destroyed { transform: translateX(calc(-12% * var(--dir))) translateY(6%) rotate(calc(-26deg * var(--dir))); filter: grayscale(.9) brightness(.5); }
@@ -1511,9 +1511,9 @@ svg.zones polygon {
 /* A shot: the two apart, the Sniper's muzzle (--muzzle-x, --muzzle-y: fractions of its picture, from fighterMuzzle) firing at the target's middle. No lunge: the Sniper shoots from where it stands. */
 .combat-arena.ranged { justify-content: space-between; padding: 0 var(--inset); }
 .combat-arena.ranged .arena-mech.won { transform: none; }
-.combat-arena.ranged.clash::after { left: auto; right: calc(var(--inset) + var(--w) * var(--target)); top: 50%; animation-delay: .18s; opacity: 0; }
+.combat-arena.ranged.clash::after { left: auto; right: calc(var(--inset) + var(--w) * var(--target)); top: 50%; animation-delay: var(--arena-hit); opacity: 0; }
 .combat-arena.ranged.missed::after { display: none; }
-.combat-arena.ranged .arena-blast::before { opacity: 0; animation-delay: .18s; }
+.combat-arena.ranged .arena-blast::before { opacity: 0; animation-delay: var(--arena-hit); }
 .arena-tracer {
   position: absolute;
   left: calc(var(--inset) + var(--w) * var(--muzzle-x, .75));

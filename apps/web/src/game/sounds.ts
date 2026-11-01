@@ -1,4 +1,16 @@
-import { cellOf, effectOf, same, type Cell, type GameState, type LogEntry, type LogEvent, type PlayerId } from '@regolith/engine';
+import {
+  cellOf,
+  effectOf,
+  same,
+  type Cell,
+  type CombatOutcome,
+  type CombatPending,
+  type GameState,
+  type LogEntry,
+  type LogEvent,
+  type PlayerId,
+} from '@regolith/engine';
+import { ARENA } from '../beats';
 import { stagingOf } from '../components/board/staging';
 import { sfx } from '../sound';
 import { destroyedOf, shotOf, strikeOf } from './strike';
@@ -12,13 +24,12 @@ const CARD_THEN = 350;
 
 /**
  * The sound for each logged event. Ships destroyed, moved or deployed, cubes placed or moved and tracks gained are
- * heard from the state instead (see `soundsFor`).
+ * heard from the state instead (see `soundsFor`), and a battle's result as it shows (`battleSounds`).
  */
 const EVENT_SOUNDS: Partial<Record<LogEvent, Sound>> = {
   victory: 'win',
   infamy: 'infamy',
-  repelled: 'repel',
-  missile: 'missile',
+  missile: 'atomic',
   cardTaken: 'card',
   expansion: 'launch',
   discard: 'discard',
@@ -103,7 +114,7 @@ export function soundsFor(
   else if (moved.length) effects.add('fly');
   if (destroyed) effects.add('explode');
   // A shot: the missile's launch, flight and impact (board/Shots).
-  if (shotOf(prev, next)) effects.add('missile');
+  if (shotOf(prev, next)) effects.add('shot');
 
   if (next.players.some((pl, i) => pl.missiles > prev.players[i].missiles)) effects.add('missileLoad');
   if (next.gates.length > prev.gates.length) effects.add('portal');
@@ -121,6 +132,26 @@ export function soundsFor(
   if ((sameTurn && next.turn.oncePerTurn.length > prev.turn.oncePerTurn.length) || disabledSkill) effects.add('skill');
 
   return { first: [...first], then: [...then], destroyed, lands };
+}
+
+/**
+ * What a battle's result sounds like as it shows: `now`, and on a shot's reaching its target (`hit`). A mech destroyed
+ * is a triumph or a defeat for a screen playing for only one of the two sides; for anyone else, just the blow.
+ */
+export function battleSounds(combat: CombatPending, out: CombatOutcome, mine: (p: PlayerId) => boolean): { now: Sound[]; hit: Sound[] } {
+  const loser = out.winner === 'attacker' ? 'defender' : 'attacker';
+  const won = mine(combat[out.winner].player);
+  const lost = mine(combat[loser].player);
+  const blow: Sound[] = !out.destroyed ? [] : won === lost ? ['wreck'] : ['wreck', won ? 'triumph' : 'defeat'];
+  if (combat.ranged) return { now: out.winner === 'defender' ? ['gunshot', 'whizz'] : ['gunshot'], hit: blow };
+  return { now: out.destroyed ? blow : ['repel'], hit: [] };
+}
+
+/** Plays a battle's result, as it shows. */
+export function playBattleResult(combat: CombatPending, out: CombatOutcome, mine: (p: PlayerId) => boolean) {
+  const { now, hit } = battleSounds(combat, out, mine);
+  now.forEach((s) => sfx[s]());
+  if (hit.length) window.setTimeout(() => hit.forEach((s) => sfx[s]()), ARENA.hit);
 }
 
 /** Plays what the step from `prev` to `next` sounds like. */

@@ -20,7 +20,9 @@ import type { Dispatch } from '../game/useGame';
 import type { GameView } from '../game/view';
 import { COMBAT_RESOLVE_MS, humanFights } from '../game/useAiDriver';
 import { shotWait } from '../game/strike';
+import { playBattleResult } from '../game/sounds';
 import { useBattleReveal } from '../game/useBattleReveal';
+import { useEffectEvent } from '../game/useEffectEvent';
 import { COMPACT_BATTLE, reducedMotion, useMediaQuery } from '../game/useMediaQuery';
 import { useShortcut } from '../game/useShortcut';
 import { COMBAT_MS } from '../online/playback';
@@ -60,10 +62,15 @@ function Battle({
   /** Online: who the battle waits for; it resolves once everyone who may respond is done. */
   online?: GameView['combat'];
 }) {
-  const revealed = useBattleReveal(combat.id);
+  const revealed = useBattleReveal(combat);
   const compact = useMediaQuery(COMPACT_BATTLE);
 
   const out = combatOutcome(game, combat);
+  // Heard as it shows, and again as an atomic goes off.
+  const hearResult = useEffectEvent(() => playBattleResult(combat, out, mine));
+  useEffect(() => {
+    if (revealed) hearResult();
+  }, [revealed, hearResult]);
   const humans = game.players.filter((p) => (online ? online.responders.includes(p.id) : mine(p.id)));
   const shooters = humans.filter((p) => p.missiles > 0);
   const autoResolve = !humans.some((p) => canRespondToCombat(game, combat, p.id));
@@ -110,6 +117,7 @@ function Battle({
       <BattleSide
         game={game}
         combat={combat}
+        out={out}
         role={role}
         revealed={revealed}
         dieSize={compact ? 40 : 64}
@@ -158,7 +166,7 @@ function Battle({
           {side('defender')}
         </div>
         <p className="combat-rule">Lower total wins · attacker wins ties</p>
-        <BattleVerdict game={game} combat={combat} revealed={revealed} />
+        <BattleVerdict game={game} combat={combat} out={out} revealed={revealed} />
         <div className="combat-footer">
           {online?.mustAnswer ? (
             <button className="btn btn-primary" disabled={!revealed} onClick={close(online.pass)}>
@@ -230,9 +238,9 @@ function Arena({
     const attacker = role === 'attacker';
     const stamp = hit ? 'Destroyed' : repelled && attacker ? (ranged ? 'Missed' : 'Repelled') : null;
     return (
-      <div className="arena-fighter">
+      <div className={`arena-fighter ${role}`}>
         <img
-          className={`arena-mech ${role} ${destroyed && !hit ? 'won' : ''} ${hit ? 'destroyed' : ''} ${bounced && attacker ? 'repelled' : ''}`}
+          className={`arena-mech ${destroyed && !hit ? 'won' : ''} ${hit ? 'destroyed' : ''} ${bounced && attacker ? 'repelled' : ''}`}
           src={hit ? arts[role].struck : arts[role].standing}
           alt={`${game.players[combat[role].player].name}'s ${shipOf(game, combat[role].ship).name}`}
         />

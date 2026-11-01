@@ -741,6 +741,8 @@ export function combatOutcome(state: GameState, combat: CombatPending) {
   return { attacker: a, defender: d, attackerWins, stubborn, winner, destroyed };
 }
 
+export type CombatOutcome = ReturnType<typeof combatOutcome>;
+
 /**
  * Whether `by` is offered a missile on `side`'s combat roll. A combatant is only offered their own
  * roll (a lower roll for the opponent only helps them), and not while already winning. Players not

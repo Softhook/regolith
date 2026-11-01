@@ -83,6 +83,15 @@ export const BLINK = { open: 300 } as const;
 /** A missile shot (.shot-*): its flight across the map (it hits, and the battle opens, as it lands), then the impact's flash. */
 export const SHOT = { flight: 600, hit: 350 } as const;
 
+/**
+ * A battle's screen (CombatOverlay): its dice tumble until `reveal`, when its result shows and is heard. An atomic
+ * falls for `atomic`, its die turning to 1 meanwhile, then goes off as the result shows afresh.
+ */
+export const BATTLE = { reveal: 1250, atomic: 800 } as const;
+
+/** A shot in a battle's strip (.arena-tracer): it reaches the target `hit` after the reveal fires it. */
+export const ARENA = { hit: 180 } as const;
+
 /** The groups animations in styles.css read, by the name their custom properties take. */
 export const CSS_BEATS = {
   ship: SHIP,
@@ -93,6 +102,7 @@ export const CSS_BEATS = {
   beam: BEAM,
   blink: BLINK,
   shot: SHOT,
+  arena: ARENA,
 };
 
 /** The CSS beats as custom properties, for the effects' animations; and the eases they share with a beat. */

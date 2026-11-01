@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react';
-import { combatOutcome, shipOf, type CombatPending, type CombatRole, type GameState } from '@regolith/engine';
+import { shipOf, type CombatOutcome, type CombatPending, type CombatRole, type GameState } from '@regolith/engine';
 import { COMBAT_DICE } from '../theme';
 import { Die3D } from './Die3D';
 
@@ -10,6 +10,7 @@ import { Die3D } from './Die3D';
 export function BattleSide({
   game,
   combat,
+  out,
   role,
   revealed,
   dieSize,
@@ -19,6 +20,7 @@ export function BattleSide({
 }: {
   game: GameState;
   combat: CombatPending;
+  out: CombatOutcome;
   role: CombatRole;
   revealed: boolean;
   dieSize: number;
@@ -26,7 +28,6 @@ export function BattleSide({
   parts?: ReactNode;
   children?: ReactNode;
 }) {
-  const out = combatOutcome(game, combat);
   const s = combat[role];
   const p = game.players[s.player];
   const total = out[role];

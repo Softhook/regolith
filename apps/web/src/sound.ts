@@ -1,6 +1,6 @@
 // Tiny synthesized sound kit (no audio files). All sounds are short and quiet.
 
-import { BEAM_ARRIVES, boomAt, CUBE, DICE, MOST_BOOMS, SHIP, SHOT, WARP } from './beats';
+import { BATTLE, BEAM_ARRIVES, boomAt, CUBE, DICE, MOST_BOOMS, SHIP, SHOT, WARP } from './beats';
 import { effects, envelope, filter, gain, glide, jitter, kept, noiseSource, oscillator, out } from './audio';
 import { fanfare, lament } from './gameOverSound';
 import { pick } from './random';
@@ -111,6 +111,9 @@ function cubeDrop(delay = 0) {
   [523, 659, 784, 1047].forEach((f, i) => tone(f, 0.8, 'sine', 0.04, land + 0.03 + i * 0.035));
 }
 
+/** A battle's result sting waits this long, in seconds, for the blow to land and the result to be stamped (.arena-stamp). */
+const STAMP = 0.22;
+
 export const sfx = {
   select: () => tone(880, 0.07, 'sine', 0.05),
   /** It's your move (online): two soft notes rising. `level` turns it down (in the game, where the player is watching). */
@@ -152,9 +155,61 @@ export const sfx = {
   explode: (count = 1) => {
     for (let i = 0; i < Math.min(count, MOST_BOOMS); i++) boom(boomAt(i) / 1000, i ? 0.8 : 1);
   },
-  repel: () => tone(300, 0.2, 'square', 0.03, 0, 180),
-  /** A missile fired: ignition, a screaming climb with a hissing trail, then the impact as a shot lands (beats.ts). */
-  missile: () => {
+  /** A mech beaten in a battle's strip: the blow, metal crumpling, debris and the fire catching. Its boom is for the map, as the battle closes. */
+  wreck: () => {
+    tone(jitter(90), 0.3, 'sine', 0.35, 0, 38, 0.003);
+    noise(0.09, 0.4, { type: 'bandpass', from: 2200, to: 700, q: 1.2, rise: 0.002 });
+    [0.05, 0.11, 0.19, 0.3].forEach((d, i) => tick(0.2 - i * 0.035, jitter(1100 - i * 150), d));
+    noise(0.6, 0.12, { delay: 0.06, type: 'lowpass', from: 1400, to: 250, rise: 0.05 });
+  },
+  /** An attack repelled: a thud on the defender's guard, and the guard ringing like a struck plate. */
+  repel: () => {
+    tone(jitter(120), 0.12, 'sine', 0.25, 0, 70, 0.002);
+    noise(0.04, 0.2, { type: 'highpass', from: 2500, rise: 0.001 });
+    (
+      [
+        [740, 0.05, 0.45],
+        [1130, 0.035, 0.32],
+        [1790, 0.025, 0.2],
+        [2470, 0.015, 0.12],
+      ] as const
+    ).forEach(([f, level, dur]) => tone(jitter(f, 0.03), dur, 'triangle', level, 0, undefined, 0.002));
+  },
+  /** A battle won by this screen's player, a mech destroyed: a brass stab rising, as the result is stamped. */
+  triumph: () => {
+    [196, 294, 392].forEach((f, i) => {
+      tone(f, 0.28, 'sawtooth', 0.03, STAMP + i * 0.09);
+      tone(f * 2, 0.28, 'triangle', 0.03, STAMP + i * 0.09);
+    });
+  },
+  /** A battle lost by this screen's player, its mech destroyed: low brass sinking. */
+  defeat: () => {
+    [233, 196, 147].forEach((f, i) => tone(f, i === 2 ? 0.7 : 0.26, 'sawtooth', 0.035, STAMP + i * 0.17, i === 2 ? 110 : undefined));
+    tone(73, 0.9, 'sine', 0.12, STAMP + 0.34, 49);
+  },
+  /** A shot fired in a battle's strip: the rifle's crack. */
+  gunshot: () => {
+    noise(0.05, 0.4, { type: 'highpass', from: 1800, rise: 0.001 });
+    tone(jitter(160), 0.08, 'sine', 0.2, 0, 70, 0.002);
+  },
+  /** A shot flying past its target: a falling whine, gone by. */
+  whizz: () => {
+    tone(jitter(2400), 0.35, 'sine', 0.035, 0.05, 700, 0.1);
+    noise(0.35, 0.06, { delay: 0.05, type: 'bandpass', from: 5000, to: 1400, q: 3, rise: 0.12 });
+  },
+  /** An atomic: launched, its whistle falling, then it goes off as the battle's result shows (beats.ts): a crack, a long rolling rumble, the air rushing back. */
+  atomic: () => {
+    const fall = BATTLE.atomic / 1000;
+    noise(0.12, 0.22, { type: 'lowpass', from: 900, to: 300, rise: 0.003 });
+    tone(2000, fall, 'sine', 0.035, 0.02, 420, fall * 0.3);
+    noise(fall, 0.05, { delay: 0.02, type: 'bandpass', from: 4200, to: 900, q: 1.5, rise: fall * 0.6 });
+    noise(0.07, 0.6, { delay: fall, type: 'lowpass', from: 9000, rise: 0.001 });
+    noise(2.2, 0.55, { delay: fall, type: 'lowpass', from: 1500, to: 45, q: 0.7, rise: 0.01 });
+    tone(jitter(62), 2, 'sine', 0.4, fall, 22, 0.008);
+    noise(1.5, 0.05, { delay: fall + 0.15, type: 'highpass', from: 1800, to: 5000, rise: 0.9 });
+  },
+  /** A shot on the map: ignition, a screaming climb with a hissing trail, then the impact as it lands (beats.ts). */
+  shot: () => {
     const flight = SHOT.flight / 1000;
     noise(0.12, 0.25, { type: 'lowpass', from: 900, to: 300, rise: 0.003 });
     tone(260, flight - 0.05, 'sawtooth', 0.03, 0.03, 1800, 0.05);
