@@ -1,5 +1,6 @@
 import { useEffect, useState, type CSSProperties } from 'react';
 import { combatOutcome, drawing, shipOf, type CombatPending, type CombatRole, type GameState } from '@regolith/engine';
+import { BattleVerdict } from '../components/BattleVerdict';
 import { Die3D } from '../components/Die3D';
 import { PHONE, useMediaQuery } from '../game/useMediaQuery';
 import { COMBAT_DICE } from '../theme';
@@ -21,7 +22,6 @@ export function Battle({ game, combat }: { game: GameState; combat: CombatPendin
     return () => window.clearTimeout(t);
   }, [combat.id]);
   const out = combatOutcome(game, combat);
-  const leader = game.players[combat[out.attackerWins ? 'attacker' : 'defender'].player];
   const { rows, at } = drawing(game.board);
   const low = at(combat.at).r + 0.5 > rows / 2;
 
@@ -68,13 +68,7 @@ export function Battle({ game, combat }: { game: GameState; combat: CombatPendin
           <div className="combat-vs">VS</div>
           {side('defender')}
         </div>
-        <div className={`combat-verdict ${revealed ? 'show' : ''}`} style={{ '--pc': leader.color } as CSSProperties}>
-          {revealed && (
-            <>
-              <strong>{leader.name}</strong> {out.attackerWins ? 'will destroy the defender' : 'will repel the attack'}
-            </>
-          )}
-        </div>
+        <BattleVerdict game={game} combat={combat} revealed={revealed} />
       </div>
     </div>
   );

@@ -1420,12 +1420,14 @@ svg.zones polygon {
 }
 .combat-card h2 { margin: 0 0 12px; font-family: var(--display); font-size: 13px; letter-spacing: .4em; text-transform: uppercase; color: var(--muted); }
 .combat-arena {
-  --h: 120px;
+  --h: 150px;
+  /* A fighter's picture, taller than the strip: its frame's empty top and bottom fall outside, the feet standing on the ground. */
+  --m: calc(var(--h) * 1.2);
+  --w: calc(var(--m) * 1.5);
   position: relative;
   display: flex;
   justify-content: center;
   align-items: flex-end;
-  gap: 4%;
   height: var(--h);
   margin: 0 0 12px;
   border-radius: 14px;
@@ -1433,10 +1435,59 @@ svg.zones polygon {
   background: linear-gradient(180deg, var(--sky) 0 78%, var(--ground) 78%);
 }
 /* --dir: which way the mech faces, so each side's lunge, knock-back and entrance are one rule mirrored. */
-.arena-mech { --dir: 1; height: 100%; width: auto; transition: transform .35s cubic-bezier(.2,.9,.3,1.3), filter .35s; animation: arena-in .5s cubic-bezier(.2,.9,.3,1.1); }
+.arena-fighter { position: relative; flex: none; width: var(--w); height: var(--m); margin-bottom: calc(var(--h) * -.068); }
+.arena-mech { --dir: 1; display: block; width: 100%; height: 100%; transform-origin: 50% 86%; transition: transform .35s cubic-bezier(.2,.9,.3,1.3), filter .35s; animation: arena-in .5s cubic-bezier(.2,.9,.3,1.1); }
 .arena-mech.defender { --dir: -1; }
 .arena-mech.won { transform: translateX(calc(14% * var(--dir))); }
-.arena-mech.lost { transform: translateX(calc(-10% * var(--dir))); filter: saturate(.4) brightness(1.15); }
+/* Destroyed: thrown back and over, burnt out, smoke rising from it. */
+.arena-mech.destroyed { transform: translateX(calc(-12% * var(--dir))) translateY(6%) rotate(calc(-26deg * var(--dir))); filter: grayscale(.9) brightness(.5); }
+.combat-arena.fatal { animation: arena-shake .4s linear; }
+.arena-blast { position: absolute; left: 50%; top: 46%; width: 0; height: 0; pointer-events: none; }
+.arena-blast::before, .arena-blast::after { content: ''; position: absolute; border-radius: 50%; }
+.arena-blast::before {
+  inset: calc(var(--h) * -.5);
+  background: radial-gradient(circle, #FFF3D0 0 20%, #F2B233 42%, #C8472B 58%, rgb(200 71 43 / 0) 72%);
+  animation: arena-blast .6s ease-out forwards;
+}
+.arena-blast::after {
+  inset: calc(var(--h) * -.26);
+  background: radial-gradient(circle, rgb(30 28 26 / .75) 0 35%, rgb(30 28 26 / 0) 70%);
+  animation: arena-smoke 1.8s ease-out .25s infinite both;
+}
+/* Repelled: it runs onto the defender's guard and bounces off on its feet, unhurt; the defender stands where it was. */
+.arena-mech.repelled { transform: translateX(calc(-8% * var(--dir))); animation: arena-bounce .5s cubic-bezier(.3,.7,.4,1); }
+.arena-guard {
+  position: absolute;
+  left: 20%;
+  top: 16%;
+  width: 26%;
+  height: 72%;
+  border-left: 6px solid #FFF3D0;
+  border-radius: 50%;
+  filter: drop-shadow(-1px 0 0 #1E1C1A) drop-shadow(0 0 6px #F2B233);
+  animation: arena-guard .35s cubic-bezier(.2,.9,.3,1.4);
+  pointer-events: none;
+}
+/* What happened, stamped on the mech it happened to. */
+.arena-stamp {
+  position: absolute;
+  left: 50%;
+  bottom: 18%;
+  padding: 2px 8px;
+  transform: translateX(-50%) rotate(-5deg);
+  border-radius: 3px;
+  font-family: var(--display);
+  font-weight: 900;
+  font-size: calc(var(--h) * .105);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: #F7F1E3;
+  background: #1E1C1A;
+  animation: arena-stamp .3s cubic-bezier(.2,.9,.3,1.3) .2s both;
+  pointer-events: none;
+}
+.arena-stamp.fatal { background: #B3261E; }
 .combat-arena.clash::after {
   content: '';
   position: absolute;
@@ -1450,17 +1501,17 @@ svg.zones polygon {
   animation: arena-flash .5s ease-out forwards;
   pointer-events: none;
 }
-/* A shot: the two apart, the Sniper's muzzle (--muzzle-x, --muzzle-y: fractions of its picture, as wide as 1.5 strip
-   heights, from fighterMuzzle) firing at the target's middle. No lunge: the Sniper shoots from where it stands. */
+/* A shot: the two apart, the Sniper's muzzle (--muzzle-x, --muzzle-y: fractions of its picture, from fighterMuzzle) firing at the target's middle. No lunge: the Sniper shoots from where it stands. */
 .combat-arena.ranged { justify-content: space-between; padding: 0 3%; }
 .combat-arena.ranged .arena-mech.won { transform: none; }
-.combat-arena.ranged.clash::after { left: auto; right: calc(3% + var(--h) * .6); top: 50%; animation-delay: .18s; opacity: 0; }
+.combat-arena.ranged.clash::after { left: auto; right: calc(3% + var(--w) * .4); top: 50%; animation-delay: .18s; opacity: 0; }
 .combat-arena.ranged.missed::after { display: none; }
+.combat-arena.ranged .arena-blast::before { opacity: 0; animation-delay: .18s; }
 .arena-tracer {
   position: absolute;
-  left: calc(3% + var(--h) * 1.5 * var(--muzzle-x, .75));
-  right: calc(3% + var(--h) * .6);
-  top: calc(100% * var(--muzzle-y, .5));
+  left: calc(3% + var(--w) * var(--muzzle-x, .75));
+  right: calc(3% + var(--w) * .4);
+  top: calc(var(--h) * 1.068 - var(--m) * (1 - var(--muzzle-y, .5)));
   height: 3px;
   margin-top: -1.5px;
   background: linear-gradient(90deg, rgb(242 178 51 / 0), #F2B233 70%, #FFF3D0);
@@ -1476,6 +1527,12 @@ svg.zones polygon {
 @keyframes arena-shot { 0% { clip-path: inset(0 100% 0 0); } 40% { clip-path: inset(0 0 0 0); opacity: 1; } 100% { clip-path: inset(0 0 0 85%); opacity: 0; } }
 @keyframes arena-shot-miss { 0% { clip-path: inset(0 100% 0 0); } 50% { clip-path: inset(0 0 0 0); opacity: 1; } 100% { clip-path: inset(0 0 0 90%); opacity: 0; } }
 @keyframes arena-in { from { transform: translateX(calc(-60% * var(--dir))); opacity: 0; } }
+@keyframes arena-shake { 0%, 100% { translate: 0; } 20% { translate: -5px 2px; } 40% { translate: 4px -2px; } 60% { translate: -3px 1px; } 80% { translate: 2px 0; } }
+@keyframes arena-blast { from { transform: scale(.2); opacity: 1; } 60% { opacity: 1; } to { transform: scale(1.3); opacity: 0; } }
+@keyframes arena-smoke { from { transform: translateY(10%) scale(.6); opacity: 0; } 25% { opacity: 1; } to { transform: translateY(-110%) scale(1.5); opacity: 0; } }
+@keyframes arena-bounce { 0% { transform: none; } 45% { transform: translateX(calc(16% * var(--dir))); } 100% { transform: translateX(calc(-8% * var(--dir))); } }
+@keyframes arena-guard { from { transform: scale(.5); opacity: 0; } }
+@keyframes arena-stamp { from { transform: translateX(-50%) rotate(-5deg) scale(1.8); opacity: 0; } }
 @keyframes arena-flash { from { transform: scale(.3); opacity: 1; } to { transform: scale(2.4); opacity: 0; } }
 .combat-grid { display: grid; grid-template-columns: 1fr auto 1fr; align-items: start; gap: 12px; }
 .combat-vs { align-self: center; font-family: var(--display); font-weight: 900; font-size: 22px; color: var(--muted); padding-top: 30px; }
@@ -1506,6 +1563,7 @@ svg.zones polygon {
 .combat-verdict { min-height: 24px; margin-top: 6px; font-size: 15px; opacity: 0; transition: opacity .3s; }
 .combat-verdict.show { opacity: 1; }
 .combat-verdict strong { color: var(--pc); }
+.combat-verdict b { color: var(--bad); font-weight: 800; }
 .combat-footer { margin-top: 14px; display: flex; justify-content: center; min-height: 36px; align-items: center; }
 .autobar { width: 220px; height: 4px; border-radius: 2px; background: rgba(255,255,255,.08); overflow: hidden; }
 .autobar span { display: block; height: 100%; background: var(--accent); transform-origin: left; animation: autobar 2.6s linear both; }
@@ -2192,7 +2250,7 @@ body:has(.sheet-layout) { overflow: hidden; }
 .combat-overlay:where(.compact) { padding: 8px; }
 :where(.compact) .combat-card { max-height: calc(100dvh - 16px); padding: 10px 8px 12px; border-radius: 16px; }
 :where(.compact) .combat-card h2 { margin-bottom: 8px; font-size: 11px; }
-:where(.compact) .combat-arena { --h: 72px; margin-bottom: 8px; border-radius: 10px; }
+:where(.compact) .combat-arena { --h: 88px; margin-bottom: 8px; border-radius: 10px; }
 :where(.compact) .combat-grid { gap: 4px; }
 :where(.compact) .combat-vs { padding-top: 0; font-size: 13px; }
 :where(.compact) .combat-side { min-width: 0; padding: 8px 4px; border-radius: 12px; }

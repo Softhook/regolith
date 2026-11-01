@@ -23,7 +23,7 @@ import { defaultSeat } from './seats';
  * one human (Commander) and AI opponents. `play` is a mode's id or name; `map` defaults to the
  * basic map for the player count; `seed` makes the dice the same every time. Reloading starts the
  * game again. Like any game on this device, it replaces the saved game.
- * `scene=combat|combatFull|advance|changeOfHeart|takeCard|over` opens on that popup instead, `scene=turn` on your first turn,
+ * `scene=combat|combatFull|combatDestroy|combatRepel|advance|changeOfHeart|takeCard|over` opens on that popup instead, `scene=turn` on your first turn,
  * `scene=win` one conquest from winning (to see the victory show as it happens), `scene=lose` with an AI
  * opponent one conquest from winning on its turn (to hear the lament), and
  * `scene=attackFrom` with a ship that can attack from spaces with different outcomes (see `scene`).
@@ -53,7 +53,7 @@ export function devStartGame(): GameState | null {
 /**
  * Plays every seat's first choice through setup and on to the human's (player 0's) first turn, then
  * opens a popup: `combat` (the human's ship attacks and may answer, e.g. with a missile), `combatFull` (the same at its
- * tallest: both sides roll two dice and the losing human is offered a missile), `advance` (it has won and
+ * tallest: both sides roll two dice and the losing human is offered a missile), `combatDestroy` and `combatRepel` (the two results, once the dice are in), `advance` (it has won and
  * chooses whether to advance), `changeOfHeart` (needs a mode with cards), `takeCard` (a card to pick from the market, likewise) or
  * `over` (the human has won). `win` leaves the human one cube to place, with ships orbiting a planet they can conquer;
  * `lose` stops at the next player's (an AI's) first turn instead, and leaves them so.
@@ -71,6 +71,14 @@ function scene(game: GameState, name: string): GameState {
       head.defender.dice = [low, Math.min(low + 1, 6)];
       if (missileOffered(t, head, 0, 'attacker')) break;
     }
+    return t;
+  }
+  if (name === 'combatDestroy' || name === 'combatRepel') {
+    const t = scene(game, 'combat');
+    const head = t.pending[0];
+    if (head?.kind !== 'combat') return t;
+    head.attacker.dice = [name === 'combatDestroy' ? 1 : 6];
+    head.defender.dice = [name === 'combatDestroy' ? 6 : 1];
     return t;
   }
   let s = game;

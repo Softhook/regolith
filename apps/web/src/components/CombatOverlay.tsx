@@ -25,9 +25,14 @@ import { useShortcut } from '../game/useShortcut';
 import { COMBAT_MS } from '../online/playback';
 import { COMBAT_DICE } from '../theme';
 import { MissileIcon } from './Card';
+import { BattleVerdict } from './BattleVerdict';
 import { Die3D } from './Die3D';
 
 const REVEAL_MS = 1250;
+
+/** The mech a battle's result destroys; none when the attack is only repelled. */
+const destroyedRole = (out: ReturnType<typeof combatOutcome>): CombatRole | null =>
+  out.attackerWins ? 'defender' : out.stubborn ? 'attacker' : null;
 
 type Props = Parameters<typeof Battle>[0];
 
@@ -70,8 +75,6 @@ function Battle({
   }, [combat.id]);
 
   const out = combatOutcome(game, combat);
-  const A = game.players[combat.attacker.player];
-  const D = game.players[combat.defender.player];
   const humans = game.players.filter((p) => (online ? online.responders.includes(p.id) : mine(p.id)));
   const shooters = humans.filter((p) => p.missiles > 0);
   const autoResolve = !humans.some((p) => canRespondToCombat(game, combat, p.id));
@@ -105,7 +108,6 @@ function Battle({
       rawOk?.();
     },
   );
-  const leader = out.attackerWins ? A : D;
 
   const side = (role: CombatRole) => {
     const s = combat[role];
@@ -181,7 +183,7 @@ function Battle({
           game={game}
           combat={combat}
           winner={revealed ? (out.attackerWins ? 'attacker' : 'defender') : null}
-          stubborn={out.stubborn}
+          destroyed={revealed ? destroyedRole(out) : null}
         />
         <div className="combat-grid">
           {side('attacker')}
@@ -189,18 +191,7 @@ function Battle({
           {side('defender')}
         </div>
         <p className="combat-rule">Lower total wins · attacker wins ties</p>
-        <div className={`combat-verdict ${revealed ? 'show' : ''}`} style={{ '--pc': leader.color } as CSSProperties}>
-          {revealed && (
-            <>
-              <strong>{leader.name}</strong>{' '}
-              {out.stubborn
-                ? `holds firm (${cardName('stubborn')})`
-                : out.attackerWins
-                  ? 'will destroy the defender'
-                  : 'will repel the attack'}
-            </>
-          )}
-        </div>
+        <BattleVerdict game={game} combat={combat} revealed={revealed} />
         <div className="combat-footer">
           {online?.mustAnswer ? (
             <button className="btn btn-primary" disabled={!revealed} onClick={close(online.pass)}>
@@ -232,21 +223,23 @@ function Battle({
 
 /**
  * The two mechs squared up, printed as the cards print them, under the sky and on the ground of the map's world: the attacker on
- * the left facing right, the defender facing it. Once the dice are in, the winner lunges and the loser is knocked back.
+ * the left facing right, the defender facing it. Once the dice are in, the two outcomes look nothing alike: a mech
+ * that will be destroyed is blown over and burns out under the winner's lunge; an attack that's repelled bounces off
+ * the defender's guard, and both stay on their feet in their colours.
  * A shot (`ranged`, the Sniper's Shoot) is fought apart: the Sniper braced at one end, its target at the
- * other, and the reveal fires the shot. It hits (the target is knocked back) or misses, flying past, and
- * then nobody is hurt: the Sniper is only beaten when the target holds firm.
+ * other, and the reveal fires the shot. It hits (the target is destroyed) or misses, flying past, and
+ * then nobody is hurt: the Sniper is only destroyed when the target holds firm.
  */
 function Arena({
   game,
   combat,
   winner,
-  stubborn,
+  destroyed,
 }: {
   game: GameState;
   combat: CombatPending;
   winner: CombatRole | null;
-  stubborn: boolean;
+  destroyed: CombatRole | null;
 }) {
   const a = combat.attacker;
   const d = combat.defender;
@@ -262,19 +255,29 @@ function Arena({
     return { attacker: art(a.ship, ac, false, ranged ? 'aim' : 'ready'), defender: art(d.ship, dc, true, 'ready') };
   }, [a.ship, ac, d.ship, dc, ranged]);
   const muzzle = useMemo(() => (ranged ? fighterMuzzle(a.ship, 'aim') : undefined), [a.ship, ranged]);
+  const repelled = !!winner && !destroyed;
   const missed = ranged && winner === 'defender';
-  // Knocked back: the defender when it loses; the attacker when it loses, unless its shot only missed.
-  const beaten: CombatRole | null = winner === 'attacker' ? 'defender' : winner && (!missed || stubborn) ? 'attacker' : null;
-  const fighter = (role: CombatRole) => (
-    <img
-      className={`arena-mech ${role} ${winner === role ? 'won' : ''} ${beaten === role ? 'lost' : ''}`}
-      src={beaten === role ? arts[role].struck : arts[role].standing}
-      alt={`${game.players[combat[role].player].name}'s ${shipOf(game, combat[role].ship).name}`}
-    />
-  );
+  const fighter = (role: CombatRole) => {
+    const bounced = repelled && !ranged && role === 'attacker';
+    const stamp = destroyed === role ? 'Destroyed' : repelled && role === 'attacker' ? (ranged ? 'Missed' : 'Repelled') : null;
+    return (
+      <div className="arena-fighter">
+        <img
+          className={`arena-mech ${role} ${winner === role && !repelled ? 'won' : ''} ${destroyed === role ? 'destroyed' : ''} ${bounced ? 'repelled' : ''}`}
+          src={destroyed === role ? arts[role].struck : arts[role].standing}
+          alt={`${game.players[combat[role].player].name}'s ${shipOf(game, combat[role].ship).name}`}
+        />
+        {destroyed === role && <span className="arena-blast" />}
+        {repelled && !ranged && role === 'defender' && <span className="arena-guard" />}
+        {stamp && <span className={`arena-stamp ${destroyed === role ? 'fatal' : ''}`}>{stamp}</span>}
+      </div>
+    );
+  };
   return (
     <div
-      className={['combat-arena', ranged && 'ranged', winner && 'clash', missed && 'missed'].filter(Boolean).join(' ')}
+      className={['combat-arena', ranged && 'ranged', winner && 'clash', missed && 'missed', destroyed && 'fatal']
+        .filter(Boolean)
+        .join(' ')}
       style={{ '--sky': SKY[game.board.world], '--ground': GROUND_BASE[game.board.world] } as CSSProperties}
     >
       {fighter('attacker')}
