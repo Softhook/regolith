@@ -1,6 +1,7 @@
 import { useEffect, useState, type CSSProperties } from 'react';
 import { combatOutcome, drawing, shipOf, type CombatPending, type CombatRole, type GameState } from '@regolith/engine';
 import { Die3D } from '../components/Die3D';
+import { PHONE, useMediaQuery } from '../game/useMediaQuery';
 import { COMBAT_DICE } from '../theme';
 
 /** How long the dice tumble before the totals show (the game's battle: CombatOverlay). */
@@ -13,6 +14,7 @@ const REVEAL_MS = 1250;
  */
 export function Battle({ game, combat }: { game: GameState; combat: CombatPending }) {
   const [revealed, setRevealed] = useState(false);
+  const compact = useMediaQuery(PHONE);
   useEffect(() => {
     setRevealed(false);
     const t = window.setTimeout(() => setRevealed(true), REVEAL_MS);
@@ -59,7 +61,7 @@ export function Battle({ game, combat }: { game: GameState; combat: CombatPendin
   };
 
   return (
-    <div className={`demo-battle ${low ? 'top' : 'bottom'}`} aria-live="polite">
+    <div className={`demo-battle ${low ? 'top' : 'bottom'} ${compact ? 'compact' : ''}`} aria-live="polite">
       <div className="combat-card">
         <div className="combat-grid">
           {side('attacker')}

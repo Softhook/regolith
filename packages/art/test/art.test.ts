@@ -13,6 +13,8 @@ import {
   cubePadCentres,
   PLANET_CAPACITY,
   tileSpec,
+  fighterMuzzle,
+  mechFighterSvg,
   tileSvg,
 } from '../src';
 import { CUBE_PAD } from '../src/tokens';
@@ -295,5 +297,48 @@ describe('screenprint cards', () => {
         });
         expect(svg, `${kind} ${yaw}`).not.toMatch(/NaN|undefined|Infinity/);
       }
+  });
+
+  it('keeps every battle mech in its frame, colour plate and strokes too, in every stance, either way round', () => {
+    for (let value = 1; value <= 6; value++)
+      for (const stance of ['ready', 'aim', 'struck'] as const)
+        for (const flip of [false, true]) {
+          const svg = mechFighterSvg(value, { stance, flip, plate: '#c00', size: 20 });
+          expect(svg, `${value} ${stance}`).not.toMatch(/NaN|undefined|Infinity/);
+          const places = svg.split(/<g transform="/).slice(1);
+          expect(places).toHaveLength(2);
+          for (const place of places) {
+            const [, tx, ty, sx, sy] = place.match(/^translate\(([-\d.]+),([-\d.]+)\) scale\(([-\d.]+),([-\d.]+)\)/)!.map(Number);
+            const reach = (Math.max(0, ...[...place.matchAll(/stroke-width="([\d.]+)"/g)].map((m) => Number(m[1]))) / 2) * Math.abs(sx);
+            const points = [...place.matchAll(/(?<=[ML])(-?[\d.]+),(-?[\d.]+)/g)].map((m) => [
+              tx + sx * Number(m[1]),
+              ty + sy * Number(m[2]),
+            ]);
+            expect(points.length).toBeGreaterThan(0);
+            for (const [x, y] of points) {
+              expect(x - reach, `${value} ${stance}`).toBeGreaterThanOrEqual(0);
+              expect(x + reach, `${value} ${stance}`).toBeLessThanOrEqual(30);
+              expect(y - reach, `${value} ${stance}`).toBeGreaterThanOrEqual(0);
+              expect(y + reach, `${value} ${stance}`).toBeLessThanOrEqual(20);
+            }
+          }
+        }
+  });
+
+  it("fires the battle's shot from the end of the rifle as drawn", () => {
+    const SNIPER = 5;
+    for (const stance of ['ready', 'aim', 'struck'] as const) {
+      const at = fighterMuzzle(SNIPER, stance)!;
+      const svg = mechFighterSvg(SNIPER, { stance, size: 20 });
+      const [, tx, ty, sx, sy] = svg.match(/translate\(([-\d.]+),([-\d.]+)\) scale\(([-\d.]+),([-\d.]+)\)/)!.map(Number);
+      const metal = [...svg.matchAll(new RegExp(`d="([^"]+)" fill="${ON_PAPER.gun}"`, 'g'))].flatMap((m) =>
+        [...m[1].matchAll(/(-?[\d.]+),(-?[\d.]+)/g)].map((p) => [(tx + sx * Number(p[1])) / 30, (ty + sy * Number(p[2])) / 20]),
+      );
+      // The rifle's furthest point is about its muzzle.
+      const tip = metal.reduce((far, p) => (p[0] > far[0] ? p : far));
+      expect(Math.abs(tip[0] - at.x), stance).toBeLessThan(0.03);
+      expect(Math.abs(tip[1] - at.y), stance).toBeLessThan(0.05);
+    }
+    expect(fighterMuzzle(1, 'ready')).toBeUndefined();
   });
 });

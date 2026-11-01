@@ -29,6 +29,9 @@ export function useMediaQuery(query: string): boolean {
 /** Phone-sized screens, portrait or landscape; the same query styles.css uses to shrink popups. */
 export const PHONE = '(max-width: 600px), (max-height: 500px)';
 
+/** Where the game's battle is compact (its `compact` class in styles.css): phones, and windows too short for the full one (a laptop's, under its browser's bars). */
+export const COMPACT_BATTLE = '(max-width: 600px), (max-height: 720px)';
+
 /** Short screens (phones on their side): the popups' dice shrink, as in styles.css. */
 export const SHORT = '(max-height: 500px)';
 

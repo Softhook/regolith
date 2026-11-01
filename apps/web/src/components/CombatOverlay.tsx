@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type CSSProperties } from 'react';
-import { dataUrl, mechFighterSvg } from '@regolith/art';
+import { dataUrl, fighterMuzzle, GROUND_BASE, mechFighterSvg, SKY } from '@regolith/art';
 import {
   cardName,
   shipOf,
@@ -20,7 +20,7 @@ import type { Dispatch } from '../game/useGame';
 import type { GameView } from '../game/view';
 import { COMBAT_RESOLVE_MS, humanFights } from '../game/useAiDriver';
 import { shotWait } from '../game/strike';
-import { PHONE, reducedMotion, useMediaQuery } from '../game/useMediaQuery';
+import { COMPACT_BATTLE, reducedMotion, useMediaQuery } from '../game/useMediaQuery';
 import { useShortcut } from '../game/useShortcut';
 import { COMBAT_MS } from '../online/playback';
 import { COMBAT_DICE } from '../theme';
@@ -62,7 +62,7 @@ function Battle({
   online?: GameView['combat'];
 }) {
   const [revealed, setRevealed] = useState(false);
-  const dieSize = useMediaQuery(PHONE) ? 40 : 64;
+  const compact = useMediaQuery(COMPACT_BATTLE);
   useEffect(() => {
     setRevealed(false);
     const t = window.setTimeout(() => setRevealed(true), REVEAL_MS);
@@ -125,14 +125,14 @@ function Battle({
         </div>
         <div className="combat-dice">
           <div className="combat-die-col">
-            <Die3D value={s.ship} size={dieSize} color={p.color} sound={false} />
+            <Die3D value={s.ship} size={compact ? 40 : 64} color={p.color} sound={false} />
             <span>{shipOf(game, s.ship).name}</span>
           </div>
           <span className="combat-plus">+</span>
           <div className={`combat-die-col ${s.missile ? 'missiled' : ''}`}>
             <Die3D
               value={total.roll}
-              size={dieSize}
+              size={compact ? 40 : 64}
               color={COMBAT_DICE[role].color}
               pip={COMBAT_DICE[role].pip}
               tumbleOnMount
@@ -174,7 +174,7 @@ function Battle({
   };
 
   return (
-    <div className="overlay combat-overlay" onClick={(e) => ready && e.target === e.currentTarget && ok?.()}>
+    <div className={`overlay combat-overlay ${compact ? 'compact' : ''}`} onClick={(e) => ready && e.target === e.currentTarget && ok?.()}>
       <div className="combat-card">
         <h2>Battle</h2>
         <Arena
@@ -231,8 +231,8 @@ function Battle({
 }
 
 /**
- * The two mechs squared up, printed as the cards print them: the attacker on the left facing right, the
- * defender facing it. Once the dice are in, the winner lunges and the loser is knocked back.
+ * The two mechs squared up, printed as the cards print them, under the sky and on the ground of the map's world: the attacker on
+ * the left facing right, the defender facing it. Once the dice are in, the winner lunges and the loser is knocked back.
  * A shot (`ranged`, the Sniper's Shoot) is fought apart: the Sniper braced at one end, its target at the
  * other, and the reveal fires the shot. It hits (the target is knocked back) or misses, flying past, and
  * then nobody is hurt: the Sniper is only beaten when the target holds firm.
@@ -261,6 +261,7 @@ function Arena({
     });
     return { attacker: art(a.ship, ac, false, ranged ? 'aim' : 'ready'), defender: art(d.ship, dc, true, 'ready') };
   }, [a.ship, ac, d.ship, dc, ranged]);
+  const muzzle = useMemo(() => (ranged ? fighterMuzzle(a.ship, 'aim') : undefined), [a.ship, ranged]);
   const missed = ranged && winner === 'defender';
   // Knocked back: the defender when it loses; the attacker when it loses, unless its shot only missed.
   const beaten: CombatRole | null = winner === 'attacker' ? 'defender' : winner && (!missed || stubborn) ? 'attacker' : null;
@@ -272,9 +273,12 @@ function Arena({
     />
   );
   return (
-    <div className={['combat-arena', ranged && 'ranged', winner && 'clash', missed && 'missed'].filter(Boolean).join(' ')}>
+    <div
+      className={['combat-arena', ranged && 'ranged', winner && 'clash', missed && 'missed'].filter(Boolean).join(' ')}
+      style={{ '--sky': SKY[game.board.world], '--ground': GROUND_BASE[game.board.world] } as CSSProperties}
+    >
       {fighter('attacker')}
-      {ranged && winner && <span className="arena-tracer" />}
+      {ranged && winner && <span className="arena-tracer" style={{ '--muzzle-x': muzzle?.x, '--muzzle-y': muzzle?.y } as CSSProperties} />}
       {fighter('defender')}
     </div>
   );

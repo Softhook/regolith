@@ -270,7 +270,9 @@ Keep the scrolling column, but pin what matters:
       side by side with 40px dice and tighter spacing; in phone landscape each side's roll and
       ship share a row and the rule sits beside the verdict; the battle box scrolls as a last
       resort. Change of Heart and the rules scroll their content with the heading (and ×) in view;
-      game over fits as it was.
+      game over fits as it was. The compact battle also serves windows up to 720px high (laptops, under
+      the browser's bars), with a 72px mech strip; `mobile:shots` checks that on short windows and the
+      tallest battle (`-combatFull`). Phones on their side have no strip.
 - [x] iPad portrait: the player list and log side by side (the turn panel is the sticky bar),
       log capped at 420px. The page is still ≈ 1,700px on a 4p map; the bar means you don't
       need to scroll it to act. The open market sits under the bar until you scroll (not during a

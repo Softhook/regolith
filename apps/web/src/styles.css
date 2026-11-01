@@ -1430,13 +1430,13 @@ svg.zones polygon {
   margin: 0 0 12px;
   border-radius: 14px;
   overflow: hidden;
-  background: linear-gradient(180deg, #EDE6D6 0 78%, #D9CDB4 78%);
+  background: linear-gradient(180deg, var(--sky) 0 78%, var(--ground) 78%);
 }
 /* --dir: which way the mech faces, so each side's lunge, knock-back and entrance are one rule mirrored. */
 .arena-mech { --dir: 1; height: 100%; width: auto; transition: transform .35s cubic-bezier(.2,.9,.3,1.3), filter .35s; animation: arena-in .5s cubic-bezier(.2,.9,.3,1.1); }
 .arena-mech.defender { --dir: -1; }
 .arena-mech.won { transform: translateX(calc(14% * var(--dir))); }
-.arena-mech.lost { transform: translateX(calc(-10% * var(--dir))) rotate(calc(-6deg * var(--dir))); filter: saturate(.4) brightness(1.15); }
+.arena-mech.lost { transform: translateX(calc(-10% * var(--dir))); filter: saturate(.4) brightness(1.15); }
 .combat-arena.clash::after {
   content: '';
   position: absolute;
@@ -1445,25 +1445,28 @@ svg.zones polygon {
   width: 46px;
   height: 46px;
   margin: -23px;
-  background: radial-gradient(circle, #F2B233 0 30%, rgb(242 178 51 / 0) 70%);
+  /* A white-hot middle: amber alone is lost against the dusty skies of Deimos and Mars. */
+  background: radial-gradient(circle, #FFF3D0 0 16%, #F2B233 34%, rgb(242 178 51 / 0) 70%);
   animation: arena-flash .5s ease-out forwards;
   pointer-events: none;
 }
-/* A shot: the two apart, the Sniper's muzzle (about 0.9 across and 0.41 down its picture, as wide as 1.5 strip
-   heights) firing at the target's middle. No lunge: the Sniper shoots from where it stands. */
+/* A shot: the two apart, the Sniper's muzzle (--muzzle-x, --muzzle-y: fractions of its picture, as wide as 1.5 strip
+   heights, from fighterMuzzle) firing at the target's middle. No lunge: the Sniper shoots from where it stands. */
 .combat-arena.ranged { justify-content: space-between; padding: 0 3%; }
 .combat-arena.ranged .arena-mech.won { transform: none; }
 .combat-arena.ranged.clash::after { left: auto; right: calc(3% + var(--h) * .6); top: 50%; animation-delay: .18s; opacity: 0; }
 .combat-arena.ranged.missed::after { display: none; }
 .arena-tracer {
   position: absolute;
-  left: calc(3% + var(--h) * 1.35);
+  left: calc(3% + var(--h) * 1.5 * var(--muzzle-x, .75));
   right: calc(3% + var(--h) * .6);
-  top: 41%;
+  top: calc(100% * var(--muzzle-y, .5));
   height: 3px;
   margin-top: -1.5px;
   background: linear-gradient(90deg, rgb(242 178 51 / 0), #F2B233 70%, #FFF3D0);
   border-radius: 2px;
+  /* A key-ink edge: amber alone is lost against the dusty skies. */
+  filter: drop-shadow(0 0 1px #1E1C1A);
   transform-origin: left center;
   animation: arena-shot .45s cubic-bezier(.3,.7,.4,1) forwards;
   pointer-events: none;
@@ -2181,26 +2184,29 @@ body:has(.sheet-layout) { overflow: hidden; }
   .card-choice.wrap > .qcard-md .qcard-name { font-size: clamp(12px, 9cqi, 17px); }
   .card-choice.wrap > .qcard-md .qcard-text { font-size: clamp(10px, 6.4cqi, 13px); }
 
-  /* Battle on phones: attacker and defender stay side by side (stacked, the battle was twice the
-     screen's height), with smaller dice (CombatOverlay) and less space around everything. */
-  .combat-card { max-height: calc(100dvh - 16px); padding: 10px 8px 12px; border-radius: 16px; }
-  .combat-card h2 { margin-bottom: 8px; font-size: 11px; }
-  .combat-arena { --h: 72px; margin-bottom: 8px; border-radius: 10px; }
-  .combat-grid { gap: 4px; }
-  .combat-vs { padding-top: 0; font-size: 13px; }
-  .combat-side { min-width: 0; padding: 8px 4px; border-radius: 12px; }
-  .combat-who strong { font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .combat-dice { gap: 6px; margin: 8px 0 4px; }
-  .combat-die-col { gap: 6px; }
-  .combat-die-col > span { font-size: 10px; }
-  .combat-plus { font-size: 15px; margin-bottom: 18px; }
-  .combat-parts { font-size: 11.5px; padding: 0 4px; }
-  .combat-total { font-size: 26px; margin-top: 0; }
-  .combat-side .btn-missile { padding: 6px; font-size: 11px; line-height: 1.25; }
-  .combat-rule { margin-top: 8px; font-size: 11px; }
-  .combat-verdict { margin-top: 2px; font-size: 13.5px; }
-  .combat-footer { margin-top: 6px; }
 }
+
+/* The compact battle (`compact`: the game's on phones and short windows, COMPACT_BATTLE; the tutorial's on phones):
+   attacker and defender stay side by side (stacked, the battle was twice a phone's height), with a lower strip,
+   smaller dice (CombatOverlay) and less space around everything. :where keeps these as weak as plain class rules. */
+.combat-overlay:where(.compact) { padding: 8px; }
+:where(.compact) .combat-card { max-height: calc(100dvh - 16px); padding: 10px 8px 12px; border-radius: 16px; }
+:where(.compact) .combat-card h2 { margin-bottom: 8px; font-size: 11px; }
+:where(.compact) .combat-arena { --h: 72px; margin-bottom: 8px; border-radius: 10px; }
+:where(.compact) .combat-grid { gap: 4px; }
+:where(.compact) .combat-vs { padding-top: 0; font-size: 13px; }
+:where(.compact) .combat-side { min-width: 0; padding: 8px 4px; border-radius: 12px; }
+:where(.compact) .combat-who strong { font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+:where(.compact) .combat-dice { gap: 6px; margin: 8px 0 4px; }
+:where(.compact) .combat-die-col { gap: 6px; }
+:where(.compact) .combat-die-col > span { font-size: 10px; }
+:where(.compact) .combat-plus { font-size: 15px; margin-bottom: 18px; }
+:where(.compact) .combat-parts { font-size: 11.5px; padding: 0 4px; }
+:where(.compact) .combat-total { font-size: 26px; margin-top: 0; }
+:where(.compact) .combat-side .btn-missile { padding: 6px; font-size: 11px; line-height: 1.25; }
+:where(.compact) .combat-rule { margin-top: 8px; font-size: 11px; }
+:where(.compact) .combat-verdict { margin-top: 2px; font-size: 13.5px; }
+:where(.compact) .combat-footer { margin-top: 6px; }
 /* Battle on landscape phones (≈ 340px high): each side's roll and ship on one row, and the rule beside
    the verdict, so Resolve battle stays on screen. */
 @media (max-height: 500px) {
@@ -2209,8 +2215,13 @@ body:has(.sheet-layout) { overflow: hidden; }
   .topbar .btn { padding-top: 5px; padding-bottom: 5px; }
   .combat-parts { display: flex; justify-content: center; gap: 12px; max-width: none; }
   .combat-parts li { gap: 4px; }
-  .combat-rule, .combat-verdict { display: inline-block; vertical-align: baseline; margin: 8px 6px 0; min-height: 0; }
+  .combat-rule, .combat-verdict { display: inline-block; vertical-align: baseline; margin: 4px 6px 0; min-height: 0; }
   .combat-arena { display: none; }
+  .combat-card { padding: 6px 8px 8px; }
+  .combat-card h2 { margin-bottom: 4px; }
+  .combat-who { flex-direction: row; justify-content: center; align-items: baseline; gap: 6px; }
+  .combat-who strong { min-width: 0; }
+  .combat-footer { margin-top: 4px; }
 
   /* Landscape phones: about 340px of height for the whole popup. */
   .modal { padding: 12px 20px; }

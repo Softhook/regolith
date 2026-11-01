@@ -16,6 +16,12 @@ interface Seg {
   parts: readonly Part[];
 }
 
+/** A forearm in `held.hands`: where it runs from and to. */
+export interface Reach {
+  elbow: readonly [number, number];
+  hand: readonly [number, number];
+}
+
 export interface Rig {
   /** Height to the top, for framing. */
   height: number;
@@ -44,8 +50,16 @@ export interface Rig {
   armSplay?: number;
   /** Drawn after the arms: masts, dishes. */
   top?: readonly Part[];
-  /** Held across the body (the Sniper's rifle, in its own `frame`, and the hands on it), turning about `pivot` with the pose's `aim`. */
-  held?: { pivot: readonly [number, number]; frame: string; gun: readonly Part[]; hands: readonly Part[] };
+  /** Held across the body (the Sniper's rifle, in its own `frame`, and the hands on it), turning about `pivot` with the pose's `aim`. Each of `hands` is a forearm and fist, and `reach` where each runs from its elbow to its hand (the arm at x > 0's first). */
+  held?: {
+    pivot: readonly [number, number];
+    frame: string;
+    gun: readonly Part[];
+    hands: readonly Part[];
+    reach?: readonly Reach[];
+    /** Where it fires from, in its `frame`. */
+    muzzle: readonly [number, number];
+  };
   /** Drawn larger than the board's units (the Wisp). */
   scale?: number;
 }
@@ -400,6 +414,11 @@ export const RIGS: Record<MechKind, Rig> = {
         ['k', 'M50,-156 L62,-142 L20,-134 L14,-148 Z M6,-152 L20,-152 L20,-136 L6,-136 Z'],
         ['k', 'M-62,-150 L-48,-144 L-30,-200 L-42,-206 Z M-46,-214 L-30,-210 L-32,-196 L-46,-200 Z'],
       ],
+      reach: [
+        { elbow: [55, -148], hand: [13, -144] },
+        { elbow: [-55, -147], hand: [-38, -205] },
+      ],
+      muzzle: [172, -2],
     },
   },
   // 6: a sensor dome on four tall spindly legs, splayed forward and back.

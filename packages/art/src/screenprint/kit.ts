@@ -51,6 +51,9 @@ export const GROUND: Record<World, { ground: string; shade: string; light: strin
   mars: { ground: INKS.oxide, shade: '#9C4A26', light: INKS.dust },
 };
 
+/** Each world's sky colour, where a scene isn't on bare paper (the battle strip). */
+export const SKY: Record<World, string> = { phobos: GROUND.phobos.light, deimos: GROUND.deimos.light, mars: GROUND.mars.light };
+
 /** The halftone screens, once per card: the key ink's, bone's, and the ground shade's. */
 export function screens(s: Stage): string {
   const dot = (id: string, size: number, r: number, fill: string, angle = 30) =>

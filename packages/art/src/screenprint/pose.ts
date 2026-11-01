@@ -1,6 +1,6 @@
 import { n } from '../svg';
 import { mono, type MechInk } from './inks';
-import { RIGS, type MechKind, type Rig } from './mechs';
+import { RIGS, type MechKind, type Reach, type Rig } from './mechs';
 
 /**
  * A mech posed and printed (mechs.ts has the rigs). Angles are in degrees on the page, clockwise positive,
@@ -13,6 +13,9 @@ import { RIGS, type MechKind, type Rig } from './mechs';
  * about the upright axis; legs can splay out of the front plane; and each group (a leg, the hull, an arm) is
  * drawn far to near. Of a part's walls only those facing the viewer print: the upward ones in the top ink, the
  * rest in the side ink, its front over them.
+ *
+ * `legs` and `arms` turn a limb in the mech's front plane, out to its side. A limb that steps or reaches goes fore
+ * and aft instead (`swing`, `plant`), hinged on the joint's cross axis: it stays clear of the hull beside it.
  */
 export interface Pose {
   /** Turned towards the viewer: + brings its `plus` side nearer, − its `minus` side. ±35 reads well. */
@@ -21,10 +24,21 @@ export interface Pose {
   pitch?: number;
   /** The upper body leaning about the hips: + clockwise. */
   lean?: number;
+  /** The upper body bowing about the hip axis: + forward, − back. */
+  tilt?: number;
   legs?: { plus?: readonly number[]; minus?: readonly number[] };
   arms?: { plus?: readonly number[]; minus?: readonly number[] };
+  /** Limbs hinged fore and aft, each segment's added to the one before: + forward, so a knee bends −, an elbow +. */
+  swing?: {
+    legs?: { plus?: readonly number[]; minus?: readonly number[] };
+    arms?: { plus?: readonly number[]; minus?: readonly number[] };
+  };
+  /** Both feet flat on the ground and the knees worked out to suit (instead of `swing.legs`): the hips dropped by `crouch`, each foot forward (+) of its hip, as fractions of the leg's length. */
+  plant?: { crouch: number; plus: number; minus: number };
   /** The held rifle's turn about its grip (the Sniper): + clockwise. */
   aim?: number;
+  /** The rifle brought up (the Sniper): turned this far forward in plan, the leading arm's hand at the muzzle end and the arms reaching to their grips wherever it points. */
+  shoulder?: number;
   /** Mid-refit: one arm off, drawn as the mech without it (`mech`) or as that arm alone (`arm`). */
   detach?: { arm: 'plus' | 'minus'; show: 'mech' | 'arm' };
 }
@@ -44,32 +58,84 @@ export interface Placing {
 type Part = Rig['hull'][number];
 type Pt = [number, number];
 type P3 = [number, number, number];
-/** An affine map: x' = a x + c y + e, y' = b x + d y + f. */
-type M = readonly [number, number, number, number, number, number];
+/** An affine map in 3D, by columns: x' = a x + d y + g z + j, and so on. */
+type M = readonly [number, number, number, number, number, number, number, number, number, number, number, number];
 
-const I: M = [1, 0, 0, 1, 0, 0];
+const I: M = [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0];
 /** `m` after `k`: k applied first. */
-const mul = (m: M, k: M): M => [
-  m[0] * k[0] + m[2] * k[1],
-  m[1] * k[0] + m[3] * k[1],
-  m[0] * k[2] + m[2] * k[3],
-  m[1] * k[2] + m[3] * k[3],
-  m[0] * k[4] + m[2] * k[5] + m[4],
-  m[1] * k[4] + m[3] * k[5] + m[5],
-];
-const shift = (x: number, y: number): M => [1, 0, 0, 1, x, y];
-const turn = (deg: number, cx = 0, cy = 0): M => {
-  const a = (deg * Math.PI) / 180;
-  return mul(shift(cx, cy), mul([Math.cos(a), Math.sin(a), -Math.sin(a), Math.cos(a), 0, 0], shift(-cx, -cy)));
+const mul = (m: M, k: M): M => {
+  const col = (i: number, w: 0 | 1) => [0, 1, 2].map((r) => m[r] * k[i] + m[3 + r] * k[i + 1] + m[6 + r] * k[i + 2] + (w ? m[9 + r] : 0));
+  return [...col(0, 0), ...col(3, 0), ...col(6, 0), ...col(9, 1)] as unknown as M;
 };
-const at = (m: M, [x, y]: Pt): Pt => [m[0] * x + m[2] * y + m[4], m[1] * x + m[3] * y + m[5]];
+const shift = (x: number, y: number, z = 0): M => [1, 0, 0, 0, 1, 0, 0, 0, 1, x, y, z];
+/** The linear map `l` about the point (`x`, `y`, `z`). */
+const about = (l: M, x: number, y: number, z = 0): M => mul(shift(x, y, z), mul(l, shift(-x, -y, -z)));
+const trig = (deg: number) => [Math.cos((deg * Math.PI) / 180), Math.sin((deg * Math.PI) / 180)];
+/** Turned on the page about (cx, cy). */
+const turn = (deg: number, cx = 0, cy = 0): M => {
+  const [c, s] = trig(deg);
+  return about([c, s, 0, -s, c, 0, 0, 0, 1, 0, 0, 0], cx, cy);
+};
+/** Hinged about the cross axis at height `cy`: + takes what hangs below it forward. */
+const hinge = (deg: number, cy = 0): M => {
+  const [c, s] = trig(deg);
+  return about([1, 0, 0, 0, c, s, 0, -s, c, 0, 0, 0], 0, cy);
+};
+/** Turned in plan about the upright through (cx, cz): + takes x > 0 forward. */
+const inPlan = (deg: number, cx = 0, cz = 0): M => {
+  const [c, s] = trig(deg);
+  return about([c, 0, s, 0, 1, 0, -s, 0, c, 0, 0, 0], cx, 0, cz);
+};
+const at = (m: M, [x, y, z = 0]: readonly [number, number, number?]): P3 => [
+  m[0] * x + m[3] * y + m[6] * z + m[9],
+  m[1] * x + m[4] * y + m[7] * z + m[10],
+  m[2] * x + m[5] * y + m[8] * z + m[11],
+];
+
+const minus = (a: P3, b: P3): P3 => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+const dot = (a: P3, b: P3) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+const unit = (a: P3): P3 => {
+  const l = Math.hypot(...a) || 1;
+  return [a[0] / l, a[1] / l, a[2] / l];
+};
+/** The shortest turn taking direction `a` to direction `b`. */
+function align(a: P3, b: P3): M {
+  const [p, q] = [unit(a), unit(b)];
+  const [x, y, z] = [p[1] * q[2] - p[2] * q[1], p[2] * q[0] - p[0] * q[2], p[0] * q[1] - p[1] * q[0]];
+  const k = 1 / (1 + dot(p, q));
+  return [
+    1 - k * (y * y + z * z),
+    z + k * x * y,
+    -y + k * x * z,
+    -z + k * x * y,
+    1 - k * (x * x + z * z),
+    x + k * y * z,
+    y + k * x * z,
+    -x + k * y * z,
+    1 - k * (x * x + y * y),
+    0,
+    0,
+    0,
+  ];
+}
+/** A rigid limb's elbow, lengths `a` then `b` from `s` to `g`, bent towards `pole` (the limb straight where `g` is out of reach). */
+function elbow(s: P3, g: P3, a: number, b: number, pole: P3): P3 {
+  const v = minus(g, s);
+  const d = Math.min(Math.hypot(...v), a + b);
+  const u = unit(v);
+  const c = (a * a - b * b + d * d) / (2 * d);
+  const h = Math.sqrt(Math.max(0, a * a - c * c));
+  const k = dot(pole, u);
+  const up = unit([pole[0] - u[0] * k, pole[1] - u[1] * k, pole[2] - u[2] * k]);
+  return [0, 1, 2].map((i) => s[i] + u[i] * c + up[i] * h) as unknown as P3;
+}
 
 /** An SVG transform list of `translate`, `rotate` and `scale`, as a map. */
 function transform(list: string): M {
   let m = I;
   for (const [, fn, args] of list.matchAll(/(\w+)\(([^)]*)\)/g)) {
     const [p, q] = args.split(/[ ,]+/).map(Number);
-    m = mul(m, fn === 'translate' ? shift(p, q ?? 0) : fn === 'rotate' ? turn(p) : [p, 0, 0, q ?? p, 0, 0]);
+    m = mul(m, fn === 'translate' ? shift(p, q ?? 0) : fn === 'rotate' ? turn(p) : [p, 0, 0, 0, q ?? p, 0, 0, 0, 1, 0, 0, 0]);
   }
   return m;
 }
@@ -169,6 +235,8 @@ interface Item {
   z: number;
   t: number;
   h: number;
+  /** The map to order it by, where its own would tip it out of its stack (a hull's parts lean together). */
+  rest?: M;
   round?: boolean;
   wrap?: (p: Pt) => number;
   /** Part of a leg's foot: the rest of the leg stands on it. */
@@ -213,14 +281,26 @@ const legAngles = (a: readonly number[] = [], segs: number) => {
 };
 
 /** The maps of a limb's segments, each turned about its pivot and carrying the next. */
-function chainMaps(segs: Rig['leg'], angles: readonly number[], base: M): M[] {
+function chainMaps(segs: Rig['leg'], angles: readonly number[], base: M, swings: readonly number[] = []): M[] {
   const maps: M[] = [];
   let m = base;
   segs.forEach((s, i) => {
-    m = mul(m, turn(angles[i] ?? 0, s.pivot[0], s.pivot[1]));
+    m = mul(mul(m, turn(angles[i] ?? 0, s.pivot[0], s.pivot[1])), hinge(swings[i] ?? 0, s.pivot[1]));
     maps.push(m);
   });
   return maps;
+}
+
+/** A leg's fore-and-aft hip and knee, its hips dropped by `crouch` and its ankle `forward` of them, as fractions of its length. */
+function plantLeg(rig: Rig, crouch: number, forward: number): [number, number] {
+  const a = Math.abs(rig.leg[1].pivot[1] - rig.leg[0].pivot[1]);
+  const b = Math.abs(rig.leg[2].pivot[1] - rig.leg[1].pivot[1]);
+  const [down, on] = [(a + b) * (1 - crouch), (a + b) * forward];
+  const d = Math.min(Math.hypot(down, on), a + b - 0.01);
+  const deg = 180 / Math.PI;
+  const thigh = Math.acos((a * a + d * d - b * b) / (2 * a * d)) * deg;
+  const shin = Math.acos((b * b + d * d - a * a) / (2 * b * d)) * deg;
+  return [Math.atan2(on, down) * deg + thigh, -(thigh + shin)];
 }
 
 /** The mech's parts placed, in groups, in board units. */
@@ -230,16 +310,24 @@ function groups(rig: Rig, pose: Pose): Group[] {
   const legA = (s: 1 | -1) => legAngles(s > 0 ? pose.legs?.plus : pose.legs?.minus, rig.leg.length).map((a) => a * s);
   const armA = (s: 1 | -1) =>
     Array.from({ length: rig.arm.length }, (_, i) => ((s > 0 ? pose.arms?.plus : pose.arms?.minus)?.[i] ?? 0) * s);
-  const mirror = (s: 1 | -1): M => [s, 0, 0, 1, 0, 0];
+  const mirror = (s: 1 | -1): M => [s, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0];
+  // Fore and aft: a planted leg's thigh and knee from where its foot stands, the foot left flat.
+  const legSwing = (s: 1 | -1): readonly number[] => {
+    const side = s > 0 ? 'plus' : 'minus';
+    const set = pose.plant ? plantLeg(rig, pose.plant.crouch, pose.plant[side]) : (pose.swing?.legs?.[side] ?? []);
+    return legAngles(set, rig.leg.length);
+  };
+  const armSwing = (s: 1 | -1) => pose.swing?.arms?.[s > 0 ? 'plus' : 'minus'] ?? [];
   // Stand on the lowest foot: how far each ankle rises.
   const ankleRise = (s: 1 | -1) => {
     if (rig.leg.length < 3) return 0;
-    const maps = chainMaps(rig.leg, legA(s), I);
+    const maps = chainMaps(rig.leg, legA(s), I, legSwing(s));
     const ankle = rig.leg[rig.leg.length - 1].pivot;
-    return at(maps[rig.leg.length - 2], [ankle[0], ankle[1]])[1] - ankle[1];
+    return at(maps[rig.leg.length - 2], ankle)[1] - ankle[1];
   };
   const ground = shift(0, -Math.max(ankleRise(1), ankleRise(-1)));
-  const upper = mul(ground, turn(pose.lean ?? 0, 0, rig.leg[0].pivot[1]));
+  const hipY = rig.leg[0].pivot[1];
+  const upper = mul(mul(ground, turn(pose.lean ?? 0, 0, hipY)), hinge(-(pose.tilt ?? 0), hipY));
   const item = (part: Part, m: M, z: number, t: number, h = 0): Item => ({
     part,
     m,
@@ -253,7 +341,7 @@ function groups(rig: Rig, pose: Pose): Group[] {
   const shape = rig.leg.map((_, i) => rig.legShape?.[i] ?? LEG[i] ?? { z: 0, t: 1 });
   (rig.splay ?? [0]).forEach((splay, pair) => {
     for (const s of [1, -1] as const) {
-      const maps = chainMaps(rig.leg, legA(s), mul(ground, mirror(s)));
+      const maps = chainMaps(rig.leg, legA(s), mul(ground, mirror(s)), legSwing(s));
       const h = (s * splay * Math.PI) / 180;
       const x = s * rig.leg[0].pivot[0];
       const hipZ = limbT * 0.2;
@@ -293,17 +381,46 @@ function groups(rig: Rig, pose: Pose): Group[] {
     z: 0,
     seq: 2,
     items: [
-      ...rig.hull.map((p) => item(p, upper, 0, hullT)),
-      ...(rig.round ?? []).map((p) => ({ ...item(p, upper, 0, hullT), round: true })),
+      ...rig.hull.map((p) => ({ ...item(p, upper, 0, hullT), rest: ground })),
+      ...(rig.round ?? []).map((p) => ({ ...item(p, upper, 0, hullT), round: true, rest: ground })),
       ...rig.detail.map((p) => ({ ...item(p, upper, hullT / 2, 0), wrap })),
     ],
   });
   const armShape = rig.arm.map((_, i) => rig.armShape?.[i] ?? ARM[i] ?? { z: 0, t: 1 });
   const armSplay = rig.armSplay ?? 0;
   const detached = pose.detach && (pose.detach.arm === 'plus' ? 1 : -1);
+  // The rifle's map, and, brought up, each arm reaching for the other's grip: the leading arm to the muzzle end.
+  const rifleZ = hullT / 2 + 6;
+  const held = rig.held;
+  const aimed = held ? turn(pose.aim ?? 0, held.pivot[0], held.pivot[1]) : I;
+  const grip = held ? mul(mul(upper, pose.shoulder ? inPlan(pose.shoulder, held.pivot[0], rifleZ) : I), aimed) : I;
+  const brought = pose.shoulder && held?.reach;
+  const reachFor = (brought: readonly Reach[], s: 1 | -1) => {
+    const [mine, other] = s > 0 ? brought : [brought[1], brought[0]];
+    const handZ = rifleZ + 2;
+    const shoulder = at(mul(upper, mirror(s)), rig.arm[0].pivot);
+    const [elbow0, hand0] = [at(upper, [...mine.elbow, handZ]), at(upper, [...mine.hand, handZ])];
+    const upperArm0 = at(upper, mine.elbow);
+    const target = at(grip, [...other.hand, handZ]);
+    const bend = elbow(shoulder, target, Math.hypot(...minus(upperArm0, shoulder)), Math.hypot(...minus(hand0, elbow0)), [
+      s * 0.5,
+      1,
+      -0.2,
+    ]);
+    return {
+      arm: mul(about(align(minus(upperArm0, shoulder), minus(bend, shoulder)), ...shoulder), mul(upper, mirror(s))),
+      hand: mul(
+        mul(shift(...bend), mul(align(minus(hand0, elbow0), minus(target, bend)), shift(-elbow0[0], -elbow0[1], -elbow0[2]))),
+        upper,
+      ),
+    };
+  };
+  // The arm at x > 0's, then the mirrored one's, as `held.hands` are.
+  const reached = brought ? [reachFor(brought, 1), reachFor(brought, -1)] : undefined;
   for (const s of [1, -1] as const) {
     if (!rig.arm.length || (s === detached && pose.detach?.show === 'mech')) continue;
-    const maps = chainMaps(rig.arm, armA(s), mul(upper, mirror(s)));
+    const reach = reached?.[s > 0 ? 0 : 1];
+    const maps = reach ? [reach.arm] : chainMaps(rig.arm, armA(s), mul(upper, mirror(s)), armSwing(s));
     const extra = s > 0 ? rig.armExtra?.plain : rig.armExtra?.mirror;
     const h = (s * armSplay * Math.PI) / 180;
     const x = s * rig.arm[0].pivot[0];
@@ -319,18 +436,18 @@ function groups(rig: Rig, pose: Pose): Group[] {
     });
   }
   if (pose.detach?.show === 'arm') return out.filter((g) => g.seq === (detached === 1 ? 3 : 4));
-  if (rig.held) {
-    const grip = mul(upper, turn(pose.aim ?? 0, rig.held.pivot[0], rig.held.pivot[1]));
-    const z = hullT / 2 + 6;
-    const gun = mul(grip, transform(rig.held.frame));
-    out.push({
-      x: 0,
-      z,
-      seq: 5,
-      items: [...rig.held.gun.map((p) => item(p, gun, z, 8)), ...rig.held.hands.map((p) => item(p, grip, z + 2, 8))],
+  if (held) {
+    const gun = mul(grip, transform(held.frame));
+    const gunRest = mul(mul(ground, aimed), transform(held.frame));
+    const hands = held.hands.map((p, i) => {
+      const reach = reached?.[i];
+      return { ...item(p, reach?.hand ?? grip, rifleZ + 2, 8), rest: reach ? undefined : mul(ground, aimed) };
     });
+    const rifle = held.gun.map((p) => ({ ...item(p, gun, rifleZ, 8), rest: gunRest }));
+    if (brought) out.push({ x: 0, z: rifleZ, seq: 5, items: rifle }, { x: 0, z: rifleZ + 1, seq: 5, items: hands });
+    else out.push({ x: 0, z: rifleZ, seq: 5, items: [...rifle, ...hands] });
   }
-  if (rig.top) out.push({ x: 0, z: 0, seq: 6, items: rig.top.map((p) => item(p, upper, 0, limbT * 0.5)) });
+  if (rig.top) out.push({ x: 0, z: 0, seq: 6, items: rig.top.map((p) => ({ ...item(p, upper, 0, limbT * 0.5), rest: ground })) });
   return out;
 }
 
@@ -406,8 +523,8 @@ const pieces = (it: Item): Item[] => {
  * over a nearer one's sides. A part goes after any `before` it, then by the depth of its front (the hull's seams
  * and lights last); parts at one depth share a layer.
  */
-function layers(items: Item[], before: (a: Item, b: Item) => boolean): Item[][] {
-  const front = (it: Item) => (it.wrap ? Infinity : Math.round(it.z + it.t / 2));
+function layers(items: Item[], before: (a: Item, b: Item) => boolean, depth: (it: Item) => number): Item[][] {
+  const front = (it: Item) => (it.wrap ? Infinity : Math.round(depth(it)));
   const rest = [...items].sort((a, b) => front(a) - front(b));
   const out: Item[][] = [];
   while (rest.length) {
@@ -424,8 +541,8 @@ function layers(items: Item[], before: (a: Item, b: Item) => boolean): Item[][] 
   return out;
 }
 
-/** The mech drawn in board units in `c`. */
-function drawn(rig: Rig, pose: Pose, c: MechInk): string {
+/** How a pose is seen: turned, then looked down on. */
+function camera(pose: Pose) {
   const deg = Math.PI / 180;
   const yaw = (pose.yaw ?? 0) * deg;
   const pitch = (pose.pitch ?? (pose.yaw ? 14 : 0)) * deg;
@@ -433,8 +550,16 @@ function drawn(rig: Rig, pose: Pose, c: MechInk): string {
   // Turned about the upright axis (+ yaw brings x > 0 nearer), then seen from above: nearer drops down the page.
   const view = ([x, y, z]: P3): Pt => [x * cy - z * sy, y * cp + (x * sy + z * cy) * sp];
   const nearness = ([x, y, z]: P3) => (x * sy + z * cy) * cp - y * sp;
-  // A point in a part's front plane at depth `w`, turned in plan by its splay.
-  const space = (it: Item, [x, y]: Pt, w: number): P3 => {
+  return { sy, cy, pitch, view, nearness };
+}
+
+/** The mech drawn in board units in `c`. */
+function drawn(rig: Rig, pose: Pose, c: MechInk): string {
+  const deg = Math.PI / 180;
+  const { sy, cy, pitch, view, nearness } = camera(pose);
+  // A point of a part at depth `w`, placed, then turned in plan by its splay.
+  const space = (it: Item, [px, py]: Pt, pw: number): P3 => {
+    const [x, y, w] = at(it.m, [px, py, pw]);
     const h = it.h * deg;
     return [x * Math.cos(h) - w * Math.sin(h), y, x * Math.sin(h) + w * Math.cos(h)];
   };
@@ -447,16 +572,18 @@ function drawn(rig: Rig, pose: Pose, c: MechInk): string {
   const boxes = new Map<Item, { x0: number; x1: number; y0: number; y1: number; z0: number; z1: number }>();
   const box = (it: Item) => {
     if (!boxes.has(it)) {
-      const ps = outlinesOf(it.part[1]).flatMap((o) => o.pts.map((p) => at(it.m, p)));
-      const xs = ps.map((p) => p[0]);
-      const ys = ps.map((p) => p[1]);
+      const m = it.rest ?? it.m;
+      const ps = outlinesOf(it.part[1]).flatMap((o) =>
+        o.pts.flatMap(([x, y]) => [at(m, [x, y, it.z - it.t / 2]), at(m, [x, y, it.z + it.t / 2])]),
+      );
+      const [xs, ys, zs] = [0, 1, 2].map((i) => ps.map((p) => p[i]));
       boxes.set(it, {
         x0: Math.min(...xs),
         x1: Math.max(...xs),
         y0: Math.min(...ys),
         y1: Math.max(...ys),
-        z0: it.z - it.t / 2,
-        z1: it.z + it.t / 2,
+        z0: Math.min(...zs),
+        z1: Math.max(...zs),
       });
     }
     return boxes.get(it)!;
@@ -479,7 +606,7 @@ function drawn(rig: Rig, pose: Pose, c: MechInk): string {
   // Front on, the parts print in the rig's order, as drawn.
   const turned = Math.abs(sy) > 0.01 || !!pitch;
   for (const { g } of ordered)
-    for (const items of turned || g.items.some((it) => it.h) ? layers(g.items.flatMap(pieces), before) : [g.items]) {
+    for (const items of turned || g.items.some((it) => it.h) ? layers(g.items.flatMap(pieces), before, (it) => box(it).z1) : [g.items]) {
       // The layer's walls facing the viewer first, far to near, then its fronts over them.
       const walls: { q: Pt[]; near: number; top: boolean }[] = [];
       if (turned || items.some((it) => it.h))
@@ -487,23 +614,24 @@ function drawn(rig: Rig, pose: Pose, c: MechInk): string {
           if (!it.t || it.round || it.part[0] === 'pf' || it.part[0] === 'j') continue;
           for (const o of outlinesOf(it.part[1])) {
             if (!o.closed) continue;
-            const body = o.pts.map((p) => at(it.m, p));
+            const body = o.pts;
             const sign = area(body) > 0 ? 1 : -1;
             const back = body.map((p) => space(it, p, it.z - it.t / 2));
             const front = body.map((p) => space(it, p, it.z + it.t / 2));
+            const origin = space(it, [0, 0], 0);
             body.forEach((a, i) => {
               const b = body[(i + 1) % body.length];
               const [nx, ny] = [(b[1] - a[1]) * sign, (a[0] - b[0]) * sign];
               const len = Math.hypot(nx, ny) || 1;
-              const n = space(it, [nx / len, ny / len], 0);
-              if (nearness(n) - nearness([0, 0, 0]) <= 0.01) return;
+              const out = minus(space(it, [nx / len, ny / len], 0), origin);
+              if (nearness(out) <= 0.01) return;
               const j = (i + 1) % body.length;
               const q = [back[i], back[j], front[j], front[i]];
               const page = q.map(view);
               walls.push({
                 q: area(page) < 0 ? page.reverse() : page,
                 near: q.reduce((s, p) => s + nearness(p), 0) / 4,
-                top: it.part[0] === 'r' ? false : ny / len < -0.55,
+                top: it.part[0] === 'r' ? false : out[1] < -0.55,
               });
             });
           }
@@ -529,7 +657,7 @@ function drawn(rig: Rig, pose: Pose, c: MechInk): string {
           const ring = ([r, y]: Pt) =>
             Array.from({ length: 24 }, (_, k) => {
               const a = (k / 24) * 2 * Math.PI;
-              return view(space(it, at(it.m, [r * Math.cos(a), y]), it.z + r * Math.sin(a)));
+              return view(space(it, [r * Math.cos(a), y], it.z + r * Math.sin(a)));
             });
           const bands = half.slice(1).map((p, i) => ({ d: path(hull([...ring(half[i]), ...ring(p)]), true), a: half[i], b: p }));
           face = bands.map((b) => b.d).join(' ');
@@ -542,15 +670,20 @@ function drawn(rig: Rig, pose: Pose, c: MechInk): string {
             out += `<path d="${face}" fill="${fill[kind]}"/><path d="${cap.join(' ')}" fill="${c.top}"/>`;
             continue;
           }
-        } else
+        } else {
+          // Its front, or, hinged past facing the viewer, its back.
+          const facing = nearness(minus(space(it, [0, 0], 1), space(it, [0, 0], 0))) >= 0 ? 1 : -1;
           face = outlinesOf(d)
             .map((o) =>
               path(
-                (it.wrap ? finer(o.pts, o.closed) : o.pts).map((p) => view(space(it, at(it.m, p), it.wrap ? it.wrap(p) : it.z + it.t / 2))),
+                (it.wrap ? finer(o.pts, o.closed) : o.pts).map((p) =>
+                  view(space(it, p, it.wrap ? it.wrap(p) : it.z + (facing * it.t) / 2)),
+                ),
                 o.closed,
               ),
             )
             .join(' ');
+        }
         if (FILLS.has(kind)) {
           const seam =
             // Turned, the blocks read by their inks alone: no line round a front.
@@ -566,6 +699,21 @@ function drawn(rig: Rig, pose: Pose, c: MechInk): string {
       }
     }
   return out;
+}
+
+/** Where a mech's held gun fires from on the page, in mm; undefined for a mech that holds none. */
+export function muzzle(kind: MechKind, o: Pick<Placing, 'x' | 'y' | 'size' | 'flip' | 'pose'>): Pt | undefined {
+  const rig = RIGS[kind];
+  const pose = o.pose ?? {};
+  const gun =
+    rig.held &&
+    groups(rig, pose)
+      .flatMap((g) => g.items)
+      .find((it) => it.part === rig.held?.gun[0]);
+  if (!gun || !rig.held) return undefined;
+  const [x, y] = camera(pose).view(at(gun.m, [...rig.held.muzzle, gun.z]));
+  const s = o.size * (rig.scale ?? 1);
+  return [o.x + (o.flip ? -s : s) * x, o.y + s * y];
 }
 
 /** A mech posed and placed, with its colour plate under it. */

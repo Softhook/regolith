@@ -13,9 +13,10 @@
  * than its stage, a page wider than the screen (the phone then zooms the page out), a setup popup
  * whose buttons or cards are off screen without scrolling, or something you'd have to scroll to (or
  * that is covered) while placing your ships or on your turn, or the turn bar over the board.
- * Then each device opens the in-game popups (`-combat`, `-changeOfHeart`, `-over`, `-rules`, see
+ * Then each device opens the in-game popups (`-combat`, `-combatFull`, `-changeOfHeart`, `-over`, `-rules`, see
  * POPUPS): the popup must fit the screen, and its buttons must be on screen without scrolling inside
  * it (Change of Heart and the rules scroll their content, so only their heading and × must show).
+ * Short desktop windows (SHORT_WINDOWS) open the popups too.
  * Each device also opens the lobby (`-lobby`): every control of the new-game form must be inside its card, its segmented control and on screen.
  * On touch screens it also pinches, pans and fits the map on your turn (checkZoom; Chrome only).
  */
@@ -31,6 +32,14 @@ const DEVICES: Record<string, BrowserContextOptions> = {
   'ipad-mini-landscape': devices['iPad Mini landscape'],
 };
 
+/** Windows short enough that the popups must shrink, without a phone's width or touch: only the popups are checked. */
+const SHORT_WINDOWS: Record<string, BrowserContextOptions> = {
+  'laptop-1366x625': { viewport: { width: 1366, height: 625 } },
+  'laptop-1024x600': { viewport: { width: 1024, height: 600 } },
+  'window-1024x520': { viewport: { width: 1024, height: 520 } },
+  'window-1280x721': { viewport: { width: 1280, height: 721 } },
+};
+
 /** A small, a wide (open ground, 8 tiles across), a typical 4-player and the largest map. */
 const GAMES = [
   { play: 'basic', players: 2, map: 'alpha-hex' },
@@ -39,13 +48,16 @@ const GAMES = [
   { play: 'regolith', players: 4, map: 'utopia-planitia' },
 ];
 
+const COMBAT_MUST = '.combat-card h2, .combat-total, .combat-verdict, .combat-card button';
+
 /**
  * The in-game popups, opened through the dev link's `scene` (the rules from the topbar on your turn). `must` lists
  * what has to be on screen without scrolling inside the popup. A card pick isn't a popup: the market opens (on a
  * phone, in the bottom sheet) and every card you may take must be on screen, which a sideways scroll broke.
  */
 const POPUPS: { name: string; play: string; scene: string; must: string; box?: string }[] = [
-  { name: 'combat', play: 'regolith', scene: 'combat', must: '.combat-card h2, .combat-total, .combat-card button' },
+  { name: 'combat', play: 'regolith', scene: 'combat', must: COMBAT_MUST },
+  { name: 'combatFull', play: 'regolith', scene: 'combatFull', must: COMBAT_MUST },
   {
     name: 'changeOfHeart',
     play: 'regolith',
@@ -328,8 +340,18 @@ async function main() {
   mkdirSync(OUT, { recursive: true });
 
   const problems: string[] = [];
+  /** Checks a device's or window's popups: its line in the results. */
+  const popups = async (device: string, options: BrowserContextOptions) => {
+    const issues = await checkPopups(
+      async () => (await browser.newContext({ ...options, ignoreHTTPSErrors: true })).newPage(),
+      base,
+      device,
+    );
+    problems.push(...issues.map((i) => `${device}: ${i}`));
+    return `${`${device} popups`.padEnd(36)} ${POPUPS.map((p) => p.name).join(', ')}  ${issues.length ? '✗ ' + issues.join('; ') : '✓'}`;
+  };
   try {
-    // Devices run side by side (each plays its games in turn); results print in the usual order.
+    // Devices and short windows run side by side (each device plays its games in turn); results print in the usual order.
     const results = await Promise.all(
       Object.entries(DEVICES).map(async ([device, options]) => {
         const lines: string[] = [];
@@ -417,19 +439,12 @@ async function main() {
         await lobbyPage.context().close();
         lines.push(`${`${device} lobby`.padEnd(36)} ${lobbyIssues.length ? '✗ ' + lobbyIssues.join('; ') : '✓'}`);
         problems.push(...lobbyIssues.map((i) => `${device}: ${i}`));
-        const popIssues = await checkPopups(
-          async () => (await browser.newContext({ ...options, ignoreHTTPSErrors: true })).newPage(),
-          base,
-          device,
-        );
-        lines.push(
-          `${`${device} popups`.padEnd(36)} ${POPUPS.map((p) => p.name).join(', ')}  ${popIssues.length ? '✗ ' + popIssues.join('; ') : '✓'}`,
-        );
-        problems.push(...popIssues.map((i) => `${device}: ${i}`));
+        lines.push(await popups(device, options));
         return lines;
       }),
     );
-    console.log(results.flat().join('\n'));
+    const windows = await Promise.all(Object.entries(SHORT_WINDOWS).map(([device, options]) => popups(device, options)));
+    console.log([...results.flat(), ...windows].join('\n'));
   } finally {
     await browser.close();
     await server.close();
