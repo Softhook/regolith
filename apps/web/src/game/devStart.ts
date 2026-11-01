@@ -11,6 +11,7 @@ import {
   orbitals,
   MODES,
   tryApply,
+  type CombatPending,
   type GameState,
   type PlayerId,
 } from '@regolith/engine';
@@ -50,6 +51,27 @@ export function devStartGame(): GameState | null {
   return q.get('scene') ? scene(game, q.get('scene')!) : game;
 }
 
+/** The `combat` scene's variants: how each sets the battle's dice. */
+const COMBAT_RIGS: Record<string, (battle: CombatPending, game: GameState) => void> = {
+  combatFull(battle, game) {
+    battle.attacker.dice = [5, 6];
+    game.players[0].missiles = 2;
+    // The defender's two dice, the lowest whose total an atomic would turn the battle against.
+    for (const low of [1, 2, 3, 4, 5, 6]) {
+      battle.defender.dice = [low, Math.min(low + 1, 6)];
+      if (missileOffered(game, battle, 0, 'attacker')) break;
+    }
+  },
+  combatDestroy(battle) {
+    battle.attacker.dice = [1];
+    battle.defender.dice = [6];
+  },
+  combatRepel(battle) {
+    battle.attacker.dice = [6];
+    battle.defender.dice = [1];
+  },
+};
+
 /**
  * Plays every seat's first choice through setup and on to the human's (player 0's) first turn, then
  * opens a popup: `combat` (the human's ship attacks and may answer, e.g. with a missile), `combatFull` (the same at its
@@ -60,25 +82,11 @@ export function devStartGame(): GameState | null {
  * `turn`, or a scene that can't be set up, stops at that turn.
  */
 function scene(game: GameState, name: string): GameState {
-  if (name === 'combatFull') {
+  const rig = COMBAT_RIGS[name];
+  if (rig) {
     const t = scene(game, 'combat');
     const head = t.pending[0];
-    if (head?.kind !== 'combat') return t;
-    head.attacker.dice = [5, 6];
-    t.players[0].missiles = 2;
-    // The defender's two dice, the lowest whose total an atomic would turn the battle against.
-    for (const low of [1, 2, 3, 4, 5, 6]) {
-      head.defender.dice = [low, Math.min(low + 1, 6)];
-      if (missileOffered(t, head, 0, 'attacker')) break;
-    }
-    return t;
-  }
-  if (name === 'combatDestroy' || name === 'combatRepel') {
-    const t = scene(game, 'combat');
-    const head = t.pending[0];
-    if (head?.kind !== 'combat') return t;
-    head.attacker.dice = [name === 'combatDestroy' ? 1 : 6];
-    head.defender.dice = [name === 'combatDestroy' ? 6 : 1];
+    if (head?.kind === 'combat') rig(head, t);
     return t;
   }
   let s = game;

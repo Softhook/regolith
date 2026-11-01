@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type CSSProperties } from 'react';
-import { dataUrl, fighterMuzzle, GROUND_BASE, mechFighterSvg, SKY } from '@regolith/art';
+import { dataUrl, fighterMuzzle, GROUND_BASE, mechFighterSvg, SKY, type FighterStance } from '@regolith/art';
 import {
   cardName,
   shipOf,
@@ -20,19 +20,13 @@ import type { Dispatch } from '../game/useGame';
 import type { GameView } from '../game/view';
 import { COMBAT_RESOLVE_MS, humanFights } from '../game/useAiDriver';
 import { shotWait } from '../game/strike';
+import { useBattleReveal } from '../game/useBattleReveal';
 import { COMPACT_BATTLE, reducedMotion, useMediaQuery } from '../game/useMediaQuery';
 import { useShortcut } from '../game/useShortcut';
 import { COMBAT_MS } from '../online/playback';
-import { COMBAT_DICE } from '../theme';
 import { MissileIcon } from './Card';
+import { BattleSide } from './BattleSide';
 import { BattleVerdict } from './BattleVerdict';
-import { Die3D } from './Die3D';
-
-const REVEAL_MS = 1250;
-
-/** The mech a battle's result destroys; none when the attack is only repelled. */
-const destroyedRole = (out: ReturnType<typeof combatOutcome>): CombatRole | null =>
-  out.attackerWins ? 'defender' : out.stubborn ? 'attacker' : null;
 
 type Props = Parameters<typeof Battle>[0];
 
@@ -66,13 +60,8 @@ function Battle({
   /** Online: who the battle waits for; it resolves once everyone who may respond is done. */
   online?: GameView['combat'];
 }) {
-  const [revealed, setRevealed] = useState(false);
+  const revealed = useBattleReveal(combat.id);
   const compact = useMediaQuery(COMPACT_BATTLE);
-  useEffect(() => {
-    setRevealed(false);
-    const t = window.setTimeout(() => setRevealed(true), REVEAL_MS);
-    return () => window.clearTimeout(t);
-  }, [combat.id]);
 
   const out = combatOutcome(game, combat);
   const humans = game.players.filter((p) => (online ? online.responders.includes(p.id) : mine(p.id)));
@@ -111,59 +100,42 @@ function Battle({
 
   const side = (role: CombatRole) => {
     const s = combat[role];
-    const p = game.players[s.player];
-    const total = role === 'attacker' ? out.attacker : out.defender;
-    const winning = revealed && (role === 'attacker') === out.attackerWins;
+    const total = out[role];
     // The dice show the ship and the roll; listed are only what else counts: a card that sets the
     // roll (not a missile: its die says so) and bonuses.
     const rollPart = total.parts.find((part) => part.kind === 'roll');
     const bonuses = total.parts.filter((part) => part.kind === 'modifier');
     const setBy = rollPart?.set && !s.missile && total.roll !== Math.min(...s.dice) ? rollPart.label : null;
     return (
-      <div className={`combat-side ${role} ${winning ? 'winning' : ''}`} style={{ '--pc': p.color } as CSSProperties}>
-        <div className="combat-who">
-          <small>{role === 'attacker' ? 'Attacker' : 'Defender'}</small>
-          <strong>{p.name}</strong>
-        </div>
-        <div className="combat-dice">
-          <div className="combat-die-col">
-            <Die3D value={s.ship} size={compact ? 40 : 64} color={p.color} sound={false} />
-            <span>{shipOf(game, s.ship).name}</span>
-          </div>
-          <span className="combat-plus">+</span>
-          <div className={`combat-die-col ${s.missile ? 'missiled' : ''}`}>
-            <Die3D
-              value={total.roll}
-              size={compact ? 40 : 64}
-              color={COMBAT_DICE[role].color}
-              pip={COMBAT_DICE[role].pip}
-              tumbleOnMount
-              delay={role === 'attacker' ? 0 : 0.12}
-              sound={role === 'attacker'}
-            />
-            <span>{s.missile ? 'Atomic' : role === 'attacker' ? 'Attack die' : 'Defence die'}</span>
-          </div>
-        </div>
-        <ul className={`combat-parts ${revealed ? 'show' : ''}`}>
-          {setBy && (
-            <li>
-              <span>{setBy}</span>
-              <b>roll {total.roll}</b>
-            </li>
-          )}
-          {bonuses.map((part, i) => (
-            <li key={i}>
-              <span>{part.label}</span>
-              <b>{signed(part.value)}</b>
-            </li>
-          ))}
-          {s.dice.length > 1 && !rollPart?.set && (
-            <li className="muted">
-              {cardName('brutal')}: rolled {s.dice.join(' & ')}
-            </li>
-          )}
-        </ul>
-        <div className={`combat-total ${revealed ? 'show' : ''}`}>{revealed ? total.total : '?'}</div>
+      <BattleSide
+        game={game}
+        combat={combat}
+        role={role}
+        revealed={revealed}
+        dieSize={compact ? 40 : 64}
+        sound
+        parts={
+          <ul className={`combat-parts ${revealed ? 'show' : ''}`}>
+            {setBy && (
+              <li>
+                <span>{setBy}</span>
+                <b>roll {total.roll}</b>
+              </li>
+            )}
+            {bonuses.map((part, i) => (
+              <li key={i}>
+                <span>{part.label}</span>
+                <b>{signed(part.value)}</b>
+              </li>
+            ))}
+            {s.dice.length > 1 && !rollPart?.set && (
+              <li className="muted">
+                {cardName('brutal')}: rolled {s.dice.join(' & ')}
+              </li>
+            )}
+          </ul>
+        }
+      >
         {revealed &&
           shooters.map((sh) => (
             <MissileButton key={sh.id} game={game} combat={combat} role={role} shooter={sh} named={humans.length > 1} dispatch={dispatch} />
@@ -171,7 +143,7 @@ function Battle({
         {revealed && !s.missile && total.roll === 1 && shooters.some((sh) => sh.id === s.player) && (
           <p className="missile-note">{'Roll is already 1 — an atomic can’t help.'}</p>
         )}
-      </div>
+      </BattleSide>
     );
   };
 
@@ -179,12 +151,7 @@ function Battle({
     <div className={`overlay combat-overlay ${compact ? 'compact' : ''}`} onClick={(e) => ready && e.target === e.currentTarget && ok?.()}>
       <div className="combat-card">
         <h2>Battle</h2>
-        <Arena
-          game={game}
-          combat={combat}
-          winner={revealed ? (out.attackerWins ? 'attacker' : 'defender') : null}
-          destroyed={revealed ? destroyedRole(out) : null}
-        />
+        <Arena game={game} combat={combat} winner={revealed ? out.winner : null} destroyed={revealed ? out.destroyed : null} />
         <div className="combat-grid">
           {side('attacker')}
           <div className="combat-vs">VS</div>
@@ -248,7 +215,7 @@ function Arena({
   const ranged = !!combat.ranged;
   // Both stances of both mechs, made once a battle: the swap on the reveal mustn't wait on a redraw.
   const arts = useMemo(() => {
-    const art = (ship: number, plate: string, flip: boolean, stance: 'ready' | 'aim') => ({
+    const art = (ship: number, plate: string, flip: boolean, stance: FighterStance) => ({
       standing: dataUrl(mechFighterSvg(ship, { flip, plate, stance })),
       struck: dataUrl(mechFighterSvg(ship, { flip, plate, stance: 'struck' })),
     });
@@ -256,20 +223,22 @@ function Arena({
   }, [a.ship, ac, d.ship, dc, ranged]);
   const muzzle = useMemo(() => (ranged ? fighterMuzzle(a.ship, 'aim') : undefined), [a.ship, ranged]);
   const repelled = !!winner && !destroyed;
+  const bounced = repelled && !ranged;
   const missed = ranged && winner === 'defender';
   const fighter = (role: CombatRole) => {
-    const bounced = repelled && !ranged && role === 'attacker';
-    const stamp = destroyed === role ? 'Destroyed' : repelled && role === 'attacker' ? (ranged ? 'Missed' : 'Repelled') : null;
+    const hit = destroyed === role;
+    const attacker = role === 'attacker';
+    const stamp = hit ? 'Destroyed' : repelled && attacker ? (ranged ? 'Missed' : 'Repelled') : null;
     return (
       <div className="arena-fighter">
         <img
-          className={`arena-mech ${role} ${winner === role && !repelled ? 'won' : ''} ${destroyed === role ? 'destroyed' : ''} ${bounced ? 'repelled' : ''}`}
-          src={destroyed === role ? arts[role].struck : arts[role].standing}
+          className={`arena-mech ${role} ${destroyed && !hit ? 'won' : ''} ${hit ? 'destroyed' : ''} ${bounced && attacker ? 'repelled' : ''}`}
+          src={hit ? arts[role].struck : arts[role].standing}
           alt={`${game.players[combat[role].player].name}'s ${shipOf(game, combat[role].ship).name}`}
         />
-        {destroyed === role && <span className="arena-blast" />}
-        {repelled && !ranged && role === 'defender' && <span className="arena-guard" />}
-        {stamp && <span className={`arena-stamp ${destroyed === role ? 'fatal' : ''}`}>{stamp}</span>}
+        {hit && <span className="arena-blast" />}
+        {bounced && !attacker && <span className="arena-guard" />}
+        {stamp && <span className={`arena-stamp ${hit ? 'fatal' : ''}`}>{stamp}</span>}
       </div>
     );
   };

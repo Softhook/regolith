@@ -434,6 +434,8 @@ describe('passive skills and rule hooks', () => {
     const { out } = total(['r-stubborn'], 1, { p1d0: [7, 3, 6] });
     expect(out.attackerWins).toBe(false);
     expect(out.stubborn).toBe(true);
+    expect(out.winner).toBe('defender');
+    expect(out.destroyed).toBe('attacker');
   });
 
   /** Whether the current player can conquer the middle 8 with these ships (in its orbit) and skills. */

@@ -1424,6 +1424,13 @@ svg.zones polygon {
   /* A fighter's picture, taller than the strip: its frame's empty top and bottom fall outside, the feet standing on the ground. */
   --m: calc(var(--h) * 1.2);
   --w: calc(var(--m) * 1.5);
+  /* How far a fighter's frame hangs below the strip, its feet on the ground. */
+  --sink: calc(var(--h) * .068);
+  /* A shot: how far in from the ends the two stand, and where on its frame the target is hit. */
+  --inset: 3%;
+  --target: .4;
+  --hot: #FFF3D0;
+  --key: #1E1C1A;
   position: relative;
   display: flex;
   justify-content: center;
@@ -1434,8 +1441,8 @@ svg.zones polygon {
   overflow: hidden;
   background: linear-gradient(180deg, var(--sky) 0 78%, var(--ground) 78%);
 }
+.arena-fighter { position: relative; flex: none; width: var(--w); height: var(--m); margin-bottom: calc(var(--sink) * -1); }
 /* --dir: which way the mech faces, so each side's lunge, knock-back and entrance are one rule mirrored. */
-.arena-fighter { position: relative; flex: none; width: var(--w); height: var(--m); margin-bottom: calc(var(--h) * -.068); }
 .arena-mech { --dir: 1; display: block; width: 100%; height: 100%; transform-origin: 50% 86%; transition: transform .35s cubic-bezier(.2,.9,.3,1.3), filter .35s; animation: arena-in .5s cubic-bezier(.2,.9,.3,1.1); }
 .arena-mech.defender { --dir: -1; }
 .arena-mech.won { transform: translateX(calc(14% * var(--dir))); }
@@ -1446,7 +1453,7 @@ svg.zones polygon {
 .arena-blast::before, .arena-blast::after { content: ''; position: absolute; border-radius: 50%; }
 .arena-blast::before {
   inset: calc(var(--h) * -.5);
-  background: radial-gradient(circle, #FFF3D0 0 20%, #F2B233 42%, #C8472B 58%, rgb(200 71 43 / 0) 72%);
+  background: radial-gradient(circle, var(--hot) 0 20%, var(--gold) 42%, #C8472B 58%, rgb(200 71 43 / 0) 72%);
   animation: arena-blast .6s ease-out forwards;
 }
 .arena-blast::after {
@@ -1462,9 +1469,9 @@ svg.zones polygon {
   top: 16%;
   width: 26%;
   height: 72%;
-  border-left: 6px solid #FFF3D0;
+  border-left: 6px solid var(--hot);
   border-radius: 50%;
-  filter: drop-shadow(-1px 0 0 #1E1C1A) drop-shadow(0 0 6px #F2B233);
+  filter: drop-shadow(-1px 0 0 var(--key)) drop-shadow(0 0 6px var(--gold));
   animation: arena-guard .35s cubic-bezier(.2,.9,.3,1.4);
   pointer-events: none;
 }
@@ -1483,7 +1490,7 @@ svg.zones polygon {
   text-transform: uppercase;
   white-space: nowrap;
   color: #F7F1E3;
-  background: #1E1C1A;
+  background: var(--key);
   animation: arena-stamp .3s cubic-bezier(.2,.9,.3,1.3) .2s both;
   pointer-events: none;
 }
@@ -1497,27 +1504,27 @@ svg.zones polygon {
   height: 46px;
   margin: -23px;
   /* A white-hot middle: amber alone is lost against the dusty skies of Deimos and Mars. */
-  background: radial-gradient(circle, #FFF3D0 0 16%, #F2B233 34%, rgb(242 178 51 / 0) 70%);
+  background: radial-gradient(circle, var(--hot) 0 16%, var(--gold) 34%, rgb(242 178 51 / 0) 70%);
   animation: arena-flash .5s ease-out forwards;
   pointer-events: none;
 }
 /* A shot: the two apart, the Sniper's muzzle (--muzzle-x, --muzzle-y: fractions of its picture, from fighterMuzzle) firing at the target's middle. No lunge: the Sniper shoots from where it stands. */
-.combat-arena.ranged { justify-content: space-between; padding: 0 3%; }
+.combat-arena.ranged { justify-content: space-between; padding: 0 var(--inset); }
 .combat-arena.ranged .arena-mech.won { transform: none; }
-.combat-arena.ranged.clash::after { left: auto; right: calc(3% + var(--w) * .4); top: 50%; animation-delay: .18s; opacity: 0; }
+.combat-arena.ranged.clash::after { left: auto; right: calc(var(--inset) + var(--w) * var(--target)); top: 50%; animation-delay: .18s; opacity: 0; }
 .combat-arena.ranged.missed::after { display: none; }
 .combat-arena.ranged .arena-blast::before { opacity: 0; animation-delay: .18s; }
 .arena-tracer {
   position: absolute;
-  left: calc(3% + var(--w) * var(--muzzle-x, .75));
-  right: calc(3% + var(--w) * .4);
-  top: calc(var(--h) * 1.068 - var(--m) * (1 - var(--muzzle-y, .5)));
+  left: calc(var(--inset) + var(--w) * var(--muzzle-x, .75));
+  right: calc(var(--inset) + var(--w) * var(--target));
+  top: calc(var(--h) + var(--sink) - var(--m) * (1 - var(--muzzle-y, .5)));
   height: 3px;
   margin-top: -1.5px;
-  background: linear-gradient(90deg, rgb(242 178 51 / 0), #F2B233 70%, #FFF3D0);
+  background: linear-gradient(90deg, rgb(242 178 51 / 0), var(--gold) 70%, var(--hot));
   border-radius: 2px;
   /* A key-ink edge: amber alone is lost against the dusty skies. */
-  filter: drop-shadow(0 0 1px #1E1C1A);
+  filter: drop-shadow(0 0 1px var(--key));
   transform-origin: left center;
   animation: arena-shot .45s cubic-bezier(.3,.7,.4,1) forwards;
   pointer-events: none;

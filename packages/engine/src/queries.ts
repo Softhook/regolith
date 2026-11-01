@@ -735,7 +735,10 @@ export function combatOutcome(state: GameState, combat: CombatPending) {
   const attackerWins = a.total < d.total || (tie && !stubbornDefence);
   // Stubborn: when the defender wins (ties included), the attacker is destroyed.
   const stubborn = stubbornDefence && !attackerWins;
-  return { attacker: a, defender: d, attackerWins, stubborn };
+  const winner: CombatRole = attackerWins ? 'attacker' : 'defender';
+  // The mech the result destroys; none when the attack is only repelled.
+  const destroyed: CombatRole | null = attackerWins ? 'defender' : stubborn ? 'attacker' : null;
+  return { attacker: a, defender: d, attackerWins, stubborn, winner, destroyed };
 }
 
 /**

@@ -395,8 +395,8 @@ function groups(rig: Rig, pose: Pose): Group[] {
   const aimed = held ? turn(pose.aim ?? 0, held.pivot[0], held.pivot[1]) : I;
   const grip = held ? mul(mul(upper, pose.shoulder ? inPlan(pose.shoulder, held.pivot[0], rifleZ) : I), aimed) : I;
   const brought = pose.shoulder && held?.reach;
-  const reachFor = (brought: readonly Reach[], s: 1 | -1) => {
-    const [mine, other] = s > 0 ? brought : [brought[1], brought[0]];
+  const reachFor = (grips: readonly Reach[], s: 1 | -1) => {
+    const [mine, other] = s > 0 ? grips : [grips[1], grips[0]];
     const handZ = rifleZ + 2;
     const shoulder = at(mul(upper, mirror(s)), rig.arm[0].pivot);
     const [elbow0, hand0] = [at(upper, [...mine.elbow, handZ]), at(upper, [...mine.hand, handZ])];
@@ -705,13 +705,13 @@ function drawn(rig: Rig, pose: Pose, c: MechInk): string {
 export function muzzle(kind: MechKind, o: Pick<Placing, 'x' | 'y' | 'size' | 'flip' | 'pose'>): Pt | undefined {
   const rig = RIGS[kind];
   const pose = o.pose ?? {};
-  const gun =
-    rig.held &&
-    groups(rig, pose)
-      .flatMap((g) => g.items)
-      .find((it) => it.part === rig.held?.gun[0]);
-  if (!gun || !rig.held) return undefined;
-  const [x, y] = camera(pose).view(at(gun.m, [...rig.held.muzzle, gun.z]));
+  const { held } = rig;
+  if (!held) return undefined;
+  const gun = groups(rig, pose)
+    .flatMap((g) => g.items)
+    .find((it) => it.part === held.gun[0]);
+  if (!gun) return undefined;
+  const [x, y] = camera(pose).view(at(gun.m, [...held.muzzle, gun.z]));
   const s = o.size * (rig.scale ?? 1);
   return [o.x + (o.flip ? -s : s) * x, o.y + s * y];
 }

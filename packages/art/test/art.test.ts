@@ -229,6 +229,13 @@ describe('press test', () => {
   });
 });
 
+/** The first mech in `svg`: its translate and its scale. */
+const placement = (svg: string) =>
+  svg
+    .match(/translate\(([-\d.]+),([-\d.]+)\) scale\(([-\d.]+),([-\d.]+)\)/)!
+    .slice(1)
+    .map(Number);
+
 describe('screenprint cards', () => {
   type RegolithRawCard = (typeof regolithCards.skills | typeof regolithCards.tactics | typeof regolithCards.expansion)[number];
   const decks: [CardDeck, RegolithRawCard[]][] = [
@@ -308,7 +315,7 @@ describe('screenprint cards', () => {
           const places = svg.split(/<g transform="/).slice(1);
           expect(places).toHaveLength(2);
           for (const place of places) {
-            const [, tx, ty, sx, sy] = place.match(/^translate\(([-\d.]+),([-\d.]+)\) scale\(([-\d.]+),([-\d.]+)\)/)!.map(Number);
+            const [tx, ty, sx, sy] = placement(place);
             const reach = (Math.max(0, ...[...place.matchAll(/stroke-width="([\d.]+)"/g)].map((m) => Number(m[1]))) / 2) * Math.abs(sx);
             const points = [...place.matchAll(/(?<=[ML])(-?[\d.]+),(-?[\d.]+)/g)].map((m) => [
               tx + sx * Number(m[1]),
@@ -330,7 +337,7 @@ describe('screenprint cards', () => {
     for (const stance of ['ready', 'aim', 'struck'] as const) {
       const at = fighterMuzzle(SNIPER, stance)!;
       const svg = mechFighterSvg(SNIPER, { stance, size: 20 });
-      const [, tx, ty, sx, sy] = svg.match(/translate\(([-\d.]+),([-\d.]+)\) scale\(([-\d.]+),([-\d.]+)\)/)!.map(Number);
+      const [tx, ty, sx, sy] = placement(svg);
       const metal = [...svg.matchAll(new RegExp(`d="([^"]+)" fill="${ON_PAPER.gun}"`, 'g'))].flatMap((m) =>
         [...m[1].matchAll(/(-?[\d.]+),(-?[\d.]+)/g)].map((p) => [(tx + sx * Number(p[1])) / 30, (ty + sy * Number(p[2])) / 20]),
       );

@@ -45,7 +45,7 @@ export const mechDieSvg = (value: number, size = 20): string =>
   document(mechDie(value, size / 2, size / 2, size), { x: 0, y: 0, w: size, h: size });
 
 /** How a mech stands in a battle: squared up to strike (`ready`), braced to shoot (`aim`, the Sniper's), or knocked back, beaten (`struck`). */
-type Stance = 'ready' | 'aim' | 'struck';
+export type FighterStance = 'ready' | 'aim' | 'struck';
 
 /** Side on enough that what reaches forward reads, its far side leading: the far foot ahead, the near one behind. */
 const SQUARED_UP: Pose = { yaw: -48, plant: { crouch: 0.1, plus: 0.3, minus: -0.28 } };
@@ -96,7 +96,7 @@ const FIGHTER_WIDTH = 1.5;
  * A fighter posed and placed in its frame. Sized and placed so every mech fits in every stance: a pose swings the
  * feet below the mech's origin, and the arms and gun out to the frame's edges.
  */
-function fighter(value: number, stance: Stance, flip: boolean | undefined, size: number) {
+function fighter(value: number, stance: FighterStance, flip: boolean | undefined, size: number) {
   const kind = MECH_OF[value];
   const rig = RIGS[kind];
   const stances = STANCES[kind];
@@ -116,7 +116,7 @@ function fighter(value: number, stance: Stance, flip: boolean | undefined, size:
  * The mech a die value is, alone and squared up for a battle: facing right (left when `flip`), in key ink with
  * its colour plate (`plate`, the player's colour) off register under it. An SVG document `size` mm tall.
  */
-export function mechFighterSvg(value: number, o: { stance?: Stance; flip?: boolean; plate?: string; size?: number } = {}): string {
+export function mechFighterSvg(value: number, o: { stance?: FighterStance; flip?: boolean; plate?: string; size?: number } = {}): string {
   const size = o.size ?? 20;
   const { kind, place } = fighter(value, o.stance ?? 'ready', o.flip, size);
   const body = mech(kind, {
@@ -128,7 +128,7 @@ export function mechFighterSvg(value: number, o: { stance?: Stance; flip?: boole
 }
 
 /** Where a fighter facing right fires from, as fractions of its picture's width and height; undefined for a mech with no gun in its hands. */
-export function fighterMuzzle(value: number, stance: Stance): { x: number; y: number } | undefined {
+export function fighterMuzzle(value: number, stance: FighterStance): { x: number; y: number } | undefined {
   const { kind, place } = fighter(value, stance, false, 1);
   const at = muzzle(kind, place);
   return at && { x: at[0] / FIGHTER_WIDTH, y: at[1] };
