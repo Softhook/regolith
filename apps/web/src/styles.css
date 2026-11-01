@@ -1389,6 +1389,16 @@ svg.zones polygon {
 .card-art-ph { background: linear-gradient(180deg, var(--sheet-1), var(--sheet-2)); animation: card-art-pulse 1.2s ease-in-out infinite alternate; }
 @keyframes card-art-pulse { to { opacity: .5; } }
 .card-art-badge { position: absolute; top: 8px; right: 8px; padding: 2px 8px; border-radius: 999px; background: rgb(var(--shade) / .85); color: #fff; font-weight: 700; font-size: 13px; box-shadow: 0 0 0 1px rgba(255,255,255,.25); }
+/*
+ * Two printed cards to choose from, as large as the popup's width and the screen's height allow. --pick-around is
+ * what the screen's height must leave for the popup's edges, heading and subtitle.
+ */
+.card-pick { --pick-around: 190px; flex: 0 1 min(240px, calc((100vh - var(--pick-around)) * 63.5 / 88.9)); flex-basis: min(240px, calc((100dvh - var(--pick-around)) * 63.5 / 88.9)); min-width: 0; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; border-radius: 4.7%/3.4%; transition: transform .15s; }
+.card-pick .card-art { width: 100%; }
+.card-pick:focus-visible { outline: 2px solid var(--pc); outline-offset: 3px; }
+@media (hover: hover) { .card-pick:hover { transform: translateY(-4px); } .card-pick:hover img { box-shadow: 0 0 0 2px var(--pc), 0 16px 30px rgba(0,0,0,.5), 0 0 26px color-mix(in srgb, var(--pc) 50%, transparent); } }
+.card-pick-words { display: block; height: 100%; padding: 8%; overflow: hidden; border-radius: 4.7%/3.4%; background: linear-gradient(180deg, var(--sheet-1), var(--sheet-2)); font-size: 13px; line-height: 1.35; }
+.card-pick-words b { display: block; margin-bottom: 6px; font-family: var(--display); font-size: 16px; }
 .choice-col { display: flex; flex-direction: column; align-items: center; gap: 6px; }
 .choice-col small { color: var(--muted); text-transform: uppercase; letter-spacing: .08em; font-size: 11px; }
 
@@ -1676,7 +1686,7 @@ svg.zones polygon {
 @media (max-width: 420px) { .gameover-stats { font-size: 12px; } .gameover-stats th, .gameover-stats td { padding: 4px 3px; } .gameover-stats thead th { font-size: 10px; letter-spacing: 0; } }
 .card-viewer-action { justify-content: center; }
 /* A thin white edge lifts the card art off the dark popup. */
-.card-viewer .card-art img, .card-viewer .card-art-ph { box-shadow: 0 0 0 1px rgba(255,255,255,.85), 0 12px 28px rgba(0,0,0,.5); }
+.card-viewer .card-art img, .card-viewer .card-art-ph, .card-pick img, .card-pick-words { box-shadow: 0 0 0 1px rgba(255,255,255,.85), 0 12px 28px rgba(0,0,0,.5); }
 .gameover-burst { position: absolute; inset: -40%; background: conic-gradient(from 0deg, transparent, color-mix(in srgb, var(--pc) 25%, transparent), transparent 30%); animation: spin 8s linear infinite; pointer-events: none; }
 .gameover > *:not(.gameover-burst) { position: relative; }
 /* The victory show (components/fireworks/): a flash of the winner's colour, then fireworks behind the popup, which rises in after. */
@@ -2297,6 +2307,7 @@ body:has(.sheet-layout) { overflow: hidden; }
   .fleet-die { gap: 6px; }
   .fleet-sum { margin-top: 2px; }
   .card-choice:not(.wrap) > .qcard-lg, .card-choice:not(.wrap) > .choice-col { flex-basis: 150px; }
+  .card-pick { --pick-around: 100px; }
 }
 
 /* Touch: small buttons keep their look but get a 44px hit area. */

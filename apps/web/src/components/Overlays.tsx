@@ -3,7 +3,9 @@ import { CARD_CATEGORIES } from '@regolith/art';
 import { cardName, shipOf, card, die, rulesOf, scrapyard, type Action, type ActionOf, type GameState } from '@regolith/engine';
 import { SHORT, useMediaQuery } from '../game/useMediaQuery';
 import type { Dispatch } from '../game/useGame';
+import { warmCardImages } from '../art/cardImages';
 import { CardView, CategoryIcon, categoryStyle } from './Card';
+import { CardArt } from './CardViewer';
 import { Dialog, Modal } from './Dialog';
 import { Die3D } from './Die3D';
 import { cubeCount } from './board/EffectBox';
@@ -26,7 +28,7 @@ export function DecisionOverlay({ game, dispatch, human }: { game: GameState; di
         >
           <div className="card-choice">
             {head.options.map((id) => (
-              <CardView key={id} id={id} size="lg" onClick={() => dispatch({ type: 'draftSkill', skill: id })} />
+              <CardPick key={id} id={id} onClick={() => dispatch({ type: 'draftSkill', skill: id })} />
             ))}
           </div>
         </Modal>
@@ -206,6 +208,25 @@ function SkillsByCategory({ ids, onPick }: { ids: string[]; onPick: (id: string)
   );
 }
 
+/** A printed card to choose. Its words stand in until it's drawn, so the choice is never blind and never waits on the drawing. */
+function CardPick({ id, onClick }: { id: string; onClick: () => void }) {
+  const def = card(id);
+  return (
+    <button type="button" className="card-pick" data-card={id} aria-label={`${def.name}: ${def.text}`} onClick={onClick}>
+      <CardArt
+        id={id}
+        size="lg"
+        fallback={
+          <span className="card-pick-words">
+            <b>{def.name}</b>
+            {def.text}
+          </span>
+        }
+      />
+    </button>
+  );
+}
+
 function SetupRoll({ game, dispatch, player, rerolled }: { game: GameState; dispatch: Dispatch; player: number; rerolled: boolean }) {
   const p = game.players[player];
   const dice = scrapyard(game, player);
@@ -214,6 +235,10 @@ function SetupRoll({ game, dispatch, player, rerolled }: { game: GameState; disp
   // Smaller dice on short screens (phone landscape), so Keep mechs stays on screen. Matches styles.css.
   const dieSize = useMediaQuery(SHORT) ? 54 : 78;
   const rollKey = dice.map((d) => d.rolls).join();
+  // The cards to choose next: drawn while the dice roll, so they're ready to show.
+  const next = game.pending[1];
+  const nextCards = next?.kind === 'skillDraft' ? next.options.join() : '';
+  useEffect(() => warmCardImages(nextCards ? nextCards.split(',') : []), [nextCards]);
   useEffect(() => {
     setLanded(false);
     const t = window.setTimeout(() => setLanded(true), 1350);

@@ -3,8 +3,8 @@ import { card } from '@regolith/engine';
 import { useCardImage } from '../art/useCardImages';
 import { Dialog } from './Dialog';
 
-/** A card as printed, with its illustration. */
-export function CardArt({ id, size, badge }: { id: string; size: 'md' | 'lg'; badge?: string }) {
+/** A card as printed, with its illustration. `fallback` shows until it's drawn, in place of a blank card. */
+export function CardArt({ id, size, badge, fallback }: { id: string; size: 'md' | 'lg'; badge?: string; fallback?: ReactNode }) {
   const src = useCardImage(id);
   const def = { name: card(id).name, text: card(id).text };
   return (
@@ -12,7 +12,7 @@ export function CardArt({ id, size, badge }: { id: string; size: 'md' | 'lg'; ba
       {src ? (
         <img src={src} alt={`${def.name}: ${def.text}`} title={`${def.name} — ${def.text}`} />
       ) : (
-        <span className="card-art-ph" aria-label={def.name} />
+        (fallback ?? <span className="card-art-ph" aria-label={def.name} />)
       )}
       {badge && <span className="card-art-badge">{badge}</span>}
     </div>

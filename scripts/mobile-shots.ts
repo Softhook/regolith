@@ -118,7 +118,9 @@ async function playToMyTurn(page: Page) {
       const modal = document.querySelector('.overlay .modal');
       if (modal) {
         const keep = [...modal.querySelectorAll('button:not([disabled])')].find((b) => b.textContent!.includes('Keep'));
-        ((keep ?? modal.querySelector('.qcard') ?? modal.querySelector('.btn-primary:not([disabled])')) as HTMLElement | null)?.click();
+        (
+          (keep ?? modal.querySelector('.qcard, .card-pick') ?? modal.querySelector('.btn-primary:not([disabled])')) as HTMLElement | null
+        )?.click();
         return 'modal';
       }
       if (document.querySelector('.turn-actions .btn-primary:not([disabled])')) return 'mine';
@@ -387,7 +389,9 @@ async function main() {
                 return b.bottom > innerHeight + 1 || b.right > innerWidth + 1 || b.top < -1 || b.left < -1;
               });
               const label = (t: Element) =>
-                t.matches('.qcard') ? `card ${t.querySelector('h3, .qcard-name')?.textContent ?? ''}`.trim() : t.textContent!.trim();
+                t.matches('.qcard')
+                  ? `card ${t.querySelector('h3, .qcard-name')?.textContent ?? ''}`.trim()
+                  : (t.getAttribute('aria-label') ?? t.textContent!).trim();
               return { wide: r.right > innerWidth + 1 || r.left < -1, hidden: hidden.map(label) };
             });
             await page.screenshot({ path: `${OUT}/${name}-popup${n}.png` });
@@ -395,7 +399,7 @@ async function main() {
             if (pop.hidden.length) issues.push(`"${title}": ${pop.hidden.map((t) => `"${t}"`).join(', ')} off screen`);
             await modal.evaluate((el) => {
               const keepBtn = [...el.querySelectorAll('button')].find((b) => b.textContent!.includes('Keep mechs'));
-              (keepBtn ?? (el.querySelector('.qcard') as HTMLElement | null))?.click();
+              (keepBtn ?? (el.querySelector('.qcard, .card-pick') as HTMLElement | null))?.click();
             });
             await page.waitForTimeout(800);
           }
