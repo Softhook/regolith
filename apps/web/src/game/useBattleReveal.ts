@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
-import type { CombatPending } from '@regolith/engine';
+import type { CombatOutcome, CombatPending, PlayerId } from '@regolith/engine';
 import { combatStage } from '@regolith/online';
 import { BATTLE } from '../beats';
+import { playBattleResult } from './sounds';
+import { useEffectEvent } from './useEffectEvent';
 
 /**
  * Whether a battle's dice have landed, so its totals and result can show. An atomic hides them again until it goes
@@ -16,4 +18,12 @@ export function useBattleReveal(combat: CombatPending): boolean {
     return () => window.clearTimeout(t);
   }, [stage, opening]);
   return landed === stage;
+}
+
+/** A battle's result, heard as it shows, and again as an atomic goes off. */
+export function useBattleSounds(revealed: boolean, combat: CombatPending, out: CombatOutcome, mine: (p: PlayerId) => boolean) {
+  const hear = useEffectEvent(() => playBattleResult(combat, out, mine));
+  useEffect(() => {
+    if (revealed) hear();
+  }, [revealed, hear]);
 }

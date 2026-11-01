@@ -1,6 +1,9 @@
 import type { CSSProperties } from 'react';
 import { cardName, shipOf, type CombatOutcome, type CombatPending, type GameState } from '@regolith/engine';
 
+/** Whose something is: the tutorial's player is called You. */
+export const whose = (name: string) => (name === 'You' ? 'Your' : `${name}’s`);
+
 /** A battle's result in words, the game's and the tutorial's, and all a phone on its side has (it has no strip): who wins, and whether a mech is lost. */
 export function BattleVerdict({
   game,
@@ -15,6 +18,7 @@ export function BattleVerdict({
 }) {
   const leader = game.players[combat[out.winner].player];
   const lost = out.destroyed && combat[out.destroyed];
+  const s = leader.name === 'You' ? '' : 's';
   return (
     <div className={`combat-verdict ${revealed ? 'show' : ''}`} style={{ '--pc': leader.color } as CSSProperties}>
       {revealed && (
@@ -22,13 +26,13 @@ export function BattleVerdict({
           <strong>{leader.name}</strong>{' '}
           {lost ? (
             <>
-              {out.stubborn ? `holds firm (${cardName('stubborn')})` : 'wins'}:{' '}
+              {out.stubborn ? `hold${s} firm (${cardName('stubborn')})` : `win${s}`}:{' '}
               <b>
-                {game.players[lost.player].name}’s {shipOf(game, lost.ship).name} will be destroyed
+                {whose(game.players[lost.player].name)} {shipOf(game, lost.ship).name} will be destroyed
               </b>
             </>
           ) : (
-            'repels the attack: no mech is lost'
+            `repel${s} the attack: no mech is lost`
           )}
         </>
       )}

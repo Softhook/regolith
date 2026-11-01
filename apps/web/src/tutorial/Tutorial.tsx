@@ -1,7 +1,10 @@
-import { useMemo, type ReactNode } from 'react';
-import type { GameState } from '@regolith/engine';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import type { GameState, PlayerId } from '@regolith/engine';
 import { Board } from '../components/Board';
+import { SoundButton } from '../components/SoundButton';
 import { useController } from '../game/controller';
+import { playSounds } from '../game/sounds';
+import { lastLogId } from '../game/useTransient';
 import { useShortcut } from '../game/useShortcut';
 import css from '../rulebook/rulebook.css?raw';
 import { Battle } from './Battle';
@@ -13,6 +16,8 @@ import { Status } from './Status';
 
 const NO_DISPATCH = () => false;
 const NOBODY = () => false;
+/** Whom the sounds play for: the lessons are told from your side. */
+const YOU = (p: PlayerId) => p === 0;
 
 /** The map, as the game draws it, with what the caption points at lit up in the game's own way. */
 function Stage({ game, show, scene }: { game: GameState; show: Parameters<typeof lit>[1]; scene: string }) {
@@ -20,11 +25,27 @@ function Stage({ game, show, scene }: { game: GameState; show: Parameters<typeof
   const highlights = useMemo(() => lit(game, show), [game, show]);
   // The controller of a game nobody plays, but lighting up what a tap on a mech would.
   const ctl = useMemo(() => ({ ...base, highlights }), [base, highlights]);
+  // Each step heard as in a game; a jump (a new `scene`) shows a new position, not a move.
+  const prev = useRef({ game, scene });
+  useEffect(() => {
+    const before = prev.current;
+    prev.current = { game, scene };
+    if (before.scene === scene && before.game !== game)
+      playSounds(
+        before.game,
+        game,
+        game.log.filter((e) => e.id > lastLogId(before.game)),
+        YOU,
+      );
+  }, [game, scene]);
+  // The position this showing began on: a fight already pending there was jumped to.
+  const [opening, setOpening] = useState({ game, scene });
+  if (opening.scene !== scene) setOpening({ game, scene });
   const head = game.pending[0];
   return (
     <div className="demo-stage">
       <Board game={game} ctl={ctl} scene={scene} />
-      {head?.kind === 'combat' && <Battle key={head.id} game={game} combat={head} />}
+      {head?.kind === 'combat' && <Battle key={head.id} game={game} combat={head} mine={YOU} silent={opening.game.pending[0] === head} />}
     </div>
   );
 }
@@ -100,9 +121,12 @@ export function Tutorial({ onClose, onPlay }: { onClose: () => void; onPlay: () 
             <span>{p.at.lesson + 1}</span> {lesson.title}
           </h2>
         </div>
-        <button type="button" className="btn btn-ghost" onClick={onClose}>
-          Close
-        </button>
+        <div className="demo-top-end">
+          <SoundButton />
+          <button type="button" className="btn btn-ghost" onClick={onClose}>
+            Close
+          </button>
+        </div>
       </header>
 
       {frame.picture ? (

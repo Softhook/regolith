@@ -1,8 +1,6 @@
-import { useEffect, useMemo, useState, type CSSProperties } from 'react';
-import { dataUrl, fighterMuzzle, GROUND_BASE, mechFighterSvg, SKY, type FighterStance } from '@regolith/art';
+import { useEffect, useState } from 'react';
 import {
   cardName,
-  shipOf,
   canRespondToCombat,
   combatOutcome,
   missileOffered,
@@ -20,13 +18,12 @@ import type { Dispatch } from '../game/useGame';
 import type { GameView } from '../game/view';
 import { COMBAT_RESOLVE_MS, humanFights } from '../game/useAiDriver';
 import { shotWait } from '../game/strike';
-import { playBattleResult } from '../game/sounds';
-import { useBattleReveal } from '../game/useBattleReveal';
-import { useEffectEvent } from '../game/useEffectEvent';
+import { useBattleReveal, useBattleSounds } from '../game/useBattleReveal';
 import { COMPACT_BATTLE, reducedMotion, useMediaQuery } from '../game/useMediaQuery';
 import { useShortcut } from '../game/useShortcut';
 import { COMBAT_MS } from '../online/playback';
 import { MissileIcon } from './Card';
+import { Arena } from './BattleArena';
 import { BattleSide } from './BattleSide';
 import { BattleVerdict } from './BattleVerdict';
 
@@ -66,11 +63,7 @@ function Battle({
   const compact = useMediaQuery(COMPACT_BATTLE);
 
   const out = combatOutcome(game, combat);
-  // Heard as it shows, and again as an atomic goes off.
-  const hearResult = useEffectEvent(() => playBattleResult(combat, out, mine));
-  useEffect(() => {
-    if (revealed) hearResult();
-  }, [revealed, hearResult]);
+  useBattleSounds(revealed, combat, out, mine);
   const humans = game.players.filter((p) => (online ? online.responders.includes(p.id) : mine(p.id)));
   const shooters = humans.filter((p) => p.missiles > 0);
   const autoResolve = !humans.some((p) => canRespondToCombat(game, combat, p.id));
@@ -159,7 +152,7 @@ function Battle({
     <div className={`overlay combat-overlay ${compact ? 'compact' : ''}`} onClick={(e) => ready && e.target === e.currentTarget && ok?.()}>
       <div className="combat-card">
         <h2>Battle</h2>
-        <Arena game={game} combat={combat} winner={revealed ? out.winner : null} destroyed={revealed ? out.destroyed : null} />
+        <Arena game={game} combat={combat} out={out} revealed={revealed} />
         <div className="combat-grid">
           {side('attacker')}
           <div className="combat-vs">VS</div>
@@ -192,74 +185,6 @@ function Battle({
           )}
         </div>
       </div>
-    </div>
-  );
-}
-
-/**
- * The two mechs squared up, printed as the cards print them, under the sky and on the ground of the map's world: the attacker on
- * the left facing right, the defender facing it. Once the dice are in, the two outcomes look nothing alike: a mech
- * that will be destroyed is blown over and burns out under the winner's lunge; an attack that's repelled bounces off
- * the defender's guard, and both stay on their feet in their colours.
- * A shot (`ranged`, the Sniper's Shoot) is fought apart: the Sniper braced at one end, its target at the
- * other, and the reveal fires the shot. It hits (the target is destroyed) or misses, flying past, and
- * then nobody is hurt: the Sniper is only destroyed when the target holds firm.
- */
-function Arena({
-  game,
-  combat,
-  winner,
-  destroyed,
-}: {
-  game: GameState;
-  combat: CombatPending;
-  winner: CombatRole | null;
-  destroyed: CombatRole | null;
-}) {
-  const a = combat.attacker;
-  const d = combat.defender;
-  const ac = game.players[a.player].color;
-  const dc = game.players[d.player].color;
-  const ranged = !!combat.ranged;
-  // Both stances of both mechs, made once a battle: the swap on the reveal mustn't wait on a redraw.
-  const arts = useMemo(() => {
-    const art = (ship: number, plate: string, flip: boolean, stance: FighterStance) => ({
-      standing: dataUrl(mechFighterSvg(ship, { flip, plate, stance })),
-      struck: dataUrl(mechFighterSvg(ship, { flip, plate, stance: 'struck' })),
-    });
-    return { attacker: art(a.ship, ac, false, ranged ? 'aim' : 'ready'), defender: art(d.ship, dc, true, 'ready') };
-  }, [a.ship, ac, d.ship, dc, ranged]);
-  const muzzle = useMemo(() => (ranged ? fighterMuzzle(a.ship, 'aim') : undefined), [a.ship, ranged]);
-  const repelled = !!winner && !destroyed;
-  const bounced = repelled && !ranged;
-  const missed = ranged && winner === 'defender';
-  const fighter = (role: CombatRole) => {
-    const hit = destroyed === role;
-    const attacker = role === 'attacker';
-    const stamp = hit ? 'Destroyed' : repelled && attacker ? (ranged ? 'Missed' : 'Repelled') : null;
-    return (
-      <div className={`arena-fighter ${role}`}>
-        <img
-          className={`arena-mech ${destroyed && !hit ? 'won' : ''} ${hit ? 'destroyed' : ''} ${bounced && attacker ? 'repelled' : ''}`}
-          src={hit ? arts[role].struck : arts[role].standing}
-          alt={`${game.players[combat[role].player].name}'s ${shipOf(game, combat[role].ship).name}`}
-        />
-        {hit && <span className="arena-blast" />}
-        {bounced && !attacker && <span className="arena-guard" />}
-        {stamp && <span className={`arena-stamp ${hit ? 'fatal' : ''}`}>{stamp}</span>}
-      </div>
-    );
-  };
-  return (
-    <div
-      className={['combat-arena', ranged && 'ranged', winner && 'clash', missed && 'missed', destroyed && 'fatal']
-        .filter(Boolean)
-        .join(' ')}
-      style={{ '--sky': SKY[game.board.world], '--ground': GROUND_BASE[game.board.world] } as CSSProperties}
-    >
-      {fighter('attacker')}
-      {ranged && winner && <span className="arena-tracer" style={{ '--muzzle-x': muzzle?.x, '--muzzle-y': muzzle?.y } as CSSProperties} />}
-      {fighter('defender')}
     </div>
   );
 }
