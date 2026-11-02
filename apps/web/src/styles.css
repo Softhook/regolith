@@ -1771,8 +1771,12 @@ svg.zones polygon {
 .lobby.intro-title, .lobby.intro-rise { overflow: hidden; }
 .lobby.intro-title h1 {
   transform: translateY(var(--intro-y)) scale(1.25);
-  animation: lobby-title-in 1.4s cubic-bezier(.2,.7,.2,1) both;
+  /* Not filling forwards: a held animation stops the opacity fading as the cards come and go (it has only a `from`, so it ends where it would hold). */
+  animation: lobby-title-in 1.4s cubic-bezier(.2,.7,.2,1) backwards;
+  transition: opacity .7s ease-in-out;
 }
+/* The cards take the title's place until the click, which brings it back (useIntro's TITLE_BACK_MS) before it rises. */
+.lobby.intro-cards-up h1 { opacity: 0; }
 .lobby.intro-rise h1 { transition: transform calc(var(--intro-rise) * .75) cubic-bezier(.65,0,.25,1); }
 /* Not to be clicked until it's done: the tap that skips a phase would otherwise land on what's under it, unseen. */
 .lobby.intro-title > :not(.lobby-hero, .lobby-backdrop), .lobby.intro-rise > :not(.lobby-hero, .lobby-backdrop) { pointer-events: none; }
@@ -1792,14 +1796,22 @@ svg.zones polygon {
   text-shadow: 0 0 12px rgb(var(--shade) / .9), 0 1px 2px rgb(var(--shade) / .9);
   pointer-events: none;
   animation: intro-prompt-in 1.2s ease-out 4s both, intro-prompt-pulse 2.4s ease-in-out 5.2s infinite;
+  transition: top 1.2s ease-in-out;
 }
-.intro-prompt.gone { opacity: 0; animation: none; transition: opacity .2s; }
-/* A card shown under the opening title (lobby/IntroCards.tsx): fades in, holds, fades out. */
+/* Under the cards, while they're up. */
+.lobby.intro-cards-up .intro-prompt { top: calc(100% - 44px - env(safe-area-inset-bottom)); }
+.intro-prompt.gone { opacity: 0; animation: none; transition: opacity .2s, top 0s .2s; }
+/* A card shown in the title's place in the opening (lobby/IntroCards.tsx), large, with room around it above the
+   prompt: fades in, holds, fades out. All of them fade away together as the title returns. */
+.intro-cards { transition: opacity .7s ease-in-out; }
+.intro-cards.gone { opacity: 0; }
 .intro-card {
-  position: fixed; left: 50%; bottom: calc(50% + 70px);
-  height: min(210px, calc(50vh - 100px)); width: auto;
-  transform: translateX(-50%); pointer-events: none;
-  border-radius: 8px; box-shadow: 0 6px 24px rgb(var(--shade) / .6);
+  position: fixed; left: 50%; top: 50%;
+  height: min(calc((100vh - 120px - 2 * env(safe-area-inset-bottom)) * .85), calc((100vw - 32px) * 1.4 * .85));
+  height: min(calc((100dvh - 120px - 2 * env(safe-area-inset-bottom)) * .85), calc((100vw - 32px) * 1.4 * .85));
+  width: auto;
+  transform: translate(-50%, -50%); pointer-events: none;
+  border-radius: 4.7% / 3.4%; box-shadow: 0 12px 48px rgb(var(--shade) / .7);
   animation: intro-card 13.2s ease-in-out both;
 }
 @keyframes intro-card { 0% { opacity: 0; } 10%, 90% { opacity: 1; } 100% { opacity: 0; } }

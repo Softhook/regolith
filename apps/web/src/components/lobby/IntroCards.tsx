@@ -26,12 +26,13 @@ async function ready(id: string): Promise<string | undefined> {
 }
 
 /**
- * After a while, a slow shuffle of the game's cards above the title, one at a time, while the opening waits for a
- * click. The cards are the ones warmed in the background (one per idle moment), so each is drawn and kept for
- * later visits as it comes up, and the next is ready, decoded, before the current one fades. Leaving the title
- * stops the warming; what's drawn stays kept.
+ * After a while, a slow shuffle of the game's cards, large in the middle of the screen in place of the title, one
+ * at a time, while the opening waits for a click. `onShown` says the first has come (the title then gives way);
+ * `leaving` fades them out as the title returns. The cards are the ones warmed in the background (one per idle
+ * moment), so each is drawn and kept for later visits as it comes up, and the next is ready, decoded, before the
+ * current one fades. Leaving the title stops the warming; what's drawn stays kept.
  */
-export function IntroCards() {
+export function IntroCards({ leaving, onShown }: { leaving: boolean; onShown: () => void }) {
   const [shown, setShown] = useState<{ id: string; src: string }>();
   useEffect(() => {
     const ids = shuffled();
@@ -44,7 +45,10 @@ export function IntroCards() {
         const src = await next;
         const due = wait(SHOWN_MS);
         if (i + 1 < ids.length) next = ready(ids[i + 1]!);
-        if (live && src) setShown({ id: ids[i]!, src });
+        if (live && src) {
+          setShown({ id: ids[i]!, src });
+          onShown();
+        }
         await due;
       }
     })();
@@ -52,6 +56,12 @@ export function IntroCards() {
       live = false;
       stop();
     };
-  }, []);
-  return shown && <img key={shown.id} className="intro-card" src={shown.src} alt="" width={CARD.w} height={CARD.h} draggable={false} />;
+  }, [onShown]);
+  return (
+    shown && (
+      <div className={`intro-cards${leaving ? ' gone' : ''}`}>
+        <img key={shown.id} className="intro-card" src={shown.src} alt="" width={CARD.w} height={CARD.h} draggable={false} />
+      </div>
+    )
+  );
 }

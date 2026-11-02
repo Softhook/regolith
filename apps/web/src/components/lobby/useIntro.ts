@@ -1,10 +1,13 @@
-import { useEffect, useLayoutEffect, useRef, useState, type RefObject } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type RefObject } from 'react';
 import { holdForTitle } from '../../ambience';
+import { audio } from '../../audio';
 import { resumeFullscreen } from '../../fullscreen';
 import { reducedMotion } from '../../game/useMediaQuery';
 
 /** The opening, once per page load: how long the title takes to rise. */
 export const INTRO_RISE_MS = 1300;
+/** How long the title takes to come back from behind the cards (matches `.intro-title h1` in styles.css). */
+const TITLE_BACK_MS = 700;
 let introPlayed = false;
 
 /**
@@ -12,13 +15,21 @@ let introPlayed = false;
  * as the rest fades in. Only on the first visit of a page load (not back from a game), never under reduced
  * motion; the title always holds for a click (or tap) or key, asking after a while, even where full screen is
  * already granted. Where that click goes full screen (a phone, the app installed on a computer), it holds,
- * centred in the new size, until the window has settled: the lobby then comes in full screen. Returns the phase
- * (null once done), whether it has had its click, and the offset that centres the title.
+ * centred in the new size, until the window has settled: the lobby then comes in full screen. Where cards have
+ * taken the title's place (IntroCards), the click brings the title back first, and it rises from there. Returns the
+ * phase (null once done), whether it has had its click, the offset that centres the title, whether cards are in its
+ * place, and the way to say they've come.
  */
 export function useIntro(title: RefObject<HTMLHeadingElement | null>) {
   const [phase, setPhase] = useState<'title' | 'rise' | null>(() => (introPlayed || reducedMotion() ? null : 'title'));
   const [started, setStarted] = useState(false);
   const [offset, setOffset] = useState(0);
+  const [cardsCame, setCardsCame] = useState(false);
+  const cardsShown = useRef(false);
+  const onCards = useCallback(() => {
+    cardsShown.current = true;
+    setCardsCame(true);
+  }, []);
   const shown = useRef(0);
   useLayoutEffect(() => {
     shown.current = offset;
@@ -42,7 +53,8 @@ export function useIntro(title: RefObject<HTMLHeadingElement | null>) {
     // opening is heard, with its rush.
     const music = phase === 'title' ? holdForTitle() : undefined;
     let live = true;
-    const rise = (settling?: Promise<void> | null) => void Promise.all([music?.open(), settling]).then(() => live && setPhase('rise'));
+    const rise = (opening: Promise<void> | undefined, settling?: Promise<void> | null) =>
+      void Promise.all([opening, settling]).then(() => live && setPhase('rise'));
     const t = phase === 'title' ? undefined : setTimeout(() => setPhase(null), INTRO_RISE_MS);
     const unlisten = () => {
       removeEventListener('click', skip);
@@ -53,8 +65,14 @@ export function useIntro(title: RefObject<HTMLHeadingElement | null>) {
       if (phase !== 'title') return setPhase(null);
       clearTimeout(t);
       unlisten();
+      // Back from behind the cards, the title then rises as usual, so the opening waits with it; only this click
+      // can start the audio on a phone, so it's started now.
+      if (cardsShown.current) audio();
+      const opening = cardsShown.current
+        ? new Promise<void>((back) => setTimeout(back, TITLE_BACK_MS)).then(() => (live ? music?.open() : undefined))
+        : music?.open();
       // Where this goes full screen, the title also waits for the window to settle.
-      rise(resumeFullscreen(e));
+      rise(opening, resumeFullscreen(e));
     };
     // On a click rather than a press: a phone only allows full screen once the finger lifts.
     addEventListener('click', skip);
@@ -66,5 +84,5 @@ export function useIntro(title: RefObject<HTMLHeadingElement | null>) {
       music?.release();
     };
   }, [phase]);
-  return { phase, started, offset };
+  return { phase, started, offset, cards: cardsCame && !started, onCards };
 }

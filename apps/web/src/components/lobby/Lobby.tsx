@@ -117,7 +117,7 @@ export function Lobby({
 
   return (
     <div
-      className={`lobby${intro.phase ? ` intro-${intro.phase}` : ''}`}
+      className={`lobby${intro.phase ? ` intro-${intro.phase}` : ''}${intro.cards ? ' intro-cards-up' : ''}`}
       style={{ '--intro-y': `${intro.offset}px`, '--intro-rise': `${INTRO_RISE_MS}ms` } as CSSProperties}
     >
       <LobbyBackdrop map={map} paused={demo} />
@@ -126,7 +126,7 @@ export function Lobby({
         {intro.phase && (
           <p className={`intro-prompt${intro.started ? ' gone' : ''}`}>{matchMedia(COARSE).matches ? 'Tap' : 'Click'} to start</p>
         )}
-        {intro.phase === 'title' && !intro.started && <IntroCards />}
+        {intro.phase === 'title' && <IntroCards leaving={intro.started} onShown={intro.onCards} />}
       </div>
       <div className="lobby-corner">
         <FullscreenButton />
