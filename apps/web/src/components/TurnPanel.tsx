@@ -159,10 +159,10 @@ function AdvanceChoice({ dispatch }: { dispatch: Dispatch }) {
   );
   return (
     <div className="turn-actions">
-      <button className="btn" onClick={() => go(false)}>
+      <button className="btn pulse" onClick={() => go(false)}>
         Hold position
       </button>
-      <button className="btn btn-primary" onClick={() => go(true)}>
+      <button className="btn btn-primary pulse" onClick={() => go(true)}>
         Advance
       </button>
     </div>

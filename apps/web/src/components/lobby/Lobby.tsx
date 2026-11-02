@@ -189,7 +189,7 @@ export function Lobby({
 
         {!canStart && <p className="field-hint">Make at least one seat a Friend to play online.</p>}
         <div className="modal-actions">
-          <button className="btn btn-primary btn-lg" disabled={!canStart} onClick={() => ask(gameOnScreen())}>
+          <button className={`btn btn-primary btn-lg ${canStart ? 'pulse' : ''}`} disabled={!canStart} onClick={() => ask(gameOnScreen())}>
             {online ? 'Create online game' : 'Drop your mechs'}
           </button>
         </div>
