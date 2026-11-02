@@ -1,5 +1,5 @@
 import { combatOutcome, drawing, type CombatPending, type GameState, type PlayerId } from '@regolith/engine';
-import { Arena } from '../components/BattleArena';
+import { BattleArena } from '../components/BattleArena';
 import { BattleSide } from '../components/BattleSide';
 import { BattleVerdict } from '../components/BattleVerdict';
 import { useBattleReveal, useBattleSounds } from '../game/useBattleReveal';
@@ -32,7 +32,7 @@ export function Battle({
   return (
     <div className={`demo-battle ${low ? 'top' : 'bottom'} ${compact ? 'compact' : ''}`} aria-live="polite">
       <div className="combat-card">
-        <Arena game={game} combat={combat} out={out} revealed={revealed} />
+        <BattleArena game={game} combat={combat} out={out} revealed={revealed} />
         <div className="combat-grid">
           <BattleSide game={game} combat={combat} out={out} role="attacker" revealed={revealed} dieSize={40} sound={!silent} />
           <div className="combat-vs">VS</div>

@@ -12,7 +12,17 @@ import { whose } from './BattleVerdict';
  * other, and the reveal fires the shot. It hits (the target is destroyed) or misses, flying past, and
  * then nobody is hurt: the Sniper is only destroyed when the target holds firm.
  */
-export function Arena({ game, combat, out, revealed }: { game: GameState; combat: CombatPending; out: CombatOutcome; revealed: boolean }) {
+export function BattleArena({
+  game,
+  combat,
+  out,
+  revealed,
+}: {
+  game: GameState;
+  combat: CombatPending;
+  out: CombatOutcome;
+  revealed: boolean;
+}) {
   const winner = revealed ? out.winner : null;
   const destroyed = revealed ? out.destroyed : null;
   const a = combat.attacker;

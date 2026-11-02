@@ -23,7 +23,7 @@ import { COMPACT_BATTLE, reducedMotion, useMediaQuery } from '../game/useMediaQu
 import { useShortcut } from '../game/useShortcut';
 import { COMBAT_MS } from '../online/playback';
 import { MissileIcon } from './Card';
-import { Arena } from './BattleArena';
+import { BattleArena } from './BattleArena';
 import { BattleSide } from './BattleSide';
 import { BattleVerdict } from './BattleVerdict';
 
@@ -152,7 +152,7 @@ function Battle({
     <div className={`overlay combat-overlay ${compact ? 'compact' : ''}`} onClick={(e) => ready && e.target === e.currentTarget && ok?.()}>
       <div className="combat-card">
         <h2>Battle</h2>
-        <Arena game={game} combat={combat} out={out} revealed={revealed} />
+        <BattleArena game={game} combat={combat} out={out} revealed={revealed} />
         <div className="combat-grid">
           {side('attacker')}
           <div className="combat-vs">VS</div>

@@ -17,6 +17,7 @@ import { stagingOf } from '../components/board/staging';
 import { sfx } from '../sound';
 import { destroyedOf, shotOf, strikeOf } from './strike';
 import { reducedMotion } from './useMediaQuery';
+import { logSince } from './useTransient';
 import { lost } from './view';
 
 type Sound = keyof typeof sfx;
@@ -166,8 +167,8 @@ export function playBattleResult(combat: CombatPending, out: CombatOutcome, mine
 }
 
 /** Plays what the step from `prev` to `next` sounds like. */
-export function playSounds(prev: GameState, next: GameState, fresh: LogEntry[], mine: (p: PlayerId) => boolean) {
-  const { first, then, destroyed, lands } = soundsFor(prev, next, fresh, mine);
+export function playSounds(prev: GameState, next: GameState, mine: (p: PlayerId) => boolean) {
+  const { first, then, destroyed, lands } = soundsFor(prev, next, logSince(prev, next), mine);
   // Under reduced motion the staging has none of a card's effects wait: ships go and come at once, heard so.
   const still = reducedMotion();
   // Ships a card's blow destroys (Show of Force, Dangerous) blow up as it lands, heard as seen (Explosions).

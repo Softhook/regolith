@@ -16,7 +16,7 @@ import { WhereIcon } from './WhereIcon';
 import { YourGames } from './YourGames';
 import { Field, MapPicker, SeatRow } from './NewGameFields';
 import { IntroCards } from './IntroCards';
-import { INTRO_RISE_MS, useIntro } from './useIntro';
+import { INTRO_RISE_MS, INTRO_SWAP_MS, useIntro } from './useIntro';
 import { MODE_KEY, PLAYER_COUNTS, isFriendSeat, mapKey, storedAiLevel, storedMap, storedMode } from './choices';
 import { GAME_NAME } from '../../appId';
 import { useWarmMapImages } from '../../art/tileImages';
@@ -118,7 +118,9 @@ export function Lobby({
   return (
     <div
       className={`lobby${intro.phase ? ` intro-${intro.phase}` : ''}${intro.cards ? ' intro-cards-up' : ''}`}
-      style={{ '--intro-y': `${intro.offset}px`, '--intro-rise': `${INTRO_RISE_MS}ms` } as CSSProperties}
+      style={
+        { '--intro-y': `${intro.offset}px`, '--intro-rise': `${INTRO_RISE_MS}ms`, '--intro-swap': `${INTRO_SWAP_MS}ms` } as CSSProperties
+      }
     >
       <LobbyBackdrop map={map} paused={demo} />
       <div className="lobby-hero">
@@ -126,7 +128,7 @@ export function Lobby({
         {intro.phase && (
           <p className={`intro-prompt${intro.started ? ' gone' : ''}`}>{matchMedia(COARSE).matches ? 'Tap' : 'Click'} to start</p>
         )}
-        {intro.phase === 'title' && <IntroCards leaving={intro.started} onShown={intro.onCards} />}
+        {intro.phase === 'title' && <IntroCards leaving={intro.started} onCards={intro.onCards} />}
       </div>
       <div className="lobby-corner">
         <FullscreenButton />

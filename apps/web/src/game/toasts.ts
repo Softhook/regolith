@@ -3,6 +3,7 @@ import type { GameState, LogEvent, PlayerId } from '@regolith/engine';
 import { sfx } from '../sound';
 import { logText } from './logText';
 import { playSounds } from './sounds';
+import { logSince } from './useTransient';
 
 export interface Toast {
   id: number;
@@ -46,9 +47,8 @@ export function useToasts() {
   }, []);
 
   const announce = useCallback((prev: GameState, next: GameState, mine: (p: PlayerId) => boolean) => {
-    const fresh = next.log.filter((e) => e.id > (prev.log.at(-1)?.id ?? 0));
-    playSounds(prev, next, fresh, mine);
-    const shown = fresh.flatMap((e): Toast[] => {
+    playSounds(prev, next, mine);
+    const shown = logSince(prev, next).flatMap((e): Toast[] => {
       const tone = e.event && TONES[e.event];
       return tone ? [{ id: e.id, text: logText(next, e), player: e.player, tone }] : [];
     });

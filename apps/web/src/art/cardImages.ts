@@ -156,14 +156,14 @@ let toWarm: string[] = [];
 let warming = false;
 
 /**
- * Prepares cards in the background (one per idle moment), so their pop-ups open at once. A new list
- * replaces the one being worked through, so only one loop ever runs. Fetches the card fonts straight
- * away: the first card drawn would otherwise wait for them. Returns a function that stops it.
+ * Prepares cards in the background (one per idle moment), so their pop-ups open at once. A new list goes ahead
+ * of those already waiting, all worked through by one loop. Fetches the card fonts straight away: the first
+ * card drawn would otherwise wait for them. Returns a function that takes the list's cards off the queue.
  */
 export function warmCardImages(ids: Iterable<string>): () => void {
   void cardFontCss();
   const list = [...new Set(ids)].filter((id) => !fronts.has(id));
-  toWarm = list;
+  toWarm = [...list, ...toWarm];
   if (!warming) {
     warming = true;
     void (async () => {
@@ -176,6 +176,6 @@ export function warmCardImages(ids: Iterable<string>): () => void {
     })();
   }
   return () => {
-    if (toWarm === list) toWarm = [];
+    toWarm = toWarm.filter((id) => !list.includes(id));
   };
 }
