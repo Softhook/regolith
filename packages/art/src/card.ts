@@ -43,8 +43,8 @@ export interface CardFace {
 /** Measures text width in mm, for wrapping. The browser passes a canvas-based one; tests use the estimate. */
 export type Measure = (text: string, sizeMm: number, font: MeasuredFont) => number;
 
-/** The faces cards and the player aid are set in: the aid's (title, body, bold) and the cards' (stencil, condensed, mono). */
-export type MeasuredFont = 'title' | 'body' | 'bold' | 'stencil' | 'display' | 'condensed' | 'condensedBold' | 'mono';
+/** The faces cards and the player aid are set in: the aid's (display, body, bold) and the cards' (stencil, display, condensed, mono). */
+export type MeasuredFont = 'body' | 'bold' | 'stencil' | 'display' | 'condensed' | 'condensedBold' | 'mono';
 
 export interface CardOptions {
   bleed?: boolean;
@@ -56,8 +56,9 @@ export interface CardOptions {
   idPrefix?: string;
 }
 
-/** Rough widths for Orbitron and Inter, when no real measurement is available. */
-export const estimateWidth: Measure = (text, size, font) => size * text.length * (font === 'title' ? 0.8 : font === 'bold' ? 0.56 : 0.52);
+/** Rough widths for Inter, when no real measurement is available. */
+export const estimateWidth: Measure = (text, size, font) =>
+  size * text.length * (font === 'display' ? 0.74 : font === 'bold' ? 0.56 : 0.52);
 
 /** What an illustration shows, for art direction (the Art Lab prints it under the card). */
 export function cardIllustration(f: CardFace): string {

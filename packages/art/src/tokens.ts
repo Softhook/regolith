@@ -100,9 +100,8 @@ export const NEBULA_HUES: [number, number] = [215, 330];
 /** The printed planet number (font size, mm), drawn where the spaces meet at the planet's bottom right. */
 export const NUMBER_TEXT = { size: 14, sizeTwoDigits: 12.5 } as const;
 
-/** Display and text faces for cards and illustrations (the game UI loads the same two, index.html). */
+/** The text face of the printed pieces: Inter, which at weight 900 is also the cards' names (SP_FONTS.display). */
 export const FONTS = {
-  title: "Orbitron, 'Arial Black', sans-serif",
   body: "Inter, 'Helvetica Neue', Arial, sans-serif",
 } as const;
 

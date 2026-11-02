@@ -96,7 +96,7 @@ export function mapSheetSvg(o: MapSheetOptions): string {
   const b = o.bleed ? B : 0;
   const out: string[] = [`<rect x="${-B}" y="${-B}" width="${W + 2 * B}" height="${H + 2 * B}" fill="${GROUND}"/>`];
 
-  out.push(text(M, M + 6, o.name, 7, { font: 'title' }));
+  out.push(text(M, M + 6, o.name, 7, { font: 'display' }));
   out.push(
     text(M, M + 12.5, `${o.players} players · ${o.cubes} cubes each · on ${WORLD_NAMES[o.world]}`, 3.2, { fill: MUTED, track: 0.04 }),
   );

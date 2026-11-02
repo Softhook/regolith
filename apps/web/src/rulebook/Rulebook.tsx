@@ -11,10 +11,10 @@ import css from './rulebook.css?raw';
  * it too (#lab/manual: ManualLab).
  */
 
-/** The game's colour variables (styles.css :root) the manual uses, read off its stylesheet; the downloaded file gets a copy. */
+/** The game's colour and font variables (styles.css :root) the manual uses, read off its stylesheet; the downloaded file gets a copy. */
 const GAME_VARS = [...new Set(css.match(/var\(--(?!mn-)[\w-]+/g)!.map((v) => v.slice(4)))];
 
-function gameColours() {
+function gameVars() {
   const root = getComputedStyle(document.documentElement);
   return `:root{${GAME_VARS.map((v) => `${v}:${root.getPropertyValue(v).trim()}`).join(';')}}`;
 }
@@ -28,7 +28,7 @@ export function ManualExports({ page }: { page: RefObject<HTMLElement | null> })
   const pageCss = `@media print { @page { size: ${PAPER[paper].w}mm ${PAPER[paper].h}mm; } }`;
 
   const downloadHtml = () => {
-    const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${GAME_NAME} — Manual</title><style>${gameColours()}${css}${pageCss}</style></head><body class="rb-standalone">${page.current!.outerHTML}</body></html>`;
+    const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${GAME_NAME} — Manual</title><style>${gameVars()}${css}${pageCss}</style></head><body class="rb-standalone">${page.current!.outerHTML}</body></html>`;
     download(gameFile('manual.html'), new Blob([html], { type: 'text/html' }));
   };
 

@@ -22,7 +22,7 @@ That look is gone; it is in the history if a piece of it is wanted.
 | Ice Tunnels, spaces, objective numbers and cube slots | SVG in [`board/BoardArt.tsx`](../apps/web/src/components/board/BoardArt.tsx), in screen pixels | Tunnels no (tokens); numbers and cube slots are on the printed tiles |
 | Dice / mechs | CSS 3D cube ([`Die3D.tsx`](../apps/web/src/components/Die3D.tsx)); the screenprint mech on its die face in the aid and the manual (`mechDie`) | No (physical dice) |
 | Explosions, highlights, hit areas | HTML/CSS overlay (`board-layer`) | Never printed |
-| Fonts | Saira Stencil One, Inter, Barlow Condensed, JetBrains Mono (`SP_FONTS`) from the Google Fonts CDN; print files embed them as data URLs | Not self-hosted yet |
+| Fonts | Saira Stencil One, Inter, Barlow Condensed, JetBrains Mono (`SP_FONTS`) from the Google Fonts CDN: the stencil for the game's name only (and lettering inside the card art), the rest as on the cards, Inter Black for names and headings and Barlow Condensed for rules; print files embed them as data URLs | Not self-hosted yet |
 
 The board keeps the **art layer** (tile images and SVG) apart from the **interactive HTML layer**.
 
@@ -154,7 +154,7 @@ shown and exported in the Art Lab (`#lab/cards`).
 - **Two papers by deck**: permanent cards (Skills) on paper in key ink; one-shot cards (Tactics,
   Reinforcements) on night paper in bone. The decks tell apart across the table and face down.
 - **Face**: the scene at the top in flat inks under a soft shade, a band in the card's colour plate, the name
-  stencilled, the rules in condensed type, a footer.
+  in Inter Black, the rules in condensed type, a footer.
 - **One scene per card**, showing what it does, from one kit: the six mechs rigged from the mood board's
   Silhouettes board ([`mechs.ts`](../packages/art/src/screenprint/mechs.ts), posed by `pose.ts`), the tiles'
   buildings side on, crews and small things ([`scenes/`](../packages/art/src/screenprint/scenes)). A test

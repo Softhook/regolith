@@ -2,7 +2,7 @@ import { rng } from '../rng';
 import { dieCut, document, esc, n, type Box, type Fragment } from '../svg';
 import type { CardDeck, CardFace, CardOptions, Measure, MeasuredFont } from '../card';
 import { INKS, ON_NIGHT, ON_PAPER } from './inks';
-import { SP_FONTS, label, land, mech, paperGround, person, screens, sky, type Stage } from './kit';
+import { SP_FONTS, label, land, mech, paperGround, person, screens, sky, stencil, type Stage } from './kit';
 import type { MechKind } from './mechs';
 import { SCENES } from './scenes';
 
@@ -236,7 +236,7 @@ export function screenprintCardSvg(face: CardFace, o: CardOptions = {}): string 
   return finish(f, area, id, o);
 }
 
-/** Lettering on a back, in the title face. */
+/** The deck's name on a back, as the cards' names are set. */
 const title = (text: string, y: number, size: number, ink: string, spacing = 0) =>
   `<text x="${n(W / 2)}" y="${n(y)}" font-family="${SP_FONTS.display}" font-weight="900" font-size="${n(size)}" letter-spacing="${n(spacing * size)}" fill="${ink}" text-anchor="middle">${esc(text)}</text>`;
 
@@ -258,7 +258,10 @@ export function screenprintBackSvg(deck: CardDeck, o: Omit<CardOptions, 'measure
     mech(s, DECK[deck].mech, W * 0.44, H * 0.72, DECK[deck].size) +
     // The person is in the mech's units, so at its size they stand to scale.
     person(W * 0.85, H * 0.72, DECK[deck].size, { facing: -1 }, s.key, s.paper) +
-    (o.plain ? '' : title('REGOLITH', H * 0.88, 9, s.key, 0.02) + title(DECK[deck].name.toUpperCase(), H * 0.88 + 4.6, 2.6, s.key, 0.16)) +
+    (o.plain
+      ? ''
+      : stencil('REGOLITH', W / 2, H * 0.88, 9, s.key, { spacing: 0.02 }) +
+        title(DECK[deck].name.toUpperCase(), H * 0.88 + 4.6, 2.6, s.key, 0.16)) +
     `<rect x="3" y="3" width="${W - 6}" height="${H - 6}" fill="none" stroke="${s.key}" stroke-width="0.5"/>`;
   return finish({ defs: screens(s) + s.defs.join(''), body: rect(area, s.paper) + body }, area, id, o);
 }

@@ -72,7 +72,7 @@ const RULES: [label: string, text: string][] = [
 // ---------------------------------------------------------------------------
 // Type
 
-type Font = 'title' | 'body' | 'bold';
+type Font = 'display' | 'body' | 'bold';
 
 interface TextStyle {
   font?: Font;
@@ -86,7 +86,7 @@ interface TextStyle {
 export function text(x: number, y: number, s: string, size: number, o: TextStyle = {}): string {
   const font = o.font ?? 'body';
   return (
-    `<text x="${n(x)}" y="${n(y)}" font-family="${font === 'title' ? FONTS.title : FONTS.body}" font-weight="${font === 'title' ? 900 : font === 'bold' ? 700 : 400}" font-size="${n(size)}" fill="${o.fill ?? '#fff'}"` +
+    `<text x="${n(x)}" y="${n(y)}" font-family="${FONTS.body}" font-weight="${font === 'display' ? 900 : font === 'bold' ? 700 : 400}" font-size="${n(size)}" fill="${o.fill ?? '#fff'}"` +
     (o.anchor && o.anchor !== 'start' ? ` text-anchor="${o.anchor}"` : '') +
     (o.track ? ` letter-spacing="${n(size * o.track)}"` : '') +
     `>${esc(o.upper ? s.toUpperCase() : s)}</text>`

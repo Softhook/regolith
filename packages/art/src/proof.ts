@@ -2,6 +2,7 @@ import { GROUND, cubePad, diePad } from './aid';
 import { CARD, cardPalette } from './card';
 import { document, esc, hsl, hslToRgb, n } from './svg';
 import { INKS } from './screenprint/inks';
+import { SP_FONTS } from './screenprint/kit';
 import { hexEdge, hexEdges, well } from './tile/markings';
 import { CARD_CATEGORIES, CUBE_PAD, FONTS, INK, TILE, TRACK_INK, WELL } from './tokens';
 
@@ -56,7 +57,7 @@ const heading = (y: number, s: string) => text(M, y, s.toUpperCase(), 2.1, INK, 
 /** The press test page as a standalone SVG document (no bleed: print it at 100 % on A4). */
 export function pressTestSvg(o: PressTestOptions = {}): string {
   let body = rect(0, 0, PRESS_TEST.w, PRESS_TEST.h, '#fff');
-  body += text(M, 12.5, 'REGOLITH · PRESS TEST', 4, INK, 'font-weight="900" letter-spacing=".4"', FONTS.title);
+  body += text(M, 12.5, 'REGOLITH · PRESS TEST', 4, INK, 'letter-spacing=".4"', SP_FONTS.stencil);
   body += text(
     M,
     17,

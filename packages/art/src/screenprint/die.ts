@@ -36,7 +36,7 @@ export function mechDie(value: number, cx: number, cy: number, size: number, por
       mech(kind, { x: cx + (portrait ? 0 : size * 0.06), y: feet, size: scale, ink: ON_PAPER }) +
       (portrait
         ? ''
-        : `<text x="${n(cx - h + size * 0.1)}" y="${n(cy - h + size * 0.1 + number * 0.74)}" font-family="${FONTS.title}" font-weight="900" font-size="${n(number)}" fill="${INKS.oxide}">${value}</text>`),
+        : `<text x="${n(cx - h + size * 0.1)}" y="${n(cy - h + size * 0.1 + number * 0.74)}" font-family="${FONTS.body}" font-weight="900" font-size="${n(number)}" fill="${INKS.oxide}">${value}</text>`),
   };
 }
 

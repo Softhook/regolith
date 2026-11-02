@@ -56,9 +56,11 @@
   --res-1: #A9C9D3;
   --res-2: #A9C9D3;
   --radius: 6px;
-  --display: 'Saira Stencil One', 'Barlow Condensed', 'Inter', system-ui, sans-serif;
-  /* Titles too small for the display face to read (card names over art). */
-  --display-small: 'Barlow Condensed', 'Inter', system-ui, sans-serif;
+  /* The game's name, and nothing else. */
+  --title: 'Saira Stencil One', 'Barlow Condensed', 'Inter', system-ui, sans-serif;
+  /* The cards' faces: names and headings in Inter Black (weight 900), and Barlow Condensed where a name must fit a small space (--body is the text). */
+  --display: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --condensed: 'Barlow Condensed', 'Inter', system-ui, sans-serif;
   --body: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
   color-scheme: dark;
   /* The stencil face has one weight; a faked bold fills in its gaps. */
@@ -125,7 +127,7 @@ body::before {
 }
 
 button { font: inherit; color: inherit; }
-input { font: inherit; }
+input, select { font: inherit; }
 
 /* ------------------------------------------------------------------ buttons */
 
@@ -207,7 +209,7 @@ input { font: inherit; }
   backdrop-filter: blur(8px);
 }
 .brand {
-  font-family: var(--display);
+  font-family: var(--title);
   font-weight: 900;
   letter-spacing: .28em;
   text-transform: uppercase;
@@ -925,7 +927,7 @@ svg.zones polygon {
 .turn-head { display: flex; align-items: center; gap: 10px; }
 .turn-title { display: flex; flex-direction: column; line-height: 1.2; }
 .turn-title small { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; }
-.turn-title strong { font-family: var(--display); font-size: 16px; letter-spacing: .04em; }
+.turn-title strong { font-family: var(--display); font-weight: 900; font-size: 16px; letter-spacing: .04em; }
 .action-pips { margin-left: auto; display: flex; align-items: center; gap: 3px; }
 .action-pips small { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; margin-right: 2px; }
 .action-pips .action-hex { color: var(--pc); opacity: .35; transition: all .3s; }
@@ -1158,11 +1160,11 @@ svg.zones polygon {
   position: absolute; top: 5px; left: 5px; max-width: calc(100% - 10px);
   display: inline-flex; align-items: flex-start; gap: 3px; padding: 2px 5px 2px 4px; border-radius: 5px;
   background: rgb(var(--shade) / .8); color: #fff; overflow-wrap: anywhere;
-  font-family: var(--display-small); font-weight: 700; font-size: 12px; letter-spacing: .03em; line-height: 1.15;
+  font-family: var(--condensed); font-weight: 700; font-size: 12px; letter-spacing: .03em; line-height: 1.15;
 }
 .qcard-art-name > svg { flex: none; width: 1em; height: 1em; margin-top: .07em; color: var(--cat); }
 .qcard.has-art .qcard-top, .qcard.has-art .qcard-name { display: none; }
-.qcard-name { font-family: var(--display); font-weight: 700; font-size: 14px; letter-spacing: .03em; margin-top: 6px; line-height: 1.15; }
+.qcard-name { font-family: var(--display); font-weight: 900; font-size: 14px; letter-spacing: .03em; margin-top: 6px; line-height: 1.15; }
 .qcard-sub { font-size: 10.5px; font-weight: 600; opacity: .6; margin-top: 2px; }
 .qcard-text { font-size: 11px; line-height: 1.38; margin-top: 7px; flex: 1 1 auto; min-height: 0; overflow: hidden; }
 /* Text cut short by the card fades out over its last line; the full text is in the tooltip and card viewer. */
@@ -1361,7 +1363,7 @@ svg.zones polygon {
 .dialog-close { position: absolute; right: 14px; top: 14px; }
 .dialog-bare { max-width: 100%; outline: none; cursor: pointer; animation: pop .3s cubic-bezier(.2,.9,.3,1.2); }
 @keyframes pop { from { transform: scale(.94) translateY(8px); opacity: 0; } }
-.modal h2 { margin: 0; font-family: var(--display); font-size: 22px; letter-spacing: .04em; }
+.modal h2 { margin: 0; font-family: var(--display); font-weight: 900; font-size: 22px; letter-spacing: .04em; }
 .modal-sub { color: var(--muted); margin: 6px 0 18px; font-size: 14px; line-height: 1.5; }
 .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; flex-wrap: wrap; }
 /* The invite link to copy by hand (OnlineScreen.tsx), where it couldn't be shared or copied. */
@@ -1398,7 +1400,7 @@ svg.zones polygon {
 .card-pick:focus-visible { outline: 2px solid var(--pc); outline-offset: 3px; }
 @media (hover: hover) { .card-pick:hover { transform: translateY(-4px); } .card-pick:hover img { box-shadow: 0 0 0 2px var(--pc), 0 16px 30px rgba(0,0,0,.5), 0 0 26px color-mix(in srgb, var(--pc) 50%, transparent); } }
 .card-pick-words { display: block; height: 100%; padding: 8%; overflow: hidden; border-radius: 4.7%/3.4%; background: linear-gradient(180deg, var(--sheet-1), var(--sheet-2)); font-size: 13px; line-height: 1.35; }
-.card-pick-words b { display: block; margin-bottom: 6px; font-family: var(--display); font-size: 16px; }
+.card-pick-words b { display: block; margin-bottom: 6px; font-family: var(--display); font-weight: 900; font-size: 16px; }
 .choice-col { display: flex; flex-direction: column; align-items: center; gap: 6px; }
 .choice-col small { color: var(--muted); text-transform: uppercase; letter-spacing: .08em; font-size: 11px; }
 
@@ -1428,7 +1430,7 @@ svg.zones polygon {
   animation: pop .3s cubic-bezier(.2,.9,.3,1.2);
   text-align: center;
 }
-.combat-card h2 { margin: 0 0 12px; font-family: var(--display); font-size: 13px; letter-spacing: .4em; text-transform: uppercase; color: var(--muted); }
+.combat-card h2 { margin: 0 0 12px; font-family: var(--display); font-weight: 900; font-size: 13px; letter-spacing: .4em; text-transform: uppercase; color: var(--muted); }
 .combat-arena {
   --h: 150px;
   /* A fighter's picture, taller than the strip: its frame's empty top and bottom fall outside, the feet standing on the ground. */
@@ -1563,7 +1565,7 @@ svg.zones polygon {
 .combat-side.winning { border-color: var(--pc); box-shadow: 0 0 30px color-mix(in srgb, var(--pc) 35%, transparent); transform: translateY(-3px); }
 .combat-who { display: flex; flex-direction: column; gap: 2px; }
 .combat-who small { color: var(--muted); text-transform: uppercase; letter-spacing: .1em; font-size: 10.5px; }
-.combat-who strong { font-family: var(--display); color: var(--pc); }
+.combat-who strong { font-family: var(--display); font-weight: 900; color: var(--pc); }
 .combat-dice { display: flex; align-items: center; justify-content: center; gap: 16px; margin: 22px 0 12px; }
 .combat-die-col { display: flex; flex-direction: column; align-items: center; gap: 14px; }
 .combat-die-col > span { font-size: 11px; color: var(--muted); }
@@ -1748,10 +1750,10 @@ svg.zones polygon {
 .lobby-corner { position: absolute; top: calc(12px + var(--safe-top)); right: 12px; }
 .lobby h1 {
   margin: 0;
-  font-family: var(--display);
+  font-family: var(--title);
   font-weight: 900;
   font-size: clamp(40px, 8vw, 72px);
-  /* A set line height, not `normal`: the fallback font's is shorter than Orbitron's, so the page below jumped as it loaded. */
+  /* A set line height, not `normal`: the fallback font's is shorter than the stencil's, so the page below jumped as it loaded. */
   line-height: 1.25;
   letter-spacing: .22em;
   text-transform: uppercase;
@@ -1833,7 +1835,7 @@ svg.zones polygon {
   border: 1px solid var(--line-2);
   box-shadow: 0 30px 80px rgba(0,0,0,.45);
 }
-.lobby-card h2 { margin: 0 0 14px; font-family: var(--display); font-size: 16px; letter-spacing: .1em; text-transform: uppercase; }
+.lobby-card h2 { margin: 0 0 14px; font-family: var(--display); font-weight: 900; font-size: 16px; letter-spacing: .1em; text-transform: uppercase; }
 .mode-badge {
   display: inline-block; margin-right: 8px; padding: 2px 8px; border-radius: 999px;
   font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
@@ -1871,10 +1873,10 @@ svg.zones polygon {
 .map-preview { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px; border-radius: 12px; background: rgba(255,255,255,.03); border: 1px solid var(--line); }
 .map-preview > div:first-child { display: flex; flex-direction: column; gap: 2px; }
 .map-preview small { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; }
-.map-preview strong { font-family: var(--display); }
+.map-preview strong { font-family: var(--display); font-weight: 900; }
 .map-preview .map-info { min-width: 0; }
 .map-select { display: flex; gap: 6px; align-items: center; margin: 2px 0; }
-.map-select select { min-width: 0; max-width: 100%; background: rgba(255,255,255,.05); color: var(--text); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; font-family: var(--display); font-size: 13px; cursor: pointer; }
+.map-select select { min-width: 0; max-width: 100%; background: rgba(255,255,255,.05); color: var(--text); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; font-family: var(--body); font-weight: 600; font-size: 13px; cursor: pointer; }
 .map-select select optgroup, .map-select select option { background: var(--panel-solid); font-family: var(--body); }
 .map-select .btn-icon { padding: 4px 8px; font-size: 16px; line-height: 1; }
 .muted { color: var(--muted); }
@@ -1901,7 +1903,7 @@ svg.zones polygon {
 /* ------------------------------------------------------------------ art lab */
 .lab { height: 100%; overflow: auto; position: relative; z-index: 1; }
 .lab-head { display: flex; align-items: center; gap: 18px; padding: calc(12px + var(--safe-top)) 20px 12px; border-bottom: 1px solid var(--line); font-size: 13px; }
-.lab-head h1 { font-family: var(--display); font-size: 16px; margin: 0; letter-spacing: .04em; }
+.lab-head h1 { font-family: var(--display); font-weight: 900; font-size: 16px; margin: 0; letter-spacing: .04em; }
 .lab-head a { text-decoration: none; }
 .lab-tabs { display: flex; gap: 4px; }
 .lab-tabs a { padding: 5px 12px; border-radius: 999px; color: var(--muted); }
@@ -1929,7 +1931,7 @@ svg.zones polygon {
 .space-tag.rgb::before { background: linear-gradient(90deg, #f33 0 33.3%, #2c4 0 66.6%, #36f 0); }
 .space-tag.cmyk::before { background: linear-gradient(90deg, #0ae 0 25%, #e0a 0 50%, #fd0 0 75%, #111 0); box-shadow: 0 0 0 .5px rgba(255,255,255,.4); }
 .lab-deck-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 4px 0 12px; flex-wrap: wrap; }
-.lab-deck h2 { font-family: var(--display); font-size: 14px; letter-spacing: .04em; margin: 0; }
+.lab-deck h2 { font-family: var(--display); font-weight: 900; font-size: 14px; letter-spacing: .04em; margin: 0; }
 .lab-deck h2 .muted { font-family: var(--body); font-weight: 400; font-size: 12px; letter-spacing: 0; }
 .lab-deck + .lab-deck { margin-top: 28px; }
 .lab-grid.cards { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
@@ -1949,7 +1951,7 @@ svg.zones polygon {
 .lab-sheet-ph { background: var(--panel-solid); border-radius: 6px; }
 .lab-side { display: flex; flex-direction: column; gap: 12px; }
 @media (max-width: 800px) { .lab-page { grid-template-columns: 1fr; } }
-.lab-sub { font-family: var(--display); font-size: 13px; letter-spacing: .04em; margin: 8px 0 0; }
+.lab-sub { font-family: var(--display); font-weight: 900; font-size: 13px; letter-spacing: .04em; margin: 8px 0 0; }
 .lab-progress { margin: 0; font-size: 13px; color: var(--gold); }
 .lab-error { margin: 0; font-size: 13px; color: var(--bad); }
 .lab-warn { margin: 0; font-size: 12px; color: var(--gold); }
@@ -2341,7 +2343,7 @@ body:has(.sheet-layout) { overflow: hidden; }
   gap: 12px;
   color: var(--text);
 }
-.crash h2 { margin: 0; font-family: var(--display); }
+.crash h2 { margin: 0; font-family: var(--display); font-weight: 900; }
 .crash p { margin: 0; line-height: 1.5; }
 .crash-detail { color: var(--bad); overflow-wrap: anywhere; }
 .crash-hint { color: var(--muted); }
@@ -2364,7 +2366,7 @@ body:has(.sheet-layout) { overflow: hidden; }
 .demo-top::before { content: ''; }
 .demo-top-end { justify-self: end; display: flex; align-items: center; gap: 6px; }
 .demo-top small { color: var(--muted); text-transform: uppercase; letter-spacing: .14em; font-size: 10.5px; }
-.demo-top h2 { margin: 0; font-family: var(--display); font-size: 20px; letter-spacing: .04em; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.demo-top h2 { margin: 0; font-family: var(--display); font-weight: 900; font-size: 20px; letter-spacing: .04em; display: flex; align-items: center; justify-content: center; gap: 8px; }
 .demo-top h2 span {
   display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%;
   background: var(--accent); color: var(--on-accent); font-family: var(--body); font-weight: 800; font-size: 13px;
@@ -2378,7 +2380,7 @@ body:has(.sheet-layout) { overflow: hidden; }
   transition: opacity .3s, border-color .3s;
 }
 .demo-side.active { opacity: 1; border-color: var(--pc); }
-.demo-side strong { color: var(--pc); font-family: var(--display); letter-spacing: .04em; font-size: 14px; }
+.demo-side strong { color: var(--pc); font-family: var(--display); font-weight: 900; letter-spacing: .04em; font-size: 14px; }
 .demo-stat { display: flex; align-items: center; gap: 6px; }
 .demo-stat small { color: var(--muted); text-transform: uppercase; letter-spacing: .08em; font-size: 10px; }
 .demo-stat.track { width: 104px; }
@@ -2410,7 +2412,7 @@ body:has(.sheet-layout) { overflow: hidden; }
   text-align: center; background: rgb(var(--shade) / .82); backdrop-filter: blur(4px);
   animation: fade .3s ease-out;
 }
-.demo-end h3 { margin: 0; font-family: var(--display); font-size: 26px; letter-spacing: .06em; }
+.demo-end h3 { margin: 0; font-family: var(--display); font-weight: 900; font-size: 26px; letter-spacing: .06em; }
 .demo-end ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; max-width: 420px; text-align: left; color: var(--text-2); }
 .demo-end p { margin: 0; max-width: 420px; color: var(--muted); font-size: 13px; }
 .demo-end .modal-actions { justify-content: center; }
