@@ -7,7 +7,7 @@ export function Rules({ onClose }: { onClose: () => void }) {
   return (
     <Dialog title="How to play" wide className="manual-dialog" onClose={onClose}>
       <style>{css}</style>
-      <Manual dark />
+      <Manual dark drawMapsWhenNear />
     </Dialog>
   );
 }

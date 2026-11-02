@@ -401,7 +401,7 @@ function PlanetSizes() {
 
 // ------------------------------------------------------------------ the manual
 
-export function Manual({ dark }: { dark?: boolean }) {
+export function Manual({ dark, drawMapsWhenNear }: { dark?: boolean; drawMapsWhenNear?: boolean }) {
   return (
     <article className={dark ? 'mn mn-dark' : 'mn'} style={{ '--mn-you': PLAYER_COLORS[0], '--mn-foe': PLAYER_COLORS[1] } as CSSProperties}>
       <header className="mn-cover">
@@ -827,7 +827,7 @@ export function Manual({ dark }: { dark?: boolean }) {
           player takes the cubes the map gives and starts on one of the starting objectives. New to a player count? Start with its{' '}
           <span className="mn-tag">Basic</span> map.
         </p>
-        <MapList />
+        <MapList drawWhenNear={drawMapsWhenNear} />
       </section>
 
       <footer className="mn-credits">

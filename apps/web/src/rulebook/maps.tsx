@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { BLANK, HEX_TILE_CUT, OBJECTIVE_NAMES, TILE, WORLD_NAMES, hexTileShape, type MapSheetMark, type MapSheetTile } from '@regolith/art';
 import { MAPS, defaultMap, type MapDef } from '@regolith/engine';
 import { mapSheet } from '../art/mapSheet';
@@ -108,7 +108,27 @@ function groundNote(marks: readonly MapSheetMark[]): string | undefined {
   return parts.length ? parts.join(', ') : undefined;
 }
 
-function MapCard({ map }: { map: MapDef }) {
+/**
+ * A map's drawing, once it comes near the dialog's visible part: the maps are most of the manual's elements, and
+ * few readers get that far. The empty box is the drawing's size, so nothing moves when it's drawn.
+ */
+function MapDrawingWhenNear({ sheet }: { sheet: ReturnType<typeof mapSheet> }) {
+  const box = useRef<HTMLDivElement>(null);
+  const [near, setNear] = useState(false);
+  useEffect(() => {
+    const el = box.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(([entry]) => entry?.isIntersecting && setNear(true), {
+      root: el.closest('.manual-dialog'),
+      rootMargin: '600px 0px',
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [near]);
+  return near ? <MapDrawing sheet={sheet} /> : <div ref={box} className="mn-mapsvg" />;
+}
+
+function MapCard({ map, drawWhenNear }: { map: MapDef; drawWhenNear?: boolean }) {
   const sheet = mapSheet(map);
   const counts = TILE_ORDER.map((n) => [n, sheet.tiles.filter((t) => t.number === n).length] as const).filter(([, k]) => k);
   const ground = groundNote(sheet.marks ?? []);
@@ -120,7 +140,7 @@ function MapCard({ map }: { map: MapDef }) {
         {defaultMap(map.players) === map && <span className="mn-tag">Basic</span>}
         {map.length && <span className="mn-tag">{LENGTHS[map.length]}</span>}
       </header>
-      <MapDrawing sheet={sheet} />
+      {drawWhenNear ? <MapDrawingWhenNear sheet={sheet} /> : <MapDrawing sheet={sheet} />}
       <dl>
         <dt>Cubes</dt>
         <dd>
@@ -189,7 +209,8 @@ function MapLegend() {
 }
 
 /** Every map, by player count, in data/maps.yaml's order (the basic map first). */
-export function MapList() {
+/** `drawWhenNear`: for the dialog, which scrolls; on paper and in the saved page every map is drawn at once. */
+export function MapList({ drawWhenNear }: { drawWhenNear?: boolean }) {
   const counts = [...new Set(MAPS.map((m) => m.players))].sort((a, b) => a - b);
   return (
     <>
@@ -199,7 +220,7 @@ export function MapList() {
           <h3>{n} players</h3>
           <div className="mn-maps">
             {MAPS.filter((m) => m.players === n).map((m) => (
-              <MapCard key={m.id} map={m} />
+              <MapCard key={m.id} map={m} drawWhenNear={drawWhenNear} />
             ))}
           </div>
         </div>
