@@ -3,7 +3,7 @@ import type { GameState, LogEvent, PlayerId } from '@regolith/engine';
 import { sfx } from '../sound';
 import { logText } from './logText';
 import { playSounds } from './sounds';
-import { logSince } from './useTransient';
+import { logSince } from './steps';
 
 export interface Toast {
   id: number;

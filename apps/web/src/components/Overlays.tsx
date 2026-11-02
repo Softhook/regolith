@@ -3,7 +3,7 @@ import { CARD_CATEGORIES } from '@regolith/art';
 import { cardName, shipOf, card, die, rulesOf, scrapyard, type Action, type ActionOf, type GameState } from '@regolith/engine';
 import { SHORT, useMediaQuery } from '../game/useMediaQuery';
 import type { Dispatch } from '../game/useGame';
-import { warmCardImages } from '../art/cardImages';
+import { useWarmCardImages } from '../art/useCardImages';
 import { CardView, CategoryIcon, categoryStyle } from './Card';
 import { CardArt } from './CardViewer';
 import { Dialog, Modal } from './Dialog';
@@ -237,8 +237,7 @@ function SetupRoll({ game, dispatch, player, rerolled }: { game: GameState; disp
   const rollKey = dice.map((d) => d.rolls).join();
   // The cards to choose next: drawn while the dice roll, so they're ready to show.
   const next = game.pending[1];
-  const nextCards = next?.kind === 'skillDraft' ? next.options.join() : '';
-  useEffect(() => warmCardImages(nextCards ? nextCards.split(',') : []), [nextCards]);
+  useWarmCardImages(next?.kind === 'skillDraft' ? next.options : []);
   useEffect(() => {
     setLanded(false);
     const t = window.setTimeout(() => setLanded(true), 1350);

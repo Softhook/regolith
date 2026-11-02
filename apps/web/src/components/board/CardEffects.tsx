@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { cellOf, same, type Cell, type GameState } from '@regolith/engine';
-import { cardsUsed, lastLogId, useStepEffects } from '../../game/useTransient';
+import { cardsUsed, lastLogId } from '../../game/steps';
+import { useStepEffects } from '../../game/useTransient';
 import { GATE_COLOR } from '../../theme';
 import { EffectBox, type MapEffect } from './EffectBox';
 

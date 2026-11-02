@@ -4,7 +4,7 @@ import { Board } from '../components/Board';
 import { SoundButton } from '../components/SoundButton';
 import { useController } from '../game/controller';
 import { playSounds } from '../game/sounds';
-import { isPlayStep } from '../game/useTransient';
+import { isPlayStep } from '../game/steps';
 import { useShortcut } from '../game/useShortcut';
 import css from '../rulebook/rulebook.css?raw';
 import { Battle } from './Battle';
@@ -32,14 +32,14 @@ function Stage({ game, show, scene }: { game: GameState; show: Parameters<typeof
     prev.current = { game, scene };
     if (before.scene === scene && isPlayStep(before.game, game)) playSounds(before.game, game, YOU);
   }, [game, scene]);
-  // The position this showing began on: a fight already pending there was jumped to.
-  const [opening, setOpening] = useState({ game, scene });
-  if (opening.scene !== scene) setOpening({ game, scene });
   const head = game.pending[0];
+  // What this showing began on: a fight already pending there was jumped to.
+  const [opening, setOpening] = useState({ head, scene });
+  if (opening.scene !== scene) setOpening({ head, scene });
   return (
     <div className="demo-stage">
       <Board game={game} ctl={ctl} scene={scene} />
-      {head?.kind === 'combat' && <Battle key={head.id} game={game} combat={head} mine={YOU} silent={opening.game.pending[0] === head} />}
+      {head?.kind === 'combat' && <Battle key={head.id} game={game} combat={head} mine={YOU} silent={opening.head === head} />}
     </div>
   );
 }

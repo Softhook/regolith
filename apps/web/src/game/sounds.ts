@@ -17,7 +17,7 @@ import { stagingOf } from '../components/board/staging';
 import { sfx } from '../sound';
 import { destroyedOf, shotOf, strikeOf } from './strike';
 import { reducedMotion } from './useMediaQuery';
-import { logSince } from './useTransient';
+import { logSince } from './steps';
 import { lost } from './view';
 
 type Sound = keyof typeof sfx;
@@ -74,12 +74,11 @@ export function soundsFor(
 
   // Cards played resolve first; their effects (ships, missiles) follow a beat later.
   for (const e of fresh) {
-    if (e.event === 'cardPlayed') first.add(e.card ? TACTIC_SOUNDS[effectOf(e.card) as TacticEffect] : 'card');
-  }
-  for (const e of fresh) {
-    const s = e.event && EVENT_SOUNDS[e.event];
+    const s =
+      e.event === 'cardPlayed' ? (e.card ? TACTIC_SOUNDS[effectOf(e.card) as TacticEffect] : 'card') : e.event && EVENT_SOUNDS[e.event];
     // A Take Over a kill earned follows the kill.
-    if (s) (s === 'infamy' && destroyed ? then : first).add(s === 'win' && lost(next, mine) ? 'lose' : s);
+    if (s === 'infamy' && destroyed) then.add(s);
+    else if (s) first.add(s === 'win' && lost(next, mine) ? 'lose' : s);
   }
   // Cubes: placed, knocked off, or relocated (a planet's cubes changed with none placed or taken back). Heard as they drop.
   const placed = next.players.some((pl, i) => pl.cubesLeft < prev.players[i].cubesLeft);

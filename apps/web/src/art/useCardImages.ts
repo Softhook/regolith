@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { cardBacks, cardFronts, type Drawn } from './cardImages';
+import { cardBacks, cardFronts, warmCardImages, type Drawn } from './cardImages';
 
 /**
  * A card image drawn on demand (cardImages.ts): at once if it's drawn already, else undefined till it is. A failed
@@ -31,3 +31,9 @@ export const useCardImage = (id: string) => useDrawn(cardFronts, id);
 
 /** The printed back of the deck card `id` belongs to. */
 export const useCardBack = (id: string) => useDrawn(cardBacks, id);
+
+/** Warms cards `ids` (cardImages.ts) while they're the ones wanted. Joined so it reruns only when the cards change, not on every new array. */
+export function useWarmCardImages(ids: readonly string[]) {
+  const sig = ids.join();
+  useEffect(() => warmCardImages(sig ? sig.split(',') : []), [sig]);
+}

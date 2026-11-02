@@ -1,6 +1,7 @@
 import { cellOf, same, type Cell, type GameState } from '@regolith/engine';
 import { SHIP } from '../../beats';
-import { lastLogId, useStepEffects } from '../../game/useTransient';
+import { lastLogId } from '../../game/steps';
+import { useStepEffects } from '../../game/useTransient';
 import { cardEffectsOf } from './CardEffects';
 import { EffectBox, cubeCount, type MapEffect } from './EffectBox';
 import { flightOf } from './staging';

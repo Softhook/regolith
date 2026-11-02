@@ -157,12 +157,12 @@ let warming = false;
 
 /**
  * Prepares cards in the background (one per idle moment), so their pop-ups open at once. A new list goes ahead
- * of those already waiting, all worked through by one loop. Fetches the card fonts straight away: the first
- * card drawn would otherwise wait for them. Returns a function that takes the list's cards off the queue.
+ * of those already waiting, all worked through by one loop. With any to draw, fetches the card fonts straight
+ * away: the first card drawn would otherwise wait for them. Returns a function that takes the list's cards off the queue.
  */
 export function warmCardImages(ids: Iterable<string>): () => void {
-  void cardFontCss();
   const list = [...new Set(ids)].filter((id) => !fronts.has(id));
+  if (list.length) void cardFontCss();
   toWarm = [...list, ...toWarm];
   if (!warming) {
     warming = true;

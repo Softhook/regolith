@@ -1,7 +1,8 @@
 import { useEffect, useRef, type CSSProperties } from 'react';
 import type { GameState } from '@regolith/engine';
 import { boomAt } from '../../beats';
-import { isPlayStep, useTransient } from '../../game/useTransient';
+import { isPlayStep } from '../../game/steps';
+import { useTransient } from '../../game/useTransient';
 import { reducedMotion } from '../../game/useMediaQuery';
 import { shipSpots } from './geometry';
 import { destroyedOf, strikeOf } from '../../game/strike';

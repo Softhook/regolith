@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { cellOf, drawing, movePath, same, type Cell, type Die, type GameState } from '@regolith/engine';
 import { BEAM_ARRIVES, BLINK, boomAt, EXPANSION } from '../../beats';
-import { isPlayStep } from '../../game/useTransient';
+import { isPlayStep } from '../../game/steps';
 import { reducedMotion } from '../../game/useMediaQuery';
 import { destroyedOf, strikeOf } from '../../game/strike';
 import { cardEffectsOf } from './CardEffects';

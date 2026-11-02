@@ -1,5 +1,5 @@
 import type { GameState, PlayerId, PlayerState } from '@regolith/engine';
-import { lastLogId } from '../game/useTransient';
+import { lastLogId } from '../game/steps';
 
 /** The numbers a player's panel shows that a step can change: their tracks, then the chips under them. */
 const NUMBERS = {

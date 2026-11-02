@@ -44,6 +44,7 @@ export function IntroCards({ leaving, onCards }: { leaving: boolean; onCards: (u
       let next = ready(ids[0]!);
       await wait(FIRST_MS);
       for (let i = 0; live && i < ids.length; i++) {
+        // The last card has just faded: if the next isn't ready, the title stands in until it is.
         let src = await Promise.race([next, wait(0)]);
         if (!src) {
           if (live) onCards(false);

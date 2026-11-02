@@ -3,7 +3,8 @@ import { createPortal } from 'react-dom';
 import { drawing, same, type Cell, type GameState, type LogEntry, type PlayerId } from '@regolith/engine';
 import { castOf, landing } from '../game/cast';
 import { reducedMotion } from '../game/useMediaQuery';
-import { cardsUsed, lastLogId, useTransient } from '../game/useTransient';
+import { cardsUsed, lastLogId } from '../game/steps';
+import { useTransient } from '../game/useTransient';
 import { cardEffectsOf } from './board/CardEffects';
 import { panelEffectsOf } from './panelEffects';
 

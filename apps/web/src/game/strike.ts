@@ -1,6 +1,6 @@
 import type { CombatPending, Die, GameState, Pending } from '@regolith/engine';
 import { ARC, LANCE, SHOT } from '../beats';
-import { cardsUsed } from './useTransient';
+import { cardsUsed } from './steps';
 
 /**
  * When a card's blow lands, in ms (beats.ts): Show of Force's lance reaches the ship (.cfx-lance),

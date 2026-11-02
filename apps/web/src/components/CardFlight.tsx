@@ -2,7 +2,8 @@ import { Component, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import { expansionCard, type GameState } from '@regolith/engine';
 import { reducedMotion } from '../game/useMediaQuery';
-import { lastLogId, useTransient } from '../game/useTransient';
+import { lastLogId } from '../game/steps';
+import { useTransient } from '../game/useTransient';
 import { leftRow } from '../game/marketRow';
 import { CardArt } from './CardViewer';
 

@@ -1,5 +1,5 @@
 import type { GameState, LogEntry } from '@regolith/engine';
-import { lastLogId } from './useTransient';
+import { lastLogId } from './steps';
 
 /** The decisions a Tactic leaves its player, where it lands: each step that settles one is the card's doing. */
 const LANDING = new Set([

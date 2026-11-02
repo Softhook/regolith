@@ -8,8 +8,7 @@ import { remember, stored } from '../storage';
 import { CardView, categoryStyle } from './Card';
 import { CardFlights } from './CardFlight';
 import { CardViewer } from './CardViewer';
-import { warmCardImages } from '../art/cardImages';
-import { useCardBack } from '../art/useCardImages';
+import { useCardBack, useWarmCardImages } from '../art/useCardImages';
 import { Dialog } from './Dialog';
 import { appKey } from '../appId';
 
@@ -358,7 +357,5 @@ function useWarmCards(game: GameState) {
     ...m.skillDeck,
     ...m.tacticDeck,
   ];
-  // Card ids, joined so the effect reruns only when the cards change, not on every new array.
-  const sig = ids.join();
-  useEffect(() => warmCardImages(sig ? sig.split(',') : []), [sig]);
+  useWarmCardImages(ids);
 }
