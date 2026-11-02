@@ -1,6 +1,6 @@
 /**
- * Checks, in Chrome, the screens a unit test can't render: choosing how to conquer a planet, and the
- * crash screen (components/ErrorBoundary.tsx). Exits with 1 when one of them doesn't work.
+ * Checks, in Chrome, the screens a unit test can't render: choosing how to conquer a planet, the manual's
+ * maps drawn only as they're reached, and the crash screen (components/ErrorBoundary.tsx). Exits with 1 when one of them doesn't work.
  *
  *   npm run ui:check                         # starts its own dev server
  *   npm run ui:check -- --url http://…/      # or checks a running dev server
@@ -78,7 +78,8 @@ const fail = (what: string) => {
 const { base, close } = await devServer(5197);
 const browser = await launchChrome();
 try {
-  const page = await browser.newPage({ viewport: { width: 1280, height: 860 } });
+  // Reduced motion skips setup's zoom demo: a click while the map moves only stops the map (useBoardZoom).
+  const page = await browser.newPage({ viewport: { width: 1280, height: 860 }, reducedMotion: 'reduce' });
   await page.goto(playUrl(base, { play: 'regolith', players: 3 }));
   await page.waitForFunction(() => '__game' in window);
 
@@ -144,6 +145,22 @@ try {
     console.log('✓ a battle the human fights in waits for OK');
     // Closing a battle swallows clicks for a moment (CombatOverlay's close): let it pass.
     await page.waitForTimeout(500);
+  }
+
+  // The manual opens with none of its maps drawn (they're most of it, and slow to open), and draws them as they're reached.
+  {
+    await load(page, quickStart(3, 1, 'regolith'));
+    await page.locator('.topbar button', { hasText: 'Rules' }).click();
+    const dialog = page.locator('.manual-dialog');
+    const drawn = dialog.locator('svg.mn-mapsvg');
+    if (!(await succeeds(dialog.waitFor({ timeout: 30000 })))) fail('the manual does not open');
+    else if (await drawn.count()) fail('the manual draws its maps before they are reached');
+    else {
+      await dialog.locator('.mn-mapcard').last().scrollIntoViewIfNeeded();
+      if (await succeeds(drawn.first().waitFor({ timeout: 5000 }))) console.log('✓ manual: its maps are drawn as they are reached');
+      else fail('a map reached in the manual is not drawn');
+      await dialog.locator('.dialog-close').click();
+    }
   }
 
   // A position the screen can't draw: the crash screen, not a blank page, and a way back to the lobby.
