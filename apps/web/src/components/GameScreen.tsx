@@ -99,7 +99,7 @@ export function Game({
             {GAME_NAME}
           </button>
           <div className="topbar-map">
-            <span className={`mode-badge mode-${game.mode}`}>{rulesOf(game).name}</span>
+            {game.mode === 'basic' && <span className="mode-badge mode-basic">{rulesOf(game).name}</span>}
             {game.board.mapName}
           </div>
           <div className="topbar-actions">

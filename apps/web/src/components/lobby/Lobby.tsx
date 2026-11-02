@@ -125,6 +125,7 @@ export function Lobby({
       <LobbyBackdrop map={map} paused={demo} />
       <div className="lobby-hero">
         <h1 ref={title}>{GAME_NAME}</h1>
+        <p className="lobby-byline">by Christian Nold</p>
         {intro.phase && (
           <p className={`intro-prompt${intro.started ? ' gone' : ''}`}>{matchMedia(COARSE).matches ? 'Tap' : 'Click'} to start</p>
         )}
@@ -218,10 +219,8 @@ export function Lobby({
       </button>
       <nav className="lobby-links">
         <button onClick={onRules}>How to play</button>
-        <a href="#rulebook">Manual (PDF)</a>
         <a href="#lab/cards">Art Lab: cards &amp; tiles</a>
       </nav>
-      <p className="credits">Regolith, a game by Christian Nold.</p>
       <VersionLine />
     </div>
   );

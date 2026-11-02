@@ -1745,7 +1745,7 @@ svg.zones polygon {
     radial-gradient(ellipse 90% 80% at 50% 40%, transparent 45%, rgb(var(--shade) / .75));
 }
 
-.lobby-hero { text-align: center; }
+.lobby-hero { position: relative; text-align: center; }
 /* The full screen button, top right; it comes in with the rest after the opening. */
 .lobby-corner { position: absolute; top: calc(12px + var(--safe-top)); right: 12px; }
 .lobby h1 {
@@ -1766,6 +1766,8 @@ svg.zones polygon {
      filter can't interpolate, and Safari on iPad left the title blurred. */
   filter: blur(0) drop-shadow(0 0 30px rgb(var(--accent-rgb) / .35));
 }
+/* Out of the flow, in the spare foot of the title's line and the gap below it, so the heading is no taller for it. */
+.lobby-byline { position: absolute; left: 0; right: 0; bottom: -4px; margin: 0; color: var(--text-2); font-size: 12px; line-height: 1; letter-spacing: .08em; }
 /* The opening (lobby/useIntro.ts): the title fades in alone in the middle of the screen, over the backdrop, then
    rises to its place while the rest of the lobby fades in under it. */
 .lobby.intro-title, .lobby.intro-rise { overflow: hidden; }
@@ -1780,8 +1782,8 @@ svg.zones polygon {
 .lobby.intro-rise h1 { transition: transform calc(var(--intro-rise) * .75) cubic-bezier(.65,0,.25,1); }
 /* Not to be clicked until it's done: the tap that skips a phase would otherwise land on what's under it, unseen. */
 .lobby.intro-title > :not(.lobby-hero, .lobby-backdrop), .lobby.intro-rise > :not(.lobby-hero, .lobby-backdrop) { pointer-events: none; }
-.lobby.intro-title > :not(.lobby-hero, .lobby-backdrop) { opacity: 0; transform: translateY(16px); }
-.lobby.intro-rise > :not(.lobby-hero, .lobby-backdrop) {
+.lobby.intro-title > :not(.lobby-hero, .lobby-backdrop), .lobby.intro-title .lobby-byline { opacity: 0; transform: translateY(16px); }
+.lobby.intro-rise > :not(.lobby-hero, .lobby-backdrop), .lobby.intro-rise .lobby-byline {
   transition: opacity calc(var(--intro-rise) * .5) ease-out calc(var(--intro-rise) * .45),
     transform calc(var(--intro-rise) * .5) ease-out calc(var(--intro-rise) * .45);
 }
@@ -1903,7 +1905,6 @@ svg.zones polygon {
 /* A map's preview: a hex for each tile, placed, sized and clipped by NewGameFields' MiniMap. A start shows as a paper hex (no inset ring on a clip). */
 .mini-map .mini-tile { position: absolute; border: 0; border-radius: 0; }
 .mini-map .mini-tile.start { background: var(--text); color: var(--on-accent); box-shadow: none; }
-.credits { color: var(--muted); font-size: 12px; text-align: center; max-width: 480px; }
 .version { display: flex; flex-wrap: wrap; gap: 4px 12px; justify-content: center; margin: -8px 0 0; color: var(--muted); font-size: 11.5px; font-variant-numeric: tabular-nums; }
 .version button { color: var(--accent); background: none; border: 0; padding: 0; font: inherit; cursor: pointer; }
 .version button:disabled { color: var(--muted); cursor: default; }
