@@ -88,6 +88,16 @@ function unreachable(page: Page, sel: string): Promise<string[]> {
   }, sel);
 }
 
+/** `unreachable`, after up to 3 s to clear: the turn bar may still be coming in on a loaded machine (CI). */
+async function unreachableOnceSettled(page: Page, sel: string): Promise<string[]> {
+  let hidden = await unreachable(page, sel);
+  for (let k = 0; k < 10 && hidden.length; k++) {
+    await page.waitForTimeout(300);
+    hidden = await unreachable(page, sel);
+  }
+  return hidden;
+}
+
 /**
  * Plays the human's setup (start planet, ship placement) and waits through the AI until it's the human's
  * turn, then selects a ship. Checks the ships to place and, at the turn, End turn and the ship's buttons.
@@ -105,12 +115,7 @@ async function playToMyTurn(page: Page) {
       deployChecked = true;
       // The turn bar's scrapyard below 980px, the player list's on the desktop layout (the sidebar may scroll there).
       if (await page.locator('.turn-scrap').isVisible()) {
-        // Up to 3 s, as the turn bar may still be coming in on a loaded machine (CI).
-        let hidden = await unreachable(page, '.turn-scrap .scrap-die.clickable');
-        for (let k = 0; k < 10 && hidden.length; k++) {
-          await page.waitForTimeout(300);
-          hidden = await unreachable(page, '.turn-scrap .scrap-die.clickable');
-        }
+        const hidden = await unreachableOnceSettled(page, '.turn-scrap .scrap-die.clickable');
         issues.push(...hidden.map((t) => `placing ships: ${t}`));
       }
     }
@@ -161,7 +166,8 @@ async function playToMyTurn(page: Page) {
   }
   await page.evaluate(() => (document.querySelector('.ship.own') as HTMLElement | null)?.click());
   await page.waitForTimeout(500);
-  issues.push(...(await unreachable(page, '.turn-actions .btn-primary, .turn-panel .ship-panel button')).map((t) => `your turn: ${t}`));
+  const hidden = await unreachableOnceSettled(page, '.turn-actions .btn-primary, .turn-panel .ship-panel button');
+  issues.push(...hidden.map((t) => `your turn: ${t}`));
   const overlap = await page.evaluate(() => {
     const a = document.querySelector('.board')!.getBoundingClientRect();
     const b = document.querySelector('.turn-panel')!.getBoundingClientRect();
