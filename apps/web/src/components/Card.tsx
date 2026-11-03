@@ -1,5 +1,5 @@
 import { useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode, type RefObject } from 'react';
-import { CARD_CATEGORIES, ICONS, cardPalette, missile } from '@regolith/art';
+import { CARD_CATEGORIES, ICONS, cardPlate, missile } from '@regolith/art';
 import { cardName, card, cardKind } from '@regolith/engine';
 import { useCardImage } from '../art/useCardImages';
 
@@ -64,12 +64,11 @@ export function MissileIcon({ size = 16 }: { size?: number }) {
 }
 
 /**
- * Sets `--cat` to a category's accent colour, as printed on a light (permanent) or dark (one-shot) card, and
- * `--cat-ink` to its text colour on that card (on a light card, darker than the accent, to be readable).
+ * Sets `--cat` to a category's colour plate, as its printed cards have it, and `--cat-ink` to its text colour on a
+ * light (permanent) or dark (one-shot) card: the card's own ink, as some plates are too pale or too dark to read as text.
  */
 export const categoryStyle = (category: string, light: boolean) => {
-  const p = cardPalette(light, CARD_CATEGORIES[category]?.hue ?? CARD_CATEGORIES.action.hue);
-  return { '--cat': p.accent, '--cat-ink': light ? p.accentInk : p.accent } as CSSProperties;
+  return { '--cat': cardPlate(category), '--cat-ink': light ? 'var(--card-skill-ink)' : 'var(--card-tactic-ink)' } as CSSProperties;
 };
 
 export interface CardViewProps {

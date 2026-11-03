@@ -85,7 +85,7 @@ skills:
     name: "Boost"
     subtitle: "Extra mech ability"
     text: "Once per turn, use one mech ability twice."
-    category: action
+    category: ship
     count: 1
     from: cunning
     status: renamed
@@ -215,7 +215,7 @@ skills:
     name: "Stolen Flag"
     subtitle: "Accelerated domination"
     text: "Your Power resets at 4 instead of 6. Whoever destroys one of your mechs may take this card."
-    category: conquer
+    category: power
     count: 1
     from: prideful
     status: renamed
@@ -245,7 +245,7 @@ skills:
     name: "Trophy Hunters"
     subtitle: "Power amplification"
     text: "When you first destroy an enemy mech each turn, gain 1 extra Power."
-    category: combat
+    category: power
     count: 1
     from: ravenous
     status: renamed
@@ -265,7 +265,7 @@ skills:
     name: "Fanatics"
     subtitle: "Irreducible power"
     text: "You never lose Power. You never gain Research."
-    category: conquer
+    category: power
     count: 1
     from: righteous
     status: renamed
@@ -295,7 +295,7 @@ skills:
     name: "Infiltration"
     subtitle: "Isolated drop"
     text: "You may Drop onto any space that isn't adjacent to a mech."
-    category: ship
+    category: movement
     count: 1
     from: stealthy
     status: renamed
@@ -325,7 +325,7 @@ skills:
     name: "Advance"
     subtitle: "Bonus short move"
     text: "Once per turn, a mech may Move/Attack 1 space, even if it has already moved."
-    category: action
+    category: movement
     count: 1
     from: tactical
     status: renamed
@@ -357,7 +357,7 @@ tactics:
     name: "Power Grab"
     subtitle: "Add power"
     text: "Gain 2 Power."
-    category: combat
+    category: power
     count: 2
     from: aggression
     status: renamed

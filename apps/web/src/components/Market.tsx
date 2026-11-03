@@ -257,6 +257,7 @@ export function Market({
             <button
               type="button"
               className={`market-chip market-chip-expansion ${canExpand ? 'takeable' : ''}`}
+              style={categoryStyle(expansion.category, false)}
               title={`${m.expansions} ${expansion.name} cards left`}
               data-card={expansion.id}
               onClick={() => setViewingCard(expansion.id)}

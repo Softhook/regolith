@@ -20,7 +20,6 @@ const faces = (deck: CardDeck, defs: CardDef[]): CardFace[] =>
     deck,
     copies: c.count,
     index: i + 1,
-    deckSize: defs.length,
   }));
 
 /** Regolith's decks, read from the rule set that deals them (Basic deals none). */

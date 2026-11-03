@@ -100,8 +100,7 @@ Each card is a `CardDef` with the fields cards already have (`id`, `name`, `subt
 
 Ids are prefixed (`r-`) so they never collide with Community's or Classic's (`o-`).
 [build-data.mjs](../../scripts/build-data.mjs) checks the ids, that `from` is a Community card, that
-`status` agrees with `from`, `name` and `effect`, and that a card with its ancestor's action keeps its
-category; `data.test.ts` checks every `effect` is one the engine has.
+`status` agrees with `from`, `name` and `effect`; `data.test.ts` checks every `effect` is one the engine has.
 
 The mode's folder imports its `cards.json` (`REGOLITH_DECKS`); nothing else in the engine names it. The
 engine learns its cards from the rule set: `defineRuleSets` (rules.ts) adds each mode's own decks to the
@@ -134,7 +133,7 @@ it replaced went with the split.
 
 ```
 packages/art/src/screenprint/
-  inks.ts     paper, night paper, key ink, bone; oxide, ice and dust plates; amber; habitat green, crystal violet
+  inks.ts     paper, night paper, key ink, bone; oxide, ice and dust plates; amber; habitat green, crystal violet; teal, slate and raspberry for the card categories
   mechs.ts    the six mechs as rigs: the Silhouettes board's parts, cut at their joints, with their depths
   pose.ts     a mech posed (joint angles, lean, aim), stood on its lowest foot, turned in 3D, plated
   kit.ts      the stage (sky, each world's ground), the tiles' buildings and small things, crews, effects
@@ -162,7 +161,11 @@ packages/art/src/screenprint/
   Size, bleed, safe zone and corner are the poker card's (GRAPHICS.md *Cards*).
 - **Decks tell apart as the Vocabulary board does:** the permanent deck on paper in key ink, the one-shot
   decks on night paper in bone. The category sets the colour plate (rule, name shadow, mech plates).
-- **The footer** shows the copies (`×2`) on the left and the card's place in its deck on the right. The colour band under the scene shows the category; the paper tells the deck.
+- **A card's category is what its effect changes, not when it triggers:** Movement (where mechs and barriers go,
+  how far), Action (how many actions and turns), Research and Power (those tracks, in the tracks' own inks), Combat
+  (rolls, destroying mechs, atomics; in oxide like Power, told apart by its symbol), Mechs (a mech's number, type or ability), Claim (the sums for claiming an
+  objective), Cards (what you hold and take). Expansion is the Reinforcements pile's own, a deck of one.
+- **The name** follows the category's symbol, on one line at one size. The colour band under the scene shows the category too; the paper tells the deck.
 - **Tests** (art.test.ts): every Regolith card has a scene and no scene lacks a card, every card and back
   draws without bad numbers or broken references, no two scenes are the same, every mech poses both ways.
 - Still to do: rules readouts (action chips, combat dice) redrawn as flat inks, where a card shows one.

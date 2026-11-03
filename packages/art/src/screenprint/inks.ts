@@ -1,7 +1,8 @@
 /**
  * The screenprint inks, after the mood board's Vocabulary board: paper and night paper, key ink and bone, three
  * plates (oxide, ice, dust) and the amber accent. Habitat green and crystal violet are the two objectives'
- * own spot colours, as their tiles have them (regolith/base.ts).
+ * own spot colours, as their tiles have them (regolith/base.ts). Teal, slate and raspberry are there for the
+ * card categories, so each has a colour of its own (screenprint/card.ts).
  */
 export const INKS = {
   paper: '#E6DDC8',
@@ -19,6 +20,9 @@ export const INKS = {
   grey: '#8E8880',
   green: '#7FB08A',
   violet: '#9C86C9',
+  teal: '#1B7F86',
+  slate: '#4F5D63',
+  raspberry: '#B8487A',
 } as const;
 
 /** How a mech is printed: its key ink, seams, joints, recesses, rods, lights, the rifle's metal, and its parts' sides and tops when turned. */

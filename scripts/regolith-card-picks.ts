@@ -43,7 +43,6 @@ const cards = DECKS.flatMap((d) =>
   regolith[d.key].map((c, i) => {
     const idea = ideas[d.key]?.[c.id];
     if (!idea?.subtitle || !idea.text) throw new Error(`card-text-ideas.yaml: ${c.id} needs a subtitle and a text`);
-    const deckSize = regolith[d.key].length;
     // Printed as the game prints it, with the `from` card's picture until its own art is drawn.
     const face = {
       id: c.id,
@@ -54,7 +53,6 @@ const cards = DECKS.flatMap((d) =>
       deck: d.deck,
       copies: c.count,
       index: i + 1,
-      deckSize,
     };
     return {
       id: c.id,
@@ -62,7 +60,6 @@ const cards = DECKS.flatMap((d) =>
       deckWord: d.word,
       category: c.category,
       index: i + 1,
-      deckSize,
       copies: c.count,
       groups: [
         {

@@ -173,7 +173,7 @@ function PlayerCard({
                 onClick={() => setViewing(tId)}
                 data-fx={`stored:${tId}`}
                 className={`skill-chip stored-tactic ${canPlay ? 'playable' : ''}`}
-                style={categoryStyle(def.category, true)}
+                style={categoryStyle(def.category, false)}
                 title={`${`${def.name} (Stored Tactic): ${def.text}`}${canPlay ? '\n(Click to view / play)' : ''}`}
               >
                 <CategoryIcon category={def.category} size={11} />

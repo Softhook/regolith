@@ -1,15 +1,16 @@
 import { rng } from '../rng';
 import { dieCut, document, esc, n, type Box, type Fragment } from '../svg';
 import type { CardDeck, CardFace, CardOptions, Measure, MeasuredFont } from '../card';
+import { icon } from '../icons';
 import { INKS, ON_NIGHT, ON_PAPER } from './inks';
-import { SP_FONTS, label, land, mech, paperGround, person, screens, sky, stencil, type Stage } from './kit';
+import { SP_FONTS, land, mech, paperGround, person, screens, sky, stencil, type Stage } from './kit';
 import type { MechKind } from './mechs';
 import { SCENES } from './scenes';
 
 /**
  * The screenprint cards (docs/regolith/REGOLITH.md §5), after the CardStyles board's screenprint row: the scene
  * at the top in flat inks under a soft shade, a band in the card's colour plate, the name stencilled in the
- * paper's ink, the rules in condensed type, and a footer. Permanent cards are on paper in key ink;
+ * paper's ink after the category's symbol, and the rules in condensed type. Permanent cards are on paper in key ink;
  * one-shot cards on night paper in bone. Size, bleed and safe area as card.ts.
  */
 
@@ -22,15 +23,19 @@ const SAFE = 4.5;
 
 /** Each category's colour plate. */
 const PLATE: Record<string, string> = {
-  movement: INKS.ice,
+  movement: INKS.teal,
   research: INKS.ice,
-  expansion: INKS.ice,
+  expansion: INKS.bone,
   combat: INKS.oxide,
-  ship: INKS.oxide,
-  action: INKS.dust,
-  conquer: INKS.dust,
-  card: INKS.dust,
+  power: INKS.oxide,
+  ship: INKS.slate,
+  action: INKS.amber,
+  conquer: INKS.green,
+  card: INKS.raspberry,
 };
+
+/** The colour plate a category prints in: the band on its cards. */
+export const cardPlate = (category: string): string => PLATE[category] ?? INKS.dust;
 
 /**
  * The deck's name on its back, the mech standing on it (at `size` mm per board unit, so each fills the back
@@ -94,7 +99,7 @@ const stage = (face: CardFace, id: string): Stage =>
     r: rng(`screenprint:${face.id}`),
     world: SCENES[face.id]?.world ?? 'phobos',
     h: ART_BOTTOM,
-    plate: PLATE[face.category] ?? INKS.dust,
+    plate: cardPlate(face.category),
   });
 
 /** The scene, clipped to the art window and its bleed, under a shade fading down from the top. */
@@ -170,24 +175,28 @@ function wrap(text: string, size: number, width: number, measure: Measure): Word
 
 /** The band in the card's colour plate between the scene and the panel. */
 const BAND = 2.4;
+/** What the category symbol before the name takes of the line, in ems of the name: itself, and the gap after it. */
+const NAME_ICON = 1;
+const NAME_GAP = 0.3;
 
-/** The panel under the scene: the band, name, rules text and footer. */
+/** The panel under the scene: the band, category symbol and name, and rules text. */
 function panel(face: CardFace, s: Stage, area: Box, measure: Measure): string {
   const ink = s.key;
   let out = rect({ x: area.x, y: ART_BOTTOM, w: area.w, h: area.y + area.h - ART_BOTTOM }, s.paper);
   out += rect({ x: area.x, y: ART_BOTTOM - 0.1, w: area.w, h: BAND }, s.plate);
 
-  // The name, as large as fits.
+  // The category's symbol and the name, as large as fit on one line.
   const textW = W - 2 * SAFE;
   const name = face.name.toUpperCase();
-  const size = Math.min(5.8, textW / (measure(name, 1, 'display') * 1.04));
+  const size = Math.min(5.8, textW / (measure(name, 1, 'display') * 1.04 + NAME_ICON + NAME_GAP));
   const nameY = ART_BOTTOM + BAND + 2.6 + size * 0.95;
-  out += `<text x="${n(SAFE)}" y="${n(nameY)}" font-family="${SP_FONTS.display}" font-weight="900" font-size="${n(size)}" fill="${ink}">${esc(name)}</text>`;
+  out += icon(face.category, SAFE + (size * NAME_ICON) / 2, nameY - size * 0.36, size * NAME_ICON, ink, 2.8);
+  out += `<text x="${n(SAFE + size * (NAME_ICON + NAME_GAP))}" y="${n(nameY)}" font-family="${SP_FONTS.display}" font-weight="900" font-size="${n(size)}" fill="${ink}">${esc(name)}</text>`;
 
-  // The rules: the largest size that fits between the name and the footer, set a little above the middle of
+  // The rules: the largest size that fits between the name and the safe area's edge, set a little above the middle of
   // that space so short rules don't leave it all empty below them.
   const top = nameY + 3.4;
-  const bottom = H - SAFE - 2.4;
+  const bottom = H - SAFE;
   let tsize = 5.8;
   let lines = wrap(face.text, tsize, textW, measure);
   while (tsize > 2.4 && lines.length * tsize * 1.22 > bottom - top) {
@@ -205,18 +214,6 @@ function panel(face: CardFace, s: Stage, area: Box, measure: Measure): string {
     )
     .join('');
 
-  // The footer: the card's copies and its place in its deck.
-  const muted = s.dark ? '#8F877B' : '#8a7f6c';
-  if (face.copies && face.copies > 1) out += label(`×${face.copies}`, SAFE, H - SAFE + 0.3, 1.3, muted, 'start');
-  if (face.index !== undefined && face.deckSize)
-    out += label(
-      `${String(face.index).padStart(2, '0')}/${String(face.deckSize).padStart(2, '0')}`,
-      W - SAFE,
-      H - SAFE + 0.3,
-      1.3,
-      muted,
-      'end',
-    );
   return out;
 }
 

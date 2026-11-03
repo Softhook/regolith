@@ -154,7 +154,7 @@ shown and exported in the Art Lab (`#lab/cards`).
 - **Two papers by deck**: permanent cards (Skills) on paper in key ink; one-shot cards (Tactics,
   Reinforcements) on night paper in bone. The decks tell apart across the table and face down.
 - **Face**: the scene at the top in flat inks under a soft shade, a band in the card's colour plate, the name
-  in Inter Black, the rules in condensed type, a footer.
+  in Inter Black after the category's symbol, the rules in condensed type.
 - **One scene per card**, showing what it does, from one kit: the six mechs rigged from the mood board's
   Silhouettes board ([`mechs.ts`](../packages/art/src/screenprint/mechs.ts), posed by `pose.ts`), the tiles'
   buildings side on, crews and small things ([`scenes/`](../packages/art/src/screenprint/scenes)). A test
@@ -273,8 +273,7 @@ A new piece is a `PIECES` entry and a `Printable` per face.
 - **Fonts.** Every print file carries its fonts (all SIL Open Font License, so embedding is allowed). The
   files are rasterised, so there is no live text to outline. Self-hosting the fonts would let exports work
   offline.
-- **Thin lines and small text.** Keep printed strokes ≥ 0.15 mm and text ≥ 6 pt; the card footer is the one
-  smaller line.
+- **Thin lines and small text.** Keep printed strokes ≥ 0.15 mm and text ≥ 6 pt.
 
 ---
 

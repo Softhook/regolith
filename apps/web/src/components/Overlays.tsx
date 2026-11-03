@@ -43,15 +43,14 @@ export function DecisionOverlay({ game, dispatch, human }: { game: GameState; di
           <div className="card-choice">
             <div className="choice-col">
               <small>Face-up</small>
-              <CardView
+              <CardPick
                 id={(head.deck === 'skill' ? game.market.skillRow : game.market.tacticRow)[2]}
-                size="lg"
                 onClick={() => dispatch({ type: 'peekChoice', takeTop: false })}
               />
             </div>
             <div className="choice-col">
               <small>Top of deck</small>
-              <CardView id={head.top} size="lg" className="flip-in" onClick={() => dispatch({ type: 'peekChoice', takeTop: true })} />
+              <CardPick id={head.top} className="flip-in" onClick={() => dispatch({ type: 'peekChoice', takeTop: true })} />
             </div>
           </div>
         </Modal>
@@ -209,10 +208,16 @@ function SkillsByCategory({ ids, onPick }: { ids: string[]; onPick: (id: string)
 }
 
 /** A printed card to choose. Its words stand in until it's drawn, so the choice is never blind and never waits on the drawing. */
-function CardPick({ id, onClick }: { id: string; onClick: () => void }) {
+function CardPick({ id, className, onClick }: { id: string; className?: string; onClick: () => void }) {
   const def = card(id);
   return (
-    <button type="button" className="card-pick" data-card={id} aria-label={`${def.name}: ${def.text}`} onClick={onClick}>
+    <button
+      type="button"
+      className={className ? `card-pick ${className}` : 'card-pick'}
+      data-card={id}
+      aria-label={`${def.name}: ${def.text}`}
+      onClick={onClick}
+    >
       <CardArt
         id={id}
         size="lg"

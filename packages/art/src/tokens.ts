@@ -135,9 +135,10 @@ export const CARD_CATEGORIES: Record<string, { hue: number; label: string }> = {
   movement: { hue: 192, label: 'Movement' },
   action: { hue: 42, label: 'Action' },
   combat: { hue: 352, label: 'Combat' },
-  conquer: { hue: 138, label: 'Conquer' },
+  conquer: { hue: 138, label: 'Claim' },
+  power: { hue: 22, label: 'Power' },
   research: { hue: RESEARCH, label: 'Research' },
-  ship: { hue: 218, label: 'Ship' },
+  ship: { hue: 218, label: 'Mechs' },
   card: { hue: 24, label: 'Cards' },
   expansion: { hue: 172, label: 'Expansion' },
 };

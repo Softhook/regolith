@@ -33,16 +33,17 @@
   /* Dialogs and card placeholders. */
   --sheet-1: #1e1c1a;
   --sheet-2: #1e1c1a;
-  /* Card faces by type: a light skill, dark tactic and expansion. */
-  --card-skill-1: #ede7db;
-  --card-skill-2: #ede7db;
-  --card-skill-ink: #1e1c1a;
-  --card-tactic-1: #3a2219;
-  --card-tactic-2: #3a2219;
-  --card-tactic-ink: #f3e3d6;
-  --card-expansion-1: #163a3f;
-  --card-expansion-2: #163a3f;
-  --card-expansion-ink: #dcf1f3;
+  /* Card faces by type, in their printed paper and ink (@regolith/art's INKS): a light skill, dark tactic and expansion. */
+  --card-skill-1: #E6DDC8;
+  --card-skill-2: #E6DDC8;
+  --card-skill-ink: #1E1C1A;
+  --card-tactic-1: #23211F;
+  --card-tactic-2: #23211F;
+  --card-tactic-ink: #EDE6D6;
+  --card-expansion-1: #23211F;
+  --card-expansion-2: #23211F;
+  --card-expansion-ink: #EDE6D6;
+  --card-night-edge: rgb(237 230 214 / .25);
   --pc: var(--accent);
   --good: #7FB08A;
   /* What you can tap on the map: cyan stands out from every world's ground and every player's colour. */
@@ -1068,7 +1069,8 @@ svg.zones polygon {
 .skill-chip > svg { color: var(--cat-ink, var(--cat)); }
 .skill-chip.pending { opacity: .5; outline: 1px dashed rgba(255,255,255,.5); }
 .skill-chip.disabled-chip { opacity: .4; text-decoration: line-through; filter: grayscale(1); }
-.skill-chip.stored-tactic { border: 1px dashed var(--cat); }
+.skill-chip.stored-tactic { border: 1px dashed var(--cat); background: var(--card-tactic-1); color: var(--card-tactic-ink); }
+@media (hover: hover) { .skill-chip.stored-tactic:hover { background: color-mix(in srgb, var(--card-tactic-1) 80%, #fff); } }
 .skill-chip.stored-tactic.playable { outline: 1px solid var(--good); }
 
 .log { flex: 1; min-height: 140px; display: flex; flex-direction: column; }
@@ -1152,14 +1154,14 @@ svg.zones polygon {
 @keyframes deal { from { transform: translateY(-14px) rotate(-3deg); opacity: 0; } }
 .qcard::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 4px; background: var(--cat); }
 .qcard-skill { background: linear-gradient(180deg, var(--card-skill-1), var(--card-skill-2)); color: var(--card-skill-ink); }
-.qcard-tactic { background: linear-gradient(180deg, var(--card-tactic-1), var(--card-tactic-2)); color: var(--card-tactic-ink); border-color: rgba(156,134,201,.3); }
-.qcard-expansion { background: linear-gradient(180deg, var(--card-expansion-1), var(--card-expansion-2)); color: var(--card-expansion-ink); border-color: rgba(127,176,138,.35); }
-/* --cat, the category's accent, is set per card from @regolith/art (categoryStyle in Card.tsx). */
+.qcard-tactic { background: linear-gradient(180deg, var(--card-tactic-1), var(--card-tactic-2)); color: var(--card-tactic-ink); border-color: var(--card-night-edge); }
+.qcard-expansion { background: linear-gradient(180deg, var(--card-expansion-1), var(--card-expansion-2)); color: var(--card-expansion-ink); border-color: var(--card-night-edge); }
+/* --cat, the category's colour plate, is set per card from @regolith/art (categoryStyle in Card.tsx). */
 .qcard-top { display: flex; align-items: center; justify-content: space-between; gap: 4px; }
 .qcard-cat { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--cat-ink, var(--cat)); }
 /* A one-shot card's deck (Tactic, Gambit) beside its category, where there's room: not in the market, whose rows are labelled. */
 .qcard-kind { font-size: 9.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; opacity: .6; white-space: nowrap; }
-.qcard-badge { flex: none; align-self: flex-end; margin-top: 4px; font-size: 9.5px; font-weight: 700; padding: 1px 6px; border-radius: 999px; background: var(--cat); color: #fff; }
+.qcard-badge { flex: none; align-self: flex-end; margin-top: 4px; font-size: 9.5px; font-weight: 700; padding: 1px 6px; border-radius: 999px; background: var(--card-skill-1); color: var(--card-skill-ink); box-shadow: inset 0 0 0 1.5px var(--cat); }
 /* The art band: the middle of the printed card's illustration, edge to edge, its category's colour under it
    (instead of the stripe on top). The name sits on the art with its category's icon, in place of the category
    label and the name line, so the rules text below has their room; its tag is no bigger than they are, to hide
@@ -1177,7 +1179,7 @@ svg.zones polygon {
   background: rgb(var(--shade) / .8); color: #fff; overflow-wrap: anywhere;
   font-family: var(--condensed); font-weight: 700; font-size: 12px; letter-spacing: .03em; line-height: 1.15;
 }
-.qcard-art-name > svg { flex: none; width: 1em; height: 1em; margin-top: .07em; color: var(--cat); }
+.qcard-art-name > svg { flex: none; width: 1em; height: 1em; margin-top: .07em; }
 .qcard.has-art .qcard-top, .qcard.has-art .qcard-name { display: none; }
 .qcard-name { font-family: var(--display); font-weight: 900; font-size: 14px; letter-spacing: .03em; margin-top: 6px; line-height: 1.15; }
 .qcard-sub { font-size: 10.5px; font-weight: 600; opacity: .6; margin-top: 2px; }
@@ -1307,8 +1309,8 @@ svg.zones polygon {
   cursor: pointer; transition: transform .15s, box-shadow .15s;
 }
 .market-chip-skill { background: var(--card-skill-2); color: var(--card-skill-ink); }
-.market-chip-tactic { background: var(--card-tactic-1); color: var(--card-tactic-ink); border-color: rgba(156,134,201,.3); border-left-color: var(--cat); }
-.market-chip-expansion { background: var(--card-expansion-1); color: var(--card-expansion-ink); border-color: rgba(127,176,138,.35); border-left-color: var(--good); }
+.market-chip-tactic { background: var(--card-tactic-1); color: var(--card-tactic-ink); border-color: var(--card-night-edge); border-left-color: var(--cat); }
+.market-chip-expansion { background: var(--card-expansion-1); color: var(--card-expansion-ink); border-color: var(--card-night-edge); border-left-color: var(--cat); }
 @media (hover: hover) { .market-chip:hover { transform: translateY(-1px); box-shadow: 0 0 0 1px var(--cat); } }
 .market-chip.takeable { box-shadow: 0 0 0 1px var(--accent); }
 .deck { position: relative; flex: none; width: 50px; height: 160px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 2px; padding-bottom: 8px; border: 0; background: none; color: inherit; font: inherit; cursor: pointer; }
@@ -1324,7 +1326,7 @@ svg.zones polygon {
 .deck:focus-visible .deck-stack { transform: translateY(-3px); box-shadow: 3px 3px 0 -1px rgba(255,255,255,.18), 6px 6px 0 -2px rgba(255,255,255,.1), 0 0 0 2px var(--accent); }
 .deck:focus-visible { outline: none; }
 .deck-skill .deck-stack { background-image: repeating-linear-gradient(45deg, var(--card-skill-2) 0 6px, color-mix(in srgb, var(--card-skill-2) 90%, #000) 6px 12px); }
-.deck-tactic .deck-stack { background-image: repeating-linear-gradient(45deg, var(--card-tactic-1) 0 6px, var(--card-tactic-2) 6px 12px); border: 1px solid rgba(156,134,201,.3); }
+.deck-tactic .deck-stack { background-image: repeating-linear-gradient(45deg, var(--card-tactic-1) 0 6px, var(--card-tactic-2) 6px 12px); border: 1px solid var(--card-night-edge); }
 .deck-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
 /* The count, on the pile's top corner. */
 .deck-count {
@@ -1392,8 +1394,8 @@ svg.zones polygon {
    a grid row as tall as its tallest card. The heading names the category, so the cards don't repeat it. */
 .skill-groups { display: flex; flex-direction: column; gap: 14px; }
 .skill-group h3 {
-  display: flex; align-items: center; gap: 6px; margin: 0 0 6px;
-  font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--cat);
+  display: flex; align-items: center; gap: 6px; margin: 0 0 6px; padding-left: 6px; border-left: 3px solid var(--cat);
+  font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--cat-ink);
 }
 .skill-group-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(124px, 1fr)); gap: 8px; }
 .skill-group .qcard-sm { width: auto; height: auto; min-height: 96px; }
@@ -1410,13 +1412,16 @@ svg.zones polygon {
  * Two printed cards to choose from, as large as the popup's width and the screen's height allow. --pick-around is
  * what the screen's height must leave for the popup's edges, heading and subtitle.
  */
-.card-pick { --pick-around: 190px; flex: 0 1 min(240px, calc((100vh - var(--pick-around)) * 63.5 / 88.9)); flex-basis: min(240px, calc((100dvh - var(--pick-around)) * 63.5 / 88.9)); min-width: 0; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; border-radius: 4.7%/3.4%; transition: transform .15s; }
+.card-pick, .choice-col { --pick-around: 190px; --pick-label: 0px; flex: 0 1 min(240px, calc((100vh - var(--pick-around) - var(--pick-label)) * 63.5 / 88.9)); flex-basis: min(240px, calc((100dvh - var(--pick-around) - var(--pick-label)) * 63.5 / 88.9)); min-width: 0; }
+.card-pick { padding: 0; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; border-radius: 4.7%/3.4%; transition: transform .15s; }
 .card-pick .card-art { width: 100%; }
 .card-pick:focus-visible { outline: 2px solid var(--pc); outline-offset: 3px; }
 @media (hover: hover) { .card-pick:hover { transform: translateY(-4px); } .card-pick:hover img { box-shadow: 0 0 0 2px var(--pc), 0 16px 30px rgba(0,0,0,.5), 0 0 26px color-mix(in srgb, var(--pc) 50%, transparent); } }
 .card-pick-words { display: block; height: 100%; padding: 8%; overflow: hidden; border-radius: 4.7%/3.4%; background: linear-gradient(180deg, var(--sheet-1), var(--sheet-2)); font-size: 13px; line-height: 1.35; }
 .card-pick-words b { display: block; margin-bottom: 6px; font-family: var(--display); font-weight: 900; font-size: 16px; }
-.choice-col { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.choice-col { --pick-label: 23px; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.choice-col .card-pick { flex: none; width: 100%; }
+.card-pick.flip-in { animation-fill-mode: backwards; } /* Holding the last frame would block the hover lift. */
 .choice-col small { color: var(--muted); text-transform: uppercase; letter-spacing: .08em; font-size: 11px; }
 
 .fleet-roll { display: flex; justify-content: center; gap: 34px; padding: 28px 0 8px; }
@@ -2275,7 +2280,7 @@ body:has(.sheet-layout) { overflow: hidden; }
   .modal { max-height: calc(100vh - 16px); max-height: calc(100dvh - 16px); padding: 18px 16px; }
   /* Two cards side by side, shrunk to fit; their text scales with the card. */
   .card-choice:not(.wrap) { gap: 10px; flex-wrap: nowrap; }
-  .card-choice:not(.wrap) > .qcard-lg, .card-choice:not(.wrap) > .choice-col { flex: 0 1 210px; min-width: 0; }
+  .card-choice:not(.wrap) > .qcard-lg { flex: 0 1 210px; min-width: 0; }
   .card-choice:not(.wrap) .qcard-lg { width: 100%; height: auto; aspect-ratio: 210 / 280; padding: 10px; container-type: inline-size; }
   .card-choice:not(.wrap) .qcard-lg .qcard-name { font-size: clamp(13px, 9cqi, 19px); margin-top: clamp(6px, 5cqi, 12px); }
   .card-choice:not(.wrap) .qcard-lg .qcard-sub { font-size: clamp(10px, 6cqi, 12.5px); }
@@ -2332,8 +2337,8 @@ body:has(.sheet-layout) { overflow: hidden; }
   .fleet-roll { padding: 4px 0 0; }
   .fleet-die { gap: 6px; }
   .fleet-sum { margin-top: 2px; }
-  .card-choice:not(.wrap) > .qcard-lg, .card-choice:not(.wrap) > .choice-col { flex-basis: 150px; }
-  .card-pick { --pick-around: 100px; }
+  .card-choice:not(.wrap) > .qcard-lg { flex-basis: 150px; }
+  .card-pick, .choice-col { --pick-around: 100px; }
 }
 
 /* Touch: small buttons keep their look but get a 44px hit area. */

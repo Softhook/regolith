@@ -35,9 +35,8 @@ export interface CardFace {
   category: string;
   /** How many copies the deck has. */
   copies?: number;
-  /** Position in its deck, for the "07/34" footer. */
+  /** Position in its deck, for naming its file. */
   index?: number;
-  deckSize?: number;
 }
 
 /** Measures text width in mm, for wrapping. The browser passes a canvas-based one; tests use the estimate. */

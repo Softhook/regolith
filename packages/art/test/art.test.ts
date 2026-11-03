@@ -243,7 +243,7 @@ describe('screenprint cards', () => {
     ['tactic', regolithCards.tactics],
     ['expansion', regolithCards.expansion],
   ];
-  const faces = decks.flatMap(([deck, list]) => list.map((c, i) => ({ ...c, deck, copies: c.count, index: i + 1, deckSize: list.length })));
+  const faces = decks.flatMap(([deck, list]) => list.map((c, i) => ({ ...c, deck, copies: c.count, index: i + 1 })));
 
   it('gives every card a known category, so it has a colour and an icon', () => {
     for (const f of faces) expect(CARD_CATEGORIES[f.category], f.id).toBeDefined();

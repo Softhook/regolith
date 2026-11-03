@@ -67,6 +67,7 @@ export {
   type Measure,
   type MeasuredFont,
 } from './card';
+export { cardPlate } from './screenprint/card';
 export { SKY, SP_FONTS } from './screenprint/kit';
 export { AID, MIN_TEXT, playerAidSvg, type AidOptions } from './aid';
 export { MAP_SHEET, mapSheetSvg, type MapSheetMark, type MapSheetOptions, type MapSheetTile } from './mapSheet';
