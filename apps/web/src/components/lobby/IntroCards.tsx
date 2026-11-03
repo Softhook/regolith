@@ -2,15 +2,13 @@ import { useEffect, useState } from 'react';
 import { CARD } from '@regolith/art';
 import { DECKS } from '../../art/cards';
 import { cardFronts, warmCardImages } from '../../art/cardImages';
+import { shuffled } from '../../random';
 
-/** How long before the first card, and how long each is on screen (matches `intro-card` in styles.css). */
+/** How long before the first card, and how long each is on screen. */
 const FIRST_MS = 7000;
 const SHOWN_MS = 13200;
 
 const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
-
-/** Every card, in a random order. */
-const shuffled = () => DECKS.flatMap((d) => d.cards.map((c) => c.id)).sort(() => Math.random() - 0.5);
 
 /** A card's image, drawn and decoded, so showing it costs the page nothing; undefined if it can't be drawn. */
 async function ready(id: string): Promise<string | undefined> {
@@ -37,7 +35,7 @@ export function IntroCards({ leaving, onCards }: { leaving: boolean; onCards: (u
   const [shown, setShown] = useState<{ id: string; src: string }>();
   useEffect(() => {
     if (leaving) return;
-    const ids = shuffled();
+    const ids = shuffled(DECKS.flatMap((d) => d.cards.map((c) => c.id)));
     const stop = warmCardImages(ids);
     let live = true;
     void (async () => {
@@ -50,9 +48,11 @@ export function IntroCards({ leaving, onCards }: { leaving: boolean; onCards: (u
           if (live) onCards(false);
           src = await next;
         }
+        // Clicked while it waited: nothing more to draw, as the title rises.
+        if (!live) return;
         const due = wait(SHOWN_MS);
         if (i + 1 < ids.length) next = ready(ids[i + 1]!);
-        if (live && src) {
+        if (src) {
           setShown({ id: ids[i]!, src });
           onCards(true);
         }
@@ -68,7 +68,16 @@ export function IntroCards({ leaving, onCards }: { leaving: boolean; onCards: (u
   return (
     shown && (
       <div className={`intro-cards${leaving ? ' gone' : ''}`}>
-        <img key={shown.id} className="intro-card" src={shown.src} alt="" width={CARD.w} height={CARD.h} draggable={false} />
+        <img
+          key={shown.id}
+          className="intro-card"
+          style={{ animationDuration: `${SHOWN_MS}ms` }}
+          src={shown.src}
+          alt=""
+          width={CARD.w}
+          height={CARD.h}
+          draggable={false}
+        />
       </div>
     )
   );

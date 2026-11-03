@@ -16,7 +16,7 @@ import {
 import { BarrierBubble } from '../components/board/BarrierBubble';
 import { CubeWells, PlanetMark } from '../components/board/PlanetMarkings';
 import { PIPS } from '../components/Die3D';
-import { COMBAT_DICE, PIP, PLAYER_COLORS } from '../theme';
+import { COMBAT_DICE, DIE_CORNER, PIP, PLAYER_COLORS } from '../theme';
 
 /**
  * Building blocks for the manual's diagrams, drawn with the game's own artwork: real hex tiles on a world's
@@ -260,7 +260,7 @@ const pipAt = (i: number) => [(i % 3) - 1, Math.floor(i / 3) - 1] as const;
 function DieBody({ x, y, size, face }: { x: number; y: number; size: number; face: string }) {
   const defs = useContext(Defs);
   const h = size / 2;
-  const rx = size * 0.16;
+  const rx = size * DIE_CORNER;
   return (
     <>
       {[face, `url(#${defs}-dk)`, `url(#${defs}-hi)`].map((fill) => (
@@ -295,7 +295,7 @@ export function DieFace({
 }) {
   const h = size / 2;
   const step = size * 0.27;
-  const rx = size * 0.16;
+  const rx = size * DIE_CORNER;
   const cls = dim ? 'mn-die mn-dim' : 'mn-die';
   if (ghost)
     return (

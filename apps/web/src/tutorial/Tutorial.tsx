@@ -1,11 +1,11 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import type { GameState, PlayerId } from '@regolith/engine';
 import { Board } from '../components/Board';
 import { SoundButton } from '../components/SoundButton';
 import { useController } from '../game/controller';
 import { playSounds } from '../game/sounds';
-import { isPlayStep } from '../game/steps';
 import { useShortcut } from '../game/useShortcut';
+import { usePlaySteps } from '../game/useTransient';
 import css from '../rulebook/rulebook.css?raw';
 import { Battle } from './Battle';
 import { lessons } from './lessons';
@@ -26,12 +26,7 @@ function Stage({ game, show, scene }: { game: GameState; show: Parameters<typeof
   // The controller of a game nobody plays, but lighting up what a tap on a mech would.
   const ctl = useMemo(() => ({ ...base, highlights }), [base, highlights]);
   // Each step heard as in a game; a jump (a new `scene`) shows a new position, not a move.
-  const prev = useRef({ game, scene });
-  useEffect(() => {
-    const before = prev.current;
-    prev.current = { game, scene };
-    if (before.scene === scene && isPlayStep(before.game, game)) playSounds(before.game, game, YOU);
-  }, [game, scene]);
+  usePlaySteps(game, scene, (before) => playSounds(before, game, YOU));
   const head = game.pending[0];
   // What this showing began on: a fight already pending there was jumped to.
   const [opening, setOpening] = useState({ head, scene });

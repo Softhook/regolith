@@ -1,10 +1,12 @@
 import type { CSSProperties } from 'react';
 import { type GameState } from '@regolith/engine';
 import { CUBE_PAD, REGOLITH_SHADOW, TILE, cubePadCentres, type World } from '@regolith/art';
+import { DIE_CORNER } from '../../theme';
 import { placement } from './geometry';
 import { numberCorner } from './layers';
 import { PlanetMark } from './PlanetMarkings';
 import { castShadow, pieceShadowLength, pieceShadowOpacity, shadowOnCube } from './shadows';
+import type { Staging } from './staging';
 
 /** A cube on the map: its top left and size in px, its corners' radius, and its colour. */
 export interface CubeSpot {
@@ -38,7 +40,7 @@ export function cubeSpots(game: GameState, cell: number): CubeSpot[] {
 }
 
 /** A planet's new cube may drop in late (a relocated one, see staging): its shadow and it wait as long. */
-const lateStyle = (planet: number, late?: { planet: number; ms: number }) =>
+const lateStyle = (planet: number, late: Staging['cube']) =>
   late?.planet === planet ? ({ '--cube-late': `${late.ms}ms` } as CSSProperties) : undefined;
 
 /**
@@ -46,17 +48,7 @@ const lateStyle = (planet: number, late?: { planet: number; ms: number }) =>
  * darker. Each is the cube's rounded footprint swept down and to the right for its height (a cube, so its width), and
  * falls in with its cube, from as far away as the cube falls from (`--away`, the cube's 320%).
  */
-export function CubeShadows({
-  cubes,
-  world,
-  mm,
-  late,
-}: {
-  cubes: CubeSpot[];
-  world: World;
-  mm: number;
-  late?: { planet: number; ms: number };
-}) {
+export function CubeShadows({ cubes, world, mm, late }: { cubes: CubeSpot[]; world: World; mm: number; late?: Staging['cube'] }) {
   return (
     <svg className="board-svg">
       {cubes.map((q) => {
@@ -99,7 +91,7 @@ function CubeShade({ q, dice, world }: { q: CubeSpot; dice: DieSpot[]; world: Wo
   const shades = dice.flatMap((d) => {
     const far = shadowOnCube(world, d.size, q.size);
     const reaches = d.x + d.size + far > q.x && d.x < q.x + q.size && d.y + d.size + far > q.y && d.y < q.y + q.size;
-    return reaches ? [castShadow(d.x - q.x, d.y - q.y, d.size, d.size * 0.16, far, d.color)] : [];
+    return reaches ? [castShadow(d.x - q.x, d.y - q.y, d.size, d.size * DIE_CORNER, far, d.color)] : [];
   });
   if (!shades.length) return null;
   return (
@@ -126,7 +118,7 @@ export function Cubes({
   cubes: CubeSpot[];
   dice: DieSpot[];
   cell: number;
-  late?: { planet: number; ms: number };
+  late?: Staging['cube'];
 }) {
   const { mid } = placement(game.board, cell);
   return (

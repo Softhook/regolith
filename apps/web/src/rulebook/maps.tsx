@@ -208,8 +208,10 @@ function MapLegend() {
   );
 }
 
-/** Every map, by player count, in data/maps.yaml's order (the basic map first). */
-/** `drawWhenNear`: for the dialog, which scrolls; on paper and in the saved page every map is drawn at once. */
+/**
+ * Every map, by player count, in data/maps.yaml's order (the basic map first). `drawWhenNear`: for the dialog,
+ * which scrolls; on paper and in the saved page every map is drawn at once.
+ */
 export function MapList({ drawWhenNear }: { drawWhenNear?: boolean }) {
   const counts = [...new Set(MAPS.map((m) => m.players))].sort((a, b) => a - b);
   return (

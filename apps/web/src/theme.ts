@@ -13,6 +13,8 @@ export const WORMHOLE_COLOR = '#B58CE0';
 
 /** Pips on a ship die. */
 export const PIP = '#0a0f1e';
+/** How round a die's corners are, for its width (.die3d-face), a cube's top and any picture of one. */
+export const DIE_CORNER = 0.16;
 
 /** The two combat dice: black for the attacker, white for the defender (shared with the card art). */
 export { COMBAT_DICE } from '@regolith/art';

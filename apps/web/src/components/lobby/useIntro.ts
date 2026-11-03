@@ -53,8 +53,9 @@ export function useIntro(title: RefObject<HTMLHeadingElement | null>) {
     // opening is heard, with its rush.
     const music = phase === 'title' ? holdForTitle() : undefined;
     let live = true;
+    // Settled, not all fulfilled: music that fails must not leave the title up for good, its click already spent.
     const rise = (opening: Promise<void> | undefined, settling?: Promise<void> | null) =>
-      void Promise.all([opening, settling]).then(() => live && setPhase('rise'));
+      void Promise.allSettled([opening, settling]).then(() => live && setPhase('rise'));
     const t = phase === 'title' ? undefined : setTimeout(() => setPhase(null), INTRO_RISE_MS);
     const unlisten = () => {
       removeEventListener('click', skip);

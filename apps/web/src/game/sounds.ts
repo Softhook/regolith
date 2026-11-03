@@ -152,8 +152,8 @@ export function soundsFor(
 export function battleSounds(combat: CombatPending, out: CombatOutcome, mine: (p: PlayerId) => boolean): { now: Sound[]; hit: Sound[] } {
   const loser = out.winner === 'attacker' ? 'defender' : 'attacker';
   const won = mine(combat[out.winner].player);
-  const lost = mine(combat[loser].player);
-  const blow: Sound[] = !out.destroyed ? [] : won === lost ? ['wreck'] : ['wreck', won ? 'triumph' : 'defeat'];
+  const beaten = mine(combat[loser].player);
+  const blow: Sound[] = !out.destroyed ? [] : won === beaten ? ['wreck'] : ['wreck', won ? 'triumph' : 'defeat'];
   if (combat.ranged) return { now: out.winner === 'defender' ? ['gunshot', 'whizz'] : ['gunshot'], hit: blow };
   return { now: out.destroyed ? blow : ['repel'], hit: [] };
 }

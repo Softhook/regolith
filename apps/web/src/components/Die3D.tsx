@@ -3,7 +3,7 @@ import { DICE, HOP_EASING, HOP_LANDS } from '../beats';
 import { playRoll } from '../sound';
 import { APPLE_TOUCH } from '../platform';
 import { useEffectEvent } from '../game/useEffectEvent';
-import { PIP } from '../theme';
+import { DIE_CORNER, PIP } from '../theme';
 import type { World } from '@regolith/art';
 import { castShadow, pieceShadowLength } from './board/shadows';
 
@@ -306,12 +306,11 @@ export const DieShadow = memo(function DieShadow({
     );
     return () => hop?.cancel();
   }, [rolls, scene, size, world]);
-  // Its corners rounded as the faces' are (16%).
   const far = size * pieceShadowLength(world);
   return (
     <div className="die3d-cast" ref={el} style={{ width: size, height: size }}>
       <svg width={size + far} height={size + far} style={{ filter: `blur(${blur}px)` }}>
-        <polygon {...castShadow(0, 0, size, size * 0.16, far, color)} />
+        <polygon {...castShadow(0, 0, size, size * DIE_CORNER, far, color)} />
       </svg>
     </div>
   );
