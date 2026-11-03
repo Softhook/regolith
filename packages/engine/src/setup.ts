@@ -6,8 +6,9 @@ import { defaultMapFor } from './rules';
 import { effectOf, MAPS, type CardDef, type GameMode } from './data';
 import { boardLoc, die, scrapyard } from './lookups';
 import { startSlots } from './queries';
-import { next, shuffle } from './rng';
+import { shuffle } from './rng';
 import { DEFAULT_MODE, RULESETS } from './rulesets';
+import { ruleOf } from './skillRules';
 import type { Die, GameState, PlayerConfig } from './types';
 
 /** Missiles each player starts with (Community Edition). */
@@ -122,24 +123,10 @@ export function createGame(opts: NewGameOptions): GameState {
   return state;
 }
 
-/** Lowest mech total goes first (ties: random); then everyone picks a starting planet in turn order. */
-function startDeployment(s: GameState) {
-  const sums = s.players.map((p) => scrapyard(s, p.id).reduce((a, d) => a + d.value, 0));
-  const low = Math.min(...sums);
-  const tied = s.players.filter((p) => sums[p.id] === low);
-  const first = tied[Math.floor(next(s) * tied.length)].id;
-  s.turn.player = first;
-  log(s, `${name(s, first)} has the lowest mech total (${low}) and goes first.`, first);
-  for (let i = 0; i < s.players.length; i++) {
-    s.pending.push({ kind: 'placeStart', player: (first + i) % s.players.length });
-  }
-}
-
 export const setupHandlers = {
   setupKeep(s) {
     headOf(s, 'setupRoll', 'Not rolling mechs');
     s.pending.shift();
-    if (!s.pending.length) startDeployment(s);
   },
   setupReroll(s) {
     const head = headOf(s, 'setupRoll', 'Not rolling mechs');
@@ -156,7 +143,8 @@ export const setupHandlers = {
     for (const o of head.options) if (o !== a.skill) s.market.skillDeck.push(o);
     log(s, `${name(s, head.player)} chooses a starting skill.`, head.player);
     s.pending.shift();
-    if (!s.pending.length) startDeployment(s);
+    // As for a skill taken later: "Get a free Tactic with this card."
+    if (ruleOf(a.skill).storeTactics) s.pending.unshift({ kind: 'patientTactic', player: head.player });
   },
   placeStart(s, a) {
     const head = headOf(s, 'placeStart', 'Not placing a starting objective');

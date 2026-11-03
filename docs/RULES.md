@@ -171,7 +171,8 @@ Settled questions the card text or the rules above leave open. Each is cited fro
    but not the Stolen Flag. A stolen one works at once. Whenever it starts working (stolen, at the end of the
    turn it was taken, or back after Signal Jammer), a player with Power 4 or more gains Take Over at once.
 4. **Strategic Plan** (`patient`). Only Tactics can be stored. At the end of each turn a player may play one
-   stored Tactic, even when ending the turn with actions unused, which are lost.
+   stored Tactic, even when ending the turn with actions unused, which are lost. Its free Tactic comes with it
+   however it is gained, as a starting Skill too.
 5. **Peek with an empty deck.** Taking the oldest face-up card first reshuffles the discards into a new deck,
    as for any draw, and the peek goes ahead. No peek only when the deck and its discards are both empty.
 6. **Engineering** (`clever`). After any refit, ±1, even onto a number already shown this turn. No wrap

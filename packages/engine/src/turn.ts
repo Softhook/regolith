@@ -2,6 +2,7 @@
 import { checkInfamy, emptyTurn, gainResearch, log, name, type PendingOf } from './core';
 import { cellOf, scrapyard, shipsOnBoard } from './lookups';
 import { breakthroughAt, canProfiteer, canShunt, canTakeAnyCard, infamyTargets, startSlots } from './queries';
+import { next } from './rng';
 import { rulesOf } from './rules';
 import { activeSkills, ruleOf, stealableSkill, type TurnBonus } from './skillRules';
 import type { GameState, OwnedSkill, Pending, PlayerId } from './types';
@@ -44,6 +45,19 @@ function startTurn(s: GameState, player: PlayerId, actions: number, bonus: boole
   if (onVoid) gainResearch(s, player, onVoid);
   log(s, bonus ? `${pl.name} takes a bonus turn.` : `${pl.name}'s turn.`, player);
   s.log[s.log.length - 1].turn = true;
+}
+
+/** Lowest mech total goes first (ties: random); then everyone picks a starting planet in turn order. */
+function startDeployment(s: GameState) {
+  const sums = s.players.map((p) => scrapyard(s, p.id).reduce((a, d) => a + d.value, 0));
+  const low = Math.min(...sums);
+  const tied = s.players.filter((p) => sums[p.id] === low);
+  const first = tied[Math.floor(next(s) * tied.length)].id;
+  s.turn.player = first;
+  log(s, `${name(s, first)} has the lowest mech total (${low}) and goes first.`, first);
+  for (let i = 0; i < s.players.length; i++) {
+    s.pending.push({ kind: 'placeStart', player: (first + i) % s.players.length });
+  }
 }
 
 /** Setup is complete: the first player starts. */
@@ -184,6 +198,10 @@ export function settle(s: GameState) {
     const head = s.pending[0];
     const auto = head && (AUTO_RESOLVE[head.kind] as ((s: GameState, h: Pending) => boolean) | undefined);
     if (auto?.(s, head)) continue;
+    if (!head && s.phase === 'setup') {
+      startDeployment(s);
+      continue;
+    }
     if (!head && s.phase === 'play' && s.turn.phase === 'cards') {
       finishTurn(s);
       continue;

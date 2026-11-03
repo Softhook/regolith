@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { apply, attackChance, attackFactors, attackOdds, die, legalActions, type GameState } from '../src';
-import { arrange, quickStart } from './helpers';
+import { apply, attackChance, attackFactors, attackOdds, createGame, die, legalActions, type GameState } from '../src';
+import { arrange, players, quickStart } from './helpers';
 
 /**
  * Regolith's cards, each by the Community card it started as (its `effect`): the current player's Wisp (a 6) at
@@ -260,6 +260,44 @@ describe('Patient', () => {
     t.pending = [{ kind: 'takeCard', player: t.turn.player, count: 2 }];
     t = apply(t, { type: 'takeCard', deck: 'skill', index: 0 });
     expect(t.pending[0]).toMatchObject({ kind: 'takeCard', count: 1 });
+  });
+
+  /** A new game with Patient among this seat's two starting skills, and every player before it through their draft. */
+  function draftingPatient(seat: number) {
+    let s = createGame({ players: players(2), seed: 1, mode: 'regolith' });
+    const drafts = s.pending.flatMap((x) => (x.kind === 'skillDraft' ? [x] : []));
+    const swapIn = (list: string[]) => {
+      const i = list.indexOf('r-patient');
+      if (i >= 0) [list[i], drafts[seat].options[0]] = [drafts[seat].options[0], list[i]];
+    };
+    swapIn(s.market.skillRow);
+    swapIn(s.market.skillDeck);
+    for (const d of drafts) if (d !== drafts[seat]) swapIn(d.options);
+    for (let i = 0; i < seat; i++) {
+      s = apply(s, { type: 'setupKeep' });
+      s = apply(s, { type: 'draftSkill', skill: drafts[i].options[0] });
+    }
+    return apply(s, { type: 'setupKeep' });
+  }
+
+  it('triggers when Patient is the starting skill, then setup goes on', () => {
+    let s = draftingPatient(0);
+    s = apply(s, { type: 'draftSkill', skill: 'r-patient' });
+    expect(s.pending[0]).toEqual({ kind: 'patientTactic', player: 0 });
+    const tactic = s.market.tacticRow[0];
+    s = apply(s, { type: 'patientTactic', index: 0 });
+    expect(s.players[0].storedTactics).toEqual([tactic]);
+    expect(s.pending[0]).toMatchObject({ kind: 'setupRoll', player: 1 });
+  });
+
+  it('starts deployment once the last player to draft Patient has settled the tactic, taken or not', () => {
+    for (const index of [0, undefined]) {
+      let s = draftingPatient(1);
+      s = apply(s, { type: 'draftSkill', skill: 'r-patient' });
+      expect(s.pending).toEqual([{ kind: 'patientTactic', player: 1 }]);
+      s = apply(s, { type: 'patientTactic', index });
+      expect(s.pending.map((p) => p.kind)).toEqual(['placeStart', 'placeStart']);
+    }
   });
 
   it('triggers when Patient is chosen with Change of Heart', () => {
