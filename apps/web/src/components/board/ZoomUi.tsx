@@ -131,7 +131,7 @@ export function useFollowTurn(game: GameState, ctl: Controller, spots: ShipSpots
     const key = { map: game.board.mapId, turn: game.turn.number };
     last.current = key;
     if (before?.map === key.map && before.turn === key.turn) return;
-    if (game.phase !== 'play' || scene?.startsWith('review:') || !ctl.mine(game.turn.player)) return;
+    if (!zoom.zoomed || game.phase !== 'play' || scene?.startsWith('review:') || !ctl.mine(game.turn.player)) return;
     const own = game.dice.flatMap((d) => (d.owner === game.turn.player ? (spots.get(d.id) ?? []) : []));
     if (!own.length) return;
     // The most mechs one screen holds, centred, so some are in view even when they're spread across the map.

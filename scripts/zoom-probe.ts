@@ -1,7 +1,9 @@
 /**
  * Times the map's zoom and pan (useBoardZoom), in Chrome with its CPU slowed down (×4 by default, roughly a
  * mid-range phone such as the Moto G55), in a 4-player Regolith game: frame gaps while a gesture is under
- * way, and the longest frame once it ends (when the new zoom is drawn crisp), with main-thread time for each.
+ * way, and the longest frame once it ends (when the new zoom is drawn crisp), with main-thread time for each, and
+ * the raster and GPU time that the slowdown doesn't touch (this machine's own, so compare it only with itself). Fails on
+ * a gesture that doesn't move the map as it should, or that goes over budget (perf-common).
  *
  * - desktop (mouse): wheel notches, a drag, the zoom buttons;
  * - phone (touch, the G55): a pinch out, a one-finger pan and fling, a pinch back in.
@@ -9,11 +11,20 @@
  *   npm run perf:zoom                       # its own dev server
  *   npm run perf:zoom -- --cpu 6            # slower still
  *   npm run perf:zoom -- --runs 5           # more runs of each (the median is shown)
+ *   npm run perf:zoom -- --headed           # in a window, on this machine's real compositor
  */
-import type { CDPSession, Page } from 'playwright';
+import type { Browser, CDPSession, Page } from 'playwright';
 import { MOTO_G55, arg, devServer, launchChrome, playUrl } from './mobile-common';
+import { DESKTOP, THROTTLE, budget, busy, problem, runProbe } from './perf-common';
 
-const THROTTLE = Number(arg('--cpu') ?? 4);
+/** The slowest a gesture's frames may run, at the 95th percentile: a frame missed now and then, no more. */
+const DURING_MS = 34;
+/** The longest frame of a whole run: a phone's new zoom is drawn crisp as the fingers lift, a mouse's a little after. */
+const LONGEST_MS = 100;
+/** What a gesture must do to the map, for it to have been timed at all: its size, or how far it moves. */
+type Does = 'in' | 'out' | 'pans';
+/** How far (px) a pan must carry the map. */
+const PAN_PX = 20;
 const RUNS = Number(arg('--runs') ?? 3);
 
 const pause = (page: Page, ms: number) => page.waitForTimeout(ms);
@@ -55,14 +66,30 @@ interface Result {
   during: number[]; // frame lengths while the gesture runs
   settle: number; // the longest frame after it
   busy: number; // main-thread ms over the whole run
+  gpu: number; // raster and GPU ms over the whole run
 }
 
-async function busy(cdp: CDPSession) {
-  return (await cdp.send('Performance.getMetrics')).metrics.find((m) => m.name === 'TaskDuration')!.value * 1000;
+/** The map's size and place on screen. */
+const mapView = (page: Page) =>
+  page.evaluate(() => {
+    const { width, x, y } = document.querySelector('.board')!.getBoundingClientRect();
+    return { width, x, y };
+  });
+
+/** Raster and GPU time in a trace, in ms. */
+function rasterAndGpu(trace: Buffer) {
+  const { traceEvents } = JSON.parse(trace.toString()) as { traceEvents: { name: string; ph: string; dur?: number }[] };
+  return traceEvents.reduce(
+    (ms, e) => (e.ph === 'X' && (e.name === 'RasterTask' || e.name === 'GPUTask') ? ms + (e.dur ?? 0) / 1000 : ms),
+    0,
+  );
 }
 
-async function run(page: Page, cdp: CDPSession, gesture: () => Promise<void>, settleMs = 700): Promise<Result> {
+async function run(page: Page, cdp: CDPSession, what: string, does: Does, gesture: () => Promise<void>, settleMs = 700): Promise<Result> {
   await pause(page, 300);
+  const before = await mapView(page);
+  const browser = page.context().browser() as Browser;
+  await browser.startTracing(page, { categories: ['devtools.timeline', 'disabled-by-default-devtools.timeline', 'cc', 'viz', 'gpu'] });
   const b0 = await busy(cdp);
   await record(page);
   await gesture();
@@ -70,7 +97,19 @@ async function run(page: Page, cdp: CDPSession, gesture: () => Promise<void>, se
   await pause(page, settleMs);
   const { frames, mark: m } = await stop(page);
   const b1 = await busy(cdp);
-  return { during: frames.slice(0, Math.max(0, m)), settle: Math.max(0, ...frames.slice(Math.max(0, m))), busy: b1 - b0 };
+  const trace = await browser.stopTracing();
+  const after = await mapView(page);
+  const grew = after.width / before.width;
+  const moved = Math.hypot(after.x - before.x, after.y - before.y);
+  if (does === 'in' && grew < 1.2) problem(`${what}: the map didn't zoom in (×${grew.toFixed(2)})`);
+  if (does === 'out' && grew > 1 / 1.2) problem(`${what}: the map didn't zoom out (×${grew.toFixed(2)})`);
+  if (does === 'pans' && moved < PAN_PX) problem(`${what}: the map moved ${moved.toFixed(0)} px`);
+  return {
+    during: frames.slice(0, Math.max(0, m)),
+    settle: Math.max(0, ...frames.slice(Math.max(0, m))),
+    busy: b1 - b0,
+    gpu: rasterAndGpu(trace),
+  };
 }
 
 function report(what: string, results: Result[]) {
@@ -78,16 +117,19 @@ function report(what: string, results: Result[]) {
   const sorted = [...during].sort((a, b) => a - b);
   const p95 = sorted[Math.floor(sorted.length * 0.95)] ?? 0;
   const janky = during.filter((f) => f > 34).length;
+  const settle = median(results.map((r) => r.settle));
   console.log(
     `${what.padEnd(26)} during: p95 ${p95.toFixed(0).padStart(3)} ms, max ${Math.max(0, ...during)
       .toFixed(0)
       .padStart(3)} ms, ${String(janky).padStart(2)}/${during.length} frames >34 ms` +
-      ` · settle ${median(results.map((r) => r.settle))
+      ` · settle ${settle.toFixed(0).padStart(3)} ms · main thread ${median(results.map((r) => r.busy))
         .toFixed(0)
-        .padStart(3)} ms · main thread ${median(results.map((r) => r.busy))
+        .padStart(4)} ms · raster+GPU ${median(results.map((r) => r.gpu))
         .toFixed(0)
         .padStart(4)} ms`,
   );
+  budget(`${what}, frames`, p95, DURING_MS);
+  budget(`${what}, longest frame`, median(results.map((r) => Math.max(r.settle, ...r.during))), LONGEST_MS);
 }
 
 /** The board wrap's centre, in page pixels. */
@@ -99,23 +141,23 @@ async function centre(page: Page) {
 async function desktop(page: Page, cdp: CDPSession) {
   const { x, y } = await centre(page);
   const fit = () => page.evaluate(() => document.querySelector<HTMLButtonElement>('.zoom-controls [aria-label="Whole map"]')?.click());
-  const times = async (what: string, setup: () => Promise<unknown>, gesture: () => Promise<void>) => {
+  const times = async (what: string, does: Does, setup: () => Promise<unknown>, gesture: () => Promise<void>) => {
     const out: Result[] = [];
     for (let i = 0; i < RUNS; i++) {
       await setup();
       await pause(page, 500);
-      out.push(await run(page, cdp, gesture));
+      out.push(await run(page, cdp, what, does, gesture));
     }
     report(what, out);
   };
   await page.mouse.move(x, y);
-  await times('wheel in (notches)', fit, async () => {
+  await times('wheel in (notches)', 'in', fit, async () => {
     for (let i = 0; i < 6; i++) {
       await page.mouse.wheel(0, -100);
       await pause(page, 60);
     }
   });
-  await times('trackpad pinch (ctrl)', fit, async () => {
+  await times('trackpad pinch (ctrl)', 'in', fit, async () => {
     await page.keyboard.down('Control');
     for (let i = 0; i < 30; i++) {
       await page.mouse.wheel(0, -4);
@@ -129,7 +171,7 @@ async function desktop(page: Page, cdp: CDPSession) {
     await page.locator('.zoom-controls [aria-label="Zoom in"]').click();
     await pause(page, 600);
   };
-  await times('drag pan', zoomIn, async () => {
+  await times('drag pan', 'pans', zoomIn, async () => {
     await page.mouse.move(x, y);
     await page.mouse.down();
     for (let i = 1; i <= 30; i++) {
@@ -139,11 +181,11 @@ async function desktop(page: Page, cdp: CDPSession) {
     await pause(page, 80); // stopped before letting go: no fling
     await page.mouse.up();
   });
-  await times('button zoom in', fit, async () => {
+  await times('button zoom in', 'in', fit, async () => {
     await page.locator('.zoom-controls [aria-label="Zoom in"]').click();
     await pause(page, 300);
   });
-  await times('button whole map', zoomIn, async () => {
+  await times('button whole map', 'out', zoomIn, async () => {
     await page.locator('.zoom-controls [aria-label="Whole map"]').click();
     await pause(page, 300);
   });
@@ -166,12 +208,12 @@ async function phone(page: Page, cdp: CDPSession) {
     await touch('touchEnd', []);
   };
   const fit = () => page.evaluate(() => document.querySelector<HTMLButtonElement>('.zoom-controls [aria-label="Whole map"]')?.click());
-  const times = async (what: string, setup: () => Promise<unknown>, gesture: () => Promise<void>, settleMs?: number) => {
+  const times = async (what: string, does: Does, setup: () => Promise<unknown>, gesture: () => Promise<void>, settleMs?: number) => {
     const out: Result[] = [];
     for (let i = 0; i < RUNS; i++) {
       await setup();
       await pause(page, 500);
-      out.push(await run(page, cdp, gesture, settleMs));
+      out.push(await run(page, cdp, what, does, gesture, settleMs));
     }
     report(what, out);
   };
@@ -181,8 +223,8 @@ async function phone(page: Page, cdp: CDPSession) {
     await pinch(30, 110);
     await pause(page, 700);
   };
-  await times('pinch out', fit, () => pinch(30, 110));
-  await times('pan, stopped', zoomedIn, async () => {
+  await times('pinch out', 'in', fit, () => pinch(30, 110));
+  await times('pan, stopped', 'pans', zoomedIn, async () => {
     await touch('touchStart', [{ x, y }]);
     for (let i = 1; i <= 25; i++) {
       await touch('touchMove', [{ x: x - i * 6, y: y - i * 4 }]);
@@ -193,6 +235,7 @@ async function phone(page: Page, cdp: CDPSession) {
   });
   await times(
     'pan and fling',
+    'pans',
     zoomedIn,
     async () => {
       await touch('touchStart', [{ x, y }]);
@@ -205,7 +248,7 @@ async function phone(page: Page, cdp: CDPSession) {
     },
     700,
   );
-  await times('pinch in', zoomedIn, () => pinch(110, 30));
+  await times('pinch in', 'out', zoomedIn, () => pinch(110, 30));
 }
 
 async function main() {
@@ -213,18 +256,18 @@ async function main() {
   const browser = await launchChrome();
   const url = playUrl(server.base, { play: 'regolith', players: 4, map: 'tesseract-hex', scene: 'turn' });
   for (const [name, options] of [
-    ['desktop 1400×900', { viewport: { width: 1400, height: 900 } }],
+    ['desktop 1400×900', DESKTOP],
     ['Moto G55', MOTO_G55],
   ] as const) {
     const context = await browser.newContext(options);
     const page = await context.newPage();
     const cdp = await context.newCDPSession(page);
-    page.on('pageerror', (e) => console.log('page error:', e.message));
+    page.on('pageerror', (e) => problem(`page error: ${e.message}`));
     await page.goto(url);
     await page.waitForSelector('.ship');
     await page.waitForTimeout(3000); // the tiles drawn, the dev server's modules loaded
     if (!(await page.locator('.zoom-controls').count())) {
-      console.log(`${name}: the map doesn't zoom at this size`);
+      problem(`${name}: the map doesn't zoom at this size`);
       continue;
     }
     await cdp.send('Performance.enable');
@@ -237,4 +280,4 @@ async function main() {
   await server.close();
 }
 
-void main();
+runProbe(main);

@@ -96,9 +96,8 @@ export function useBoardZoom(wrap: RefObject<HTMLDivElement>, board: RefObject<H
     // What will be drawn: a hair past the whole map is the whole map.
     const next = canZoom && zoom > 1.001 ? place(f, clampCell(f, f.fit * zoom), v.x, v.y) : fitted(f); // as `current` works it out
     if (next.cell === current.cell && next.x === current.x && next.y === current.y) {
-      // Nothing to redraw; just drop the preview.
-      wrap.current?.classList.remove('gesture');
-      if (board.current) board.current.style.transform = '';
+      // Nothing to redraw; just drop the preview, and the view waiting to be drawn.
+      redraw.current?.();
       return;
     }
     setView({ zoom, x: v.x, y: v.y, map });

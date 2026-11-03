@@ -31,10 +31,11 @@ export async function devServer(port: number): Promise<{ base: string; close: ()
 }
 
 /**
- * The installed Google Chrome, so Playwright needs no browser download. `--no-proxy-server` skips
- * Chrome's proxy auto-detection, which otherwise costs 12 s on every page.
+ * The installed Google Chrome, so Playwright needs no browser download, in a window with `--headed`. `--no-proxy-server`
+ * skips Chrome's proxy auto-detection, which otherwise costs 12 s on every page.
  */
-export const launchChrome = () => chromium.launch({ channel: 'chrome', args: ['--no-proxy-server'] });
+export const launchChrome = () =>
+  chromium.launch({ channel: 'chrome', args: ['--no-proxy-server'], headless: !process.argv.includes('--headed') });
 
 /** The dev-only link that starts a game straight away (apps/web/src/game/devStart.ts), so `base` must be a dev server. */
 export function playUrl(base: string, game: { play: string; players: number; map?: string; seed?: number; scene?: string }): string {

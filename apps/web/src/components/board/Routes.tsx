@@ -4,7 +4,7 @@ import type { Route } from '../../game/controller';
 import { touching as touchingSpots } from '../../game/shipSpots';
 import { placement } from './geometry';
 
-/** Next to each other on the map as drawn (geometry `touching`). */
+/** Next to each other on the map as drawn (shipSpots `touching`). */
 const touching = (board: Board, a: Cell, b: Cell) => {
   const { at } = drawing(board);
   return touchingSpots(at(a), at(b));
