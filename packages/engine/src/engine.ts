@@ -94,11 +94,14 @@ export function cloneState<T>(x: T): T {
 
 /**
  * A copy of a state to change. The board's cells never change after the board is built, so states
- * share them: copying them was most of the AI's time (an Unveil with five ships to place took minutes).
+ * share them: copying them was most of the AI's time (an Unveil with five ships to place took minutes). A log
+ * entry doesn't change once the step that wrote it is over either, so they share those too: with a position kept
+ * for every move of a game (web past.ts), copying them was most of its memory.
  */
 export function copyState(prev: GameState): GameState {
-  const s: GameState = cloneState({ ...prev, board: { ...prev.board, cells: [] } });
+  const s: GameState = cloneState({ ...prev, board: { ...prev.board, cells: [] }, log: [] });
   s.board.cells = prev.board.cells;
+  s.log = [...prev.log];
   return s;
 }
 

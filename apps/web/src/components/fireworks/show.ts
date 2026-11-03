@@ -54,6 +54,8 @@ interface Light {
   rgb: Rgb;
 }
 
+/** How long rockets go up for, in seconds; the show then burns out, and draws no more, however long its popup stays. */
+const LAUNCHES_FOR = 40;
 const GRAVITY = 140;
 /** Nebula sprites to vary the smoke with. */
 const NEBULAE = 4;
@@ -351,13 +353,18 @@ export function startShow(glowCanvas: HTMLCanvasElement, sparkCanvas: HTMLCanvas
     const due = queue.filter((q) => q.at <= clock);
     queue = queue.filter((q) => q.at > clock);
     due.forEach((q) => q.fn());
-    if (clock > next) {
+    if (clock > next && clock < LAUNCHES_FOR) {
       launch();
       if (Math.random() < 0.3) launch({ scale: rand(0.7, 1) });
       next = clock + rand(1, 2);
     }
     drawGlow(dt);
     drawSparks(dt);
+    if (clock > LAUNCHES_FOR && !queue.length && !rockets.length && !sparks.length && !clouds.length && !flashes.length && !waves.length) {
+      cancelAnimationFrame(raf);
+      // The sparks' trails fade but never quite go.
+      fg.clearRect(0, 0, w, h);
+    }
   };
   raf = requestAnimationFrame(frame);
 

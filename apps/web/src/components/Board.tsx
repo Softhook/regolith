@@ -1,5 +1,18 @@
 import { Fragment, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type MouseEvent, type ReactNode } from 'react';
-import { actor, cellAtPoint, die, dieAt, drawing, key, moveOptions, orbitals, same, shipOf, type GameState } from '@regolith/engine';
+import {
+  actor,
+  cellAtPoint,
+  cellOf,
+  die,
+  dieAt,
+  drawing,
+  key,
+  moveOptions,
+  orbitals,
+  same,
+  shipOf,
+  type GameState,
+} from '@regolith/engine';
 import type { Controller } from '../game/controller';
 import { BoardArt, tileArtOf } from './board/BoardArt';
 import { ActionEffects } from './board/ActionEffects';
@@ -412,8 +425,8 @@ function Ships({
           ]
             .filter(Boolean)
             .join(' ')}
-          data-r={r}
-          data-c={c}
+          data-r={cellOf(d)!.r}
+          data-c={cellOf(d)!.c}
           data-glide={d.id}
           style={{ ...place, '--pc': game.players[d.owner].color, '--late': `${late ?? 0}ms` } as CSSProperties}
           onClick={() => ctl.onDie(d.id) === false && onInfo(d.id)}

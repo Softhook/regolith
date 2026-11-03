@@ -57,7 +57,7 @@ async function timeTaps(page: Page) {
     for (let i = 0; i < 6; i++) {
       const s = q.state();
       const die = s.dice.find((d) => d.owner === s.turn.player && d.loc.zone === 'board' && !(s.turn.moved[d.id] > 0));
-      const ship = die?.loc.zone === 'board' && document.querySelector<HTMLElement>(`.ship[data-r="${die.loc.r}"][data-c="${die.loc.c}"]`);
+      const ship = die && document.querySelector<HTMLElement>(`.ship[data-glide="${die.id}"]`);
       if (!ship) break;
       await tap(ship);
       const space = document.querySelector<HTMLElement>('.hl');
@@ -87,7 +87,7 @@ async function idleCost(page: Page, cdp: CDPSession) {
     const s = window.__game.state();
     const d = s.dice.find((d) => d.owner === s.turn.player && d.loc.zone === 'board');
     if (d?.loc.zone !== 'board') throw new Error('no ship of the player to move on the board');
-    document.querySelector<HTMLElement>(`.ship[data-r="${d.loc.r}"][data-c="${d.loc.c}"]`)!.click();
+    document.querySelector<HTMLElement>(`.ship[data-glide="${d.id}"]`)!.click();
   });
   await measure('a ship selected');
   await page.evaluate(() => {

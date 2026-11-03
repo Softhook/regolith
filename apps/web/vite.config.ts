@@ -59,6 +59,10 @@ export default defineConfig(({ command, mode }) => ({
   ],
   // Relative asset paths so the build works under a subpath (e.g. GitHub Pages /regolith/).
   base: './',
+  // React in a file of its own: it changes far less often than the game, so a deploy doesn't download it again.
+  build: {
+    rollupOptions: { output: { manualChunks: (id) => (/node_modules\/(react|react-dom|scheduler)\//.test(id) ? 'react' : undefined) } },
+  },
   // All addresses: IPv4 and IPv6 localhost (browsers differ in which "localhost" means), and the
   // local network, for trying online play from a phone.
   server: { port: 5173, host: true },

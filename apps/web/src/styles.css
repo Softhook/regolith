@@ -1704,7 +1704,8 @@ svg.zones polygon {
 .card-viewer-action { justify-content: center; }
 /* A thin white edge lifts the card art off the dark popup. */
 .card-viewer .card-art img, .card-viewer .card-art-ph, .card-pick img, .card-pick-words { box-shadow: 0 0 0 1px rgba(255,255,255,.85), 0 12px 28px rgba(0,0,0,.5); }
-.gameover-burst { position: absolute; inset: -40%; background: conic-gradient(from 0deg, transparent, color-mix(in srgb, var(--pc) 25%, transparent), transparent 30%); animation: spin 8s linear infinite; pointer-events: none; }
+/* Over in some 40 s, as the fireworks are (LAUNCHES_FOR): the popup may stay up long after, and a turning gradient and a moving shine repaint every frame. */
+.gameover-burst { position: absolute; inset: -40%; background: conic-gradient(from 0deg, transparent, color-mix(in srgb, var(--pc) 25%, transparent), transparent 30%); animation: spin 8s linear 5; pointer-events: none; }
 .gameover > *:not(.gameover-burst) { position: relative; }
 /* The victory show (components/fireworks/): a flash of the winner's colour, then fireworks behind the popup, which rises in after. */
 .overlay.celebrate { background: rgb(var(--shade) / .72); }
@@ -1716,7 +1717,7 @@ svg.zones polygon {
 .celebrate .gameover h2 {
   background: linear-gradient(100deg, #fff 30%, #F2B233 45%, #fff 50%, color-mix(in srgb, var(--pc) 40%, #fff) 60%, #fff 75%) 0 0 / 300% 100%;
   -webkit-background-clip: text; background-clip: text; color: transparent;
-  animation: victory-shine 4s 1s linear infinite;
+  animation: victory-shine 4s 1s linear 10 forwards;
 }
 @keyframes victory-shine { from { background-position: 100% 0; } to { background-position: -50% 0; } }
 /* Defeat: the board drains of colour and darkens, and the popup sinks in slowly as the lament (gameOverSound.ts) falls. */
