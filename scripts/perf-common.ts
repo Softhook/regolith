@@ -1,7 +1,8 @@
 /**
  * What the timing scripts (perf-probe, zoom-probe) share: a run fails, with exit code 1, when a step did nothing it
  * was meant to (a timing of nothing looks like a very good timing) or goes over its budget. The budgets are for an
- * Apple M4 at CPU ×4, and scale with `--cpu`.
+ * Apple M4 at CPU ×4, and loosen with a slower `--cpu`. Another machine's results, or a run with something else busy, can
+ * fail for that alone.
  */
 import type { CDPSession } from 'playwright';
 import { arg } from './mobile-common';
@@ -18,9 +19,12 @@ export function problem(what: string) {
   console.log(`  ✗ ${what}`);
 }
 
-/** Notes a time over its budget. */
+/**
+ * Notes a time over its budget. A slower `--cpu` loosens it, but a faster one doesn't tighten it: not all of a time
+ * shrinks with the CPU (frames come in whole refreshes of the screen, and idle work didn't shrink at ×1).
+ */
 export function budget(what: string, ms: number, most: number) {
-  const limit = (most * THROTTLE) / 4;
+  const limit = (most * Math.max(THROTTLE, 4)) / 4;
   if (ms > limit) problem(`${what}: ${ms.toFixed(0)} ms, over its ${limit.toFixed(0)} ms`);
 }
 
@@ -31,7 +35,7 @@ export const busy = async (cdp: CDPSession) =>
 /** Runs a script: anything it throws is a problem too, and any problem fails the run. */
 export function runProbe(main: () => Promise<void>) {
   main()
-    .catch((e: unknown) => problem(e instanceof Error ? e.message : String(e)))
+    .catch((e: unknown) => problem(e instanceof Error ? (e.stack ?? e.message) : String(e)))
     .finally(() => {
       if (problems) console.log(`\n${problems} problem${problems > 1 ? 's' : ''}.`);
       process.exit(problems ? 1 : 0);

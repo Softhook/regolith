@@ -1,10 +1,15 @@
 // Converts the canonical YAML data in /data into JSON the engine can import.
-import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { parse } from 'yaml';
 
 const root = new URL('..', import.meta.url);
 const out = new URL('packages/engine/src/data/', root);
 mkdirSync(out, { recursive: true });
+
+/** Writes a file only if it would change, so a run of this doesn't reload every dev server open on the app. */
+function write(url, text) {
+  if (!existsSync(url) || readFileSync(url, 'utf8') !== text) writeFileSync(url, text);
+}
 
 // Regolith's decks. `from` names the Community Edition card each started as and `status` how far it has
 // moved since (data/regolith.yaml): notes of where a card came from, which the game doesn't read.
@@ -23,7 +28,7 @@ for (const [deck, list] of Object.entries(cards)) {
     if ((c.status === 'new') !== (c.from === undefined)) throw new Error(`${where}: a new card has no \`from\`, and only a new card`);
   }
 }
-writeFileSync(new URL('packages/engine/src/data/cards.json', root), JSON.stringify(cards, null, 2) + '\n');
+write(new URL('cards.json', out), JSON.stringify(cards, null, 2) + '\n');
 
 const { maps } = parse(readFileSync(new URL('data/maps.yaml', root), 'utf8'));
 for (const m of maps) {
@@ -44,6 +49,6 @@ const parsed = maps.map((m) => ({
   layout: m.layout.map((row) => row.trim().split(/\s+/)),
   ...(m.start && { start: m.start }),
 }));
-writeFileSync(new URL('maps.json', out), JSON.stringify(parsed, null, 2) + '\n');
+write(new URL('maps.json', out), JSON.stringify(parsed, null, 2) + '\n');
 
 console.log(`data: ${cards.skills.length} skills, ${cards.tactics.length} tactics, ${parsed.length} maps`);

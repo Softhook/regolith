@@ -21,11 +21,11 @@ export const arg = (name: string) => {
   return i < 0 ? undefined : process.argv[i + 1];
 };
 
-/** The app to test: `--url`, or a dev server of our own on `port`. */
+/** The app to test: `--url`, or a dev server of our own on `port`, which a file saved mid-run doesn't reload. */
 export async function devServer(port: number): Promise<{ base: string; close: () => Promise<void> }> {
   const url = arg('--url');
   if (url) return { base: url, close: async () => {} };
-  const server = await createServer({ root: 'apps/web', server: { port, host: '127.0.0.1' } });
+  const server = await createServer({ root: 'apps/web', server: { port, host: '127.0.0.1', watch: null, hmr: false } });
   await server.listen();
   return { base: server.resolvedUrls!.local[0], close: () => server.close() };
 }

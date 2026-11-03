@@ -2,8 +2,12 @@
  * Times the map's zoom and pan (useBoardZoom), in Chrome with its CPU slowed down (×4 by default, roughly a
  * mid-range phone such as the Moto G55), in a 4-player Regolith game: frame gaps while a gesture is under
  * way, and the longest frame once it ends (when the new zoom is drawn crisp), with main-thread time for each, and
- * the raster and GPU time that the slowdown doesn't touch (this machine's own, so compare it only with itself). Fails on
- * a gesture that doesn't move the map as it should, or that goes over budget (perf-common).
+ * the raster and GPU time that the slowdown doesn't touch (this machine's own, so compare it only with itself), from one
+ * more run under a trace, as tracing costs time of its own. Fails on a gesture that doesn't move the map as it should,
+ * or that goes over budget (perf-common).
+ *
+ * The budgets are on requestAnimationFrame's gaps, so they catch the main thread stalling, not jank on the compositor
+ * or in raster, which a Mac's GPU hides anyway: a pass doesn't say the map is smooth on a phone. Try the G55 for that.
  *
  * - desktop (mouse): wheel notches, a drag, the zoom buttons;
  * - phone (touch, the G55): a pinch out, a one-finger pan and fling, a pinch back in.
@@ -66,7 +70,6 @@ interface Result {
   during: number[]; // frame lengths while the gesture runs
   settle: number; // the longest frame after it
   busy: number; // main-thread ms over the whole run
-  gpu: number; // raster and GPU ms over the whole run
 }
 
 /** The map's size and place on screen. */
@@ -85,11 +88,17 @@ function rasterAndGpu(trace: Buffer) {
   );
 }
 
+/** The raster and GPU time, in ms, of what `work` does. */
+async function rasterAndGpuOf(page: Page, work: () => Promise<unknown>) {
+  const browser = page.context().browser() as Browser;
+  await browser.startTracing(page, { categories: ['devtools.timeline', 'disabled-by-default-devtools.timeline', 'cc', 'viz', 'gpu'] });
+  await work();
+  return rasterAndGpu(await browser.stopTracing());
+}
+
 async function run(page: Page, cdp: CDPSession, what: string, does: Does, gesture: () => Promise<void>, settleMs = 700): Promise<Result> {
   await pause(page, 300);
   const before = await mapView(page);
-  const browser = page.context().browser() as Browser;
-  await browser.startTracing(page, { categories: ['devtools.timeline', 'disabled-by-default-devtools.timeline', 'cc', 'viz', 'gpu'] });
   const b0 = await busy(cdp);
   await record(page);
   await gesture();
@@ -97,7 +106,6 @@ async function run(page: Page, cdp: CDPSession, what: string, does: Does, gestur
   await pause(page, settleMs);
   const { frames, mark: m } = await stop(page);
   const b1 = await busy(cdp);
-  const trace = await browser.stopTracing();
   const after = await mapView(page);
   const grew = after.width / before.width;
   const moved = Math.hypot(after.x - before.x, after.y - before.y);
@@ -108,29 +116,44 @@ async function run(page: Page, cdp: CDPSession, what: string, does: Does, gestur
     during: frames.slice(0, Math.max(0, m)),
     settle: Math.max(0, ...frames.slice(Math.max(0, m))),
     busy: b1 - b0,
-    gpu: rasterAndGpu(trace),
   };
 }
 
-function report(what: string, results: Result[]) {
+function report(what: string, results: Result[], gpu: number) {
   const during = results.flatMap((r) => r.during);
   const sorted = [...during].sort((a, b) => a - b);
   const p95 = sorted[Math.floor(sorted.length * 0.95)] ?? 0;
-  const janky = during.filter((f) => f > 34).length;
+  const janky = during.filter((f) => f > DURING_MS).length;
   const settle = median(results.map((r) => r.settle));
   console.log(
     `${what.padEnd(26)} during: p95 ${p95.toFixed(0).padStart(3)} ms, max ${Math.max(0, ...during)
       .toFixed(0)
-      .padStart(3)} ms, ${String(janky).padStart(2)}/${during.length} frames >34 ms` +
+      .padStart(3)} ms, ${String(janky).padStart(2)}/${during.length} frames >${DURING_MS} ms` +
       ` · settle ${settle.toFixed(0).padStart(3)} ms · main thread ${median(results.map((r) => r.busy))
         .toFixed(0)
-        .padStart(4)} ms · raster+GPU ${median(results.map((r) => r.gpu))
-        .toFixed(0)
-        .padStart(4)} ms`,
+        .padStart(4)} ms · raster+GPU ${gpu.toFixed(0).padStart(4)} ms`,
   );
   budget(`${what}, frames`, p95, DURING_MS);
   budget(`${what}, longest frame`, median(results.map((r) => Math.max(r.settle, ...r.during))), LONGEST_MS);
 }
+
+/** Runs a gesture `RUNS` times from where `setup` leaves the map, and once more for its raster and GPU time, and reports. */
+const timer =
+  (page: Page, cdp: CDPSession) =>
+  async (what: string, does: Does, setup: () => Promise<unknown>, gesture: () => Promise<void>, settleMs?: number) => {
+    const ready = async () => {
+      await setup();
+      await pause(page, 500);
+    };
+    const once = () => run(page, cdp, what, does, gesture, settleMs);
+    const out: Result[] = [];
+    for (let i = 0; i < RUNS; i++) {
+      await ready();
+      out.push(await once());
+    }
+    await ready();
+    report(what, out, await rasterAndGpuOf(page, once));
+  };
 
 /** The board wrap's centre, in page pixels. */
 async function centre(page: Page) {
@@ -141,15 +164,7 @@ async function centre(page: Page) {
 async function desktop(page: Page, cdp: CDPSession) {
   const { x, y } = await centre(page);
   const fit = () => page.evaluate(() => document.querySelector<HTMLButtonElement>('.zoom-controls [aria-label="Whole map"]')?.click());
-  const times = async (what: string, does: Does, setup: () => Promise<unknown>, gesture: () => Promise<void>) => {
-    const out: Result[] = [];
-    for (let i = 0; i < RUNS; i++) {
-      await setup();
-      await pause(page, 500);
-      out.push(await run(page, cdp, what, does, gesture));
-    }
-    report(what, out);
-  };
+  const times = timer(page, cdp);
   await page.mouse.move(x, y);
   await times('wheel in (notches)', 'in', fit, async () => {
     for (let i = 0; i < 6; i++) {
@@ -208,15 +223,7 @@ async function phone(page: Page, cdp: CDPSession) {
     await touch('touchEnd', []);
   };
   const fit = () => page.evaluate(() => document.querySelector<HTMLButtonElement>('.zoom-controls [aria-label="Whole map"]')?.click());
-  const times = async (what: string, does: Does, setup: () => Promise<unknown>, gesture: () => Promise<void>, settleMs?: number) => {
-    const out: Result[] = [];
-    for (let i = 0; i < RUNS; i++) {
-      await setup();
-      await pause(page, 500);
-      out.push(await run(page, cdp, what, does, gesture, settleMs));
-    }
-    report(what, out);
-  };
+  const times = timer(page, cdp);
   const zoomedIn = async () => {
     await fit();
     await pause(page, 400);

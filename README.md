@@ -169,7 +169,7 @@ All headless.
 | `npm run ui:check` / `replay:check` | Board choices, the crash screen, and looking back over a game, in Chrome |
 | `npm run mobile:shots` / `mobile:play` | Phone and tablet layouts in emulated Chrome; whole games played by tapping |
 | `npm run pwa:check` | Install, offline and update behaviour of the home-screen app |
-| `npm run perf:probe` / `perf:zoom` | Timings on a throttled CPU (roughly a mid-range phone); fail on a step that does nothing or goes over budget |
+| `npm run perf:probe` / `perf:zoom` | Timings on a throttled CPU (roughly a mid-range phone); fail on a step that does nothing or goes over budget, set on an M4 and catching main-thread stalls, not all jank |
 | `npm run relays:check` | Which public Nostr relays carry online games |
 
 ### Documentation
