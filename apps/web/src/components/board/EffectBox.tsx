@@ -1,16 +1,9 @@
 import type { CSSProperties, ReactNode } from 'react';
-import { drawing, type Board, type Cell } from '@regolith/engine';
+import { drawing, type Board } from '@regolith/engine';
+import type { MapEffect } from '../../game/cardEffects';
 
 /** How many of `owner`'s cubes a planet holds. */
 export const cubeCount = (cubes: readonly number[], owner: number) => cubes.filter((x) => x === owner).length;
-
-/** A short effect on the map: on the space `at`, or from `at` to `to`, in a player's colour. */
-export interface MapEffect {
-  id: string;
-  at: Cell;
-  to?: Cell;
-  color: string;
-}
 
 /**
  * One effect's box: a space's size, on `at` (a board space, drawn where `board` draws it), with its colour as `--pc`. One that goes somewhere also

@@ -1,7 +1,8 @@
 import type { CSSProperties } from 'react';
 import { drawing, key, type Board, type Cell } from '@regolith/engine';
 import type { Route } from '../../game/controller';
-import { placement, touching as touchingSpots } from './geometry';
+import { touching as touchingSpots } from '../../game/shipSpots';
+import { placement } from './geometry';
 
 /** Next to each other on the map as drawn (geometry `touching`). */
 const touching = (board: Board, a: Cell, b: Cell) => {

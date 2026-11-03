@@ -2,7 +2,7 @@
 // effect is a group. An animation in styles.css reads its group as custom properties (`CUBE.fall` as
 // `--cube-fall`, set on the document: `setBeatVars`; only the groups in `CSS_BEATS`, and all of them read
 // there); one played from code (Die3D) reads it here, as do its sound (sound.ts) and the staging
-// (board/staging, game/strike). An animation with a moment in it to meet (a landing, a hit) is split there, so the moment is where
+// (game/staging, game/strike). An animation with a moment in it to meet (a landing, a hit) is split there, so the moment is where
 // one part ends. Change a beat and the animation, its sound and whatever waits on it move together. Timings
 // only the eye sees (a trail's fade, a second ring) stay in styles.css, as offsets from these where they follow one.
 
@@ -21,7 +21,7 @@ export const boomAt = (i: number) => Math.min(i, MOST_BOOMS - 1) * BOOM.stagger;
 
 /**
  * A ship arriving (from the reserve, or one a card brings), heard as a shimmer rising to its landing:
- * `land` after the sound starts, or when the card's effect brings it (board/staging).
+ * `land` after the sound starts, or when the card's effect brings it (game/staging).
  */
 export const WARP = { land: 330 } as const;
 

@@ -208,12 +208,14 @@ export const sfx = {
     tone(jitter(62), 2, 'sine', 0.4, fall, 22, 0.008);
     noise(1.5, 0.05, { delay: fall + 0.15, type: 'highpass', from: 1800, to: 5000, rise: 0.9 });
   },
-  /** A shot on the map: ignition, a screaming climb with a hissing trail, then the impact as it lands (beats.ts). */
-  shot: () => {
-    const flight = SHOT.flight / 1000;
-    noise(0.12, 0.25, { type: 'lowpass', from: 900, to: 300, rise: 0.003 });
-    tone(260, flight - 0.05, 'sawtooth', 0.03, 0.03, 1800, 0.05);
-    noise(flight, 0.12, { delay: 0.03, type: 'bandpass', from: 1200, to: 5000, q: 1.2, rise: 0.08 });
+  /** A shot on the map: ignition, a screaming climb with a hissing trail, then the impact as it lands, `after` ms in (beats.ts); with none, only the impact. */
+  shot: (after: number = SHOT.flight) => {
+    const flight = after / 1000;
+    if (flight) {
+      noise(0.12, 0.25, { type: 'lowpass', from: 900, to: 300, rise: 0.003 });
+      tone(260, flight - 0.05, 'sawtooth', 0.03, 0.03, 1800, 0.05);
+      noise(flight, 0.12, { delay: 0.03, type: 'bandpass', from: 1200, to: 5000, q: 1.2, rise: 0.08 });
+    }
     boom(flight, 0.7);
   },
   /** Missiles gained: two metal clunks of rounds racked into place. */
@@ -231,7 +233,7 @@ export const sfx = {
     [0.09, 0.17, 0.23].forEach((d, i) => tick(0.14 - i * 0.03, 1500 - i * 250, d));
     tone(392, 0.4, 'triangle', 0.045, 0.02, 196);
   },
-  /** A cube relocated: the beam carrying it (board/CardEffects), then its drop where it lands (board/staging). */
+  /** A cube relocated: the beam carrying it (board/CardEffects), then its drop where it lands (game/staging). */
   relocate: () => {
     const ride = BEAM_ARRIVES / 1000;
     tone(1400, ride, 'sine', 0.035, 0, 500, 0.05);

@@ -42,4 +42,13 @@ describe('warmCardImages', () => {
     await settled();
     expect(drawn).toEqual(['d', 'g']);
   });
+
+  it('stopping a list leaves a card another list still wants', async () => {
+    drawn.length = 0;
+    const stop = warmCardImages(['h', 'i']);
+    warmCardImages(['j', 'i']);
+    stop();
+    await settled();
+    expect(drawn).toEqual(['h', 'j', 'i']);
+  });
 });

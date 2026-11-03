@@ -5,7 +5,7 @@ import { castOf, landing } from '../game/cast';
 import { reducedMotion } from '../game/useMediaQuery';
 import { cardsUsed, lastLogId } from '../game/steps';
 import { useTransient } from '../game/useTransient';
-import { cardEffectsOf } from './board/CardEffects';
+import { cardEffectsOf } from '../game/cardEffects';
 import { panelEffectsOf } from './panelEffects';
 
 /** Where a beam ends on screen, `size` across; `edge`: the spot is out of view, and this is the view's edge nearest it. */

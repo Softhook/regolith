@@ -153,17 +153,21 @@ export const cardBacks: Drawn<string> = {
 
 /** The cards still to prepare in the background, first first. */
 let toWarm: string[] = [];
+/** The lists asked for and not yet stopped. */
+const wanted = new Set<readonly string[]>();
 let warming = false;
 
 /**
  * Prepares cards in the background (one per idle moment), so their pop-ups open at once. A new list goes ahead
  * of those already waiting, all worked through by one loop. With any to draw, fetches the card fonts straight
- * away: the first card drawn would otherwise wait for them. Returns a function that takes the list's cards off the queue.
+ * away: the first card drawn would otherwise wait for them. Returns a function that takes the list's cards off the
+ * queue, but for those another list still wants.
  */
 export function warmCardImages(ids: Iterable<string>): () => void {
   const list = [...new Set(ids)].filter((id) => !fronts.has(id));
   if (list.length) void cardFontCss();
-  toWarm = [...list, ...toWarm];
+  wanted.add(list);
+  toWarm = [...list, ...toWarm.filter((id) => !list.includes(id))];
   if (!warming) {
     warming = true;
     void (async () => {
@@ -176,6 +180,7 @@ export function warmCardImages(ids: Iterable<string>): () => void {
     })();
   }
   return () => {
-    toWarm = toWarm.filter((id) => !list.includes(id));
+    wanted.delete(list);
+    toWarm = toWarm.filter((id) => !list.includes(id) || [...wanted].some((other) => other.includes(id)));
   };
 }

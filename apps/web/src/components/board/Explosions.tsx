@@ -4,7 +4,7 @@ import { boomAt } from '../../beats';
 import { isPlayStep } from '../../game/steps';
 import { useTransient } from '../../game/useTransient';
 import { reducedMotion } from '../../game/useMediaQuery';
-import { shipSpots } from './geometry';
+import { shipSpots } from '../../game/shipSpots';
 import { destroyedOf, strikeOf } from '../../game/strike';
 
 interface Explosion {

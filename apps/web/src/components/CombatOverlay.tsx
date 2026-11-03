@@ -19,7 +19,7 @@ import type { GameView } from '../game/view';
 import { COMBAT_RESOLVE_MS, humanFights } from '../game/useAiDriver';
 import { shotWait } from '../game/strike';
 import { useBattleReveal, useBattleSounds } from '../game/useBattleReveal';
-import { COMPACT_BATTLE, reducedMotion, useMediaQuery } from '../game/useMediaQuery';
+import { COMPACT_BATTLE, useMediaQuery } from '../game/useMediaQuery';
 import { useShortcut } from '../game/useShortcut';
 import { COMBAT_MS } from '../online/playback';
 import { MissileIcon } from './Card';
@@ -31,7 +31,7 @@ type Props = Parameters<typeof Battle>[0];
 
 /** A shot's battle (a ranged attack) opens once its missile has crossed the map (board/Shots). */
 export function CombatOverlay(props: Props) {
-  const [wait] = useState(() => (reducedMotion() ? 0 : shotWait(props.combat)));
+  const [wait] = useState(() => shotWait(props.combat));
   const [landed, setLanded] = useState(!wait);
   useEffect(() => {
     if (!wait) return;

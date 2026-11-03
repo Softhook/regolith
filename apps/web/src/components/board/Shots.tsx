@@ -1,8 +1,9 @@
 import { delta, type GameState } from '@regolith/engine';
 import { SHOT } from '../../beats';
+import type { MapEffect } from '../../game/cardEffects';
 import { shotOf } from '../../game/strike';
 import { useStepEffects } from '../../game/useTransient';
-import { EffectBox, type MapEffect } from './EffectBox';
+import { EffectBox } from './EffectBox';
 
 /** The impact's flash outlasts the flight. */
 const SHOT_EFFECT_MS = SHOT.flight + SHOT.hit;

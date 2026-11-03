@@ -1,12 +1,12 @@
 import type { CSSProperties } from 'react';
 import { type GameState } from '@regolith/engine';
 import { CUBE_PAD, REGOLITH_SHADOW, TILE, cubePadCentres, type World } from '@regolith/art';
+import type { Staging } from '../../game/staging';
 import { DIE_CORNER } from '../../theme';
 import { placement } from './geometry';
 import { numberCorner } from './layers';
 import { PlanetMark } from './PlanetMarkings';
 import { castShadow, pieceShadowLength, pieceShadowOpacity, shadowOnCube } from './shadows';
-import type { Staging } from './staging';
 
 /** A cube on the map: its top left and size in px, its corners' radius, and its colour. */
 export interface CubeSpot {

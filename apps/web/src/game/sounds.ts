@@ -12,11 +12,11 @@ import {
   type TacticEffect,
 } from '@regolith/engine';
 import { ARENA } from '../beats';
-import { cardEffectsOf, type CardEffect } from '../components/board/CardEffects';
-import { stagingOf } from '../components/board/staging';
+import { cardEffectsOf, type CardEffect } from './cardEffects';
 import { sfx } from '../sound';
 import { destroyedOf, shotOf, strikeOf } from './strike';
 import { reducedMotion } from './useMediaQuery';
+import { stagingOf } from './staging';
 import { logSince } from './steps';
 import { lost } from './view';
 
@@ -93,7 +93,7 @@ export function soundsFor(
 
   // Ships: flown, arrived, destroyed, swapped or renumbered.
   const before = new Map(prev.dice.map((d) => [d.id, d]));
-  // A ship a card brings (Expansion, Nomadic) appears as its effect gets there (board/staging): heard landing
+  // A ship a card brings (Expansion, Nomadic) appears as its effect gets there (staging): heard landing
   // then, rather than flying or warping in on its own.
   const late = stagingOf(prev, next).late;
   let lands: number | undefined;
@@ -176,6 +176,7 @@ export function playSounds(prev: GameState, next: GameState, mine: (p: PlayerId)
     explode: () => sfx.explode(destroyed, strike),
     lance: () => sfx.lance(strike),
     arc: () => sfx.arc(strike),
+    shot: () => sfx.shot(still ? 0 : undefined),
   };
   const play = (s: Sound) => (timed[s] ?? sfx[s])();
   first.forEach(play);

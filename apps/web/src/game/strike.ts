@@ -1,6 +1,7 @@
 import type { CombatPending, Die, GameState, Pending } from '@regolith/engine';
 import { ARC, LANCE, SHOT } from '../beats';
 import { cardsUsed } from './steps';
+import { reducedMotion } from './useMediaQuery';
 
 /**
  * When a card's blow lands, in ms (beats.ts): Show of Force's lance reaches the ship (.cfx-lance),
@@ -29,9 +30,11 @@ export function destroyedOf(before: GameState, game: GameState): Die[] {
  * How much longer a battle's stage takes for its shot (Shoot, the Sniper's power: a missile crosses the map,
  * board/Shots, and the battle opens as it lands): its flight while a ranged battle is as it opened
  * (no missile yet), else 0. Its overlay opens that late (CombatOverlay), so whatever waits on
- * the battle being seen waits that much more: the AI (useAiDriver) and online playback.
+ * the battle being seen waits that much more: the AI (useAiDriver) and online playback. None under reduced motion,
+ * where no missile flies (useStepEffects).
  */
-export const shotWait = (c: CombatPending) => (c.ranged && !c.attacker.missile && !c.defender.missile ? SHOT.flight : 0);
+export const shotWait = (c: CombatPending) =>
+  c.ranged && !c.attacker.missile && !c.defender.missile && !reducedMotion() ? SHOT.flight : 0;
 
 /** The battle the step from `before` to `game` opened with a shot, if any (after a Dangerous choice too). */
 export function shotOf(before: GameState, game: GameState) {

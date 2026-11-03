@@ -1,10 +1,10 @@
 import { cellOf, same, type Cell, type GameState } from '@regolith/engine';
 import { SHIP } from '../../beats';
+import { cardEffectsOf, type MapEffect } from '../../game/cardEffects';
+import { flightOf } from '../../game/staging';
 import { lastLogId } from '../../game/steps';
 import { useStepEffects } from '../../game/useTransient';
-import { cardEffectsOf } from './CardEffects';
-import { EffectBox, cubeCount, type MapEffect } from './EffectBox';
-import { flightOf } from './staging';
+import { EffectBox, cubeCount } from './EffectBox';
 
 /**
  * A short effect on the map for one action: a ship warping in, flying (from `at` to `to`, `ms` into its flight: one
@@ -43,7 +43,7 @@ function effectsOf(before: GameState, game: GameState): Effect[] {
 }
 
 /**
- * The trail of ship `id` flying from `from` to `to`: straight, or a part for each space it crosses (staging
+ * The trail of ship `id` flying from `from` to `to`: straight, or a part for each space it crosses (game/staging
  * flightOf), each as the ship gets there; none where it jumps.
  */
 function trails(before: GameState, game: GameState, id: string, from: Cell, to: Cell) {

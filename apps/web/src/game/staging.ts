@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { cellOf, drawing, movePath, same, type Cell, type Die, type GameState } from '@regolith/engine';
-import { BEAM_ARRIVES, BLINK, boomAt, EXPANSION } from '../../beats';
-import { isPlayStep } from '../../game/steps';
-import { reducedMotion } from '../../game/useMediaQuery';
-import { destroyedOf, strikeOf } from '../../game/strike';
-import { cardEffectsOf } from './CardEffects';
-import { shipSpots, touching } from './geometry';
+import { BEAM_ARRIVES, BLINK, boomAt, EXPANSION } from '../beats';
+import { cardEffectsOf } from './cardEffects';
+import { shipSpots, touching } from './shipSpots';
+import { isPlayStep } from './steps';
+import { destroyedOf, strikeOf } from './strike';
+import { reducedMotion } from './useMediaQuery';
 
 /** How a step's results wait on its card's effect, so the effect comes first. */
 export interface Staging {
@@ -53,7 +53,7 @@ export function flightOf(before: GameState, game: GameState, id: string): Waypoi
   });
 }
 
-/** The staging of the step from `before` to `game`, as it plays (useStaging), and as it is heard (game/sounds). */
+/** The staging of the step from `before` to `game`, as it plays (useStaging), and as it is heard (sounds). */
 export function stagingOf(before: GameState, game: GameState): Staging {
   const out: Staging = { late: new Map(), struck: [], paths: new Map() };
   for (const e of cardEffectsOf(before, game)) {

@@ -4,9 +4,9 @@ import { COARSE, reducedMotion } from '../../game/useMediaQuery';
 import { useEffectEvent } from '../../game/useEffectEvent';
 import { shotOf } from '../../game/strike';
 import { castOf } from '../../game/cast';
-import { cardEffectsOf } from './CardEffects';
+import { cardEffectsOf } from '../../game/cardEffects';
 import type { Controller } from '../../game/controller';
-import type { ShipSpots } from './geometry';
+import type { ShipSpots } from '../../game/shipSpots';
 import type { BoardZoom } from './useBoardZoom';
 
 /** What goes over the map for its zoom (useBoardZoom): the buttons, the edge arrows and the start-of-game demo. */
