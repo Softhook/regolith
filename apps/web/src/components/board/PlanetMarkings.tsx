@@ -1,16 +1,4 @@
-import {
-  CUBE_PAD,
-  PLANET_FAMILY,
-  REGOLITH_SHADOW,
-  WELL,
-  cubePadCentres,
-  numberPlacement,
-  well,
-  type Corner,
-  type World,
-} from '@regolith/art';
-import type { CSSProperties } from 'react';
-import { castShadow, pieceShadowLength, pieceShadowOpacity } from './shadows';
+import { CUBE_PAD, PLANET_FAMILY, WELL, cubePadCentres, numberPlacement, well, type Corner } from '@regolith/art';
 
 /** A planet's number as the tile prints it: white, outlined in a dark shade of the planet's hue. `y` is the baseline. */
 function PlanetNumber({ n, x, y, size, className }: { n: number; x: number; y: number; size: number; className?: string }) {
@@ -35,112 +23,40 @@ function PlanetNumber({ n, x, y, size, className }: { n: number; x: number; y: n
 }
 
 /**
- * A planet's live markings over its tile art, placed and sized as on the printed tile: its number and
- * cube spaces. `cubes[i]` is the colour of the cube in space i. Used by the board and the manual alike.
- * `cast`: on `world`'s ground, each cube casts a hard shadow with a hint of its colour, as the dice do (shadows.ts),
- * its glow gone. `corner` moves the number from the printed bottom right to another corner, as on a tile whose planet is off its middle (art `numberCorner`).
+ * A planet's number as placed and sized on the printed tile, centred on (cx, cy) at `mm` SVG units per printed millimetre.
+ * `corner` moves it from the printed bottom right to another corner, as on a tile whose planet is off its middle (art `numberCorner`).
  */
-export function PlanetMarkings({
+export function PlanetMark({
   cx,
   cy,
   mm,
   n,
-  capacity,
-  cubes,
-  numberClass,
-  cubeClass,
-  cast,
+  className,
   corner = { x: 1, y: 1 },
 }: {
   cx: number;
   cy: number;
-  /** SVG units per printed millimetre. */
   mm: number;
   n: number;
-  capacity: number;
-  cubes: readonly (string | undefined)[];
-  numberClass?: string;
-  cubeClass?: string;
-  /** Cast the cubes' shadows on this world's ground, each with this class (it drops in with its cube). */
-  cast?: { className: string; world: World };
+  className?: string;
   corner?: Corner;
 }) {
   const at = numberPlacement(n);
-  const slot = CUBE_PAD.size * mm;
-  const pads = cubePadCentres(capacity, 0, 0);
-  // The empty spaces are wells in the planet, drawn by the same code as print, in printed millimetres.
-  const wells = pads.flatMap((q, i) => (cubes[i] ? [] : [well(q.x, q.y, CUBE_PAD.size, CUBE_PAD.corner, WELL.cube)])).join('');
   return (
-    <>
-      <PlanetNumber
-        n={n}
-        x={cx + corner.x * at.x * mm}
-        y={cy + (corner.y * at.y + at.size * 0.4) * mm}
-        size={at.size * mm}
-        className={numberClass}
-      />
-      {wells && <g transform={`translate(${cx} ${cy}) scale(${mm})`} dangerouslySetInnerHTML={{ __html: wells }} />}
-      {/* All under the cubes: one falls by the next, whose top stands as high, so lit. */}
-      {cast && (
-        <g opacity={pieceShadowOpacity(cast.world)}>
-          {pads.map((q, i) => {
-            const colour = cubes[i];
-            return colour && <CubeShadow key={i} x={cx + q.x * mm} y={cy + q.y * mm} mm={mm} colour={colour} {...cast} />;
-          })}
-        </g>
-      )}
-      {pads.map((q, i) => {
-        const colour = cubes[i];
-        return (
-          colour && (
-            <rect
-              key={i}
-              x={cx + q.x * mm - slot / 2}
-              y={cy + q.y * mm - slot / 2}
-              width={slot}
-              height={slot}
-              rx={CUBE_PAD.corner * mm}
-              fill={colour}
-              stroke="#fff"
-              strokeWidth={0.5 * mm}
-              className={cubeClass}
-              style={cast ? undefined : { filter: `drop-shadow(0 0 ${1.2 * mm}px rgba(255,255,255,.6))` }}
-            />
-          )
-        );
-      })}
-    </>
+    <PlanetNumber
+      n={n}
+      x={cx + corner.x * at.x * mm}
+      y={cy + (corner.y * at.y + at.size * 0.4) * mm}
+      size={at.size * mm}
+      className={className}
+    />
   );
 }
 
-/**
- * The shadow a cube of `colour` centred on (x, y) casts on `world`'s ground (shadows.ts): its rounded footprint swept down
- * and to the right for its height (a cube, so its width). It falls in with its cube, from as far away as the cube
- * falls from (`--away`, the cube's 320%).
- */
-function CubeShadow({
-  x,
-  y,
-  mm,
-  colour,
-  className,
-  world,
-}: {
-  x: number;
-  y: number;
-  mm: number;
-  colour: string;
-  className: string;
-  world: World;
-}) {
-  const size = CUBE_PAD.size * mm;
-  const far = size * pieceShadowLength(world);
-  const { style, ...shape } = castShadow(x - size / 2, y - size / 2, size, CUBE_PAD.corner * mm, far, colour);
-  return (
-    <polygon
-      {...shape}
-      className={className}
-      style={{ ...style, filter: `blur(${REGOLITH_SHADOW.blur * mm}px)`, '--away': `${3.2 * far}px` } as CSSProperties}
-    />
-  );
+/** The wells of a planet's cube spaces, as on the printed tile: all but the first `cubes`, which have a cube on them. Used by the board and the manual alike. */
+export function CubeWells({ cx, cy, mm, capacity, cubes }: { cx: number; cy: number; mm: number; capacity: number; cubes: number }) {
+  const wells = cubePadCentres(capacity, 0, 0)
+    .flatMap((q, i) => (i < cubes ? [] : [well(q.x, q.y, CUBE_PAD.size, CUBE_PAD.corner, WELL.cube)]))
+    .join('');
+  return wells ? <g transform={`translate(${cx} ${cy}) scale(${mm})`} dangerouslySetInnerHTML={{ __html: wells }} /> : null;
 }

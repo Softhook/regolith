@@ -14,7 +14,7 @@ import {
   type World,
 } from '@regolith/art';
 import { BarrierBubble } from '../components/board/BarrierBubble';
-import { PlanetMarkings } from '../components/board/PlanetMarkings';
+import { CubeWells, PlanetMark } from '../components/board/PlanetMarkings';
 import { PIPS } from '../components/Die3D';
 import { COMBAT_DICE, PIP, PLAYER_COLORS } from '../theme';
 
@@ -194,8 +194,18 @@ export function PlanetMarks({ at, n, cubes = [] }: { at: At; n: number; cubes?: 
 }
 
 function Marks({ cx, cy, n, cubes, mm }: { cx: number; cy: number; n: number; cubes: Who[]; mm: number }) {
+  const size = CUBE_PAD.size * mm;
+  const pads = cubePadCentres(n - 6, 0, 0);
   return (
-    <PlanetMarkings cx={cx} cy={cy} mm={mm} n={n} capacity={n - 6} cubes={cubes.map((w) => COLOURS[w].face)} numberClass="mn-planet-num" />
+    <>
+      <PlanetMark cx={cx} cy={cy} mm={mm} n={n} className="mn-planet-num" />
+      <CubeWells cx={cx} cy={cy} mm={mm} capacity={n - 6} cubes={cubes.length} />
+      {cubes.map((w, i) => (
+        <g key={i} className="mn-die">
+          <DieBody x={cx + pads[i].x * mm} y={cy + pads[i].y * mm} size={size} face={COLOURS[w].face} />
+        </g>
+      ))}
+    </>
   );
 }
 
@@ -246,6 +256,21 @@ export function Barrier({ at }: { at: At }) {
 /** A pip's position on a -1..1 square, from the 3D dice's 3 × 3 grid so the faces match the game's. */
 const pipAt = (i: number) => [(i % 3) - 1, Math.floor(i / 3) - 1] as const;
 
+/** A die's body centred on (x, y), without its pips (a cube is just this), shaded like the game's 3D dice. */
+function DieBody({ x, y, size, face }: { x: number; y: number; size: number; face: string }) {
+  const defs = useContext(Defs);
+  const h = size / 2;
+  const rx = size * 0.16;
+  return (
+    <>
+      {[face, `url(#${defs}-dk)`, `url(#${defs}-hi)`].map((fill) => (
+        <rect key={fill} x={x - h} y={y - h} width={size} height={size} rx={rx} fill={fill} />
+      ))}
+      <rect x={x - h + 0.5} y={y - h + 0.5} width={size - 1} height={size - 1} rx={rx} fill="none" stroke="rgba(255,255,255,.22)" />
+    </>
+  );
+}
+
 /** A die face centred on (x, y): a coloured player die or a combat die shaded like the game's 3D dice. */
 export function DieFace({
   x,
@@ -268,7 +293,6 @@ export function DieFace({
   shipIllustration?: boolean;
   portrait?: boolean;
 }) {
-  const defs = useContext(Defs);
   const h = size / 2;
   const step = size * 0.27;
   const rx = size * 0.16;
@@ -290,10 +314,7 @@ export function DieFace({
   const { face, pip } = COLOURS[kind];
   return (
     <g className={cls}>
-      {[face, `url(#${defs}-dk)`, `url(#${defs}-hi)`].map((fill) => (
-        <rect key={fill} x={x - h} y={y - h} width={size} height={size} rx={rx} fill={fill} />
-      ))}
-      <rect x={x - h + 0.5} y={y - h + 0.5} width={size - 1} height={size - 1} rx={rx} fill="none" stroke="rgba(255,255,255,.22)" />
+      <DieBody x={x} y={y} size={size} face={face} />
       {PIPS[v].map(pipAt).map(([px, py], i) => (
         <circle key={i} cx={x + px * step} cy={y + py * step} r={size * 0.085} fill={pip} />
       ))}

@@ -4,6 +4,7 @@ import type { Controller } from '../game/controller';
 import { BoardArt, tileArtOf } from './board/BoardArt';
 import { ActionEffects } from './board/ActionEffects';
 import { CardEffects } from './board/CardEffects';
+import { CubeShadows, Cubes, cubeSpots, type CubeSpot } from './board/Cubes';
 import { Explosions } from './board/Explosions';
 import { Routes } from './board/Routes';
 import { Shots } from './board/Shots';
@@ -55,6 +56,7 @@ export function Board({
   // On the ground the dice cast hard shadows, as its buildings do: blurred as much, in pixels.
   const cast = REGOLITH_SHADOW.blur * (cell / TILE.cell);
   const spots = shipSpots(game);
+  const cubes = cubeSpots(game, cell);
   const staging = useStaging(game, scene);
   useLayoutEffect(() => glideAlong(boardRef.current, staging.paths), [staging]);
   const tip = useZoomIntro(game, ctl, zoom, !!introduce);
@@ -95,7 +97,7 @@ export function Board({
         className="board"
         style={{ left: zoom.x, top: zoom.y, width: cols * cell, height: rows * cell, '--cell': `${cell}px` } as CSSProperties}
       >
-        <BoardArt game={game} cell={cell} lateCube={staging.cube} />
+        <BoardArt game={game} cell={cell} />
 
         {/* The player acting: their colour marks the spaces they can pick and the ways their ships would fly. */}
         <div className="board-layer" style={{ '--pc': game.players[actor(game)].color } as CSSProperties} onClick={onBoardClick}>
@@ -145,7 +147,19 @@ export function Board({
 
           {reachOf && <Reach game={game} id={reachOf} cell={cell} spots={spots} />}
 
-          {cast !== undefined && <ShipShadows game={game} scene={scene} staging={staging} spots={spots} cell={cell} blur={cast} />}
+          <ShipShadows game={game} scene={scene} staging={staging} spots={spots} cubes={cubes} cell={cell} blur={cast} />
+          <Cubes
+            game={game}
+            cubes={cubes}
+            cell={cell}
+            late={staging.cube}
+            dice={game.dice.flatMap((d) => {
+              const at = spots.get(d.id);
+              if (!at || staging.late.has(d.id)) return [];
+              const size = cell * DIE_SIZE;
+              return [{ x: (at.c + 0.5) * cell - size / 2, y: (at.r + 0.5) * cell - size / 2, size, color: game.players[d.owner].color }];
+            })}
+          />
           {/* Mouse users also get `title=` on ships and planets; touch screens get the tap. */}
           <Ships
             game={game}
@@ -155,7 +169,7 @@ export function Board({
             zoomed={zoom.zoomed}
             spots={spots}
             cell={cell}
-            shadowless={cast !== undefined}
+            shadowless
             onInfo={(id) => show({ ship: id })}
             onPress={(id, touch) => {
               viaMouse.current = !touch;
@@ -255,9 +269,9 @@ const DIE_SIZE = 0.56;
 const placeAt = (r: number, c: number, cell: number) => ({ transform: `translate(${c * 100}%, ${r * 100}%)`, width: cell, height: cell });
 
 /**
- * On a world's ground, the hard shadows every ship's die casts (DieShadow), blurred `blur` px with a hint of its colour: all in one layer
- * under the dice, as a die's top stands as high as the die beside it, so is lit, and as dark where they meet as
- * apart. Each is placed, glides, comes and goes as its ship does (`staging`, Ships). Cut to the map's tiles, so
+ * On a world's ground, the hard shadows every ship's die (DieShadow) and cube (CubeShadows) casts, blurred `blur` px with a hint of
+ * its colour: all in one layer under the dice and cubes, as a die's top stands as high as the die beside it, so is lit, and as dark
+ * where they meet as apart. Each is placed, glides, comes and goes as its ship does (`staging`, Ships). Cut to the map's tiles, so
  * none falls off its edge.
  */
 function ShipShadows({
@@ -265,6 +279,7 @@ function ShipShadows({
   scene,
   staging,
   spots,
+  cubes,
   cell,
   blur,
 }: {
@@ -272,13 +287,16 @@ function ShipShadows({
   scene?: string;
   staging: Staging;
   spots: ShipSpots;
+  cubes: CubeSpot[];
   cell: number;
   blur: number;
 }) {
+  const { world } = game.board;
+  const size = cell * DIE_SIZE;
   const edge = hexMapPath(game.board, cell, tileArtOf(game.board));
   const struck = staging.struck.map(({ die: d, r, c, ms }) => (
     <div key={`struck:${d.id}`} className="ship-shadow struck" style={{ ...placeAt(r, c, cell), '--late': `${ms}ms` } as CSSProperties}>
-      <DieShadow size={cell * DIE_SIZE} world={game.board.world} blur={blur} color={game.players[d.owner].color} />
+      <DieShadow size={size} world={world} blur={blur} color={game.players[d.owner].color} />
     </div>
   ));
   const shadows = game.dice.map((d) => {
@@ -292,23 +310,13 @@ function ShipShadows({
         data-glide={d.id}
         style={{ ...placeAt(at.r, at.c, cell), '--late': `${late ?? 0}ms` } as CSSProperties}
       >
-        <DieShadow
-          size={cell * DIE_SIZE}
-          world={game.board.world}
-          blur={blur}
-          color={game.players[d.owner].color}
-          rolls={d.rolls}
-          scene={scene}
-        />
+        <DieShadow size={size} world={world} blur={blur} color={game.players[d.owner].color} rolls={d.rolls} scene={scene} />
       </div>
     );
   });
   return (
-    <div
-      className="ship-shadows"
-      style={{ opacity: pieceShadowOpacity(game.board.world), clipPath: edge && `path('${edge}')` }}
-      aria-hidden
-    >
+    <div className="ship-shadows" style={{ opacity: pieceShadowOpacity(world), clipPath: edge && `path('${edge}')` }} aria-hidden>
+      <CubeShadows cubes={cubes} world={world} mm={cell / TILE.cell} late={staging.cube} />
       {shadows}
       {struck}
     </div>

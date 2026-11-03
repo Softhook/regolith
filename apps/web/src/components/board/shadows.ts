@@ -13,6 +13,15 @@ export const pieceShadowLength = (world: World) => 0.55 * REGOLITH_SHADOW.length
 /** How dark the pieces' shadows are on `world`: each is drawn opaque, in a layer this opaque, so where two meet it's no darker. */
 export const pieceShadowOpacity = (world: World) => (0.7 * REGOLITH_SHADOW.opacity[world]) / REGOLITH_SHADOW.opacity.mars;
 
+/**
+ * How high a cube's top stands for a die's shadow, for its width. Less than a true cube's: a die stands so little
+ * higher that its shadow would stop short of a cube a space away, on nearly every map.
+ */
+const CUBE_TOP = 0.25;
+
+/** How far the shadow of a die `size` across reaches on top of a cube `cube` across: only what stands above that top casts there. */
+export const shadowOnCube = (world: World, size: number, cube: number) => pieceShadowLength(world) * Math.max(0, size - CUBE_TOP * cube);
+
 /** A shadow's colour, for a piece of colour `color`: nearly black. */
 export const pieceShadowTint = (color: string) => `color-mix(in srgb, ${color} 14%, #000)`;
 

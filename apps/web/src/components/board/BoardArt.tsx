@@ -1,13 +1,12 @@
-import { memo, type CSSProperties } from 'react';
+import { memo } from 'react';
 import { drawing, type Board, type GameState } from '@regolith/engine';
 import { PLANET_DIAMETER, TILE } from '@regolith/art';
 import { BarrierBubble } from './BarrierBubble';
 import { tileArt, type TileArt } from '../../art/boardTiles';
 import { GATE_COLOR, WORMHOLE_COLOR } from '../../theme';
 import { placement } from './geometry';
-import { PlanetMarkings } from './PlanetMarkings';
+import { CubeWells } from './PlanetMarkings';
 import { MapTiles } from './MapTiles';
-import { numberCorner } from './layers';
 
 // A map's tile art, worked out once: a map id always names the same layout.
 const tileArtByMap = new Map<string, TileArt[]>();
@@ -18,19 +17,10 @@ export function tileArtOf(board: Board): TileArt[] {
 }
 
 /**
- * The map drawn in SVG: tile art, spaces, warp gates, and each planet's number and cube slots. Memoised:
+ * The map drawn in SVG: tile art, spaces, warp gates, and each planet's cube slots. Memoised:
  * a pan moves the board, not what's drawn on it.
  */
-export const BoardArt = memo(function BoardArt({
-  game,
-  cell,
-  lateCube,
-}: {
-  game: GameState;
-  cell: number;
-  /** A planet whose new cube drops in late, and when (a relocated cube, see staging). */
-  lateCube?: { planet: number; ms: number };
-}) {
+export const BoardArt = memo(function BoardArt({ game, cell }: { game: GameState; cell: number }) {
   const { planets } = game.board;
   const tiles = tileArtOf(game.board);
   const { rows, cols } = drawing(game.board);
@@ -72,11 +62,11 @@ export const BoardArt = memo(function BoardArt({
 
         {planets.map((p) => {
           const { x: cx, y: cy } = mid(p);
-          // The planet itself is the tile's art (MapTiles); this layer adds the live number and cubes, placed
+          // The planet itself is the tile's art (MapTiles); this layer adds the live cube spaces, placed
           // and sized as on the printed tile.
           const R = (PLANET_DIAMETER[p.number] / 2) * mm;
           return (
-            <g key={p.id} style={lateCube?.planet === p.id ? ({ '--cube-late': `${lateCube.ms}ms` } as CSSProperties) : undefined}>
+            <g key={p.id}>
               {p.start && game.phase === 'setup' && (
                 <circle
                   cx={cx}
@@ -88,18 +78,7 @@ export const BoardArt = memo(function BoardArt({
                   strokeDasharray={`${3 * mm} ${4 * mm}`}
                 />
               )}
-              <PlanetMarkings
-                cx={cx}
-                cy={cy}
-                mm={mm}
-                n={p.number}
-                capacity={p.capacity}
-                cubes={p.cubes.map((o) => game.players[o].color)}
-                corner={numberCorner(game.board, p)}
-                numberClass="planet-num"
-                cubeClass="cube"
-                cast={{ className: 'cube-shadow', world }}
-              />
+              <CubeWells cx={cx} cy={cy} mm={mm} capacity={p.capacity} cubes={p.cubes.length} />
             </g>
           );
         })}

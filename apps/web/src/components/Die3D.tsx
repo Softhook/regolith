@@ -159,6 +159,10 @@ export const Die3D = memo(function Die3D({
     turned.current = el;
   };
 
+  const stillPlanes = (el: HTMLDivElement) => {
+    for (const plane of el.children as HTMLCollectionOf<HTMLElement>) plane.style.transition = 'none';
+  };
+
   const rotation = (v: number) => {
     const [bx, by] = FACE_ROTATION[v] ?? [0, 0];
     return `rotateX(${bx + spins.current.x}deg) rotateY(${by + spins.current.y}deg)`;
@@ -170,7 +174,9 @@ export const Die3D = memo(function Die3D({
     if (!el) return;
     turn(el, `transform ${duration}ms cubic-bezier(.12,.72,.22,1) ${delay}s`, rotation(value));
     clearTimeout(settle.current);
-    if (flatten) settle.current = window.setTimeout(() => setMoving(false), delay * 1000 + duration + 50);
+    // Once landed, either the cube goes or it stops easing: its turn holds the die's size (its perspective, --half), so
+    // a transition left on would play on every zoom, the die catching up long after the map.
+    settle.current = window.setTimeout(() => (flatten ? setMoving(false) : stillPlanes(el)), delay * 1000 + duration + 50);
   };
 
   const tumble = () => {
@@ -237,10 +243,10 @@ export const Die3D = memo(function Die3D({
       <div className={moving ? 'die3d-hop moving' : 'die3d-hop'} ref={hop}>
         {moving ? (
           <div className="die3d-cube" ref={cube}>
-            {PLANES.map((p, i) => (p.face ? <Face key={i} n={p.face} /> : <div key={i} className="die3d-core" />))}
+            {PLANES.map((p, i) => (p.face ? <Face key={i} n={p.face} size={size} /> : <div key={i} className="die3d-core" />))}
           </div>
         ) : (
-          <Face n={value} className="still" />
+          <Face n={value} size={size} className="still" />
         )}
       </div>
     </div>
@@ -250,13 +256,18 @@ export const Die3D = memo(function Die3D({
 /** Where pip `i` of the 3 × 3 grid goes (row / column). */
 const PIP_AREA = Array.from({ length: 9 }, (_, i) => ({ gridArea: `${Math.floor(i / 3) + 1} / ${(i % 3) + 1}` }));
 
+/** The size, px, a face's pips are laid out at (.die3d-pips). */
+const PIPS_BOX = 100;
+
 /** A face: its lit pips only, each in its cell of the grid (a cube is six faces, and a map has many dice). */
-function Face({ n, className }: { n: number; className?: string }) {
+function Face({ n, size, className }: { n: number; size: number; className?: string }) {
   return (
     <div className={className ? `die3d-face ${className}` : 'die3d-face'}>
-      {PIPS[n].map((i) => (
-        <span key={i} className="pip on" style={PIP_AREA[i]} />
-      ))}
+      <div className="die3d-pips" style={{ transform: `scale(${size / PIPS_BOX})` }}>
+        {PIPS[n].map((i) => (
+          <span key={i} className="pip on" style={PIP_AREA[i]} />
+        ))}
+      </div>
     </div>
   );
 }
