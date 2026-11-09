@@ -38,6 +38,31 @@ function sheetLayout(piece: Piece, size: { w: number; h: number }, gap: number, 
     const y = y0 + i * h;
     marks.push([x0 - gap - lenH, y, x0 - gap, y], [x1 + gap, y, x1 + gap + lenH, y]);
   }
+  if (piece.die?.marks) {
+    const s = Math.sqrt(3);
+    for (let c = 0; c < cols; c++) {
+      for (let i = 0; i < piece.die.marks.x.length; i++) {
+        const dx = piece.die.marks.x[i];
+        const x = x0 + c * w + dx;
+        const ux = i < 2 ? 0.5 : -0.5;
+        const t1 = gap / (s / 2);
+        const t2 = (gap + lenV) / (s / 2);
+        marks.push([x + t1 * ux, y0 - gap, x + t2 * ux, y0 - gap - lenV]);
+        marks.push([x + t1 * ux, y1 + gap, x + t2 * ux, y1 + gap + lenV]);
+      }
+    }
+    for (let r = 0; r < rows; r++) {
+      for (let i = 0; i < piece.die.marks.y.length; i++) {
+        const dy = piece.die.marks.y[i];
+        const y = y0 + r * h + dy;
+        const uy = i === 0 || i === 2 ? -s / 2 : s / 2;
+        const t1 = gap / 0.5;
+        const t2 = (gap + lenH) / 0.5;
+        marks.push([x0 - gap, y + t1 * uy, x0 - gap - lenH, y + t2 * uy]);
+        marks.push([x1 + gap, y + t1 * uy, x1 + gap + lenH, y + t2 * uy]);
+      }
+    }
+  }
   return { size, cell: (col: number, row: number): Rect => ({ x: x0 + col * w, y: y0 + row * h, w, h }), marks };
 }
 
@@ -64,11 +89,13 @@ export function sheetsHtml(
   const { size, cell, marks } = sheetLayout(piece, PAPER[o.paper ?? 'a4'], 1, HOME_MARGIN);
   // Less half the 0.2 mm line, so each mark is centred on its cut.
   const marksHtml = marks
-    .map(([x1, y1, x2, y2]) =>
-      x1 === x2
-        ? `<i class="v" style="left:${x1 - 0.1}mm;top:${y1}mm;height:${y2 - y1}mm"></i>`
-        : `<i class="h" style="top:${y1 - 0.1}mm;left:${x1}mm;width:${x2 - x1}mm"></i>`,
-    )
+    .map(([x1, y1, x2, y2]) => {
+      if (x1 === x2) return `<i class="v" style="left:${x1 - 0.1}mm;top:${Math.min(y1, y2)}mm;height:${Math.abs(y2 - y1)}mm"></i>`;
+      if (y1 === y2) return `<i class="h" style="top:${y1 - 0.1}mm;left:${Math.min(x1, x2)}mm;width:${Math.abs(x2 - x1)}mm"></i>`;
+      const len = Math.hypot(x2 - x1, y2 - y1);
+      const angle = (Math.atan2(y2 - y1, x2 - x1) * 180) / Math.PI;
+      return `<i class="d" style="left:${x1}mm;top:${y1 - 0.1}mm;width:${len}mm;transform:rotate(${angle}deg);transform-origin:0 0.1mm"></i>`;
+    })
     .join('');
   const page = (cells: { src: string; col: number; row: number }[]) =>
     `<section class="sheet">${cells
@@ -90,7 +117,7 @@ export function sheetsHtml(
     `.sheet:last-child{break-after:auto}` +
     `.sheet img{position:absolute;width:${piece.w}mm;height:${piece.h}mm}.sheet i{position:absolute;width:0;height:0}` +
     // Borders, not backgrounds: browsers drop background colours when printing unless "Background graphics" is on.
-    `.sheet i.v{border-left:.2mm solid #000}.sheet i.h{border-top:.2mm solid #000}` +
+    `.sheet i.v{border-left:.2mm solid #000}.sheet i.h,.sheet i.d{border-top:.2mm solid #000}` +
     `</style></head><body>${html}</body></html>`
   );
 }

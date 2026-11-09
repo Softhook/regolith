@@ -174,6 +174,16 @@ function outlineOf(polygons: Spot[][]): Segment[] {
 export const HEX_TILE_CUT: readonly Segment[] = outlineOf(hexTileShape());
 
 /**
+ * Where the 8 diagonal cut lines exit a tile's 96 mm square cell: 4 on the top and bottom edges (x),
+ * and 4 on the left and right edges (y), mm from the tile's top-left. Aligning a straightedge between
+ * matching marks on adjacent edges cuts the tile's 12 diagonal edges.
+ */
+export const HEX_TILE_DIAGONAL_MARKS = {
+  x: [MID - 16 * Math.sqrt(3), MID - 16 / Math.sqrt(3), MID + 16 / Math.sqrt(3), MID + 16 * Math.sqrt(3)] as const,
+  y: [112 - 48 * Math.sqrt(3), 48 * Math.sqrt(3) - 48, 144 - 48 * Math.sqrt(3), 48 * Math.sqrt(3) - 16] as const,
+};
+
+/**
  * A die-cut line as an SVG path, moved by (dx, dy) mm: for a print service's cut layer, named for the
  * `CutContour` spot colour it cuts along and drawn in the magenta that colour previews as.
  */

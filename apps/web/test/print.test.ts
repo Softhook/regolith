@@ -31,13 +31,17 @@ describe('print sheets', () => {
     const html = sheetsHtml(p, [{ front: 'a' }]);
     expect(html.match(/class="v"/g)).toHaveLength(2 * (p.cols + 1));
     expect(html.match(/class="h"/g)).toHaveLength(2 * (p.rows + 1));
+    const d = 2 * (p.cols * (p.die?.marks?.x.length ?? 0) + p.rows * (p.die?.marks?.y.length ?? 0));
+    expect(html.match(/class="d"/g) ?? []).toHaveLength(d);
   });
 
   it.each(onPaper)('keep the crop marks 4 mm inside the paper, where home printers print ($id, $paper)', ({ p, paper }) => {
     const size = PAPER[paper];
     const html = sheetsHtml(p, [{ front: 'a' }], { paper });
+    const dCount = 2 * (p.cols * (p.die?.marks?.x.length ?? 0) + p.rows * (p.die?.marks?.y.length ?? 0));
+    const count = 2 * (p.cols + p.rows + 2) + dCount;
     expect(html).toContain(`@page{size:${size.w}mm ${size.h}mm;margin:0}`);
-    expect(html.match(/class="[vh]" style/g)).toHaveLength(2 * (p.cols + p.rows + 2));
+    expect(html.match(/class="[vhd]" style/g)).toHaveLength(count);
     for (const [, left, top, len] of html.matchAll(/class="v" style="left:([\d.-]+)mm;top:([\d.-]+)mm;height:([\d.-]+)mm"/g)) {
       expect(Number(len)).toBeGreaterThan(1);
       expect(Number(top)).toBeGreaterThanOrEqual(4 - 1e-9);
@@ -50,9 +54,22 @@ describe('print sheets', () => {
       expect(Number(left) + Number(len)).toBeLessThanOrEqual(size.w - 4 + 1e-9);
       expect(Number(top)).toBeGreaterThan(0);
     }
-    expect([
-      ...html.matchAll(/class="[vh]" style="(?:left|top):[\d.-]+mm;(?:top|left):[\d.-]+mm;(?:height|width):[\d.-]+mm"/g),
-    ]).toHaveLength(2 * (p.cols + p.rows + 2));
+    for (const [, left, top, len, angle] of html.matchAll(
+      /class="d" style="left:([\d.-]+)mm;top:([\d.-]+)mm;width:([\d.-]+)mm;transform:rotate\(([\d.-]+)deg\)/g,
+    )) {
+      expect(Number(len)).toBeGreaterThan(1);
+      const rad = (Number(angle) * Math.PI) / 180;
+      const x2 = Number(left) + Number(len) * Math.cos(rad);
+      const y2 = Number(top) + 0.1 + Number(len) * Math.sin(rad);
+      for (const x of [Number(left), x2]) {
+        expect(x).toBeGreaterThanOrEqual(4 - 1e-9);
+        expect(x).toBeLessThanOrEqual(size.w - 4 + 1e-9);
+      }
+      for (const y of [Number(top) + 0.1, y2]) {
+        expect(y).toBeGreaterThanOrEqual(4 - 1e-9);
+        expect(y).toBeLessThanOrEqual(size.h - 4 + 1e-9);
+      }
+    }
   });
 
   it('fills pages in reading order, then starts a new page', () => {

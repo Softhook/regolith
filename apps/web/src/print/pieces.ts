@@ -1,4 +1,4 @@
-import { AID, CARD, HEX_TILE_CUT, MAP_SHEET, TILE, hexTileShape } from '@regolith/art';
+import { AID, CARD, HEX_TILE_CUT, HEX_TILE_DIAGONAL_MARKS, MAP_SHEET, TILE, hexTileShape } from '@regolith/art';
 import type { Line, Polygon } from './pdf';
 import { pressTag } from './press';
 import { gameFile } from '../appId';
@@ -33,12 +33,15 @@ export interface Die {
   line: readonly Line[];
   /** The cut's shape grown by `grow` mm, as polygons that join into it, in trim millimetres. */
   shape: (grow: number) => Polygon[];
+  /** Where cuts exit the piece's bounding box, mm: for crop marks on non-rectangular pieces. */
+  marks?: { readonly x: readonly number[]; readonly y: readonly number[] };
 }
 
 /** A die moved by (x, y) mm: onto a sheet, or in past a face's bleed. */
 export const dieAt = (die: Die, x: number, y: number): Die => ({
   line: die.line.map(([x1, y1, x2, y2]): Line => [x + x1, y + y1, x + x2, y + y2]),
   shape: (grow) => die.shape(grow).map((poly) => poly.map(([px, py]) => [x + px, y + py] as const)),
+  ...(die.marks ? { marks: { x: die.marks.x.map((mx) => x + mx), y: die.marks.y.map((my) => y + my) } } : {}),
 });
 
 /** A piece printed as a set: in ZIPs and on sheets. */
@@ -65,6 +68,7 @@ export const PIECES = {
     die: {
       line: HEX_TILE_CUT,
       shape: (grow: number) => hexTileShape(grow).map((hex) => hex.map((p) => [p.x, p.y] as const)),
+      marks: HEX_TILE_DIAGONAL_MARKS,
     },
   },
   aid: { id: 'aid', plural: 'aids', w: AID.w, h: AID.h, bleed: AID.bleed, cols: 1, rows: 2, dpi: 600 },

@@ -22,6 +22,7 @@ export { GROUND_BASE, REGOLITH_GROUND_PX, REGOLITH_SHADOW } from './regolith';
 export {
   BLED,
   HEX_TILE_CUT,
+  HEX_TILE_DIAGONAL_MARKS,
   OFF_CENTRE,
   TILE_SPOTS,
   cubePadCentres,
