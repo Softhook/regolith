@@ -133,7 +133,7 @@ it replaced went with the split.
 
 ```
 packages/art/src/screenprint/
-  inks.ts     paper, night paper, key ink, bone; oxide, ice and dust plates; amber; habitat green, crystal violet; teal, slate and raspberry for the card categories
+  inks.ts     paper, night paper, key ink, bone; oxide, ice and dust plates; amber; habitat green, crystal violet
   mechs.ts    the six mechs as rigs: the Silhouettes board's parts, cut at their joints, with their depths
   pose.ts     a mech posed (joint angles, lean, aim), stood on its lowest foot, turned in 3D, plated
   kit.ts      the stage (sky, each world's ground), the tiles' buildings and small things, crews, effects

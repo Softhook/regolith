@@ -23,15 +23,15 @@ const SAFE = 4.5;
 
 /** Each category's colour plate. */
 const PLATE: Record<string, string> = {
-  movement: INKS.teal,
+  movement: INKS.ice,
   research: INKS.ice,
-  expansion: INKS.bone,
+  expansion: INKS.ice,
   combat: INKS.oxide,
   power: INKS.oxide,
-  ship: INKS.slate,
-  action: INKS.amber,
-  conquer: INKS.green,
-  card: INKS.raspberry,
+  ship: INKS.oxide,
+  action: INKS.dust,
+  conquer: INKS.dust,
+  card: INKS.dust,
 };
 
 /** The colour plate a category prints in: the band on its cards. */

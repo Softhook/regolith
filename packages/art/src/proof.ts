@@ -1,6 +1,5 @@
 import { GROUND, cubePad, diePad } from './aid';
 import { CARD, cardPalette } from './card';
-import { cardPlate } from './screenprint/card';
 import { document, esc, hsl, hslToRgb, n } from './svg';
 import { INKS } from './screenprint/inks';
 import { SP_FONTS } from './screenprint/kit';
@@ -73,17 +72,18 @@ export function pressTestSvg(o: PressTestOptions = {}): string {
   const cardX = M + TILE.size + 4;
   if (o.card) body += `<image x="${cardX}" y="${top}" width="${CARD.w}" height="${CARD.h}" href="${o.card}"/>`;
 
-  // Category colours: each one's plate as on a light card (on paper, with the key ink) and a dark one (on night paper, with bone).
+  // Category colours: each as on a light card (accent and subtitle ink on paper) and a dark one.
   const swX = cardX + CARD.w + 4;
   const cellW = (PRESS_TEST.w - M - swX - 1) / 2;
   const cellH = CARD.h / Object.keys(CARD_CATEGORIES).length;
-  Object.entries(CARD_CATEGORIES).forEach(([category, c], i) => {
+  Object.entries(CARD_CATEGORIES).forEach(([, c], i) => {
     const y = top + i * cellH;
     for (const [k, light] of [true, false].entries()) {
+      const p = cardPalette(light, c.hue);
       const x = swX + k * (cellW + 1);
-      body += rect(x, y, cellW, cellH - 0.6, light ? INKS.paper : INKS.night);
-      body += rect(x + 1, y + 1, cellW - 2, cellH - 5.2, cardPlate(category));
-      body += text(x + cellW / 2, y + cellH - 1.6, c.label, 1.8, light ? INKS.key : INKS.bone, 'text-anchor="middle" font-style="italic"');
+      body += rect(x, y, cellW, cellH - 0.6, p.paper);
+      body += rect(x + 1, y + 1, cellW - 2, cellH - 5.2, p.accent);
+      body += text(x + cellW / 2, y + cellH - 1.6, c.label, 1.8, p.accentInk, 'text-anchor="middle" font-style="italic"');
     }
   });
 

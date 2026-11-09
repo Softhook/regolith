@@ -1156,12 +1156,12 @@ svg.zones polygon {
 .qcard-skill { background: linear-gradient(180deg, var(--card-skill-1), var(--card-skill-2)); color: var(--card-skill-ink); }
 .qcard-tactic { background: linear-gradient(180deg, var(--card-tactic-1), var(--card-tactic-2)); color: var(--card-tactic-ink); border-color: var(--card-night-edge); }
 .qcard-expansion { background: linear-gradient(180deg, var(--card-expansion-1), var(--card-expansion-2)); color: var(--card-expansion-ink); border-color: var(--card-night-edge); }
-/* --cat, the category's colour plate, is set per card from @regolith/art (categoryStyle in Card.tsx). */
+/* --cat, the category's accent, is set per card from @regolith/art (categoryStyle in Card.tsx). */
 .qcard-top { display: flex; align-items: center; justify-content: space-between; gap: 4px; }
 .qcard-cat { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--cat-ink, var(--cat)); }
 /* A one-shot card's deck (Tactic, Gambit) beside its category, where there's room: not in the market, whose rows are labelled. */
 .qcard-kind { font-size: 9.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; opacity: .6; white-space: nowrap; }
-.qcard-badge { flex: none; align-self: flex-end; margin-top: 4px; font-size: 9.5px; font-weight: 700; padding: 1px 6px; border-radius: 999px; background: var(--card-skill-1); color: var(--card-skill-ink); box-shadow: inset 0 0 0 1.5px var(--cat); }
+.qcard-badge { flex: none; align-self: flex-end; margin-top: 4px; font-size: 9.5px; font-weight: 700; padding: 1px 6px; border-radius: 999px; background: var(--cat); color: #fff; }
 /* The art band: the middle of the printed card's illustration, edge to edge, its category's colour under it
    (instead of the stripe on top). The name sits on the art with its category's icon, in place of the category
    label and the name line, so the rules text below has their room; its tag is no bigger than they are, to hide
@@ -1394,8 +1394,8 @@ svg.zones polygon {
    a grid row as tall as its tallest card. The heading names the category, so the cards don't repeat it. */
 .skill-groups { display: flex; flex-direction: column; gap: 14px; }
 .skill-group h3 {
-  display: flex; align-items: center; gap: 6px; margin: 0 0 6px; padding-left: 6px; border-left: 3px solid var(--cat);
-  font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--cat-ink);
+  display: flex; align-items: center; gap: 6px; margin: 0 0 6px;
+  font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--cat);
 }
 .skill-group-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(124px, 1fr)); gap: 8px; }
 .skill-group .qcard-sm { width: auto; height: auto; min-height: 96px; }
