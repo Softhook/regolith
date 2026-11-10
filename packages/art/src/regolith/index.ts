@@ -45,6 +45,9 @@ function scene(spec: TileSpec, at: Spot, world: World): Scene {
   const r = rng(spec.seed).fork('regolith');
   const site = base(spec.number, at, r.fork('base'), spec.design);
   const [bx, by] = [SIZE / 2 + at.x * SPACE, SIZE / 2 + at.y * SPACE];
+  // A drawing's clip paths, drawn once with the defs, as what stands is drawn more than once (`groundArt`).
+  const CLIP = /<clipPath[\s\S]*?<\/clipPath>/g;
+  const clips = [...new Set(site?.paint.match(CLIP) ?? [])];
   const place = (f: string) => `<g transform="translate(${n(bx)},${n(by)})">${f}</g>`;
   const heights =
     terrain(r, world) +
@@ -63,7 +66,8 @@ function scene(spec: TileSpec, at: Spot, world: World): Scene {
     (mars ? dust(r.noiseSeed(), DRAWN) : '') +
     CRATERS +
     (world === 'deimos' ? BURIED : '') +
-    RIDGE;
+    RIDGE +
+    clips.join('');
   const lit = `<g filter="url(#rg-ground)">${heights}</g>`;
   if (!site) return { defs, lit };
   const standing = place(site.heights);
@@ -73,7 +77,7 @@ function scene(spec: TileSpec, at: Spot, world: World): Scene {
     `<g filter="url(#rg-built)">${standing}</g>` +
     place(`<g style="mix-blend-mode: color">${inked(site.tint, spec.number)}</g>`) +
     (mars ? `<g filter="url(#rg-dust)" opacity="0.9" style="mix-blend-mode: soft-light">${standing}</g>` : '') +
-    place(inked(site.paint, spec.number));
+    place(inked(site.paint.replace(CLIP, ''), spec.number));
   return { defs, lit, standing: { heights: standing, drawn } };
 }
 

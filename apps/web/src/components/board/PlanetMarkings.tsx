@@ -1,24 +1,25 @@
-import { CUBE_PAD, PLANET_FAMILY, WELL, cubePadCentres, numberPlacement, well, type Corner } from '@regolith/art';
+import { CUBE_PAD, PLANET_FAMILY, WELL, cubePadCentres, numberGlyph, numberPlacement, well, type Corner } from '@regolith/art';
 
-/** A planet's number as the tile prints it: white, outlined in a dark shade of the planet's hue. `y` is the baseline. */
-function PlanetNumber({ n, x, y, size, className }: { n: number; x: number; y: number; size: number; className?: string }) {
+/**
+ * A planet's number as the tile prints it: white, outlined in a dark shade of the planet's hue, centred on (x, cy).
+ * A 9 has a bar under it so it can't be read as an upside-down 6 (art `numberGlyph`).
+ */
+function PlanetNumber({ n, x, cy, size, className }: { n: number; x: number; cy: number; size: number; className?: string }) {
+  const { baseline, bar } = numberGlyph(n, x, cy, size);
+  const paint = {
+    fill: '#fff',
+    paintOrder: 'stroke',
+    strokeLinejoin: 'round',
+    stroke: `hsl(${PLANET_FAMILY[n].hue} 50% 7%)`,
+    strokeWidth: size * 0.13,
+  } as const;
   return (
-    <text
-      className={className}
-      x={x}
-      y={y}
-      fontSize={size}
-      fontWeight={800}
-      fill="#fff"
-      letterSpacing="-.03em"
-      paintOrder="stroke"
-      strokeLinejoin="round"
-      stroke={`hsl(${PLANET_FAMILY[n].hue} 50% 7%)`}
-      strokeWidth={size * 0.13}
-      textAnchor="middle"
-    >
-      {n}
-    </text>
+    <g className={className}>
+      <text x={x} y={baseline} fontSize={size} fontWeight={800} letterSpacing="-.03em" textAnchor="middle" {...paint}>
+        {n}
+      </text>
+      {bar && <rect x={bar.x} y={bar.y} width={bar.w} height={bar.h} rx={bar.rx} {...paint} />}
+    </g>
   );
 }
 
@@ -42,15 +43,7 @@ export function PlanetMark({
   corner?: Corner;
 }) {
   const at = numberPlacement(n);
-  return (
-    <PlanetNumber
-      n={n}
-      x={cx + corner.x * at.x * mm}
-      y={cy + (corner.y * at.y + at.size * 0.4) * mm}
-      size={at.size * mm}
-      className={className}
-    />
-  );
+  return <PlanetNumber n={n} x={cx + corner.x * at.x * mm} cy={cy + corner.y * at.y * mm} size={at.size * mm} className={className} />;
 }
 
 /** The wells of a planet's cube spaces, as on the printed tile: all but the first `cubes`, which have a cube on them. Used by the board and the manual alike. */

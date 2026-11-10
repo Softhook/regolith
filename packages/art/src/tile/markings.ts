@@ -1,7 +1,7 @@
 import { CUBE_PAD, FONTS, HEX_EDGE, PLANET_CAPACITY, PLANET_FAMILY, TILE, WELL, type WellStyle } from '../tokens';
 import { icon } from '../icons';
 import { hex, n, type Fragment } from '../svg';
-import { MID, TILE_SPOTS, cubePadCentres, hexCorners, numberCorner, numberPlacement, type Spot } from './geometry';
+import { MID, TILE_SPOTS, cubePadCentres, hexCorners, numberCorner, numberGlyph, numberPlacement, type Spot } from './geometry';
 import type { TileSpec } from './set';
 
 /**
@@ -86,21 +86,12 @@ export function markings(spec: TileSpec, part: 'spaces' | 'planet', at: Spot): F
     const k = numberCorner(at);
     const hue = PLANET_FAMILY[spec.number].hue;
     // White with a dark outline reads on any planet surface and on the space around it. The outline
-    // is a second copy underneath; the baseline sits 0.4 em below the centre so the digits are centred.
-    // A 9 gets a short bar under it, so it can't be read as an upside-down 6; the digit rises by half the
-    // bar's drop so the pair stays centred. The bar is painted like the digit: outline below, white above.
-    const bar = spec.number === 9;
-    // The bar is as thick as the digit's strokes and centred on the glyph, which the negative letter-spacing
-    // nudges right of the anchor by half its amount.
+    // is a second copy underneath; a 9's bar (`numberGlyph`) is painted like the digit.
     const cx = p.x + k.x * num.x;
-    const base = p.y + k.y * num.y + num.size * (bar ? 0.3 : 0.4);
-    const barW = num.size * 0.44;
-    const barH = num.size * 0.12;
-    const barX = cx + num.size * 0.015 - barW / 2;
-    const barY = base + num.size * 0.08;
+    const { baseline, bar } = numberGlyph(spec.number, cx, p.y + k.y * num.y, num.size);
     const text = (paint: string) =>
-      `<text x="${n(cx)}" y="${n(base)}" ${paint} font-family="${FONTS.body}" font-weight="800" font-size="${n(num.size)}" letter-spacing="${n(-0.03 * num.size)}" text-anchor="middle">${spec.number}</text>` +
-      (bar ? `<rect x="${n(barX)}" y="${n(barY)}" width="${n(barW)}" height="${n(barH)}" rx="${n(barH * 0.3)}" ${paint}/>` : '');
+      `<text x="${n(cx)}" y="${n(baseline)}" ${paint} font-family="${FONTS.body}" font-weight="800" font-size="${n(num.size)}" letter-spacing="${n(-0.03 * num.size)}" text-anchor="middle">${spec.number}</text>` +
+      (bar ? `<rect x="${n(bar.x)}" y="${n(bar.y)}" width="${n(bar.w)}" height="${n(bar.h)}" rx="${n(bar.rx)}" ${paint}/>` : '');
     body +=
       text(`fill="none" stroke="${hex(hue, 50, 7)}" stroke-width="${n(num.size * 0.13)}" stroke-linejoin="round"`) + text(`fill="#fff"`);
   }

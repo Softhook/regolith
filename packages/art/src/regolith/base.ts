@@ -1,18 +1,15 @@
 import type { Rng } from '../rng';
 import { n } from '../svg';
-import { KEEP, OUTER } from './inks';
+import { OUTER } from './inks';
 import { cubePadCentres, numberCorner, type Spot } from '../tile/geometry';
 import { PLANET_CAPACITY } from '../tokens';
 import { SPACE, SCALE, SIZE, inside, polar, toward } from './core';
-import { H, biohazard, nuclear, type Part, placed, type Drawn, merged, disc, box, graded, glow, pipe, run } from './parts';
+import { H, type Part, placed, type Drawn, merged, disc, box, glow, pipe, run } from './parts';
 import {
-  hub,
-  dome,
   domelets,
   solar,
   tankFarm,
   flares,
-  stack,
   pit,
   rig,
   silos,
@@ -26,6 +23,7 @@ import {
 } from './buildings';
 import { landingPad, rover, crates, beacon, probe, tyreTracks } from './craft';
 import { BIG, LANDMARKS, annex, type Annex, type Taken } from './landmarks';
+import { CORES } from './cores';
 
 /** How a base is laid out round its planet's space: its hub, outbuildings out along the ways to the next hexes, and small things round them. */
 
@@ -236,7 +234,10 @@ const SPREAD = [1, 1, 2, 2, 2, 3, 3, 3, 4];
  * for an 8 a refinery, gold tanks and burning flare stacks; for a 9 an ice mine in a ring of frost,
  * its pit glowing blue; for a 10 a black reactor with red-hot cooling towers; any of them with a landing
  * pad, containers or a dish; on a Void tile a sinkhole ringed by violet crystals, its cracks glowing; and for
- * an 11, 12 or 13 its landmark (landmarks.ts).
+ * an 11, 12 or 13 its landmark (landmarks.ts). A 7 to 10 tile's `design` (set.ts `DESIGN_TILES`) changes its
+ * middle, keeping its colours and what's round it: the Habitat's great dome, a warren of domes or a greenhouse
+ * ring; the Refinery's plain deck, distillation columns or storage spheres; the Ice Mine's frost and tower, an
+ * open pit it bridges or a boring machine; the Reactor's octagon, a containment building or a fusion ring.
  * Centred on the planet's space, in board units. `at` is where the planet sits on its tile (in spaces from
  * the middle).
  */
@@ -282,9 +283,73 @@ export function base(number: number, at: Spot, r: Rng, design?: string): Drawn |
     annex(0.8, [0.6, 0.78], tube(2.5, '#8d969c'), containers, 1.5),
     annex(0.6, [0.55, 0.72], tube(2, '#8d969c'), () => dish(light), 1.2),
   ];
+  // The conduits start at the reactor's edge.
+  const power = (a: number, p: Spot) => conduit(toward(a, 0.6), p, '#ff5a14');
+  /** Each number's outbuildings, and its lights' colour. */
+  const outbuildings = (number: number): { pool: Annex[]; light: string } => {
+    switch (number) {
+      case 7:
+        return {
+          light: '#7dffb0',
+          pool: [
+            annex(1.5, [0.64, 0.74], tube(6, '#a7b0b6'), domelets, BIG, true),
+            annex(1.5, [0.7, 0.8], tube(2.5, '#8d969c'), solar, BIG, true),
+            ...common('#7dffb0'),
+          ],
+        };
+      case 8:
+        return {
+          light: '#ffcf4a',
+          pool: [
+            annex(2.5, [0.7, 0.8], tube(3, '#f2ad2c'), tankFarm, 1),
+            annex(1.5, [0.6, 0.72], tube(3, '#c9c4bc'), flares, BIG, true),
+            ...common('#ffcf4a'),
+          ],
+        };
+      case 9:
+        return {
+          light: '#7fe9ff',
+          pool: [
+            annex(2.5, [0.74, 0.84], road, pit),
+            annex(1.5, [0.6, 0.72], tube(3.5, '#e8eef2'), rig, 1.6),
+            annex(1.5, [0.68, 0.78], tube(3.5, '#e8eef2'), silos, BIG, true),
+            ...common('#7fe9ff'),
+          ],
+        };
+      default:
+        return {
+          light: '#ff7a1a',
+          pool: [
+            annex(2.5, [0.78, 0.86], power, coolingTower, 1.2),
+            annex(1.2, [0.8, 0.88], power, coolingTower, 1),
+            annex(2, [0.8, 0.88], power, radiators, 1.15, true),
+            // A pad and containers, but no dish.
+            ...common('#ff7a1a').slice(0, 2),
+          ],
+        };
+    }
+  };
   // The hard objectives are landmarks: the one the tile names, or its number's first.
   const landmark = (design && LANDMARKS[design]) || Object.values(LANDMARKS).find((l) => l.number === number);
   if (landmark?.number === number) return landmark.draw({ r, pads, taken, outskirts: outskirtsOf, around, tube });
+  // A 7 to 10 is its tile's own middle (cores.ts), with its number's outbuildings and light.
+  const cores = CORES[number];
+  if (cores) {
+    const { pool, light } = outbuildings(number);
+    const draw = (design && cores[design]) || Object.values(cores)[0];
+    return draw({
+      r,
+      pads,
+      ways,
+      taken,
+      links,
+      collars,
+      deck,
+      collar: (s, out, w) => collar(s, out, w, deck),
+      outskirts: (reach, blocked) => outskirtsOf(reach, pool, blocked),
+      around: (reach) => around(reach, light),
+    });
+  }
   switch (number) {
     case 0:
       return merged([
@@ -300,106 +365,6 @@ export function base(number: number, at: Spot, r: Rng, design?: string): Drawn |
             disc(0, 0, 14, '#000', ' opacity="0.35" filter="url(#rg-soft3)"'),
         },
       ]);
-    case 7: {
-      const great = r.range(25, 30);
-      return merged([
-        ...outskirtsOf(great + 2.5, [
-          annex(1.5, [0.64, 0.74], tube(6, '#a7b0b6'), domelets, BIG, true),
-          annex(1.5, [0.7, 0.8], tube(2.5, '#8d969c'), solar, BIG, true),
-          ...common('#7dffb0'),
-        ]),
-        // The great dome is the base's middle: its hatch, on top, holds the cube.
-        dome(great, '#4a9c7a', '#6dff9e', 22),
-        hub(pads, '#9aa3a8', 'rgb(246,160,205)', '#7dffb0'),
-        ...around(great + 2.5, '#7dffb0'),
-      ]);
-    }
-    case 8:
-      return merged([
-        ...outskirtsOf(32, [
-          annex(2.5, [0.7, 0.8], tube(3, '#f2ad2c'), tankFarm, 1),
-          annex(1.5, [0.6, 0.72], tube(3, '#c9c4bc'), flares, BIG, true),
-          ...common('#ffcf4a'),
-        ]),
-        // A dark deck in a bright Hazard frame that follows its outline, the wells plain grey.
-        hub(pads, '#3a3836', H.deck, undefined, { tint: '#c9c2b4' }, { tint: '#d9a020' }),
-        ...collars,
-        ...around(32, '#ffcf4a'),
-      ]);
-    case 9: {
-      const frost = r.range(45, 66);
-      const tower = r.pick([-1, 1]) * 25;
-      return merged([
-        {
-          grade: disc(0, 0, frost, 'url(#rg-frost)', ' style="mix-blend-mode: lighten"'),
-          paint: glow(0, 0, frost, '#7fdcec', 0.1, 'rg-soft6'),
-        },
-        ...outskirtsOf(40, [
-          annex(2.5, [0.74, 0.84], road, pit),
-          annex(1.5, [0.6, 0.72], tube(3.5, '#e8eef2'), rig, 1.6),
-          annex(1.5, [0.68, 0.78], tube(3.5, '#e8eef2'), silos, BIG, true),
-          ...common('#7fe9ff'),
-        ]),
-        // Its tower, in a corner the three sockets leave, piped up into the deck's underside.
-        run({ x: tower, y: 15 }, { x: tower, y: -4 }, 2.5, '#c9c4bc'),
-        // A deep teal frame painted along its outline, the wells plain grey; the frost haze over it is thin, so it keeps its colour.
-        hub(pads, deck, H.deck, '#ff3b2a', { tint: '#9a9a9a' }, { tint: '#1e8597', band: ['#117487', 0.9] }),
-        ...collars,
-        collar({ x: tower, y: pads[0].y + 15 }, { x: 0, y: 1 }, 2.5, deck),
-        // A biohazard sign on one of its sockets.
-        { paint: biohazard(r.pick(pads)) },
-        placed(tower, 15, stack(), 0, 1.25),
-        ...around(40, '#7fe9ff'),
-      ]);
-    }
-    case 10: {
-      const vents = [
-        [37, 0],
-        [-37, 0],
-        [0, 37],
-        [0, -37],
-      ];
-      const octagon = (s: number) =>
-        [
-          [1, 0.41],
-          [0.41, 1],
-          [-0.41, 1],
-          [-1, 0.41],
-          [-1, -0.41],
-          [-0.41, -1],
-          [0.41, -1],
-          [1, -0.41],
-        ]
-          .map(([x, y]) => `${n(x * s)},${n(y * s)}`)
-          .join(' ');
-      // The conduits start at the reactor's edge.
-      const power = (a: number, p: Spot) => conduit(toward(a, 0.6), p, '#ff5a14');
-      return merged([
-        ...outskirtsOf(49, [
-          annex(2.5, [0.78, 0.86], power, coolingTower, 1.2),
-          annex(1.2, [0.8, 0.88], power, coolingTower, 1),
-          annex(2, [0.8, 0.88], power, radiators, 1.15, true),
-          // A pad and containers, but no dish.
-          ...common('#ff7a1a').slice(0, 2),
-        ]),
-        {
-          grade: graded(0, 0, 52),
-          heights:
-            `<polygon points="${octagon(45)}" fill="${H.apron}"/>` +
-            `<polygon points="${octagon(44)}" fill="${H.dark}"/>` +
-            `<g fill="rgb(150,40,90)">${vents.map(([x, y]) => `<rect x="-5" y="-5" width="10" height="10" transform="translate(${x},${y}) rotate(45)"/>`).join('')}</g>`,
-          // A bright frame round a dark body, so the colour follows the octagon.
-          tint: `<polygon points="${octagon(45)}" fill="#c0402a"/><polygon points="${octagon(41)}" fill="#2e2c30"/>`,
-          paint:
-            `<polygon points="${octagon(41)}" fill="none" stroke="#ff5a14" stroke-width="0.8" opacity="0.6"/>` +
-            vents.map(([x, y]) => glow(x, y, 5, '#ff4a0a', 0.8) + KEEP(glow(x, y, 2, '#F2B233', 1, 'rg-soft1'))).join(''),
-        },
-        hub(pads, '#3a383c', H.dark, '#ff7a1a', { tint: '#4a4a4a' }),
-        // A radiation sign painted small in the middle of one of its four sockets, picked from the tile's seed, as the Ice Mine's sign is.
-        nuclear(r.pick(pads), 1.4),
-        ...around(49, '#ff7a1a'),
-      ]);
-    }
     default:
       return undefined;
   }

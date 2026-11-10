@@ -151,7 +151,7 @@ export function solar(r: Rng): Part {
 }
 
 /** A sphere tank, gold, banded. */
-const tank = (x: number, y: number, r: number): Part => ({
+export const tank = (x: number, y: number, r: number): Part => ({
   heights: disc(x, y, r + 1.2, H.apron) + disc(x, y, r, 'url(#rg-sphere)'),
   tint: disc(x, y, r + 1, '#f2ad2c'),
   paint:
@@ -397,4 +397,77 @@ export function fissures(r: Rng, count: number, from: number, reach: number): Pa
       `<path d="${d}" fill="none" stroke="#e2ccff" stroke-width="0.7" stroke-linejoin="round" opacity="0.9"/>`;
   }
   return { grade, paint };
+}
+
+/** A ring `R` round the origin, `w` wide, in `fill`. */
+export const hoop = (R: number, w: number, fill: string, extra = '') =>
+  `<circle r="${n(R)}" fill="none" stroke="${fill}" stroke-width="${n(w)}"${extra}/>`;
+
+/**
+ * A greenhouse ring `R` round its middle, `w` wide: a glazed tube, its ribs across it, plants glowing green
+ * through it.
+ */
+export function torus(R: number, w: number): Part {
+  const ribs = Array.from({ length: 24 }, (_, i) => {
+    const [p, q] = [polar(i * 15, R - w / 2), polar(i * 15, R + w / 2)];
+    return `M${n(p.x)},${n(p.y)} L${n(q.x)},${n(q.y)}`;
+  }).join(' ');
+  return {
+    grade: hoop(R, w + 14, H.graded, ' filter="url(#rg-soft3)"'),
+    heights: hoop(R, w + 3, H.deck) + hoop(R, w, 'rgb(205,255,135)') + hoop(R, w * 0.35, 'rgb(240,255,150)', ' filter="url(#rg-soft1)"'),
+    tint: hoop(R, w + 3.5, '#8d969c') + hoop(R, w, '#4a9c7a'),
+    paint:
+      LIT(hoop(R, w * 0.7, '#6dff9e', ' opacity="0.45" filter="url(#rg-soft3)" style="mix-blend-mode: screen"')) +
+      `<g fill="none" stroke="#1e2426" stroke-width="0.5" opacity="0.55">${hoop(R - w / 2, 0.5, '#1e2426')}${hoop(R + w / 2, 0.5, '#1e2426')}<path d="${ribs}"/></g>` +
+      `<path d="M${n(polar(200, R).x)},${n(polar(200, R).y)} A${n(R)},${n(R)} 0 0 1 ${n(polar(250, R).x)},${n(polar(250, R).y)}" fill="none" stroke="#fff" stroke-width="${n(w * 0.25)}" opacity="0.22" filter="url(#rg-soft1)"/>`,
+  };
+}
+
+/** A refinery's distillation column, `R` across: a tall white shell banded in hazard stripes, its walkway round it, a light on top. */
+export const column = (R: number): Part => ({
+  extent: R + 1.5,
+  grade: graded(0, 0, R + 6),
+  heights:
+    disc(0, 0, R + 1.5, H.apron) +
+    hoop(R - 0.5, 1.4, H.pipe) +
+    disc(0, 0, R * 0.75, 'url(#rg-sphere)') +
+    disc(0, 0, R * 0.3, 'rgb(255,120,235)'),
+  tint:
+    disc(0, 0, R + 1.5, '#55504a') +
+    hoop(R - 0.5, 1.6, '#8e8a86') +
+    disc(0, 0, R * 0.77, '#e8e2d4') +
+    hoop(R * 0.6, R * 0.12, '#d9a020') +
+    hoop(R * 0.35, R * 0.1, '#d9a020'),
+  paint:
+    hoop(R - 0.5, 0.35, '#ffd27a', ' stroke-dasharray="1 1.2" opacity="0.6"') +
+    disc(-R * 0.25, -R * 0.25, R * 0.2, '#fff', ' opacity="0.5" filter="url(#rg-soft1)"') +
+    lamp(0, 0, '#ffcf4a'),
+});
+
+/** A boring machine's cutter head, `R` across: a steel face, its spokes set with cutting discs, ice slurry glowing at its middle. */
+export function cutter(R: number, spin: number): Part {
+  const spokes = Array.from({ length: 6 }, (_, i) => spin + i * 60);
+  const discs = spokes.flatMap((a, i) => [0.45, 0.72, 0.92].map((k) => polar(a + (i % 2 ? 8 : -8) * k, R * k)));
+  const arms = spokes.map((a) => `M0,0 L${n(polar(a, R).x)},${n(polar(a, R).y)}`).join(' ');
+  return {
+    extent: R + 3,
+    grade: graded(0, 0, R + 9),
+    heights:
+      disc(0, 0, R + 3, H.apron) +
+      disc(0, 0, R + 1, H.dark) +
+      `<path d="${arms}" stroke="rgb(230,150,200)" stroke-width="${n(R * 0.18)}" stroke-linecap="round"/>` +
+      discs.map((d) => disc(d.x, d.y, 2.2, 'rgb(250,160,215)')).join('') +
+      disc(0, 0, R * 0.22, 'url(#rg-nose)'),
+    tint:
+      disc(0, 0, R + 3, '#8d969c') +
+      disc(0, 0, R + 1, '#3a3a40') +
+      `<path d="${arms}" stroke="#c9c4bc" stroke-width="${n(R * 0.18 + 0.5)}" stroke-linecap="round"/>` +
+      discs.map((d) => disc(d.x, d.y, 2.4, '#e8eef2')).join('') +
+      disc(0, 0, R * 0.22, '#e8eef2'),
+    paint:
+      hoop(R + 1.5, 0.8, '#F2B233', ' stroke-dasharray="3 2" opacity="0.6"') +
+      glow(0, 0, R * 0.9, '#3fe6ff', 0.35, 'rg-soft6') +
+      glow(0, 0, R * 0.3, '#7ff5ff', 0.8) +
+      discs.map((d) => disc(d.x - 0.6, d.y - 0.6, 0.7, '#fff', ' opacity="0.7"')).join(''),
+  };
 }

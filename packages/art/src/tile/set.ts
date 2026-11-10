@@ -11,7 +11,7 @@ export interface TileSpec {
   seed: number;
   /** The kind of planet it was in Cubic's space look, which still picks its made-up name (`tileFlavour`). */
   type?: PlanetType;
-  /** The landmark an 11, 12 or 13 is drawn as (regolith/landmarks.ts `LANDMARKS`): its number's own, by tile (`LANDMARK_TILES`), unless a draft names another. */
+  /** How its base is drawn (`DESIGN_TILES`): for a 7 to 10 its middle (regolith/base.ts), for an 11, 12 or 13 its landmark (regolith/landmarks.ts `LANDMARKS`), unless a draft names another. */
   design?: string;
 }
 
@@ -25,10 +25,20 @@ export const BLANK = -1;
 export const SET_COUNTS: Record<number, number> = { 7: 8, 8: 8, 9: 6, 10: 5, 11: 2, 12: 2, 13: 1, 0: 3, [BLANK]: 10 };
 
 /**
- * The landmark each tile of the hard objectives is drawn as, in turn (mood board Landmarks): the 11s a Ring
- * Accelerator, the first 12 a Deep Space Array and the second an Atmosphere Plant, the 13 the Citadel.
+ * How each tile of a number is drawn, one design each so no two tiles of an objective look alike (a set has as
+ * many as `SET_COUNTS`; tiles past it take them again): its middle for a 7 to 10 (regolith/cores.ts `CORES`), its
+ * landmark for the hard objectives (mood board Landmarks): the 11s a Ring Accelerator, the first 12 a Deep Space
+ * Array and the second an Atmosphere Plant, the 13 the Citadel.
  */
-const LANDMARK_TILES: Record<number, readonly string[]> = { 11: ['ring'], 12: ['array', 'air'], 13: ['citadel'] };
+const DESIGN_TILES: Record<number, readonly string[]> = {
+  7: ['dome', 'warren', 'torus', 'farm', 'comb', 'crescent', 'sawtooth', 'wings'],
+  8: ['deck', 'columns', 'spheres', 'bund', 'furnace', 'manifold', 'flare', 'smelter'],
+  9: ['frost', 'quarry', 'bore', 'derrick', 'melt', 'crevasse'],
+  10: ['octagon', 'containment', 'tokamak', 'hall', 'pool'],
+  11: ['ring'],
+  12: ['array', 'air'],
+  13: ['citadel'],
+};
 
 /** The look of one tile, from its id. Ids past the set's count (a map larger than the set) still work. */
 export function tileSpec(id: string): TileSpec {
@@ -39,7 +49,7 @@ export function tileSpec(id: string): TileSpec {
   const family = PLANET_FAMILY[number];
   if (!m || !family) throw new Error(`Unknown tile id: ${id}`);
   const index = Number(m[2]) - 1;
-  const designs = LANDMARK_TILES[number];
+  const designs = DESIGN_TILES[number];
   return {
     id,
     number,

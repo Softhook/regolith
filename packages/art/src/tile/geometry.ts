@@ -150,6 +150,25 @@ export function numberPlacement(number: number): NumberPlacement {
   return { x, y, size, halfW, halfH };
 }
 
+/** A printed number's text and bar, from the point it is centred on: its baseline, and a 9's bar. */
+export interface NumberGlyph {
+  baseline: number;
+  bar?: { x: number; y: number; w: number; h: number; rx: number };
+}
+
+/**
+ * How a number `size` high, centred on (cx, cy), is drawn: the baseline sits 0.4 em below the centre so the
+ * digits are centred. A 9 gets a short bar under it, so it can't be read as an upside-down 6; the digit rises
+ * by half the bar's drop so the pair stays centred. The bar is as thick as the digit's strokes and centred on
+ * the glyph, which the negative letter-spacing (-0.03 em) nudges right of the anchor by half its amount.
+ */
+export function numberGlyph(number: number, cx: number, cy: number, size: number): NumberGlyph {
+  if (number !== 9) return { baseline: cy + size * 0.4 };
+  const baseline = cy + size * 0.3;
+  const [w, h] = [size * 0.44, size * 0.12];
+  return { baseline, bar: { x: cx + size * 0.015 - w / 2, y: baseline + size * 0.08, w, h, rx: h * 0.3 } };
+}
+
 /**
  * A hex tile's shape in trim millimetres: its 7 hexes, each grown by `grow` mm (its bleed past the cut),
  * which together make the flower, as polygons going the same way round (so filled or clipped they join).
