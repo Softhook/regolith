@@ -631,6 +631,64 @@ the blockade end with planets nobody can take.
 
 ---
 
+### 6.11 Hard objectives: 11 to 16 (measured 2026-11-10)
+
+**Question.** The maps use 7–10; the 11 and 12 (Mass Driver, Skyhook) are on two maps each. Would 13–16 add
+anything, with two or more players, and with cube counts that force someone onto them?
+
+**How.** `npm run selfplay:objectives` plays the setups in
+[objectiveSetups.ts](../../packages/engine/test/objectiveSetups.ts): eight maps (five 2-player, one 3-player, two
+4-player), each with its middle objective (Valles Marineris: its pair of 10s) replaced by a **hub** of 11–16.
+The control is the map's own middle. Each hub was played at capacity 1 (a race) and one per player (everyone may
+claim it), and each map at two cube counts: one where the other objectives have room for every cube, one where
+they don't (*forced*: the table must use the hub, Take Over onto it, or go back to its own). Level-2 AI, 30
+games per configuration (16 with 4 players), the same seeds in every configuration: 6,264 games. A level-3 check
+ran on Thin Alpha and Canyon Relay. Results are in `npm run selfplay:objectives`'s tables; the setups'
+symmetry, controls and play are tested in `objectiveSetups.test.ts`.
+
+**Findings.**
+
+- **13 and up are filled more by Take Over than by the sum.** The map's own middle gets 0–30% of its cubes by
+  Take Over, an 11 or 12 typically 10–45%, a 13–16 typically 30–90% with two players and 50–100% with four. The
+  AI plans at most two incoming mechs and builds bigger sums step by step, so people may claim them more; but
+  the level-3 AI, which searches deeper, still put 74–90% of Thin Alpha's forced 13s and 16s on by Take Over
+  (14–33% on Canyon Relay, where the hub is on the only lane).
+- **They need three mechs, and that is a real change.** A claim on the map's middle, 11 or 12 uses 1.9–2.5
+  mechs; on 13–16 mostly 2.5–3.1 (4.0 for a 16 on Olympus Mons's open ground). A 13+ claim ties up three of
+  a player's five dice on one perimeter.
+- **Optional, they are avoided unless they are in the way.** Where the other objectives have room, a 13+ hub
+  is used in 0–3% of Alpha Sector and Thin Alpha games at their low cube counts, 37–60% on Olympus Mons, but
+  70–87% on Canyon Relay, where every walk passes it. On most maps fewer mechs stand round a 13+ than round the
+  map's 10 or 8, and fewer die there (Valles Marineris is the exception). A hard objective is skirted, not
+  fought over.
+- **Forced, they lengthen 2-player games, more the higher they go.** A forced 13 adds 1.5–6 rounds to games of
+  8–40; 14–16 add 1–13, typically 4–11 (Valles Marineris +7 to +12, Olympus Mons's 16 +8 and +13). The level-3
+  AI on Canyon Relay at 8 cubes: a 13 changes nothing, a 16 adds 17 rounds (+52%). With three and four players
+  the change is smaller and less regular (−4 to +7), as Take Over, more frequent with more players fighting,
+  fills the hub.
+- **Capacity 1 makes a race.** Where everyone has to use a hub with room for each (Canyon Relay at 8 cubes,
+  Olympus Mons at 7), the winner holds it in every game; as a one-cube race, in 53–83%, and the loser goes back
+  to their own objective instead (+3: on Olympus Mons 0.2–0.4 such claims a game, none otherwise). Back to your
+  own on a 7 (a sum of 10) is easier than any hub over 10, so a full race hub opens an easier way for the rest.
+- **11 and 12 sit between.** Closer to a 10 in length and fighting than 13+ on most maps, claimed mostly
+  outright; but forced as a race they lengthen games as well (Canyon Relay at 6 cubes +6–7 rounds, Gamma
+  Sector's 12 +6–11, Thin Alpha's 12 +3.5, with 81% by Take Over). The number matters less than whether the
+  hub is forced and how many cubes it holds.
+- **No effect on the first player's wins** beyond the noise of 30 games, and stalls stay rare: 9 unfinished
+  in 6,264, two of them on a control map.
+- **Side finding: Fourfold Confluence and Tesseract don't turn onto themselves.** Their lower 7s (and the south
+  start) sit a place left of where a half turn puts them, so the four seats are not equal; Critical Density
+  doesn't either. The setups use a balanced Confluence.
+
+**Reading.** As claim targets, 14–16 don't work: optional, nobody goes there; forced, they slow the game and are
+filled by Take Over, so they reward fighting for Power rather than the sum. If anything is kept, **13** is the
+one: claimable by three mechs, used about half the time or more when forced, and costing 1.5–6 rounds. A hub of 14+ could
+be made a deliberate rule ("only Take Over places a cube here") rather than a number, which is what it is in
+play. Worth testing with people: a forced 13 race (capacity 1) on Thin Alpha, where the first to it wins most of
+the time and the other must go back to their own.
+
+---
+
 ### Which to try first
 
 | Idea | Core Change | How Different | Build Cost | Fits Architecture |
@@ -724,6 +782,7 @@ earlier Shoot) measured a different configuration and are not evidence for these
 | 2026-10-21 | Interaction, Alpha Sector, with and without cards | [HEX.md](../HEX.md) *Interaction* | Interaction ratio 0.44 without cards and 0.39 with; harm comes as much from moves as attacks. Cards make games more solitary. Cards don't change how often the stronger AI wins. |
 | 2026-10-25 | Card balance: every Regolith skill against none, with Community as a control; 2,000 drafted games | [card-benchmark.md](../card-benchmark.md) | Defence gets stronger: Unstable Reactor and Entrenched gain ~10 points and lead with Science Survey and Field Refit (75–85%). Remodel and Engineering are worth nothing here; Sneak does nothing. |
 | 2026-10-28 | Prepared ground: seven maps that start with an Ice Tunnel and/or barriers; 40 games each against the map each is built on, level 2 | [HEX.md](../HEX.md) *Prepared ground* | A starting tunnel is the strongest map feature: Ice Run cuts a lane game by a fifth with 70% more fighting; barriers lengthen a game as far as they lengthen the walk between homes (Rubble Field +28%) and the AI does not hold a pass. No game unfinished. |
+| 2026-11-10 | Hard objectives: a middle hub of 11–16 on eight maps, 2–4 players, capacity 1 or one per player, open and forced cube counts; 6,264 games, level 2 (and a level-3 check) | §6.11 | 13+ fill largely by Take Over (30–100%), not the sum; optional, they are skirted unless on the only lane; forced, they add 1.5–6 rounds (13) to typically 4–11 (14–16) with two players. 11 and 12 sit between. A one-cube hub makes a race, the loser going back to their own. Fourfold Confluence and Tesseract aren't symmetric. |
 
 The open risk is stalls: the AI barely garrisons, so it may understate how long games run when people
 park ships in orbit on purpose.

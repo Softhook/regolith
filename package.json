@@ -45,6 +45,7 @@
     "format:check": "prettier --check .",
     "regolith:picks": "npm run data && vite-node scripts/regolith-card-picks.ts --",
     "selfplay:maps": "npm run data && vite-node scripts/map-probe.ts --",
+    "selfplay:objectives": "npm run data && vite-node scripts/objective-probe.ts --",
     "map:show": "npm run data && vite-node scripts/map-show.ts --",
     "map:design": "npm run data && vite-node scripts/map-design.ts --"
   },
