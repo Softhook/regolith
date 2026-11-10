@@ -34,9 +34,6 @@ const PLATE: Record<string, string> = {
   card: INKS.dust,
 };
 
-/** The colour plate a category prints in: the band on its cards. */
-export const cardPlate = (category: string): string => PLATE[category] ?? INKS.dust;
-
 /**
  * The deck's name on its back, the mech standing on it (at `size` mm per board unit, so each fills the back
  * about as much as the next), and whether it prints on night paper (one-shot and face-up decks).
@@ -99,7 +96,7 @@ const stage = (face: CardFace, id: string): Stage =>
     r: rng(`screenprint:${face.id}`),
     world: SCENES[face.id]?.world ?? 'phobos',
     h: ART_BOTTOM,
-    plate: cardPlate(face.category),
+    plate: PLATE[face.category] ?? INKS.dust,
   });
 
 /** The scene, clipped to the art window and its bleed, under a shade fading down from the top. */

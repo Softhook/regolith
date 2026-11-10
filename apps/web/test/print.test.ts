@@ -6,6 +6,15 @@ import { A4, PAPER, pressPages, sheetsHtml, type Paper } from '../src/print/shee
 
 const pieces = Object.values(PIECES) as Piece[];
 
+/**
+ * The marks a piece's cuts inside its square get on a sheet, slanted ones or level ones (drawn as the grid's are): one
+ * a column for each exit by the top or bottom, one a row for each by the sides.
+ */
+const innerMarks = (p: Piece, slanted: boolean) =>
+  (p.die?.exits ?? [])
+    .filter((e) => (Math.abs(e.dx) > 1e-9 && Math.abs(e.dy) > 1e-9) === slanted)
+    .reduce((n, e) => n + (e.y < 1e-6 || e.y > p.h - 1e-6 ? p.cols : p.rows), 0);
+
 /** Each sheet's images as [src, left, top] in mm. */
 function sheets(html: string) {
   return html
@@ -30,18 +39,15 @@ describe('print sheets', () => {
   it.each(pieces)('put a crop mark at both ends of every cut ($id)', (p) => {
     const html = sheetsHtml(p, [{ front: 'a' }]);
     expect(html.match(/class="v"/g)).toHaveLength(2 * (p.cols + 1));
-    expect(html.match(/class="h"/g)).toHaveLength(2 * (p.rows + 1));
-    const d = 2 * (p.cols * (p.die?.marks?.x.length ?? 0) + p.rows * (p.die?.marks?.y.length ?? 0));
-    expect(html.match(/class="d"/g) ?? []).toHaveLength(d);
+    expect(html.match(/class="h"/g)).toHaveLength(2 * (p.rows + 1) + innerMarks(p, false));
+    expect(html.match(/class="d"/g) ?? []).toHaveLength(innerMarks(p, true));
   });
 
   it.each(onPaper)('keep the crop marks 4 mm inside the paper, where home printers print ($id, $paper)', ({ p, paper }) => {
     const size = PAPER[paper];
     const html = sheetsHtml(p, [{ front: 'a' }], { paper });
-    const dCount = 2 * (p.cols * (p.die?.marks?.x.length ?? 0) + p.rows * (p.die?.marks?.y.length ?? 0));
-    const count = 2 * (p.cols + p.rows + 2) + dCount;
     expect(html).toContain(`@page{size:${size.w}mm ${size.h}mm;margin:0}`);
-    expect(html.match(/class="[vhd]" style/g)).toHaveLength(count);
+    expect(html.match(/class="[vhd]" style/g)).toHaveLength(2 * (p.cols + p.rows + 2) + innerMarks(p, false) + innerMarks(p, true));
     for (const [, left, top, len] of html.matchAll(/class="v" style="left:([\d.-]+)mm;top:([\d.-]+)mm;height:([\d.-]+)mm"/g)) {
       expect(Number(len)).toBeGreaterThan(1);
       expect(Number(top)).toBeGreaterThanOrEqual(4 - 1e-9);
@@ -69,6 +75,39 @@ describe('print sheets', () => {
         expect(y).toBeGreaterThanOrEqual(4 - 1e-9);
         expect(y).toBeLessThanOrEqual(size.h - 4 + 1e-9);
       }
+    }
+  });
+
+  it("marks where each of a hex tile's cuts inside its square, carried on, leaves it, pointing on along it", () => {
+    const { w, h, die } = PIECES.tile;
+    const exits = die!.exits!;
+    const edges = exits.map((e) => (e.y < 1e-6 ? 'top' : e.y > h - 1e-6 ? 'bottom' : e.x < 1e-6 ? 'left' : 'right'));
+    // 8 slanted lines, 4 exits on each edge; 2 level ones at 16 and 80 mm down, 2 more on each side.
+    for (const [edge, count] of Object.entries({ top: 4, bottom: 4, left: 6, right: 6 }))
+      expect(
+        edges.filter((x) => x === edge),
+        edge,
+      ).toHaveLength(count);
+    expect(
+      exits
+        .filter((e) => e.dy === 0)
+        .map((e) => Math.round(e.y))
+        .sort(),
+    ).toEqual([16, 16, 80, 80]);
+    for (const e of exits) {
+      expect(e.x).toBeGreaterThanOrEqual(-1e-6);
+      expect(e.x).toBeLessThanOrEqual(w + 1e-6);
+      expect(Math.hypot(e.dx, e.dy)).toBeCloseTo(1);
+      // Heading out of the square, not into it.
+      const [ox, oy] = [e.x + e.dx, e.y + e.dy];
+      expect(ox < 0 || ox > w || oy < 0 || oy > h).toBe(true);
+      // On the line of a side of the cut, and going its way.
+      const along = die!.line.filter(([x1, y1, x2, y2]) => {
+        const len = Math.hypot(x2 - x1, y2 - y1);
+        const cross = (a: number, b: number) => (x2 - x1) * (b - y1) - (y2 - y1) * (a - x1);
+        return Math.abs(cross(e.x, e.y)) / len < 1e-6 && Math.abs(Math.abs(((x2 - x1) * e.dx + (y2 - y1) * e.dy) / len) - 1) < 1e-9;
+      });
+      expect(along.length).toBeGreaterThan(0);
     }
   });
 

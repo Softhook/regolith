@@ -22,7 +22,7 @@ export { GROUND_BASE, REGOLITH_GROUND_PX, REGOLITH_SHADOW } from './regolith';
 export {
   BLED,
   HEX_TILE_CUT,
-  HEX_TILE_DIAGONAL_MARKS,
+  HEX_TILE_CUT_EXITS,
   OFF_CENTRE,
   TILE_SPOTS,
   cubePadCentres,
@@ -31,6 +31,7 @@ export {
   numberCorner,
   numberPlacement,
   type Corner,
+  type CutExit,
   type NumberPlacement,
   type Segment,
   type Spot,
@@ -68,7 +69,6 @@ export {
   type Measure,
   type MeasuredFont,
 } from './card';
-export { cardPlate } from './screenprint/card';
 export { SKY, SP_FONTS } from './screenprint/kit';
 export { AID, MIN_TEXT, playerAidSvg, type AidOptions } from './aid';
 export { MAP_SHEET, mapSheetSvg, type MapSheetMark, type MapSheetOptions, type MapSheetTile } from './mapSheet';

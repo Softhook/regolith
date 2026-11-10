@@ -249,8 +249,9 @@ Every printed piece goes through one module, `apps/web/src/print/`, so all piece
     clear of the bleed. Single-sided, the set as it ships, with print markings.
 - `sheets.ts` lays out print sheets for home printers: pieces at trim size in a grid (cards 3 × 3, tiles
   2 × 2, aid and map sheets 1 × 2), crop marks drawn as borders so they print without "Background graphics",
-  optional backs mirrored for long-edge duplex, crop marks kept 4 mm in from the paper's edge (hex tiles also
-  carry diagonal cut crop marks along the sheet margins pointing where each diagonal cut line exits the grid). A4 or US Letter.
+  optional backs mirrored for long-edge duplex, crop marks kept 4 mm in from the paper's edge, and on a hex tile's cuts inside its square (slanted and level) a mark along each where, carried
+  on, it leaves the grid (`HEX_TILE_CUT_EXITS`, worked out from the cut), so a straightedge between two marks cuts
+  every side on that line. A4 or US Letter.
 
 A new piece is a `PIECES` entry and a `Printable` per face.
 

@@ -173,15 +173,48 @@ function outlineOf(polygons: Spot[][]): Segment[] {
 /** A hex tile's die-cut line, in trim millimetres: the flower's outline, 18 sides. */
 export const HEX_TILE_CUT: readonly Segment[] = outlineOf(hexTileShape());
 
+/** Where a straight cut, carried on, leaves a piece's square: a point on its edge, mm, and the way out (a unit vector). */
+export interface CutExit {
+  x: number;
+  y: number;
+  dx: number;
+  dy: number;
+}
+
 /**
- * Where the 8 diagonal cut lines exit a tile's 96 mm square cell: 4 on the top and bottom edges (x),
- * and 4 on the left and right edges (y), mm from the tile's top-left. Aligning a straightedge between
- * matching marks on adjacent edges cuts the tile's 12 diagonal edges.
+ * Where each side of a die-cut line in a `w` × `h` square, carried on both ways, leaves the square: all but the
+ * sides on its edges, which the grid's own crop marks serve.
  */
-export const HEX_TILE_DIAGONAL_MARKS = {
-  x: [MID - 16 * Math.sqrt(3), MID - 16 / Math.sqrt(3), MID + 16 / Math.sqrt(3), MID + 16 * Math.sqrt(3)] as const,
-  y: [112 - 48 * Math.sqrt(3), 48 * Math.sqrt(3) - 48, 144 - 48 * Math.sqrt(3), 48 * Math.sqrt(3) - 16] as const,
-};
+function cutExits(line: readonly Segment[], w: number, h: number): CutExit[] {
+  const exits: CutExit[] = [];
+  const onEdge = (a: number, b: number, edge: number) => Math.abs(a - edge) < 1e-6 && Math.abs(b - edge) < 1e-6;
+  /** How far along the line, from `from`, it reaches the edge it is heading for on one axis (`d` its way along it). */
+  const reach = (from: number, d: number, size: number) => (Math.abs(d) < 1e-9 ? Infinity : (d > 0 ? size - from : -from) / d);
+  for (const [x1, y1, x2, y2] of line) {
+    if (onEdge(x1, x2, 0) || onEdge(x1, x2, w) || onEdge(y1, y2, 0) || onEdge(y1, y2, h)) continue;
+    const len = Math.hypot(x2 - x1, y2 - y1);
+    // Level and upright sides exactly so, so their marks draw as the grid's do.
+    const [ux, uy] = [(x2 - x1) / len, (y2 - y1) / len].map((u) => (Math.abs(u) < 1e-9 ? 0 : u));
+    for (const [dx, dy] of [
+      [ux, uy],
+      [-ux, -uy],
+    ]) {
+      // The nearer of the two edges it is heading for.
+      const t = Math.min(reach(x1, dx, w), reach(y1, dy, h));
+      const at = { x: x1 + t * dx, y: y1 + t * dy };
+      // Sides on one line share their exits.
+      if (!exits.some((e) => Math.hypot(e.x - at.x, e.y - at.y) < 0.01)) exits.push({ ...at, dx, dy });
+    }
+  }
+  return exits;
+}
+
+/**
+ * Where the hex tile's cuts inside its square, carried on, leave it, for crop marks: the 8 slanted lines (4 exits on
+ * each edge) and the 2 level ones (2 more on each side). A straightedge laid between a line's two marks cuts every
+ * side on it.
+ */
+export const HEX_TILE_CUT_EXITS: readonly CutExit[] = cutExits(HEX_TILE_CUT, TILE.size, TILE.size);
 
 /**
  * A die-cut line as an SVG path, moved by (dx, dy) mm: for a print service's cut layer, named for the

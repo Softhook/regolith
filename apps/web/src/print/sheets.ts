@@ -38,30 +38,16 @@ function sheetLayout(piece: Piece, size: { w: number; h: number }, gap: number, 
     const y = y0 + i * h;
     marks.push([x0 - gap - lenH, y, x0 - gap, y], [x1 + gap, y, x1 + gap + lenH, y]);
   }
-  if (piece.die?.marks) {
-    const s = Math.sqrt(3);
-    for (let c = 0; c < cols; c++) {
-      for (let i = 0; i < piece.die.marks.x.length; i++) {
-        const dx = piece.die.marks.x[i];
-        const x = x0 + c * w + dx;
-        const ux = i < 2 ? 0.5 : -0.5;
-        const t1 = gap / (s / 2);
-        const t2 = (gap + lenV) / (s / 2);
-        marks.push([x + t1 * ux, y0 - gap, x + t2 * ux, y0 - gap - lenV]);
-        marks.push([x + t1 * ux, y1 + gap, x + t2 * ux, y1 + gap + lenV]);
-      }
-    }
-    for (let r = 0; r < rows; r++) {
-      for (let i = 0; i < piece.die.marks.y.length; i++) {
-        const dy = piece.die.marks.y[i];
-        const y = y0 + r * h + dy;
-        const uy = i === 0 || i === 2 ? -s / 2 : s / 2;
-        const t1 = gap / 0.5;
-        const t2 = (gap + lenH) / 0.5;
-        marks.push([x0 - gap, y + t1 * uy, x0 - gap - lenH, y + t2 * uy]);
-        marks.push([x1 + gap, y + t1 * uy, x1 + gap + lenH, y + t2 * uy]);
-      }
-    }
+  // A cut inside a piece's square (a hex tile's) gets a mark along it where, carried on, it leaves the grid: on the
+  // margin it heads for, as far out as the grid's marks there.
+  for (const e of piece.die?.exits ?? []) {
+    const across = e.y < 1e-6 || e.y > h - 1e-6; // leaves by the top or bottom
+    const out = across ? Math.abs(e.dy) : Math.abs(e.dx); // how fast it heads into the margin
+    const [from, to] = [gap / out, (gap + (across ? lenV : lenH)) / out];
+    const starts = across
+      ? Array.from({ length: cols }, (_, c) => [x0 + c * w + e.x, e.y < 1e-6 ? y0 : y1])
+      : Array.from({ length: rows }, (_, r) => [e.x < 1e-6 ? x0 : x1, y0 + r * h + e.y]);
+    for (const [x, y] of starts) marks.push([x + from * e.dx, y + from * e.dy, x + to * e.dx, y + to * e.dy]);
   }
   return { size, cell: (col: number, row: number): Rect => ({ x: x0 + col * w, y: y0 + row * h, w, h }), marks };
 }
