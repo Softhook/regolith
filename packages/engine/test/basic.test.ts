@@ -358,7 +358,7 @@ describe('construct (p.7)', () => {
     });
   });
 
-  it('size-7 planets hold 1 cube, 8 hold 2, 9 hold 3, 10 hold 4, the Mass Driver (11) 2 and the Skyhook (12) 3', () => {
+  it('size-7 planets hold 1 cube, 8 hold 2, 9 hold 3, 10 hold 4, the Mass Driver (11) 2, the Deep Space Array (12) 3 and the Citadel (13) 1', () => {
     const caps = (n: number) => quickStart(n, 1, 'basic').board.planets.map((p) => [p.number, p.capacity]);
     for (const [num, cap] of [...caps(2), ...caps(3), ...caps(4)]) expect(cap).toBe(CAPACITY[num]);
   });

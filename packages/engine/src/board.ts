@@ -39,9 +39,9 @@ const TILE_DOWN_LEFT: Cell = { r: 3, c: -2 };
  * How many cubes an objective holds, by its number. The number is what it takes to claim it; 7 to 10 hold one
  * to four cubes, and the 11 and 12 are hard to claim and hold few.
  */
-export const CAPACITY: Record<number, number> = { 7: 1, 8: 2, 9: 3, 10: 4, 11: 2, 12: 3 };
+export const CAPACITY: Record<number, number> = { 7: 1, 8: 2, 9: 3, 10: 4, 11: 2, 12: 3, 13: 1 };
 
-/** The objectives that stand on one world only: the Mass Driver on Phobos, the Skyhook on Deimos. Nobody starts at one. */
+/** The objectives that stand on one world only: the Mass Driver on Phobos, the Deep Space Array on Deimos. Nobody starts at one. */
 const WORLD_OBJECTIVES: Record<number, World> = { 11: 'phobos', 12: 'deimos' };
 
 /*

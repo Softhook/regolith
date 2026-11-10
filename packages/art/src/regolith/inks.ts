@@ -51,9 +51,12 @@ const GREEN = ramp('#14301f', '#4a9c7a', '#7dffb0');
 const COMPACT = ramp('#0f4a55', '#1E8597', '#3CB8CE', '#bdf0f8');
 const RED = ramp('#2e0a08', '#8f1f12', '#d63a22', '#f8a38a');
 const ICE = ramp('#1f3a46', '#5f93a8', '#cfeaf2');
+const OXIDE = ramp('#3a1206', '#a8441a', INKS.oxide, '#f8c09a');
+const COBALT = ramp('#0f1f3a', '#2b4f86', '#3e6fb0', '#bcd3f2');
+const VIOLET = ramp('#1e1238', '#5a2fb0', INKS.violet, '#e2ccff');
 
 /** The ink each objective's hub is painted in, by planet number: the Habitat's own green, then the palette's Hazard, Compact, Union and Ejecta ice. */
-const HUB_INK: Record<number, Ramp> = { 7: GREEN, 8: HAZARD, 9: COMPACT, 10: RED, 0: ICE };
+const HUB_INK: Record<number, Ramp> = { 7: GREEN, 8: HAZARD, 9: COMPACT, 10: RED, 0: ICE, 11: OXIDE, 12: COBALT, 13: VIOLET };
 
 /** Below this saturation a colour is grey, and goes to bone. */
 const GREY = 0.18;
@@ -61,7 +64,7 @@ const GREY = 0.18;
 const toBone = (c: Rgb) => read(BONE, lightness(c));
 
 /** How much of its ink a hub's grey metal takes: the Reactor's stays dark, so its colour is only its frame and glow. */
-const GREY_SHARE: Record<number, number> = { 7: 0.7, 8: 0, 9: 0.7, 10: 0, 0: 0.7 };
+const GREY_SHARE: Record<number, number> = { 7: 0.7, 8: 0, 9: 0.7, 10: 0, 0: 0.7, 11: 0, 12: 0, 13: 0 };
 
 /** A colour in its objective's ink; greys take most of it too, so the hub's metal is the objective's colour. */
 const inInk = (number: number, c: Rgb) => {

@@ -112,6 +112,13 @@ export const BUILDING_GRADIENTS =
     [0.45, 'rgb(160,160,90)'],
     [0.8, 'rgb(160,160,205)'],
   ]) +
+  // A dish laid in a crater: dug down to its middle, smooth all over.
+  radial('rg-dishBowl', [
+    [0, 'rgb(70,230,150)'],
+    [0.6, 'rgb(92,225,150)'],
+    [0.92, 'rgb(122,215,140)'],
+    [1, 'rgb(128,190,128)', 0],
+  ]) +
   radial('rg-frost', [
     [0, 'rgb(0,210,225)', 0.9],
     [1, 'rgb(0,210,225)', 0],

@@ -43,7 +43,7 @@ interface Scene {
 function scene(spec: TileSpec, at: Spot, world: World): Scene {
   const mars = world === 'mars';
   const r = rng(spec.seed).fork('regolith');
-  const site = base(spec.number, at, r.fork('base'));
+  const site = base(spec.number, at, r.fork('base'), spec.design);
   const [bx, by] = [SIZE / 2 + at.x * SPACE, SIZE / 2 + at.y * SPACE];
   const place = (f: string) => `<g transform="translate(${n(bx)},${n(by)})">${f}</g>`;
   const heights =

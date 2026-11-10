@@ -23,10 +23,9 @@ import {
   dish,
   crystals,
   fissures,
-  railgun,
-  skyhook,
 } from './buildings';
 import { landingPad, rover, crates, beacon, probe, tyreTracks } from './craft';
+import { BIG, LANDMARKS, annex, type Annex, type Taken } from './landmarks';
 
 /** How a base is laid out round its planet's space: its hub, outbuildings out along the ways to the next hexes, and small things round them. */
 
@@ -50,9 +49,6 @@ function exits(r: Rng, at: Spot, numbered: boolean): number[] {
 
 /** What's out from the hub, its colour marked (inks.ts `OUTER`) so it's painted apart from the hub's. */
 const outer = (parts: Part[]): Part[] => parts.map((p) => ({ ...p, tint: p.tint && OUTER(p.tint), paint: p.paint && OUTER(p.paint) }));
-
-/** A clear circle where something stands. */
-type Taken = Spot & { r: number };
 
 /** The clear ground kept between a base's buildings, in board units. */
 const GAP = 3;
@@ -102,28 +98,6 @@ function incidentals(r: Rng, centre: Spot, taken: Taken[], links: [Spot, Spot][]
   if (r.chance(0.2)) add(spot(23), probe(r), r.range(0, 360), 1.25);
   return [...tracks, ...out];
 }
-
-/** How much larger than drawn a base's outbuildings stand, reaching well into the hexes round it. */
-const BIG = 1.35;
-
-/** An outbuilding a base may have: how likely it is, how far out it stands (in spaces), how it's linked to the hub along `a`, what it is, how much larger than drawn, and whether it's turned with the way out. */
-interface Annex {
-  weight: number;
-  reach: [number, number];
-  link: (a: number, p: Spot) => Part;
-  part: (r: Rng) => Part;
-  scale: number;
-  turned: boolean;
-}
-
-const annex = (
-  weight: number,
-  reach: [number, number],
-  link: (a: number, p: Spot) => Part,
-  part: (r: Rng) => Part,
-  scale = BIG,
-  turned = false,
-): Annex => ({ weight, reach, link, part, scale, turned });
 
 /**
  * A base's outbuildings, one each way out (`ways`) for as many as it has: picked by weight, none twice
@@ -261,18 +235,23 @@ const SPREAD = [1, 1, 2, 2, 2, 3, 3, 3, 4];
  * each tile: for a 7 a habitat under a great green dome, with blue domes and solar panels;
  * for an 8 a refinery, gold tanks and burning flare stacks; for a 9 an ice mine in a ring of frost,
  * its pit glowing blue; for a 10 a black reactor with red-hot cooling towers; any of them with a landing
- * pad, containers or a dish; and on a Void tile a sinkhole ringed by violet crystals, its cracks glowing.
+ * pad, containers or a dish; on a Void tile a sinkhole ringed by violet crystals, its cracks glowing; and for
+ * an 11, 12 or 13 its landmark (landmarks.ts).
  * Centred on the planet's space, in board units. `at` is where the planet sits on its tile (in spaces from
  * the middle).
  */
-export function base(number: number, at: Spot, r: Rng): Drawn | undefined {
+export function base(number: number, at: Spot, r: Rng, design?: string): Drawn | undefined {
   const pads = cubePadCentres(PLANET_CAPACITY[number] ?? 0, 0, 0).map((p) => ({ x: p.x / SCALE, y: p.y / SCALE }));
   const ways = exits(r, at, number > 0);
   const count = r.pick(SPREAD);
   const centre = { x: SIZE / 2 + at.x * SPACE, y: SIZE / 2 + at.y * SPACE };
   const taken: Taken[] = [];
   const links: [Spot, Spot][] = [];
-  const outskirtsOf = (hubReach: number, pool: Annex[]) => outer(outskirts(r, ways, count, pool, centre, hubReach, taken, links));
+  const outskirtsOf = (hubReach: number, pool: Annex[], blocked: number[] = []) => {
+    const off = (a: number, b: number) => Math.abs(((((a - b) % 360) + 540) % 360) - 180);
+    const open = ways.filter((a) => blocked.every((b) => off(a, b) > 40));
+    return outer(outskirts(r, open, count, pool, centre, hubReach, taken, links));
+  };
   // The hub (or the sinkhole) is taken, then the small things go round what stands.
   const around = (hubReach: number, light: string) => {
     taken.push({ x: 0, y: 0, r: hubReach });
@@ -303,6 +282,9 @@ export function base(number: number, at: Spot, r: Rng): Drawn | undefined {
     annex(0.8, [0.6, 0.78], tube(2.5, '#8d969c'), containers, 1.5),
     annex(0.6, [0.55, 0.72], tube(2, '#8d969c'), () => dish(light), 1.2),
   ];
+  // The hard objectives are landmarks: the one the tile names, or its number's first.
+  const landmark = (design && LANDMARKS[design]) || Object.values(LANDMARKS).find((l) => l.number === number);
+  if (landmark?.number === number) return landmark.draw({ r, pads, taken, outskirts: outskirtsOf, around, tube });
   switch (number) {
     case 0:
       return merged([
@@ -416,42 +398,6 @@ export function base(number: number, at: Spot, r: Rng): Drawn | undefined {
         // A radiation sign painted small in the middle of one of its four sockets, picked from the tile's seed, as the Ice Mine's sign is.
         nuclear(r.pick(pads), 1.4),
         ...around(49, '#ff7a1a'),
-      ]);
-    }
-    case 11: {
-      // The rail runs up and down through the hub, across its two sockets; the ground along it is kept clear.
-      const reach = 78;
-      for (let y = -reach; y <= reach; y += 16) taken.push({ x: 0, y, r: 10 });
-      return merged([
-        railgun(reach),
-        ...outskirtsOf(36, [
-          annex(1.2, [0.7, 0.8], tube(3, '#8d969c'), (r) => landingPad(r, '#7fd8ff'), 1.15),
-          annex(1, [0.6, 0.78], tube(2.5, '#8d969c'), containers, 1.5),
-          annex(1, [0.6, 0.78], tube(2.5, '#8d969c'), tankFarm, 1),
-          annex(0.6, [0.55, 0.72], tube(2, '#8d969c'), () => dish('#7fd8ff'), 1.2),
-        ]),
-        hub(pads, '#3a3836', H.deck, '#7fd8ff', { tint: '#c9c2b4' }, { tint: '#6f93a8' }),
-        ...around(36, '#7fd8ff'),
-      ]);
-    }
-    case 12: {
-      // The tether climbs off the tile towards the top left, away from the number; the cables hold it from the other sides.
-      const lift = r.pick([-150, -120, -60, -30]);
-      const [reach, mast] = [40, polar(lift, 54)];
-      taken.push(
-        { ...mast, r: 18 },
-        ...[lift + 115, lift - 115].map((a) => ({ x: mast.x + polar(a, reach).x, y: mast.y + polar(a, reach).y, r: 14 })),
-      );
-      return merged([
-        placed(mast.x, mast.y, skyhook(reach, lift)),
-        ...outskirtsOf(40, [
-          annex(1.2, [0.7, 0.8], tube(3, '#8d969c'), (r) => landingPad(r, '#ffe9a0'), 1.15),
-          annex(1, [0.6, 0.78], tube(2.5, '#8d969c'), containers, 1.5),
-          annex(1, [0.6, 0.78], tube(2.5, '#8d969c'), solar, BIG, true),
-          annex(0.6, [0.55, 0.72], tube(2, '#8d969c'), () => dish('#ffe9a0'), 1.2),
-        ]),
-        hub(pads, '#a59c90', H.deck, '#ffe9a0', { tint: '#c9c2b4' }, { tint: '#b8962e', band: ['#8a6a1c', 0.8] }),
-        ...around(40, '#ffe9a0'),
       ]);
     }
     default:

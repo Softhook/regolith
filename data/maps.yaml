@@ -188,7 +188,7 @@ maps:
     length: long
     cubes: 6
     stats: { slack: 3, shared: 6, planets: 9 }
-    # A 12 (the Skyhook) in the middle, four arms of 8s out to the starts.
+    # A 12 (the Deep Space Array) in the middle, four arms of 8s out to the starts.
     layout:
       - ".  .  7*"
       - ".  .  8"
@@ -457,7 +457,7 @@ maps:
     length: long
     cubes: 5
     stats: { slack: 3, shared: 6, planets: 13 }
-    # Four equal 8 starts on the arms; the 7s make the approach easier and the central 12 (the Skyhook) rewards crossing.
+    # Four equal 8 starts on the arms; the 7s make the approach easier and the central 12 (the Deep Space Array) rewards crossing.
     layout:
       - ".  .  8*"
       - ".  .  8"

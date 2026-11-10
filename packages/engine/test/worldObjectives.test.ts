@@ -1,5 +1,5 @@
 /**
- * The Mass Driver (11) stands on Phobos only and the Skyhook (12) on Deimos only; both are hard to claim but hold
+ * The Mass Driver (11) stands on Phobos only and the Deep Space Array (12) on Deimos only; both are hard to claim but hold
  * few cubes, and nobody starts at one.
  */
 import { describe, expect, it } from 'vitest';
@@ -15,7 +15,7 @@ const withMiddle = (token: string, world: MapDef['world']): MapDef => ({
 });
 
 describe('objectives that stand on one world', () => {
-  it('lets the Mass Driver stand on Phobos with 2 cubes, and the Skyhook on Deimos with 3', () => {
+  it('lets the Mass Driver stand on Phobos with 2 cubes, and the Deep Space Array on Deimos with 3', () => {
     expect(buildBoard(withMiddle('11', 'phobos')).planets.find((p) => p.number === 11)?.capacity).toBe(2);
     expect(buildBoard(withMiddle('12', 'deimos')).planets.find((p) => p.number === 12)?.capacity).toBe(3);
   });

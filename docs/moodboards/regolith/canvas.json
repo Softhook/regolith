@@ -17,7 +17,7 @@
       "y": 1600
     },
     "ObjectiveColours.dc.html": {
-      "h": 3800,
+      "h": 11429,
       "title": "Objective colours",
       "w": 1320,
       "x": 7768,
@@ -57,6 +57,13 @@
       "w": 1320,
       "x": 1742,
       "y": 2099
+    },
+    "Landmarks.dc.html": {
+      "h": 4980,
+      "title": "Landmarks: 11, 12 and 13",
+      "w": 1320,
+      "x": 9168,
+      "y": 2099
     }
   },
   "createdOnFiles": {
@@ -75,14 +82,6 @@
       "w": 240,
       "x": -43,
       "y": 1300
-    },
-    "world": {
-      "kind": "title1",
-      "maxW": 4120,
-      "text": "The world and the mechs",
-      "w": 240,
-      "x": 1742,
-      "y": 1799
     }
   },
   "order": [
@@ -93,7 +92,8 @@
     "Roster.dc.html",
     "Silhouettes.dc.html",
     "RegolithCards.dc.html",
-    "ObjectiveColours.dc.html"
+    "ObjectiveColours.dc.html",
+    "Landmarks.dc.html"
   ],
   "pages": [],
   "title": "Moon Mech Mood Board"

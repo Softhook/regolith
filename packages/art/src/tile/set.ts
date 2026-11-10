@@ -11,6 +11,8 @@ export interface TileSpec {
   seed: number;
   /** The kind of planet it was in Cubic's space look, which still picks its made-up name (`tileFlavour`). */
   type?: PlanetType;
+  /** The landmark an 11, 12 or 13 is drawn as (regolith/landmarks.ts `LANDMARKS`): its number's own, by tile (`LANDMARK_TILES`), unless a draft names another. */
+  design?: string;
 }
 
 /** A blank tile's number: open ground, with no planet and no Void (a map's `-`). */
@@ -20,7 +22,13 @@ export const BLANK = -1;
  * How many of each tile a set needs: for planets and blanks, the most any map in data/maps.yaml uses at once
  * (docs/GRAPHICS.md §2a); three Voids. Start planets use a separate token, so they need no tiles of their own.
  */
-export const SET_COUNTS: Record<number, number> = { 7: 8, 8: 8, 9: 6, 10: 5, 11: 2, 12: 2, 0: 3, [BLANK]: 10 };
+export const SET_COUNTS: Record<number, number> = { 7: 8, 8: 8, 9: 6, 10: 5, 11: 2, 12: 2, 13: 1, 0: 3, [BLANK]: 10 };
+
+/**
+ * The landmark each tile of the hard objectives is drawn as, in turn (mood board Landmarks): the 11s a Ring
+ * Accelerator, the first 12 a Deep Space Array and the second an Atmosphere Plant, the 13 the Citadel.
+ */
+const LANDMARK_TILES: Record<number, readonly string[]> = { 11: ['ring'], 12: ['array', 'air'], 13: ['citadel'] };
 
 /** The look of one tile, from its id. Ids past the set's count (a map larger than the set) still work. */
 export function tileSpec(id: string): TileSpec {
@@ -31,7 +39,14 @@ export function tileSpec(id: string): TileSpec {
   const family = PLANET_FAMILY[number];
   if (!m || !family) throw new Error(`Unknown tile id: ${id}`);
   const index = Number(m[2]) - 1;
-  return { id, number, seed: hash(id), type: family.types[index % family.types.length] };
+  const designs = LANDMARK_TILES[number];
+  return {
+    id,
+    number,
+    seed: hash(id),
+    type: family.types[index % family.types.length],
+    ...(designs && { design: designs[index % designs.length] }),
+  };
 }
 
 const tileId = (number: number, i: number) => {
@@ -42,7 +57,7 @@ const tileId = (number: number, i: number) => {
 const tilesOf = (num: number) => Array.from({ length: SET_COUNTS[num] }, (_, i) => tileSpec(tileId(num, i)));
 
 /** Every tile in a full set, in order: the planets, the Voids, and the blanks the open-ground maps spread out with. */
-export const TILE_SET: TileSpec[] = [7, 8, 9, 10, 11, 12, 0, BLANK].flatMap(tilesOf);
+export const TILE_SET: TileSpec[] = [7, 8, 9, 10, 11, 12, 13, 0, BLANK].flatMap(tilesOf);
 
 /**
  * Which physical tile goes where on a map: the k-th planet of a number gets that number's k-th tile.

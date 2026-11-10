@@ -99,7 +99,7 @@ describe('tile set', () => {
   });
 
   it('rejects unknown or malformed tile ids', () => {
-    for (const bad of ['p6-01', 'p13-01', 'p7-00', 'void-0', 'void-abc', 'blank-00', 'blank', 'foo']) {
+    for (const bad of ['p6-01', 'p14-01', 'p7-00', 'void-0', 'void-abc', 'blank-00', 'blank', 'foo']) {
       expect(() => tileSpec(bad), bad).toThrow(/Unknown tile id/);
     }
   });

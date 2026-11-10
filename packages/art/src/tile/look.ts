@@ -11,6 +11,7 @@ export const OBJECTIVE_NAMES: Record<number, string> = {
   9: 'Ice Mine',
   10: 'Reactor',
   11: 'Mass Driver',
-  12: 'Skyhook',
+  12: 'Deep Space Array',
+  13: 'Citadel',
   0: 'Alien Artefact',
 };

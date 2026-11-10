@@ -104,8 +104,8 @@ still fits.
 
 The planets are the sites worth holding. Their number is what it takes to claim them, so the
 bigger the site, the more it is worth fighting for. The number sets the cubes a site holds for 7 to 10 (one
-to four); the 11 and 12 are the exception, hard to claim but holding few. Each stands on one moon only, and
-nobody starts at one.
+to four); the 11, 12 and 13 are the exception, hard to claim but holding few. The 11 and 12 each stand on one
+moon only, and nobody starts at any of them.
 
 | Number | Objective | What it is |
 |---|---|---|
@@ -113,8 +113,9 @@ nobody starts at one.
 | 8 | **Refinery** | Turns ice and regolith into water, air and fuel |
 | 9 | **Ice Mine** | A drill over a buried ice sheet |
 | 10 | **Reactor** | Power for everything around it |
-| 11 | **Mass Driver** | Phobos only. A rail that throws ice pods off the moon in its low gravity. Holds 2 cubes |
-| 12 | **Skyhook** | Deimos only. The anchor of a tether that climbs to orbit. Holds 3 cubes |
+| 11 | **Mass Driver** | Phobos only. A ring accelerator round the hub, its coils glowing, that throws ice pods off the moon in its low gravity. Holds 2 cubes |
+| 12 | **Deep Space Array** | Deimos only. A radio dish laid in a crater, the receiver hung over it from three pylons. The set's second 12 tile is an **Atmosphere Plant** instead: three great intake fans round the hub. Holds 3 cubes |
+| 13 | **Citadel** | A command bunker in a hexagonal blast wall, turrets on its corners, tank traps round it. One tile; holds 1 cube, so it is a race (PROTOTYPING.md §6.11) |
 | Void | **Alien Artefact** | Something left in the ground long before the mechs came. Nothing to hold, but a mech there gains research |
 
 Props on the board and on cards: bunker, comms mast, drop pod, barricade, boulders (Vocabulary board).
@@ -161,4 +162,4 @@ What a Regolith game shows today:
   tutorial names them (Habitat, Refinery); the game itself still shows only their numbers.
 - **The seat colours** of the five sides, and a score for each world's ground.
 
-Not yet: the objective names in the game, the sides' names, the Mass Driver and Skyhook (11 and 12).
+Not yet: the objective names in the game, the sides' names, the Mass Driver, Deep Space Array and Citadel (11 to 13).
