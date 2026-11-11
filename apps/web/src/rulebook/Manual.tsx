@@ -470,9 +470,9 @@ export function Manual({ dark, drawMapsWhenNear }: { dark?: boolean; drawMapsWhe
           <div className="mn-scale-bar mn-fast">faster ▶</div>
         </div>
         <p>Each mech also has an ability that can be used once per turn:</p>
-        <div className="mn-mechs">
+        <div className="mn-abilities">
           {[1, 2, 3, 4, 5, 6].map((v) => (
-            <div key={v} className="mn-mech">
+            <div key={v} className="mn-ability-card">
               <MechKey v={v} />
               <div>
                 <span className="mn-ability">{MECHS[v].ability.name}</span>

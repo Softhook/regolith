@@ -132,10 +132,12 @@ body.rb-standalone { margin: 0; padding: 24px 12px; background: #e8ebf3; }
 .mn-scale-bar { font: 700 11px Inter, sans-serif; text-transform: uppercase; letter-spacing: .08em; padding: 3px 10px; border-radius: 999px; }
 .mn-strong { background: linear-gradient(90deg, var(--mn-you), transparent 85%); color: var(--mn-ink); }
 .mn-fast { background: linear-gradient(270deg, var(--mn-you), transparent 85%); text-align: right; color: var(--mn-ink); }
-.mn-mechs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 22px; margin-top: 10px; }
-.mn-mech { display: flex; gap: 10px; align-items: flex-start; }
-.mn-mech p { margin: 2px 0 0; font-size: 13px; color: var(--mn-soft); }
-.mn-ability { margin-left: 0; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--mn-accent); margin-left: 4px; }
+/* Each mech's ability: an even grid of cards, the mech's key above what its ability does. */
+.mn-abilities { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 12px 0; }
+.mn-ability-card { display: grid; grid-template-rows: auto 1fr; justify-items: center; gap: 8px; padding: 12px 14px; border-radius: 12px; background: var(--mn-panel); text-align: center; break-inside: avoid; }
+.mn-ability-card .mn-mech { padding: 0; background: none; }
+.mn-ability-card p { margin: 2px 0 0; font-size: 13px; color: var(--mn-soft); }
+.mn-ability { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--mn-accent); }
 
 /* ------------------------------------------------------------------ map */
 .mn-map figure { display: flex; flex-direction: column; justify-content: space-between; padding: 12px; border-radius: 12px; background: var(--mn-panel); }
@@ -154,9 +156,7 @@ body.rb-standalone { margin: 0; padding: 24px 12px; background: #e8ebf3; }
 .mn-dark .mn-step { background: var(--mn-accent); color: var(--bg); }
 .mn-flow-arrow { align-self: center; font-size: 22px; color: var(--mn-muted); }
 
-.mn-actions { display: grid; grid-template-columns: repeat(6, 1fr); gap: 14px; margin-top: 14px; }
-.mn-actions > * { grid-column: span 2; }
-.mn-actions > :nth-child(-n + 2) { grid-column: span 3; }
+.mn-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 14px; }
 .mn-action { display: flex; flex-direction: column; padding: 14px 16px; border: 1px solid var(--mn-line); border-radius: 12px; break-inside: avoid; scroll-margin-top: 56px; }
 .mn-action header { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin-bottom: 8px; }
 .mn-action h3 { margin: 0; font-size: 15px; }
@@ -234,8 +234,8 @@ body.rb-standalone { margin: 0; padding: 24px 12px; background: #e8ebf3; }
 @media (max-width: 700px) {
   .rb-page { padding: 28px 18px; }
   .mn-cover h1 { font-size: 44px; }
-  .mn-two, .mn-actions, .mn-mechs, .mn-checks, .mn-cardtypes, .mn-flow { grid-template-columns: 1fr; }
-  .mn-actions > *, .mn-actions > :nth-child(-n + 2) { grid-column: auto; }
+  .mn-two, .mn-actions, .mn-checks, .mn-cardtypes, .mn-flow { grid-template-columns: 1fr; }
+  .mn-abilities { grid-template-columns: 1fr 1fr; }
   .mn-claim { grid-template-columns: 1fr 1fr; }
   .mn-sum { grid-column: 1 / -1; grid-row: 2; }
   .mn-fight { grid-template-columns: 1fr; }
@@ -258,7 +258,7 @@ body.rb-standalone { margin: 0; padding: 24px 12px; background: #e8ebf3; }
   .rb-page { max-width: none; padding: 0; box-shadow: none; background: #fff; }
   .mn { font-size: 10pt; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .mn h2, .mn h3 { break-after: avoid; }
-  .mn-action, .mn-route, .mn-box, .mn-outcome, .mn-hero, .mn-fight, .mn-two, .mn-mech, .mn-ctype, .mn tr { break-inside: avoid; }
+  .mn-action, .mn-route, .mn-box, .mn-outcome, .mn-hero, .mn-fight, .mn-two, .mn-mech, .mn-ability-card, .mn-ctype, .mn tr { break-inside: avoid; }
   #mn-combat, .mn-table-wrap { break-inside: avoid; }
   .mn-cover { padding-top: 20mm; }
 }
@@ -511,6 +511,6 @@ body.rb-standalone { margin: 0; padding: 24px 12px; background: #e8ebf3; }
 .mn-mk-link.tunnel { stroke: var(--mn-tunnel); }
 .mn-mk-link.wormhole { stroke: var(--mn-wormhole); }
 @media (max-width: 720px) { .mn-maps { grid-template-columns: 1fr 1fr; } }
-@media (max-width: 480px) { .mn-maps { grid-template-columns: 1fr; } }
+@media (max-width: 480px) { .mn-maps, .mn-abilities { grid-template-columns: 1fr; } }
 @media print { .mn-mapgroup h3 { break-after: avoid; } }
 @media (min-width: 481px) { .mn-mapcard.mn-wide { grid-column: span 2; } }
