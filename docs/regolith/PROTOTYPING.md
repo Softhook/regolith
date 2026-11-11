@@ -4,7 +4,8 @@ How we build and evaluate the rules of **Regolith**, our own rule set, with Basi
 mode was called Prototyping until October 2026; this log keeps the word for the work, not the mode.
 
 > Sections 1–8 are kept in the words they were written in (ships, planets, conquest, the original classes);
-> §9 follows the code. [RULES.md, Reading older docs](../RULES.md#reading-older-docs) translates them.
+> this page's baseline and §9 follow the code. [RULES.md, Reading older docs](../RULES.md#reading-older-docs)
+> translates the old words.
 
 > **Design Thesis: From Arithmetic Sprint to Positional War**  
 > In base Quantum, hyper-mobility collapsed geography. Ships with 5–6 movement on compact boards crossed the map with ease, turning battles into isolated teleport raids and conquest into an arithmetic puzzle.  
@@ -27,17 +28,17 @@ Regolith started as the Community Edition of Quantum and has moved away from it.
 | Status | Rule |
 |---|---|
 | **Current** | **Cards** (Skills, Tactics, research), from Regolith's own decks. Basic is Regolith with `cards: null` ([rulesets.ts](../../packages/engine/src/rulesets.ts)). |
-| **Current** | Plays **hex** maps only, including the **off-centre planet** ones (Twin Drift). **Ingenious** ("conquer from the corners") is not in the decks, as hex tiles have no corners (ruling 2026-10-20, [HEX.md](../HEX.md) *Cards*). |
-| **Current** | A ship's die value contributes at most **3** movement; skill bonuses apply after that cap. |
-| **Current** | **Zones of control:** every ship pickets the 6 spaces sharing a side (not diagonals) as a mode rule, not a ship power. Diagonals were dropped (2026-10-12) because most ships can't attack diagonally from where they stop. An enemy ship that moves into one must stop there (it may still attack from there; one that starts its move there may leave). Friendly ships are never stopped, and a player with the **Devious** skill ignores zones (ruling 2026-10-12; the card text is unchanged). |
-| **Current** | The **5 Interceptor** replaces its diagonal Manoeuvre ability with **Shoot**: spend one action to attack the first enemy in a clear straight line (one out of each of its space's 6 sides) without advancing. Shooting is that ship's action for the turn. |
-| **Current** | **Contested orbit** (§6.8, since 2026-10-21): a planet can't be conquered while an opponent's ship is in one of its orbital positions. Friendly ships never block, ships beside the orbit don't, and Take Over ignores it. |
-| **Current** | **Contested deploy** (§6.8, since 2026-10-21): no deploying into a planet's orbit while an opponent's ship is in it, by any route (Deploy, Expansion, Stealthy), **except to your own home planet** (home shipyard). |
-| **Off** | **Over-conquest** (§6.10): replacing an opponent's cube with an orbit of exactly **12**. Off since 2026-10-21; `REGOLITH_OVER_CONQUEST` in [rulesets.ts](../../packages/engine/src/rulesets.ts) turns it back on. |
-| **Current** | The **6 Scout** (Wisp) replaces Free Reconfigure with **Barrier** (since 2026-10-24): once a turn, for no action and besides its move, it fires a barrier onto any empty space in a clear straight line out of a side of its space, at any distance (stopped as a shot is). A barrier is permanent and can't be destroyed: no ship moves into or through its space, deploys onto it or shoots through it. It may sit in a planet's orbital position, holding that space, but never counts towards a conquest or contests the orbit. There is no limit on how many barriers are on the map. |
-| **Unchanged** | Ships 1–3 keep the abilities they had in Community. The **4 Frigate** retains Modify. |
+| **Current** | Plays **hex** maps only, including the **off-centre objective** ones (Twin Drift). Community's **Ingenious** ("conquer from the corners") is not in the decks, as hex tiles have no corners (ruling 2026-10-20, [HEX.md](../HEX.md) *Cards*). |
+| **Current** | A mech's die value contributes at most **3** movement; skill bonuses apply after that cap. |
+| **Current** | **Zones of control:** every mech pickets the 6 spaces sharing a side (not diagonals) as a mode rule, not an ability. Diagonals were dropped (2026-10-12) because most mechs can't attack diagonally from where they stop. An enemy mech that moves into one must stop there (it may still attack from there; one that starts its move there may leave). Friendly mechs are never stopped, and a player with the **Sneak** skill ignores zones (ruling 2026-10-12; the card text is unchanged). |
+| **Current** | The **5 Sniper** replaces Community's diagonal Manoeuvre with **Shoot**: spend one action to attack the first enemy in a clear straight line (one out of each of its space's 6 sides) without advancing. Shooting is that mech's action for the turn. |
+| **Current** | **Contested perimeter** (§6.8, since 2026-10-21): an objective can't be claimed while an opponent's mech is in one of its perimeter positions. Friendly mechs never block, mechs beside the perimeter don't, and Take Over ignores it. |
+| **Current** | **Contested drop** (§6.8, since 2026-10-21): no dropping into an objective's perimeter while an opponent's mech is in it, by any route (Drop, Reinforcements, Infiltration), **except to your own home objective**. |
+| **Off** | **Over-claim** (§6.10): replacing an opponent's cube with a perimeter of exactly **12**. Off since 2026-10-21; `REGOLITH_OVER_CLAIM` in [rulesets.ts](../../packages/engine/src/rulesets.ts) turns it back on. |
+| **Current** | The **6 Wisp** replaces Community's Free Reconfigure with **Barrier** (since 2026-10-24): once a turn, for no action and besides its move, it fires a barrier onto any empty space in a clear straight line out of a side of its space, at any distance (stopped as a shot is). A barrier is permanent and can't be destroyed: no mech moves into or through its space, drops onto it or shoots through it. It may sit in an objective's perimeter position, holding that space, but never counts towards a claim or contests the perimeter. There is no limit on how many barriers are on the map. |
+| **Unchanged** | The 1 to 3 keep the abilities they had in Community, as the 1 Breacher (Free Attack), 2 Behemoth (Carry & Move) and 3 Tactician (Swap). The **4 Chameleon** keeps Community's Modify, as Change to 3 or 5. |
 
-Picket is active as the default zone-of-control rule for every ship rather than as the 4's power. Contested Orbit (§6.8) is current. Beacon and every other rule below are **candidates**, not current rules.
+Picket is active as the default zone-of-control rule for every mech rather than as the 4's ability. Contested perimeter (§6.8) is current. Beacon and every other rule below are **candidates**, not current rules.
 What the AI self-play says about this baseline is summarised in §8.
 
 ---

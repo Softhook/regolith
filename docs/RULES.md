@@ -28,7 +28,9 @@ action, [`abilities/`](../packages/engine/src/abilities/)), never a power: Power
 
 The 1 to 4's built-in ability ids are named after their actions: `freeAttack`, `carry`, `swap`, `change`.
 A card's id is its name (`r-ice-tunnel`) and its `effect` the same without the `r-` (`ice-tunnel`); an action
-or decision a card brings is the name in camelCase (`iceTunnel`). The card it began as stays in its `from`
+or decision a card brings is the name in camelCase (`iceTunnel`, `armsDeal`), followed by its step when the card
+brings more than one (`invasionReroll`, `kineticShuntBarrier`, `strategicPlanPlay`). Advance's action is
+`advanceSkill`, as `advance` is a won battle's move. The card it began as stays in its `from`
 (data/regolith.yaml). Only the physical tile ids keep their original names (`p7-01`, `void`). The words test
 ([`words.test.ts`](../packages/engine/test/words.test.ts)) keeps the original words out of the game's log.
 

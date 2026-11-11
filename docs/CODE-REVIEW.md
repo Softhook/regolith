@@ -38,12 +38,13 @@ reverses the test "of two rival moves, the earlier wins even when it arrives lat
 ARCHITECTURE.md says "rules never name a skill" and that `SKILL_RULES` defines each skill in one place.
 That holds for passive skills, which are hooks. Activated skills are still spread out:
 
-- [legal.ts:150-207](../packages/engine/src/legal.ts#L150-L207) checks `hasSkill(s, me, 'tactical')`,
-  `'flexible'`, `'resourceful'`, `'nomadic'`, `'composed'`, `'ambitious'` and `'tyrannical-original'`,
-  each with its own once-per-turn and cost logic. That logic repeats what the handler checks.
+- [legal.ts:163-206](../packages/engine/src/legal.ts#L163-L206) checks `hasSkill(s, me, 'advance')`,
+  `'field-refit'`, `'recycle'`, `'stand-down'` and `'final-push'`, each with its own once-per-turn and
+  cost logic. That logic repeats what the handler checks.
 - [skillActions.ts](../packages/engine/src/skillActions.ts) names them again.
-- Adding one means editing `Action`, `skillActions.ts`, `actionPhaseOptions`, `bruteForce` in the
-  consistency test, and the UI controller. The compiler only enforces the first two.
+- Adding one means editing `Action`, `skillActions.ts`, `actionPhaseOptions`, `bruteForceDecision`
+  (test/decisions.ts, for the consistency test), and the UI controller. The compiler only enforces the
+  first two.
 
 The same duplication, availability written once for listing and once for applying, once let the
 `atomic` handler accept atomics that `legalActions` never offered.

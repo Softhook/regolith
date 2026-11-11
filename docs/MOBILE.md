@@ -57,8 +57,8 @@ Chrome's address bar and Android's navigation bar, and changes as the address ba
   but, played to a real turn, covered a third of the board on the iPhone SE and left the mechs to
   drop off screen on the iPad, so `mobile:shots` now plays to your first turn and checks that
   (see Step 0). 28 of 28 pass; the matrix runs devices in parallel (≈ 2 minutes).
-- **In-game popups checked (late evening):** `mobile:shots` now also opens combat, Change of Heart,
-  game over and the rules on every device (dev link `&scene=combat|changeOfHeart|over|turn`). Combat
+- **In-game popups checked (late evening):** `mobile:shots` now also opens combat, Headhunter,
+  game over and the rules on every device (dev link `&scene=combat|headhunter|over|turn`). Combat
   was twice the screen's height on phones; fixed (Step 3). All 7 devices pass.
 
 **2026-10-07:**
@@ -77,7 +77,7 @@ Chrome's address bar and Android's navigation bar, and changes as the address ba
     of a row was off screen. Now each deck is a row of three cards sharing the width (Step 3). It was the same
     on the iPad (Community's seven cards): while you pick, a row that doesn't fit wraps. `mobile:shots` now
     opens a pick on every device (`-pick`, `-pickClassic`).
-  - **The AI took minutes over Unveil the Fleet** (4p Community, all its mechs destroyed), "thinking…" all
+  - **The AI took minutes over Invasion** (4p Community, all its mechs destroyed), "thinking…" all
     the while: about 4½ minutes with five mechs to place, and 3½ for one step with a skill that drops to
     any isolated space (a hundred spaces per mech). Looking ahead, it tried every re-roll, mech and space at
     every step; now it looks ahead with the remaining mechs on their first space (where each goes is still
@@ -261,7 +261,7 @@ Keep the scrolling column, but pin what matters:
       spanning the rows), one scrolling column on the right: turn panel, market, players, log.
       G55 cells: 31 / 23 / 18 / 13px.
 - [x] Overlays at 320–393px ✅ (2026-10-06), checked by `mobile:shots` on every device (`-combat`,
-      `-changeOfHeart`, `-over`, `-rules` screenshots), opened through the dev link's `scene`.
+      `-headhunter`, `-over`, `-rules` screenshots), opened through the dev link's `scene`.
       Setup popups: below 600px wide or 500px high, popups have less padding, two-card choices
       (starting skill, Peek, market) sit side by side and shrink, with text scaled by container
       units; on short screens (phone landscape) the fleet roll is compact with 54px dice.
@@ -269,7 +269,7 @@ Keep the scrolling column, but pin what matters:
       ≈ 850px tall with *Resolve battle* off screen and no way to scroll to it. Now the sides stay
       side by side with 40px dice and tighter spacing; in phone landscape each side's roll and
       mech share a row and the rule sits beside the verdict; the battle box scrolls as a last
-      resort. Change of Heart and the rules scroll their content with the heading (and ×) in view;
+      resort. Headhunter and the rules scroll their content with the heading (and ×) in view;
       game over fits as it was. The compact battle also serves windows up to 720px high (laptops, under
       the browser's bars), with an 88px mech strip; `mobile:shots` checks that on short windows and the
       tallest battle (`-combatFull`). Phones on their side have no strip.

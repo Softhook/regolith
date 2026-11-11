@@ -48,7 +48,7 @@ costs far more than it gains. Further strength more likely comes from the evalua
 
 Card values (2026-10-09, measured in Community while Regolith was part of Cubic): with skills and stored
 Tactics valued card by card instead of all alike, threats worked out with both players' combat
-skills (`attackChance`), and Calculating choosing 4s, Captain beat the previous Captain
+skills (`attackChance`), and Remodel choosing 4s, Captain beat the previous Captain
 158 – 82 over 240 Community games (65.8%) at about the same thinking time.
 
 The levels are clearly ordered. The top two steps are the smallest (58–59% each). Empty cells
