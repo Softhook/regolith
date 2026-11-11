@@ -26,7 +26,7 @@ export function MechPanel({ game, ctl, dispatch }: { game: GameState; ctl: Contr
   const onBoard = d.loc.zone === 'board';
   const used = !canUseAbility(game, d);
   const secondUse = !used && !!t.abilityUsed[d.id];
-  const tacticalId = skillCard(game, me, 'tactical');
+  const advanceSkillId = skillCard(game, me, 'advance');
   const mine = (a: { die: string }) => a.die === d.id;
   const mech = mechOf(game, d.value);
   const ability = mech.ability;
@@ -83,9 +83,9 @@ export function MechPanel({ game, ctl, dispatch }: { game: GameState; ctl: Contr
             className="btn"
             disabled={!legal.can('swap', mine)}
             onClick={() => ctl.select({ kind: 'swap', die: d.id })}
-            aria-label="Switch places"
+            aria-label="Swap places"
           >
-            <Label long="Switch places" short="Switch" />
+            <Label long="Swap places" short="Swap" />
           </button>
         );
       case 'change':
@@ -131,7 +131,7 @@ export function MechPanel({ game, ctl, dispatch }: { game: GameState; ctl: Contr
       </div>
       <p className="mech-ability">
         <b>{ability.name}</b> {used && !passive ? '— used this turn' : `— ${ability.text}`}
-        {secondUse && !passive && <em className="muted"> (second use via {cardName('cunning')})</em>}
+        {secondUse && !passive && <em className="muted"> (second use via {cardName('boost')})</em>}
       </p>
       {oddsNote && <p className="mech-odds-note">{oddsNote}</p>}
       <div className="turn-actions">
@@ -144,49 +144,49 @@ export function MechPanel({ game, ctl, dispatch }: { game: GameState; ctl: Contr
         >
           {'Refit'}
         </button>
-        {tacticalId && legal.can('tactical', (a) => mine(a) && !a.passenger) && (
+        {advanceSkillId && legal.can('advanceSkill', (a) => mine(a) && !a.passenger) && (
           <button
             className="btn"
-            onClick={() => ctl.select({ kind: 'tactical', die: d.id })}
-            title={card(tacticalId).text}
-            aria-label={`${cardName('tactical')} step`}
+            onClick={() => ctl.select({ kind: 'advanceSkill', die: d.id })}
+            title={card(advanceSkillId).text}
+            aria-label={`${cardName('advance')} step`}
           >
-            <Label long={`${cardName('tactical')} step`} short={cardName('tactical')} />
+            <Label long={`${cardName('advance')} step`} short={cardName('advance')} />
           </button>
         )}
-        {tacticalId && legal.can('tactical', (a) => mine(a) && !!a.passenger) && (
+        {advanceSkillId && legal.can('advanceSkill', (a) => mine(a) && !!a.passenger) && (
           <button
             className="btn"
-            onClick={() => ctl.select({ kind: 'carryPassenger', die: d.id, tactical: true })}
-            title={`${card(tacticalId).text} The ${mech.name} may carry a mech over that 1 space.`}
-            aria-label={`${cardName('tactical')} carry`}
+            onClick={() => ctl.select({ kind: 'carryPassenger', die: d.id, advanceSkill: true })}
+            title={`${card(advanceSkillId).text} The ${mech.name} may carry a mech over that 1 space.`}
+            aria-label={`${cardName('advance')} carry`}
           >
-            <Label long={`${cardName('tactical')} carry`} short="Carry" />
+            <Label long={`${cardName('advance')} carry`} short="Carry" />
           </button>
         )}
-        {onBoard && hasSkill(game, me, 'flexible') && (
+        {onBoard && hasSkill(game, me, 'field-refit') && (
           <>
             <button
               className="btn"
-              disabled={!legal.can('flexible', (a) => mine(a) && a.delta === -1)}
-              onClick={() => dispatch({ type: 'flexible', die: d.id, delta: -1 })}
+              disabled={!legal.can('fieldRefit', (a) => mine(a) && a.delta === -1)}
+              onClick={() => dispatch({ type: 'fieldRefit', die: d.id, delta: -1 })}
             >
               −1
             </button>
             <button
               className="btn"
-              disabled={!legal.can('flexible', (a) => mine(a) && a.delta === 1)}
-              onClick={() => dispatch({ type: 'flexible', die: d.id, delta: 1 })}
+              disabled={!legal.can('fieldRefit', (a) => mine(a) && a.delta === 1)}
+              onClick={() => dispatch({ type: 'fieldRefit', die: d.id, delta: 1 })}
             >
               +1
             </button>
           </>
         )}
-        {legal.can('resourceful', mine) && (
+        {legal.can('recycle', mine) && (
           <button
             className="btn"
-            onClick={() => dispatch({ type: 'resourceful', die: d.id })}
-            title={card(skillCard(game, me, 'resourceful')!).text}
+            onClick={() => dispatch({ type: 'recycle', die: d.id })}
+            title={card(skillCard(game, me, 'recycle')!).text}
             aria-label="Sacrifice +1 action"
           >
             <Label long="Sacrifice +1 action" short="Sacrifice" />

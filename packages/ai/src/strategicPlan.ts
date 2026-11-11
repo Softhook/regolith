@@ -2,7 +2,7 @@ import type { GameState, PlayerId } from '@regolith/engine';
 import { storedTacticValue } from './cardValues';
 
 /**
- * Tactics the player holds with Patient, for the evaluations. The one played this turn still counts
+ * Tactics the player holds with Strategic Plan, for the evaluations. The one played this turn still counts
  * until the turn ends, so playing it is judged by its effect alone (ties go to playing it).
  */
 export function storedTactics(s: GameState, p: PlayerId): number {

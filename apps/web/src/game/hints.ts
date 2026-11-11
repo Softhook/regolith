@@ -26,13 +26,13 @@ export function hintFor(game: GameState, sel: Sel): string {
       case 'infamy':
         return 'Take Over! Seize any objective that does not have your cube yet.';
       case 'takeCard':
-        return `Take ${head.count} card${head.count > 1 ? 's' : ''} from the market below${canProfiteer(game) ? `, or take an atomic instead of a card earned by claiming (${cardName('profiteering')})` : ''}.`;
-      case 'patientTactic':
-        return `${cardName('patient')}: you may take a face-up tactic from the market below and store it.`;
-      case 'placeExpansion':
+        return `Take ${head.count} card${head.count > 1 ? 's' : ''} from the market below${canProfiteer(game) ? `, or take an atomic instead of a card earned by claiming (${cardName('arms-deal')})` : ''}.`;
+      case 'strategicPlanTactic':
+        return `${cardName('strategic-plan')}: you may take a face-up tactic from the market below and store it.`;
+      case 'placeReinforcement':
         return 'Place your new mech on the perimeter of one of your objectives, or send it to your salvage yard.';
-      case 'showOfForce':
-        return `${cardName('show-of-force')}: choose any mech on the map to destroy.`;
+      case 'orbitalCannon':
+        return `${cardName('orbital-cannon')}: choose any mech on the map to destroy.`;
       case 'iceTunnel':
         return `Place Ice Tunnel ${head.placed.length + 1} of 2 on an empty space.`;
       case 'placeBarrier':
@@ -41,8 +41,8 @@ export function hintFor(game: GameState, sel: Sel): string {
         return sel.kind === 'kineticShunt' || sel.kind === 'shuntBarrier'
           ? 'Kinetic Shunt: choose an empty space in a straight line to push it to.'
           : 'Kinetic Shunt: choose any mech or barrier on the map to push.';
-      case 'unveil':
-        return `${cardName('unveil-the-fleet')}: re-roll and drop mechs from your salvage yard, then press Done.`;
+      case 'invasion':
+        return `${cardName('invasion')}: re-roll and drop mechs from your salvage yard, then press Done.`;
       case 'discardSkill':
         return 'Choose a card to discard.';
       case 'advance':
@@ -68,20 +68,20 @@ export function hintFor(game: GameState, sel: Sel): string {
       return dropTargets(game, me).length ? `Click a highlighted perimeter space to drop this mech (${why}).` : `Nowhere to drop: ${why}.`;
     }
     case 'swap':
-      return 'Choose another of your mechs to switch places with.';
+      return 'Choose another of your mechs to swap places with.';
     case 'freeAttack':
       return 'Choose an adjacent enemy to attack for free.';
     case 'ability': {
       const { ability } = mechOf(game, die(game, sel.die).value);
       return ability.hint ?? `${ability.name}: ${ability.text}`;
     }
-    case 'tactical':
-      return `${cardName('tactical')}: move one space, or attack an adjacent enemy.`;
+    case 'advanceSkill':
+      return `${cardName('advance')}: move one space, or attack an adjacent enemy.`;
     case 'carryPassenger':
       return `Choose a mech next to your ${carrier(game, sel.die)} to carry.`;
     case 'carryDest':
-      return sel.tactical
-        ? `${cardName('tactical')}: choose the space the ${carrier(game, sel.die)} moves to.`
+      return sel.advanceSkill
+        ? `${cardName('advance')}: choose the space the ${carrier(game, sel.die)} moves to.`
         : `Choose where the ${carrier(game, sel.die)} flies (its own space means out and back).`;
     case 'carrySetDown':
       return 'Choose where to set the passenger down.';
