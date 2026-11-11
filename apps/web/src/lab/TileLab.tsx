@@ -7,14 +7,16 @@ import { PrintPanel, Space } from '../print/PrintPanel';
 import { tileFontCss } from '../art/cards';
 import { useFontCss, useSvgUrl } from './hooks';
 import { LabHeader } from './LabHeader';
-import { TILE_SHEETS, printableTile } from './pressSheets';
+import { printableTile, tileSheets, type TileKit } from './pressSheets';
+import { TILE_SET_PLAYERS, tileKit, tileSide } from './tileSets';
 import { groundDrawn, latestThumbnail, litGround, printedTileSvg, printedTileSvgNow, thumbnail } from './tileDrawing';
 
 /**
  * Art Lab, tiles page (#lab): every tile of the physical set, die-cut along its flower, on Phobos, Deimos or
  * Mars, with controls to explore seeds and to export print files: single tiles, the whole set, print sheets,
  * and each world's CMYK press sheets. See docs/GRAPHICS.md §3–4. The set can be shown with its planets moved
- * off the middle, as maps place them (docs/HEX.md).
+ * off the middle, as maps place them (docs/HEX.md), cut down to the kit a player count needs, and made
+ * two-sided, another world on the back.
  */
 
 /** A thumbnail's size, px: its tile shown up to ~200 px across, at 2× device pixels. */
@@ -28,23 +30,36 @@ export function TileLab() {
   const [markings, setMarkings] = useState(true);
   const [bleed, setBleed] = useState(false);
   const [world, setWorld] = useState<World>('mars');
+  const [players, setPlayers] = useState<number | 'all'>('all');
+  // The world on the tiles' backs, '' for one-sided; and whether the page shows the backs.
+  const [backChoice, setBack] = useState<World | ''>('');
+  const [flipped, setFlipped] = useState(false);
+  const back = backChoice && backChoice !== world ? backChoice : undefined;
   // Where the planets sit, as a map's layout token says (`7ne`): '' for the middle.
   const [planetAt, setPlanetAt] = useState('');
-  const view = useMemo(() => ({ world, planetAt }), [world, planetAt]);
+  // The side shown: its world.
+  const shown = flipped && back ? back : world;
+  const view = useMemo(() => ({ world: shown, planetAt }), [shown, planetAt]);
+  const kit: TileKit = { world, back, players: players === 'all' ? undefined : players };
   // The number font, embedded in the detail view and the print files (thumbnails use the system's).
   const fonts = useFontCss(tileFontCss);
 
-  const specs = useMemo(() => TILE_SET.map((t) => ({ ...t, ...overrides[t.id] })), [overrides]);
+  const specs = useMemo(
+    () => tileKit(back ? [world, back] : [world], players === 'all' ? undefined : players).map((t) => ({ ...t, ...overrides[t.id] })),
+    [overrides, players, world, back],
+  );
   // Drawn live where there's no thumbnail as it prints yet (below), till its ground is drawn.
   const thumbs = useMemo(
     () =>
-      specs.map((t) => ({
-        spec: t,
-        url: latestThumbnail(t, world) ? '' : dataUrl(tileSvg(t, { ...view, markings, rounded: true })),
-      })),
-    [specs, markings, view, world],
+      specs.map((t) => {
+        const face = tileSide(t, shown);
+        return { spec: t, face, url: latestThumbnail(face, shown) ? '' : dataUrl(tileSvg(face, { ...view, markings, rounded: true })) };
+      }),
+    [specs, markings, view, shown],
   );
   const spec = specs.find((t) => t.id === selected) ?? specs[0];
+  // The selected tile's side shown, which is drawn: open ground where its objective can't stand (`tileSide`).
+  const face = useMemo(() => tileSide(spec, shown), [spec, shown]);
 
   // On a world's ground the light depends on the size it's drawn at (Chrome ignores `kernelUnitLength`), so a
   // tile drawn live at a thumbnail's or the detail's size isn't what prints. Each is shown as it prints, as the
@@ -55,10 +70,10 @@ export function TileLab() {
     let live = true;
     (async () => {
       // The detail's own ground, which the thumbnails may have drawn and let go since.
-      await litGround(spec, view).catch(() => {});
+      await litGround(face, view).catch(() => {});
       if (!live) return;
       setDrawn((n) => n + 1);
-      for (const t of [spec, ...specs.filter((t) => t !== spec)]) {
+      for (const { face: t } of [...thumbs.filter((t) => t.spec === spec), ...thumbs.filter((t) => t.spec !== spec)]) {
         await thumbnail(t, { ...view, markings, rounded: true }, THUMB_PX).catch(() => {});
         if (!live) return;
         setDrawn((n) => n + 1);
@@ -67,7 +82,7 @@ export function TileLab() {
     return () => {
       live = false;
     };
-  }, [spec, specs, view, markings]);
+  }, [face, spec, thumbs, view, markings]);
 
   // A tile is shown cut to its flower.
   const detailOptions = { ...view, markings, bleed, fontCss: fonts ?? '', rounded: true };
@@ -75,24 +90,24 @@ export function TileLab() {
   // of this tile on this world (a reroll, markings on or off), else its thumbnail (its ground let go since);
   // drawn live only before either is.
   const latest = useRef<{ id: string; world: World; svg: string }>(undefined);
-  const ready = groundDrawn(spec, view);
+  const ready = groundDrawn(face, view);
   const { svg, live } = useMemo(() => {
-    const printed = printedTileSvgNow(spec, detailOptions);
-    if (printed) latest.current = { id: spec.id, world, svg: printed };
-    else if (latest.current?.id === spec.id && latest.current.world === world) return { svg: latest.current.svg, live: false };
-    return { svg: printed ?? tileSvg(spec, detailOptions), live: !printed };
+    const printed = printedTileSvgNow(face, detailOptions);
+    if (printed) latest.current = { id: face.id, world: shown, svg: printed };
+    else if (latest.current?.id === face.id && latest.current.world === shown) return { svg: latest.current.svg, live: false };
+    return { svg: printed ?? tileSvg(face, detailOptions), live: !printed };
     // `ready` stands for the drawn ground, which `printedTileSvgNow` reads.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [spec, markings, bleed, fonts, view, ready]);
+  }, [face, markings, bleed, fonts, view, ready]);
   const drawnDetail = useSvgUrl(svg);
-  const detail = (live && latestThumbnail(spec, world)) || drawnDetail;
+  const detail = (live && latestThumbnail(face, shown)) || drawnDetail;
   const set = (o: Override) => setOverrides((all) => ({ ...all, [spec.id]: { ...all[spec.id], ...o } }));
 
-  // Prints the set as shown: seeds being explored, the markings setting, the world and planet spot included.
-  const printable = (t: TileSpec) => printableTile(t, fonts ?? '', markings, view);
+  // Prints the set as shown: seeds being explored, the markings setting, the planet spot, and each side's world.
+  const printable = (t: TileSpec, side: World) => printableTile(tileSide(t, side), fonts ?? '', markings, { world: side, planetAt });
   const piece = PIECES.tile;
-  const cmyk = TILE_SHEETS[world];
-  const item = printable(spec);
+  const cmyk = tileSheets(kit);
+  const item = printable(spec, shown);
 
   /**
    * Illustrator can't render SVG filters, so the tile's raster layers go in as a 600 dpi bitmap, with the
@@ -100,10 +115,10 @@ export function TileLab() {
    */
   const exportEditable = async () => {
     const { w, h } = pieceSize(piece, bleed);
-    const under = await printedTileSvg(spec, { ...view, raster: true, bleed, markings, fontCss: fonts ?? '' });
+    const under = await printedTileSvg(face, { ...view, raster: true, bleed, markings, fontCss: fonts ?? '' });
     const art = await blobToDataUrl(await svgToPng(under, w, h, 600));
     const name = fileName(piece, item, { bleed, ext: 'svg' }).replace(/\.svg$/, '-illustrator.svg');
-    download(name, new Blob([editableTileSvg(spec, art, { ...view, bleed, markings })], { type: 'image/svg+xml' }));
+    download(name, new Blob([editableTileSvg(face, art, { ...view, bleed, markings })], { type: 'image/svg+xml' }));
   };
 
   return (
@@ -111,9 +126,9 @@ export function TileLab() {
       <LabHeader page="tiles" />
       <div className="lab-body">
         <div className="lab-grid">
-          {thumbs.map(({ spec: t, url }) => (
-            <button data-lab-nav key={t.id} className={`lab-thumb ${t.id === selected ? 'on' : ''}`} onClick={() => setSelected(t.id)}>
-              <img src={latestThumbnail(t, world) || url} alt={t.id} />
+          {thumbs.map(({ spec: t, face: f, url }) => (
+            <button data-lab-nav key={t.id} className={`lab-thumb ${t.id === spec.id ? 'on' : ''}`} onClick={() => setSelected(t.id)}>
+              <img src={latestThumbnail(f, shown) || url} alt={t.id} />
               <span>{t.id}</span>
             </button>
           ))}
@@ -130,6 +145,35 @@ export function TileLab() {
                 {Object.entries(WORLD_NAMES).map(([value, label]) => (
                   <option key={value} value={value}>
                     {label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label title="A two-sided kit: this world on the back, for its maps too">
+              Back
+              <select value={back ?? ''} onChange={(e) => setBack(e.target.value as World | '')}>
+                <option value="">None</option>
+                {Object.entries(WORLD_NAMES)
+                  .filter(([value]) => value !== world)
+                  .map(([value, label]) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))}
+              </select>
+            </label>
+            {back && (
+              <label>
+                <input type="checkbox" checked={flipped} onChange={(e) => setFlipped(e.target.checked)} /> Show backs
+              </label>
+            )}
+            <label>
+              Players
+              <select value={players} onChange={(e) => setPlayers(e.target.value === 'all' ? 'all' : Number(e.target.value))}>
+                <option value="all">All maps</option>
+                {TILE_SET_PLAYERS.map((n) => (
+                  <option key={n} value={n}>
+                    {n} players
                   </option>
                 ))}
               </select>
@@ -160,7 +204,7 @@ export function TileLab() {
             )}
           </div>
           <p className="lab-note">A tile is cut along its flower: the exports carry the cut line (cut.svg, a CutContour spot colour).</p>
-          {planetAt && spec.number > 0 && !OFF_CENTRE.includes(spec.number) && (
+          {planetAt && face.number > 0 && !OFF_CENTRE.includes(face.number) && (
             <p className="lab-warn">
               A map puts only {OFF_CENTRE.map((k) => `${k}s`).join(' and ')} off the middle of a tile: this one spills over its edge.
             </p>
@@ -172,9 +216,14 @@ export function TileLab() {
             item={item}
             bleed={bleed}
             onBleed={setBleed}
-            set={specs.map(printable)}
-            notes={markings ? '' : 'Without print markings.\n'}
-            sheets={() => specs.map((t) => ({ front: printable(t) }))}
+            set={[...specs.map((t) => printable(t, world)), ...(back ? specs.map((t) => printable(t, back)) : [])]}
+            part={back && `${WORLD_NAMES[world]}-${WORLD_NAMES[back]}`}
+            notes={
+              (markings ? '' : 'Without print markings.\n') +
+              (back ? `Two-sided: each tile's back is the ${WORLD_NAMES[back]} file of the same name.\n` : '')
+            }
+            sheets={() => specs.map((t) => ({ front: printable(t, world), ...(back && { back: printable(t, back) }) }))}
+            backs={!!back}
             cmyk={cmyk}
             fonts={fonts}
             cmykDiffers={

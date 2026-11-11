@@ -64,14 +64,9 @@ function pagesOf<T>(piece: Piece, faces: T[]): { face: T; col: number; row: numb
 /**
  * Print sheets for home printing: faces (image URLs) at trim size, crop marks 1 mm outside the grid. A
  * piece die-cut other than at its trim (a hex tile) is knocked out past its cut, so the paper shows where to cut.
- * With backs, each page of fronts is followed by its backs, columns mirrored so they land behind their
- * fronts when printed double-sided on the long edge.
+ * Single-sided: a home printer's duplex puts a back millimetres off its front, so two-sided pieces go to a press.
  */
-export function sheetsHtml(
-  piece: Piece,
-  faces: { front: string; back?: string }[],
-  o: { paper?: Paper; withBacks?: boolean } = {},
-): string {
+export function sheetsHtml(piece: Piece, faces: string[], o: { paper?: Paper } = {}): string {
   const { size, cell, marks } = sheetLayout(piece, PAPER[o.paper ?? 'a4'], 1, HOME_MARGIN);
   // Less half the 0.2 mm line, so each mark is centred on its cut.
   const marksHtml = marks
@@ -91,11 +86,7 @@ export function sheetsHtml(
       })
       .join('')}${marksHtml}</section>`;
   let html = '';
-  for (const cells of pagesOf(piece, faces)) {
-    html += page(cells.map((c) => ({ src: c.face.front, col: c.col, row: c.row })));
-    if (o.withBacks && cells.some((c) => c.face.back))
-      html += page(cells.flatMap((c) => (c.face.back ? [{ src: c.face.back, col: piece.cols - 1 - c.col, row: c.row }] : [])));
-  }
+  for (const cells of pagesOf(piece, faces)) html += page(cells.map((c) => ({ src: c.face, col: c.col, row: c.row })));
   return (
     `<!doctype html><html><head><meta charset="utf-8"><title>${GAME_NAME} ${piece.plural}</title><style>` +
     `@page{size:${size.w}mm ${size.h}mm;margin:0}html,body{margin:0}` +
@@ -115,28 +106,50 @@ export function sheetsHtml(
  * piece before it, which runs under it, so no seam can show between two pieces. Crop marks start clear of the bleed.
  * A piece die-cut other than at its trim (a hex tile, pieces.ts `Die`) shows only its shape with its bleed,
  * so no neighbour's knocked-out corner covers its bleed, and has its cut line on the page (pdf.ts `cuts`).
+ * With `backs` (one for each face, or none for a face without), each page is followed by its backs, columns
+ * mirrored so they land behind their fronts printed double-sided on the long edge. A back page has no cut line:
+ * the die cuts through both sides from the front's.
+ *
+ * `handCut`, for a press that prints but doesn't cut: a die-cut piece's fronts have a guide on the cut, printed
+ * (pdf.ts `guides`), in place of the cut line. The art still runs its bleed past it, so a hand cut a little
+ * outside the guide shows art, not paper; and so does a back printed a little off its front.
  */
-export function pressPages(piece: Piece, faces: number[]): PdfPage[] {
+export function pressPages(piece: Piece, faces: number[], backs?: (number | undefined)[], o: { handCut?: boolean } = {}): PdfPage[] {
   const { cell, marks } = sheetLayout(piece, A4, piece.bleed, 0.5);
   const b = piece.bleed;
-  return pagesOf(piece, faces).map((cells) => {
+  /** One page, its cells in reading order, as the clipping needs. */
+  const page = (cells: { image: number; col: number; row: number }[], front: boolean): PdfPage => {
     const has = (col: number, row: number) => cells.some((c) => c.col === col && c.row === row);
     const dies = cells.map(({ col, row }) => {
       const c = cell(col, row);
       return piece.die && dieAt(piece.die, c.x, c.y);
     });
-    const images = cells.map(({ face, col, row }, k) => {
+    const images = cells.map(({ image, col, row }, k) => {
       const c = cell(col, row);
       const left = has(col - 1, row) ? 0 : b;
       const top = has(col, row - 1) ? 0 : b;
       return {
-        image: face,
+        image,
         at: { x: c.x - b, y: c.y - b, w: c.w + 2 * b, h: c.h + 2 * b },
         clip: dies[k]?.shape(b) ?? { x: c.x - left, y: c.y - top, w: c.w + left + b, h: c.h + top + b },
       };
     });
-    const cuts: Line[] = dies.flatMap((d) => d?.line ?? []);
-    return { images, marks, ...(cuts.length ? { cuts } : {}) };
+    // On the front only: the back is cut from it.
+    const lines: Line[] = front ? dies.flatMap((d) => d?.line ?? []) : [];
+    return { images, marks, ...(lines.length ? (o.handCut ? { guides: lines } : { cuts: lines }) : {}) };
+  };
+  return pagesOf(
+    piece,
+    faces.map((front, k) => ({ front, back: backs?.[k] })),
+  ).flatMap((cells) => {
+    const fronts = page(
+      cells.map((c) => ({ image: c.face.front, col: c.col, row: c.row })),
+      true,
+    );
+    const back = cells
+      .flatMap((c) => (c.face.back === undefined ? [] : [{ image: c.face.back, col: piece.cols - 1 - c.col, row: c.row }]))
+      .sort((p, q) => p.row - q.row || p.col - q.col);
+    return back.length ? [fronts, page(back, false)] : [fronts];
   });
 }
 

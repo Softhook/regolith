@@ -23,8 +23,9 @@ interface Props {
   sheets: (copies: boolean) => { front: Printable; back?: Printable }[];
   /** The CMYK export for the press: a PDF per front (`'files'`, cards), or press sheets shared with other pieces. */
   cmyk: 'files' | PressSheets;
-  /** Offer the "All copies" and "Backs (duplex)" options on the print sheets. */
+  /** Offer the "All copies" option on the print sheets. */
   copies?: boolean;
+  /** The faces have backs: in the CMYK files, not on the home print sheets. */
   backs?: boolean;
   /**
    * The faces' fonts, as `useFontCss` has them: null while loading (the faces can't be drawn yet), empty when
@@ -101,7 +102,8 @@ export function PrintPanel({
   extra,
 }: Props) {
   const [allCopies, setAllCopies] = useState(true);
-  const [withBacks, setWithBacks] = useState(false);
+  // Press sheets for a press that prints but doesn't cut, for a piece die-cut other than at its trim (a tile).
+  const [handCut, setHandCut] = useState(true);
   const [paper, setPaper] = useState<Paper>('a4');
   const [deep, setDeep] = useDeepBlack();
   const { run, progress, error } = useExport();
@@ -158,24 +160,37 @@ export function PrintPanel({
         </div>
       ) : (
         <div className="lab-controls">
-          <button className="btn btn-primary" disabled={busy} onClick={() => run((p) => exportCmykSheets(cmyk, deep, p))}>
+          <button
+            className="btn btn-primary"
+            disabled={busy}
+            onClick={() => run((p) => exportCmykSheets(cmyk, { deep, handCut: !!piece.die && handCut }, p))}
+          >
             <Space of="cmyk" /> {cmyk.label} · PDF · {PRESS.condition}
           </button>
           <DeepBlack deep={deep} onDeep={setDeep} />
+          {piece.die && (
+            <label title="For a press that prints but doesn't cut: you cut each piece out yourself">
+              <input type="checkbox" checked={handCut} onChange={(e) => setHandCut(e.target.checked)} /> Hand cut
+            </label>
+          )}
           <span className="lab-note">
-            The press file: A4 sheets with {cmyk.contents}, butted with crop marks and bleed round each block. The set as it ships, with
-            print markings. Converted for {PRESS.described}.
+            The press file: A4 sheets with {cmyk.contents}, butted with crop marks and bleed round each block. With print markings.{' '}
+            {piece.die &&
+              (handCut
+                ? `Hand cut: a thin grey guide printed on each ${piece.id}'s cut, the art running ${piece.bleed} mm past it, so a cut a little outside it${backs ? ', or a back printed a little off its front,' : ''} still shows art at the edge. No cut line.`
+                : `Die cut: each ${piece.id} with ${piece.bleed} mm bleed past its cut, and the cut line in a CutContour spot colour for the print service's die.`)}{' '}
+            Converted for {PRESS.described}.
           </span>
         </div>
       )}
       {deep && <p className="lab-note">{DEEP_NOTE}</p>}
-      {cmyk !== 'files' && cmykDiffers && <p className="lab-warn">Not as shown: {cmykDiffers}. The CMYK file has the set as it ships.</p>}
+      {cmyk !== 'files' && cmykDiffers && (
+        <p className="lab-warn">
+          Not as shown: {cmykDiffers}. The CMYK file has the {piece.plural} as they ship.
+        </p>
+      )}
       <div className="lab-controls">
-        <button
-          className="btn btn-primary"
-          disabled={busy}
-          onClick={() => run((p) => printSheets(piece, sheets(allCopies), { withBacks, paper }, p))}
-        >
+        <button className="btn btn-primary" disabled={busy} onClick={() => run((p) => printSheets(piece, sheets(allCopies), { paper }, p))}>
           <Space of="rgb" /> Print sheets
         </button>
         <select value={paper} onChange={(e) => setPaper(e.target.value as Paper)} aria-label="Paper">
@@ -190,16 +205,11 @@ export function PrintPanel({
             <input type="checkbox" checked={allCopies} onChange={(e) => setAllCopies(e.target.checked)} /> All copies
           </label>
         )}
-        {backs && (
-          <label>
-            <input type="checkbox" checked={withBacks} onChange={(e) => setWithBacks(e.target.checked)} /> Backs (duplex)
-          </label>
-        )}
       </div>
       <p className="lab-note">
         For a home printer, not a press: {piece.cols * piece.rows} per page at trim size with crop marks, through the browser’s print
         dialog, so a “Save as PDF” is RGB. Print at 100 % (no fit to page).
-        {backs && withBacks && ' Backs follow each page, mirrored for long-edge duplex.'}
+        {backs && ' Fronts only: a home printer’s duplex puts a back millimetres off its front, so two-sided pieces go to a press.'}
       </p>
       <ExportStatus progress={progress} error={error} />
     </>

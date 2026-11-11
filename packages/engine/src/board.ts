@@ -42,7 +42,7 @@ const TILE_DOWN_LEFT: Cell = { r: 3, c: -2 };
 export const CAPACITY: Record<number, number> = { 7: 1, 8: 2, 9: 3, 10: 4, 11: 2, 12: 3, 13: 1 };
 
 /** The objectives that stand on one world only: the Mass Driver on Phobos, the Deep Space Array on Deimos. Nobody starts at one. */
-const WORLD_OBJECTIVES: Record<number, World> = { 11: 'phobos', 12: 'deimos' };
+export const WORLD_OBJECTIVES: Readonly<Record<number, World>> = { 11: 'phobos', 12: 'deimos' };
 
 /*
  * Where a tile's planet sits, as a step from the tile's middle space: a layout token's direction

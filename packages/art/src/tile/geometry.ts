@@ -230,8 +230,8 @@ function cutExits(line: readonly Segment[], w: number, h: number): CutExit[] {
 
 /**
  * Where the hex tile's cuts inside its square, carried on, leave it, for crop marks: the 8 slanted lines (4 exits on
- * each edge) and the 2 level ones (2 more on each side). A straightedge laid between a line's two marks cuts every
- * side on it.
+ * each edge) and the 2 level ones (2 more on each side). A rule laid between a line's two marks lines up every side
+ * on it, but each cut stops at the tile's inward corners: carried past one, it runs into the next hex.
  */
 export const HEX_TILE_CUT_EXITS: readonly CutExit[] = cutExits(HEX_TILE_CUT, TILE.size, TILE.size);
 

@@ -1,6 +1,7 @@
 /** Print files: every piece fits its sheets with room for crop marks, backs land behind their fronts, press sheets bleed only round each block, names follow one pattern. */
 import { describe, expect, it } from 'vitest';
 import { PIECES, fileName, pieceSize, setName, sheetName, type Piece } from '../src/print/pieces';
+import { hexTileShape } from '@regolith/art';
 import type { Polygon } from '../src/print/pdf';
 import { A4, PAPER, pressPages, sheetsHtml, type Paper } from '../src/print/sheets';
 
@@ -37,7 +38,7 @@ describe('print sheets', () => {
   });
 
   it.each(pieces)('put a crop mark at both ends of every cut ($id)', (p) => {
-    const html = sheetsHtml(p, [{ front: 'a' }]);
+    const html = sheetsHtml(p, ['a']);
     expect(html.match(/class="v"/g)).toHaveLength(2 * (p.cols + 1));
     expect(html.match(/class="h"/g)).toHaveLength(2 * (p.rows + 1) + innerMarks(p, false));
     expect(html.match(/class="d"/g) ?? []).toHaveLength(innerMarks(p, true));
@@ -45,7 +46,7 @@ describe('print sheets', () => {
 
   it.each(onPaper)('keep the crop marks 4 mm inside the paper, where home printers print ($id, $paper)', ({ p, paper }) => {
     const size = PAPER[paper];
-    const html = sheetsHtml(p, [{ front: 'a' }], { paper });
+    const html = sheetsHtml(p, ['a'], { paper });
     expect(html).toContain(`@page{size:${size.w}mm ${size.h}mm;margin:0}`);
     expect(html.match(/class="[vhd]" style/g)).toHaveLength(2 * (p.cols + p.rows + 2) + innerMarks(p, false) + innerMarks(p, true));
     for (const [, left, top, len] of html.matchAll(/class="v" style="left:([\d.-]+)mm;top:([\d.-]+)mm;height:([\d.-]+)mm"/g)) {
@@ -116,7 +117,7 @@ describe('print sheets', () => {
     const pages = sheets(
       sheetsHtml(
         p,
-        Array.from({ length: 10 }, (_, i) => ({ front: `f${i}` })),
+        Array.from({ length: 10 }, (_, i) => `f${i}`),
       ),
     );
     expect(pages.map((s) => s.length)).toEqual([9, 1]);
@@ -125,20 +126,12 @@ describe('print sheets', () => {
     expect(pages[1][0]).toEqual(['f9', x0, y0]);
   });
 
-  it('mirrors the backs left to right, so each lands behind its front on a long-edge duplex', () => {
-    const p = PIECES.card;
-    const faces = Array.from({ length: 4 }, (_, i) => ({ front: `f${i}`, back: `b${i}` }));
-    const [fronts, backs] = sheets(sheetsHtml(p, faces, { withBacks: true }));
-    const width = A4.w;
-    for (const [i, [, x, y]] of fronts.entries()) {
-      const back = backs.find(([src]) => src === `b${i}`)!;
-      expect(back[1] + p.w).toBeCloseTo(width - x);
-      expect(back[2]).toBe(y);
-    }
+  it('print fronts only: a home duplex is too far off for backs', () => {
+    expect(sheets(sheetsHtml(PIECES.card, ['f0', 'f1']))).toHaveLength(1);
   });
 
   it('draws the marks as borders, which print without "Background graphics", and avoids a trailing blank page', () => {
-    const html = sheetsHtml(PIECES.tile, [{ front: 'a' }], { withBacks: true });
+    const html = sheetsHtml(PIECES.tile, ['a']);
     expect(html).not.toMatch(/background:#000/);
     expect(html).toContain('.sheet:last-child{break-after:auto}');
     expect(sheets(html)).toHaveLength(1);
@@ -224,8 +217,59 @@ describe('tiles', () => {
     }
   });
 
+  it('have a cut that is its own mirror image, so a two-sided tile’s back lines up with its front', () => {
+    // To the micron, and -0 as 0.
+    const mm = (v: number) => Math.round(v * 1000) || 0;
+    const key = ([x1, y1, x2, y2]: readonly number[]) => [`${mm(x1)},${mm(y1)}`, `${mm(x2)},${mm(y2)}`].sort().join(' ');
+    const cut = new Set(p.die!.line.map(key));
+    const mirrored = new Set(p.die!.line.map(([x1, y1, x2, y2]) => key([p.w - x1, y1, p.w - x2, y2])));
+    expect(mirrored).toEqual(cut);
+  });
+
+  it('put each page’s backs after it, columns mirrored and in reading order, with no second cut line', () => {
+    // Five fronts (0–4) and their backs (10–14): two pages of fronts, each followed by its backs.
+    const pages = pressPages(p, [0, 1, 2, 3, 4], [10, 11, 12, 13, 14]);
+    expect(pages.map((pg) => pg.images.map((i) => i.image))).toEqual([[0, 1, 2, 3], [11, 10, 13, 12], [4], [14]]);
+    const x = (pg: number, k: number) => pages[pg].images[k].at.x;
+    // A back lands behind its front: in the front's column, mirrored (10, behind 0, in the right-hand column).
+    expect(x(1, 1)).toBeCloseTo(x(0, 1));
+    expect(x(3, 0)).toBeCloseTo(x(0, 1));
+    expect(pages.map((pg) => !!pg.cuts)).toEqual([true, false, true, false]);
+  });
+
+  it('cut by hand, print a guide on the fronts’ cut in place of the cut line, the art keeping its bleed', () => {
+    const die = pressPages(p, [0, 1], [10, 11]);
+    const hand = pressPages(p, [0, 1], [10, 11], { handCut: true });
+    // The same art, clipped the same: each tile with its bleed past the cut, fronts and backs.
+    expect(hand.map((pg) => pg.images)).toEqual(die.map((pg) => pg.images));
+    expect(hand.map((pg) => !!pg.cuts)).toEqual([false, false]);
+    expect(hand[0].guides).toEqual(die[0].cuts);
+    expect(hand[1].guides).toBeUndefined();
+  });
+
+  it('can’t be cut along a whole line between two marks: 12 of the 18 sides carried on run through the tile', () => {
+    // Shrunk a little, so a point on the cut isn't counted inside.
+    const hexes = hexTileShape(-0.2);
+    const inside = (x: number, y: number) =>
+      hexes.some((h) => {
+        let odd = false;
+        for (let i = 0, j = h.length - 1; i < h.length; j = i++)
+          if (h[i].y > y !== h[j].y > y && x < h[i].x + ((y - h[i].y) / (h[j].y - h[i].y)) * (h[j].x - h[i].x)) odd = !odd;
+        return odd;
+      });
+    const through = p.die!.line.filter(([x1, y1, x2, y2]) => {
+      const len = Math.hypot(x2 - x1, y2 - y1);
+      for (let t = -2 * p.w; t <= 2 * p.w; t += 0.5) {
+        const [x, y] = [x1 + (t * (x2 - x1)) / len, y1 + (t * (y2 - y1)) / len];
+        if (x > 0 && x < p.w && y > 0 && y < p.h && inside(x, y)) return true;
+      }
+      return false;
+    });
+    expect(through).toHaveLength(12);
+  });
+
   it('need no cut line on the home print sheets: their art is knocked out past it', () => {
-    expect(sheetsHtml(p, [{ front: 'a' }])).not.toMatch(/<svg|stroke/);
+    expect(sheetsHtml(p, ['a'])).not.toMatch(/<svg|stroke/);
   });
 
   it('are named as tiles', () => {

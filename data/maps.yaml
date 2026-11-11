@@ -570,6 +570,54 @@ maps:
       - ".  7  7"
       - ".  .  8*"
 
+  # Three hard-objective maps: each landmark is the contested centre of a balanced layout.
+
+  - id: citadel-crossing
+    name: Citadel Crossing
+    players: 2
+    group: hex
+    world: mars
+    length: medium
+    cubes: 5
+    stats: { slack: 3, shared: 3, planets: 7 }
+    # A straight approach through two Ice Mines to the lone Citadel; matching Habitats hold the ends.
+    layout:
+      - "8* 7  9  13 9  7  8*"
+
+  - id: array-of-three
+    name: Array of Three
+    players: 3
+    group: hex
+    world: deimos
+    length: short
+    cubes: 5
+    stats: { slack: 6, shared: 1, planets: 13 }
+    # A three-way survey ring around a Deep Space Array, with the original threefold seat symmetry.
+    layout:
+      - "."
+      - ".  7"
+      - "8* 7  8  8*"
+      - "8  12 7"
+      - "7  7  8  7"
+      - ".  8*"
+
+  - id: drivers-crown
+    name: Driver's Crown
+    players: 4
+    group: hex
+    world: phobos
+    length: long
+    cubes: 5
+    stats: { slack: 0, shared: 7, planets: 11 }
+    # Four 8 starts in the corners, off both mirrors, so each seat mirrors every other: each has a 7 of its own,
+    # a 9 it shares with the seat across the middle row, and the Mass Driver two steps away.
+    layout:
+      - "8* .  8*"
+      - "7  7"
+      - "9  11 9"
+      - "7  7"
+      - "8* .  8*"
+
   # Prepared ground: the ground starts broken. An Ice Tunnel or barriers are on the map before the first
   # turn, laid symmetrically, so the seats stay level. The shape of the fight comes from them: a tunnel's
   # mouths are where raiders appear, a barrier line is a pass to hold.

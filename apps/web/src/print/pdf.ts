@@ -39,7 +39,15 @@ export interface PdfPage {
   marks?: readonly Line[];
   /** Die-cut lines, in the `CutContour` spot colour print services cut along and don't print, overprinting so they knock nothing out. */
   cuts?: readonly Line[];
+  /**
+   * Lines printed to cut along by hand, in place of `cuts`: thin, in mid grey (`GUIDE`), so one stays visible on
+   * a light ground or a dark one, and what's left of it on a tile's edge after a cut reads as an edge, not a frame.
+   */
+  guides?: readonly Line[];
 }
+
+/** A hand-cutting guide's ink, CMYK 0–1, and width, mm. To check on a test print against each world's ground. */
+const GUIDE = { cmyk: [0, 0, 0, 0.5], width: 0.15 } as const;
 
 export interface PdfOptions {
   title: string;
@@ -180,6 +188,7 @@ export function cmykPdf(o: PdfOptions): Blob {
       )
       .join('\n');
     if (page.marks?.length) content += `\n0 0 0 1 K ${pt(0.2)} w\n` + lines(page.marks);
+    if (page.guides?.length) content += `\nq ${GUIDE.cmyk.join(' ')} K ${pt(GUIDE.width)} w\n${lines(page.guides)}\nQ`;
     if (page.cuts?.length) content += `\nq /Cut gs /Cut CS 1 SCN ${pt(0.25)} w\n${lines(page.cuts)}\nQ`;
     const stream = enc.encode(content);
     object(pageRef(k) + 1, () => {

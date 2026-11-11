@@ -139,11 +139,52 @@ tile needs a start version. The map setup sheets show which.
 | Refinery 8 | 8 |
 | Ice Mine 9 | 6 |
 | Reactor 10 | 5 |
+| Mass Driver 11 | 2 |
+| Deep Space Array 12 | 2 |
+| Citadel 13 | 1 |
 | Alien Artefact | 3 |
 | Blank ground | 10 |
-| **Total** | **40** |
+| **Total** | **45** |
 
-**Sheets.** A tile with bleed fits **2 × 2 per A4 page**; print-on-demand vendors get one file per tile.
+**Player-count kits.** The Tiles page can cut the set down to the kit for one player count: the most of each
+kind of tile any one of that count's maps on the world lays at once (`tileKit`), not every map's tiles added
+up. "All maps" is the kit for every map on the world, whatever its player count: never the full 45, since no
+world lays every landmark (a Mass Driver stands on Phobos only, a Deep Space Array on Deimos only).
+
+| Players | Phobos | Deimos | Mars | Mars / Phobos, two-sided |
+|---|--:|--:|--:|--:|
+| 2 | 14 | 17 | 31 | 31 |
+| 3 | 24 | 15 | 28 | 29 |
+| 4 | 27 | 17 | 23 | 27 |
+| 5 | 19 | 12 | 19 | 21 |
+| All maps | 32 | 24 | 33 | 35 |
+
+**Two-sided tiles.** A tile can carry another world on its back: the same tile (`p7-01` is a Habitat on both
+sides), so one kit lays the maps of both worlds. Mars with Phobos on the back is the pairing for now. Each side
+is lit for its own world, and nothing else differs. The Tiles page's **Back** sets the world, **Show backs**
+shows that side. The kit is then the most either world's maps need: a Mars / Phobos 2-player kit is no bigger
+than Mars's alone, and a Deep Space Array (Deimos only) is in no Mars / Phobos kit. A side whose world can't hold
+the tile's landmark is open ground (`tileSide`): the Mars side of a Mass Driver is `blank-p11-01`. The flower cut
+is its own mirror image, so one cut serves both sides.
+
+**Sheets.** A tile with bleed fits **2 × 2 per A4 page**; print-on-demand vendors get one file per tile, a
+two-sided tile a front and a back of the same name, one per world. The kit chosen goes to the CMYK press
+sheets, the print sheets and the PNG ZIP. Two-sided, each press sheet is followed by its backs, columns mirrored
+for long-edge duplex; the back page has crop marks but no cut line or guide, since the cut follows the front.
+Two-sided tiles are for a press only: the home print sheets print fronts.
+
+**Front and back never line up exactly.** A digital press puts the back 0.5–1 mm off its front, a punchboard's
+glued sheets 1–2 mm, a home duplex printer 1–3 mm (too far, so it isn't offered). The tile is cut along its
+front, so the back's bleed is what keeps art at its edge; what's left of the error is the back's art sitting up
+to a millimetre off centre. So a back has nothing near its cut that would show that: no border or outline along
+the flower. Butted 2 × 2, the bleed is less than 3 mm between tiles: tiles one above the other share a flat side,
+so there a back that's off shows its neighbour's ground, not paper; side by side they are 3.6 mm apart, 1.8 mm
+of bleed each.
+
+**Cutting a flower by hand.** Eighteen sides, six of them meeting at inward corners. Every side lies on a line
+the sheet marks (below), but a cut carried on past an inward corner runs into the next hex: for 12 of the 18
+sides, a cut from mark to mark goes some 36 mm into the tile. Lay the rule on the marks and stop each cut at the
+corners, or use scissors, which take inward corners better.
 
 ### Cards
 
@@ -243,15 +284,22 @@ Every printed piece goes through one module, `apps/web/src/print/`, so all piece
     Coated FOGRA39): a ZIP with a PDF per front, its back as page 2, every page with its bleed and no crop
     marks; how many of each to order is in `order.csv`.
   - **Tiles, aids and map sheets: press sheets** ([`lab/pressSheets.ts`](../apps/web/src/lab/pressSheets.ts)):
-    one PDF of A4 sheets per set: each world's 40 tiles (`regolith-tiles-mars-a4-fogra39.pdf`, 2 × 2 a page,
-    with their cut lines), the player aids (4, 1 × 2 a page), the map sheets (1 × 2 a page).
-    Faces are butted so one cut serves two pieces, each block with its 3 mm bleed all round; crop marks start
-    clear of the bleed. Single-sided, the set as it ships, with print markings.
+    one PDF of A4 sheets per set: the tiles of the kit chosen on the Tiles page (`regolith-tiles-mars-a4-fogra39.pdf`,
+    `regolith-tiles-mars-phobos-2p-…`, 2 × 2 a page, a two-sided kit's backs after each page), the player aids
+    (4, 1 × 2 a page), the map sheets (1 × 2 a page). Faces are butted so one cut serves two pieces, each block
+    with its 3 mm bleed all round; crop marks start clear of the bleed. With print markings. Tiles go two ways:
+    - **Hand cut** (the default; `-handcut` in the name), for a press that prints but doesn't cut: on each
+      front a guide printed on the cut, 0.15 mm in 50 % black (pdf.ts `GUIDE`), the art still running its bleed
+      past it, so a cut a little outside the guide shows ground, not paper. No cut line: a RIP that doesn't know
+      the `CutContour` spot might print it. Whether the guide shows on every world's ground, and how much of it
+      is left on a cut tile's edge, is for a test print to settle.
+    - **Die cut**, for a print service with a die: each tile with its bleed past the cut, and the cut line.
 - `sheets.ts` lays out print sheets for home printers: pieces at trim size in a grid (cards 3 × 3, tiles
   2 × 2, aid and map sheets 1 × 2), crop marks drawn as borders so they print without "Background graphics",
-  optional backs mirrored for long-edge duplex, crop marks kept 4 mm in from the paper's edge, and on a hex tile's cuts inside its square (slanted and level) a mark along each where, carried
-  on, it leaves the grid (`HEX_TILE_CUT_EXITS`, worked out from the cut), so a straightedge between two marks cuts
-  every side on that line. A4 or US Letter.
+  fronts only (a home duplex is too far off for backs), crop marks kept 4 mm in from the paper's edge, and on a
+  hex tile's cuts inside its square (slanted and level) a mark along each where, carried on, it leaves the grid
+  (`HEX_TILE_CUT_EXITS`, worked out from the cut), to lay a rule on: it lines up every side on that line, but a
+  cut carried past an inward corner runs into the tile (*Cutting a flower by hand*). A4 or US Letter.
 
 A new piece is a `PIECES` entry and a `Printable` per face.
 

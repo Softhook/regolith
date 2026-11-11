@@ -1,10 +1,11 @@
-import { OBJECTIVE_NAMES, TILE_SET, WORLD_NAMES, mapSheetSvg, playerAidSvg, tileSvg, type TileSpec, type World } from '@regolith/art';
+import { OBJECTIVE_NAMES, WORLD_NAMES, mapSheetSvg, playerAidSvg, tileSvg, type TileSpec, type World } from '@regolith/art';
 import { MAPS, type MapDef } from '@regolith/engine';
 import { cardFontCss, measure, tileFontCss } from '../art/cards';
 import { mapSheet } from '../art/mapSheet';
 import type { PressSheets } from '../print/exports';
 import { PIECES, slugOf, type Printable } from '../print/pieces';
 import { printedTileSvg, type TileView } from './tileDrawing';
+import { tileKit, tileSide } from './tileSets';
 
 /** Fonts for press sheets, which can't go out in system fonts: a failed load stops the export. */
 async function fontsFor(load: () => Promise<string>): Promise<string> {
@@ -72,20 +73,37 @@ export const AID_SHEETS: PressSheets = {
   },
 };
 
-/** The set, blanks too, on a world, planets in the middle, on press sheets of their own with each tile's die-cut line. */
-const worldTiles = (world: World): PressSheets => ({
-  name: `tiles-${world}`,
-  label: `${WORLD_NAMES[world]} tiles`,
-  contents: `all ${TILE_SET.length} tiles on ${WORLD_NAMES[world]} (${PIECES.tile.cols * PIECES.tile.rows} a page), each with its die-cut line in a CutContour spot colour`,
-  async groups() {
-    const tile = await fontsFor(tileFontCss);
-    return [{ piece: PIECES.tile, faces: TILE_SET.map((t) => printableTile(t, tile, true, { world })) }];
-  },
-});
+/** A kit's tiles: which maps it lays (`tileKit`), and the worlds on its two sides (the back, when it has one). */
+export interface TileKit {
+  world: World;
+  back?: World;
+  players?: number;
+}
 
-/** The press sheets each world's set of tiles goes on. */
-export const TILE_SHEETS: Record<World, PressSheets> = {
-  phobos: worldTiles('phobos'),
-  deimos: worldTiles('deimos'),
-  mars: worldTiles('mars'),
+/**
+ * A kit's tiles, blanks too, planets in the middle, on press sheets of their own, to die-cut or cut by hand
+ * (exports.ts `exportCmykSheets`). A two-sided kit's backs follow each page, mirrored for long-edge duplex; a
+ * side whose world can't hold the tile's objective is open ground (`tileSide`).
+ */
+export const tileSheets = ({ world, back, players }: TileKit): PressSheets => {
+  const tiles = tileKit(back ? [world, back] : [world], players);
+  const worlds = back ? `${WORLD_NAMES[world]} / ${WORLD_NAMES[back]}` : WORLD_NAMES[world];
+  const maps = players === undefined ? 'every map' : `the ${players}-player maps`;
+  return {
+    name: `tiles-${world}${back ? `-${back}` : ''}${players === undefined ? '' : `-${players}p`}`,
+    label: `${worlds} tiles${players === undefined ? '' : ` · ${players} players`}`,
+    contents:
+      `${tiles.length} tiles for ${maps} on ${worlds} (${PIECES.tile.cols * PIECES.tile.rows} a page)` +
+      (back ? `; each page's backs (${WORLD_NAMES[back]}) follow it, mirrored for long-edge duplex` : ''),
+    async groups() {
+      const tile = await fontsFor(tileFontCss);
+      return [
+        {
+          piece: PIECES.tile,
+          faces: tiles.map((t) => printableTile(tileSide(t, world), tile, true, { world })),
+          ...(back && { backs: tiles.map((t) => printableTile(tileSide(t, back), tile, true, { world: back })) }),
+        },
+      ];
+    },
+  };
 };

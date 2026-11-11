@@ -95,18 +95,9 @@ function cutFile(piece: Piece, bleed: boolean): ZipFile | null {
   return textFile('cut.svg', svg, 'image/svg+xml');
 }
 
-/** Opens the print dialog on sheets of these faces at trim size; each distinct face is drawn once. */
-export async function printSheets(
-  piece: Piece,
-  faces: { front: Printable; back?: Printable }[],
-  o: { withBacks: boolean; paper: Paper },
-  progress: Progress,
-): Promise<void> {
-  const unique = new Map<string, Printable>();
-  for (const f of faces) {
-    unique.set(f.front.name, f.front);
-    if (o.withBacks && f.back) unique.set(f.back.name, f.back);
-  }
+/** Opens the print dialog on sheets of these faces at trim size, fronts only (sheets.ts `sheetsHtml`); each distinct face is drawn once. */
+export async function printSheets(piece: Piece, faces: { front: Printable }[], o: { paper: Paper }, progress: Progress): Promise<void> {
+  const unique = new Map(faces.map((f) => [f.front.name, f.front]));
   const { w, h } = pieceSize(piece, false);
   const urls = new Map<string, string>();
   const revokeAll = () => urls.forEach((u) => URL.revokeObjectURL(u));
@@ -118,7 +109,7 @@ export async function printSheets(
     }
     progress('Opening print dialog…');
     await paint();
-    const images = faces.map((f) => ({ front: urls.get(f.front.name)!, back: f.back && urls.get(f.back.name) }));
+    const images = faces.map((f) => urls.get(f.front.name)!);
     await printDocument(sheetsHtml(piece, images, o), revokeAll);
   } catch (e) {
     revokeAll();
@@ -222,34 +213,46 @@ export interface PressSheets {
   label: string;
   /** What's on the sheets, for the panel's note. */
   contents: string;
-  /** Each piece and every copy of its faces, in page order; rejects if the fonts didn't load. */
-  groups: () => Promise<{ piece: Piece; faces: Printable[] }[]>;
+  /**
+   * Each piece and every copy of its faces, in page order, with each face's back when the piece is two-sided;
+   * rejects if the fonts didn't load.
+   */
+  groups: () => Promise<{ piece: Piece; faces: Printable[]; backs?: Printable[] }[]>;
 }
 
 /**
  * Press sheets as one CMYK PDF: each piece in its sheet grid (sheets.ts `pressPages`), butted with crop
- * marks, single-sided, a new page for each piece. Every copy is placed; each distinct face is converted once.
+ * marks, a new page for each piece; a two-sided piece's backs follow each page, mirrored for long-edge
+ * duplex. Every copy is placed; each distinct face is converted once. `handCut`: for cutting by hand, not
+ * with a die (sheets.ts `pressPages`), tagged `-handcut`.
  */
-export async function exportCmykSheets(sheets: PressSheets, deep: boolean, progress: Progress): Promise<void> {
+export async function exportCmykSheets(sheets: PressSheets, o: { deep: boolean; handCut?: boolean }, progress: Progress): Promise<void> {
+  const { deep, handCut = false } = o;
   const groups = await sheets.groups();
   const images: PdfImage[] = [];
   const index = new Map<string, number>();
-  const total = new Set(groups.flatMap((g) => g.faces.map((f) => `${g.piece.id}/${f.name}`))).size;
+  const total = new Set(groups.flatMap((g) => [...g.faces, ...(g.backs ?? [])].map((f) => `${g.piece.id}/${f.name}`))).size;
   const pages = [];
-  for (const { piece, faces } of groups) {
-    const placed: number[] = [];
-    for (const f of faces) {
+  for (const { piece, faces, backs } of groups) {
+    const place = async (f: Printable) => {
       const key = `${piece.id}/${f.name}`;
       if (!index.has(key)) {
         progress(`Converting ${index.size + 1}/${total}`);
         await paint();
         index.set(key, images.push(await cmykImage(piece, f, deep)) - 1);
       }
-      placed.push(index.get(key)!);
-    }
-    pages.push(...pressPages(piece, placed));
+      return index.get(key)!;
+    };
+    const placed: number[] = [];
+    for (const f of faces) placed.push(await place(f));
+    const behind: number[] = [];
+    for (const f of backs ?? []) behind.push(await place(f));
+    pages.push(...pressPages(piece, placed, backs && behind, { handCut }));
   }
   progress('Writing PDF…');
   await paint();
-  download(sheetName(sheets.name, deep), pressPdf({ title: `${GAME_NAME} ${sheets.label}`, ...A4, bleed: 0, images, pages }));
+  download(
+    sheetName(sheets.name + (handCut ? '-handcut' : ''), deep),
+    pressPdf({ title: `${GAME_NAME} ${sheets.label}`, ...A4, bleed: 0, images, pages }),
+  );
 }

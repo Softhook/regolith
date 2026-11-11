@@ -110,9 +110,24 @@ lengthens every round.
 | Ouroboros | Deimos | A ring of twelve round an empty middle, a start every two or three tiles; two starts share a 9 |
 | Crescent Bay | Phobos | Five of the hexagon's six corners hold starts; the sixth is a bay of open ground, with a 10 in the middle |
 
-These are the only maps whose seats match by a mirror, not a turn. A mirror turns the flowers' lattice the other
+These and Driver's Crown (*Hard-objective maps*) are the only maps whose seats match by a mirror, not a turn. A mirror turns the flowers' lattice the other
 way (see *The basic maps*), so the mirrored seats are close, not identical. No self-play measure of their seats
 is recorded yet ([ROADMAP.md](ROADMAP.md)).
+
+### Hard-objective maps
+
+These three maps put the special landmarks in the centre of different balanced contests. The Mass Driver (11)
+only appears on Phobos, and the Deep Space Array (12) only on Deimos; the Citadel (13) can appear on any world.
+
+| Map | Players | World | The idea |
+|---|---:|---|---|
+| Citadel Crossing | 2 | Mars | A straight race through two Ice Mines to the lone Citadel |
+| Array of Three | 3 | Deimos | A three-way survey ring around the Deep Space Array |
+| Driver's Crown | 4 | Phobos | Four corner starts round a Mass Driver, each with a 7 of its own and a 9 shared with the seat across |
+
+Driver's Crown's seats match by its two mirrors, not a turn (a hexagon can't be turned in quarters), so like the
+five-player maps they are close, not identical. Its starts sit off both mirrors, so each seat is the mirror
+image of every other.
 
 ### Prepared ground
 
@@ -178,6 +193,18 @@ the seat wins. No game stalled.
 | Alpha Sector (other seeds) | 7.0 | 7.8 | 5.7 | 6/14 |
 | Beta Sector | 9.4 | 23.7 | 7.3 | 9/3/8 |
 | Gamma Sector | 9.5 | 37.4 | 6.5 | 5/5/3/7 |
+
+The three hard-objective maps, same settings, 10 November 2026 (100 games each; no unfinished games):
+
+| Map | Rounds | Attacks | Conquests | Longest drought | First-seat wins | Last-seat wins |
+|---|--:|--:|--:|--:|--:|--:|
+| Citadel Crossing | 24.3 | 8.7 | 4.9 | 14.1 | 47% | 53% |
+| Array of Three | 9.7 | 14.3 | 7.4 | 2.8 | 38% | 30% |
+| Driver's Crown | 15.9 | 32.7 | 6.1 | 5.4 | 24% | 18% |
+
+Citadel Crossing's games run 8 to 88 rounds, with long stretches where nobody places a cube: in a line of single
+tiles the Citadel's one cube is easy to hold and hard to take. In Driver's Crown the two middle seats win 58% between them,
+though the four starts are mirror images: turn order, or how the AI plays it, not the ground.
 
 ### Interaction
 

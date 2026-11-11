@@ -1372,6 +1372,114 @@
     ]
   },
   {
+    "id": "citadel-crossing",
+    "name": "Citadel Crossing",
+    "players": 2,
+    "group": "hex",
+    "cubes": 5,
+    "stats": {
+      "slack": 3,
+      "shared": 3,
+      "planets": 7
+    },
+    "world": "mars",
+    "length": "medium",
+    "layout": [
+      [
+        "8*",
+        "7",
+        "9",
+        "13",
+        "9",
+        "7",
+        "8*"
+      ]
+    ]
+  },
+  {
+    "id": "array-of-three",
+    "name": "Array of Three",
+    "players": 3,
+    "group": "hex",
+    "cubes": 5,
+    "stats": {
+      "slack": 6,
+      "shared": 1,
+      "planets": 13
+    },
+    "world": "deimos",
+    "length": "short",
+    "layout": [
+      [
+        "."
+      ],
+      [
+        ".",
+        "7"
+      ],
+      [
+        "8*",
+        "7",
+        "8",
+        "8*"
+      ],
+      [
+        "8",
+        "12",
+        "7"
+      ],
+      [
+        "7",
+        "7",
+        "8",
+        "7"
+      ],
+      [
+        ".",
+        "8*"
+      ]
+    ]
+  },
+  {
+    "id": "drivers-crown",
+    "name": "Driver's Crown",
+    "players": 4,
+    "group": "hex",
+    "cubes": 5,
+    "stats": {
+      "slack": 0,
+      "shared": 7,
+      "planets": 11
+    },
+    "world": "phobos",
+    "length": "long",
+    "layout": [
+      [
+        "8*",
+        ".",
+        "8*"
+      ],
+      [
+        "7",
+        "7"
+      ],
+      [
+        "9",
+        "11",
+        "9"
+      ],
+      [
+        "7",
+        "7"
+      ],
+      [
+        "8*",
+        ".",
+        "8*"
+      ]
+    ]
+  },
+  {
     "id": "ice-run",
     "name": "Ice Run",
     "players": 2,
