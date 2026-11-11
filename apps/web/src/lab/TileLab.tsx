@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { OFF_CENTRE, TILE_SET, TILE_SPOTS, WORLD_NAMES, dataUrl, editableTileSvg, tileSvg, type TileSpec, type World } from '@regolith/art';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { OFF_CENTRE, TILE_SPOTS, WORLD_NAMES, dataUrl, editableTileSvg, tileSvg, type TileSpec, type World } from '@regolith/art';
 import { blobToDataUrl, download } from '../files';
 import { svgToPng } from '../print/exports';
 import { PIECES, fileName, pieceSize } from '../print/pieces';
@@ -8,8 +8,8 @@ import { tileFontCss } from '../art/cards';
 import { useFontCss, useSvgUrl } from './hooks';
 import { LabHeader } from './LabHeader';
 import { printableTile, tileSheets, type TileKit } from './pressSheets';
-import { TILE_SET_PLAYERS, tileKit, tileSide } from './tileSets';
-import { groundDrawn, latestThumbnail, litGround, printedTileSvg, printedTileSvgNow, thumbnail } from './tileDrawing';
+import { kitKey, tileKit, tileSetPlayers, tileSide, type KitTile } from './tileSets';
+import { groundDrawn, latestThumbnail, litGround, printedTileSvg, printedTileSvgNow, thumbnail, type TileView } from './tileDrawing';
 
 /**
  * Art Lab, tiles page (#lab): every tile of the physical set, die-cut along its flower, on Phobos, Deimos or
@@ -26,40 +26,53 @@ type Override = Partial<Pick<TileSpec, 'seed'>>;
 
 export function TileLab() {
   const [overrides, setOverrides] = useState<Record<string, Override>>({});
-  const [selected, setSelected] = useState(TILE_SET[0].id);
+  const [selected, setSelected] = useState('');
   const [markings, setMarkings] = useState(true);
   const [bleed, setBleed] = useState(false);
   const [world, setWorld] = useState<World>('mars');
-  const [players, setPlayers] = useState<number | 'all'>('all');
+  const [playerChoice, setPlayers] = useState<number | 'all'>('all');
   // The world on the tiles' backs, '' for one-sided; and whether the page shows the backs.
   const [backChoice, setBack] = useState<World | ''>('');
   const [flipped, setFlipped] = useState(false);
   const back = backChoice && backChoice !== world ? backChoice : undefined;
-  // Where the planets sit, as a map's layout token says (`7ne`): '' for the middle.
-  const [planetAt, setPlanetAt] = useState('');
+  const worlds = useMemo<World[]>(() => (back ? [world, back] : [world]), [world, back]);
+  // Only the player counts these worlds have maps for; a count they haven't falls back to every map.
+  const playerCounts = useMemo(() => tileSetPlayers(worlds), [worlds]);
+  const players = playerChoice !== 'all' && playerCounts.includes(playerChoice) ? playerChoice : undefined;
+  // Where the planets sit: null for where the kit's maps put each, else a layout token's direction for all (`7ne`), '' the middle.
+  const [planetAt, setPlanetAt] = useState<string | null>(null);
   // The side shown: its world.
   const shown = flipped && back ? back : world;
-  const view = useMemo(() => ({ world: shown, planetAt }), [shown, planetAt]);
-  const kit: TileKit = { world, back, players: players === 'all' ? undefined : players };
+  const kit: TileKit = { world, back, players };
   // The number font, embedded in the detail view and the print files (thumbnails use the system's).
   const fonts = useFontCss(tileFontCss);
 
-  const specs = useMemo(
-    () => tileKit(back ? [world, back] : [world], players === 'all' ? undefined : players).map((t) => ({ ...t, ...overrides[t.id] })),
-    [overrides, players, world, back],
+  const tiles = useMemo(
+    () => tileKit(worlds, players).map((k) => ({ ...k, tile: { ...k.tile, ...overrides[k.tile.id] } })),
+    [overrides, players, worlds],
   );
+  /** How a kit tile is shown on a world: where its maps put its planet, unless the page moves them all. */
+  const viewOf = useCallback((k: KitTile, on: World): TileView => ({ world: on, planetAt: planetAt ?? k.at }), [planetAt]);
   // Drawn live where there's no thumbnail as it prints yet (below), till its ground is drawn.
   const thumbs = useMemo(
     () =>
-      specs.map((t) => {
-        const face = tileSide(t, shown);
-        return { spec: t, face, url: latestThumbnail(face, shown) ? '' : dataUrl(tileSvg(face, { ...view, markings, rounded: true })) };
+      tiles.map((k) => {
+        const face = tileSide(k.tile, shown);
+        const view = viewOf(k, shown);
+        return {
+          k,
+          key: kitKey(k),
+          face,
+          view,
+          url: latestThumbnail(face, view) ? '' : dataUrl(tileSvg(face, { ...view, markings, rounded: true })),
+        };
       }),
-    [specs, markings, view, shown],
+    [tiles, markings, viewOf, shown],
   );
-  const spec = specs.find((t) => t.id === selected) ?? specs[0];
+  const current = thumbs.find((t) => t.key === selected) ?? thumbs[0];
+  const spec = current.k.tile;
   // The selected tile's side shown, which is drawn: open ground where its objective can't stand (`tileSide`).
-  const face = useMemo(() => tileSide(spec, shown), [spec, shown]);
+  const { face, view } = current;
 
   // On a world's ground the light depends on the size it's drawn at (Chrome ignores `kernelUnitLength`), so a
   // tile drawn live at a thumbnail's or the detail's size isn't what prints. Each is shown as it prints, as the
@@ -70,11 +83,11 @@ export function TileLab() {
     let live = true;
     (async () => {
       // The detail's own ground, which the thumbnails may have drawn and let go since.
-      await litGround(face, view).catch(() => {});
+      await litGround(current.face, current.view).catch(() => {});
       if (!live) return;
       setDrawn((n) => n + 1);
-      for (const { face: t } of [...thumbs.filter((t) => t.spec === spec), ...thumbs.filter((t) => t.spec !== spec)]) {
-        await thumbnail(t, { ...view, markings, rounded: true }, THUMB_PX).catch(() => {});
+      for (const t of [current, ...thumbs.filter((t) => t !== current)]) {
+        await thumbnail(t.face, { ...t.view, markings, rounded: true }, THUMB_PX).catch(() => {});
         if (!live) return;
         setDrawn((n) => n + 1);
       }
@@ -82,32 +95,39 @@ export function TileLab() {
     return () => {
       live = false;
     };
-  }, [face, spec, thumbs, view, markings]);
+  }, [current, thumbs, markings]);
 
   // A tile is shown cut to its flower.
   const detailOptions = { ...view, markings, bleed, fontCss: fonts ?? '', rounded: true };
   // As it prints once its ground is drawn. Until then, so it doesn't flash the live drawing: the last drawing
   // of this tile on this world (a reroll, markings on or off), else its thumbnail (its ground let go since);
   // drawn live only before either is.
-  const latest = useRef<{ id: string; world: World; svg: string }>(undefined);
+  const latest = useRef<{ key: string; world: World; svg: string }>(undefined);
   const ready = groundDrawn(face, view);
   const { svg, live } = useMemo(() => {
     const printed = printedTileSvgNow(face, detailOptions);
-    if (printed) latest.current = { id: face.id, world: shown, svg: printed };
-    else if (latest.current?.id === face.id && latest.current.world === shown) return { svg: latest.current.svg, live: false };
+    const key = `${face.id}@${view.planetAt ?? ''}`;
+    if (printed) latest.current = { key, world: shown, svg: printed };
+    else if (latest.current?.key === key && latest.current.world === shown) return { svg: latest.current.svg, live: false };
     return { svg: printed ?? tileSvg(face, detailOptions), live: !printed };
     // `ready` stands for the drawn ground, which `printedTileSvgNow` reads.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [face, markings, bleed, fonts, view, ready]);
   const drawnDetail = useSvgUrl(svg);
-  const detail = (live && latestThumbnail(face, shown)) || drawnDetail;
+  const detail = (live && latestThumbnail(face, view)) || drawnDetail;
   const set = (o: Override) => setOverrides((all) => ({ ...all, [spec.id]: { ...all[spec.id], ...o } }));
 
-  // Prints the set as shown: seeds being explored, the markings setting, the planet spot, and each side's world.
-  const printable = (t: TileSpec, side: World) => printableTile(tileSide(t, side), fonts ?? '', markings, { world: side, planetAt });
+  // Prints the set as shown: seeds being explored, the markings setting, the planet spots, and each side's world.
+  const printable = (k: KitTile, side: World) => printableTile(tileSide(k.tile, side), fonts ?? '', markings, viewOf(k, side));
   const piece = PIECES.tile;
   const cmyk = tileSheets(kit);
-  const item = printable(spec, shown);
+  const item = printable(current.k, shown);
+  // The ZIP's name and heading: its worlds and player count.
+  const part = [WORLD_NAMES[world], back && WORLD_NAMES[back], players && `${players}p`].filter(Boolean).join('-');
+  const fronts = tiles.map((k) => printable(k, world));
+  const backs = back ? tiles.map((k) => printable(k, back)) : [];
+  // Each front's back, by file: names carry their world, and a side that can't hold its objective is a blank.
+  const pairs = back ? fronts.map((f, i) => `  ${f.name}.png  →  ${backs[i].name}.png\n`).join('') : '';
 
   /**
    * Illustrator can't render SVG filters, so the tile's raster layers go in as a 600 dpi bitmap, with the
@@ -126,22 +146,30 @@ export function TileLab() {
       <LabHeader page="tiles" />
       <div className="lab-body">
         <div className="lab-grid">
-          {thumbs.map(({ spec: t, face: f, url }) => (
-            <button data-lab-nav key={t.id} className={`lab-thumb ${t.id === spec.id ? 'on' : ''}`} onClick={() => setSelected(t.id)}>
-              <img src={latestThumbnail(f, shown) || url} alt={t.id} />
-              <span>{t.id}</span>
+          {thumbs.map(({ key, face: f, view: v, url }) => (
+            <button data-lab-nav key={key} className={`lab-thumb ${key === current.key ? 'on' : ''}`} onClick={() => setSelected(key)}>
+              <img src={latestThumbnail(f, v) || url} alt={key} />
+              <span>{key}</span>
             </button>
           ))}
         </div>
         <aside className="lab-detail">
-          <img src={detail} alt={spec.id} />
+          <img src={detail} alt={current.key} />
           <div className="lab-controls">
             <label>
               <input type="checkbox" checked={markings} onChange={(e) => setMarkings(e.target.checked)} /> Print markings
             </label>
             <label>
               World
-              <select value={world} onChange={(e) => setWorld(e.target.value as World)}>
+              <select
+                value={world}
+                onChange={(e) => {
+                  const next = e.target.value as World;
+                  setWorld(next);
+                  // A back can't be the front's world: that choice is dropped, not kept for later.
+                  if (backChoice === next) setBack('');
+                }}
+              >
                 {Object.entries(WORLD_NAMES).map(([value, label]) => (
                   <option key={value} value={value}>
                     {label}
@@ -169,18 +197,19 @@ export function TileLab() {
             )}
             <label>
               Players
-              <select value={players} onChange={(e) => setPlayers(e.target.value === 'all' ? 'all' : Number(e.target.value))}>
+              <select value={players ?? 'all'} onChange={(e) => setPlayers(e.target.value === 'all' ? 'all' : Number(e.target.value))}>
                 <option value="all">All maps</option>
-                {TILE_SET_PLAYERS.map((n) => (
+                {playerCounts.map((n) => (
                   <option key={n} value={n}>
                     {n} players
                   </option>
                 ))}
               </select>
             </label>
-            <label title="Where each objective sits on its tile, as a map's layout token says (7ne)">
+            <label title="Where each objective sits on its tile: where the kit's maps put it, or one spot for all, as a map's layout token says (7ne)">
               Objective
-              <select value={planetAt} onChange={(e) => setPlanetAt(e.target.value)}>
+              <select value={planetAt ?? '*'} onChange={(e) => setPlanetAt(e.target.value === '*' ? null : e.target.value)}>
+                <option value="*">as the maps lay it</option>
                 {Object.keys(TILE_SPOTS).map((d) => (
                   <option key={d} value={d}>
                     {d || 'middle'}
@@ -204,7 +233,7 @@ export function TileLab() {
             )}
           </div>
           <p className="lab-note">A tile is cut along its flower: the exports carry the cut line (cut.svg, a CutContour spot colour).</p>
-          {planetAt && face.number > 0 && !OFF_CENTRE.includes(face.number) && (
+          {view.planetAt && face.number > 0 && !OFF_CENTRE.includes(face.number) && (
             <p className="lab-warn">
               A map puts only {OFF_CENTRE.map((k) => `${k}s`).join(' and ')} off the middle of a tile: this one spills over its edge.
             </p>
@@ -216,13 +245,15 @@ export function TileLab() {
             item={item}
             bleed={bleed}
             onBleed={setBleed}
-            set={[...specs.map((t) => printable(t, world)), ...(back ? specs.map((t) => printable(t, back)) : [])]}
-            part={back && `${WORLD_NAMES[world]}-${WORLD_NAMES[back]}`}
+            set={[...fronts, ...backs]}
+            part={part}
             notes={
               (markings ? '' : 'Without print markings.\n') +
-              (back ? `Two-sided: each tile's back is the ${WORLD_NAMES[back]} file of the same name.\n` : '')
+              (back
+                ? `Two-sided, ${WORLD_NAMES[world]} on the front and ${WORLD_NAMES[back]} on the back. Each front's back:\n${pairs}`
+                : '')
             }
-            sheets={() => specs.map((t) => ({ front: printable(t, world), ...(back && { back: printable(t, back) }) }))}
+            sheets={() => fronts.map((front, i) => ({ front, ...(back && { back: backs[i] }) }))}
             backs={!!back}
             cmyk={cmyk}
             fonts={fonts}
@@ -230,7 +261,7 @@ export function TileLab() {
               [
                 Object.keys(overrides).length > 0 && 'seeds changed here',
                 !markings && 'print markings off',
-                planetAt && 'objectives moved off the middle',
+                planetAt !== null && 'objectives moved from where the maps put them',
               ]
                 .filter(Boolean)
                 .join(', ') || undefined

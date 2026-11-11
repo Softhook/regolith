@@ -1,38 +1,47 @@
 import { describe, expect, it } from 'vitest';
-import { BLANK, TILE_SET, assignTiles, type World } from '@regolith/art';
-import { MAPS, parseToken, type MapDef } from '@regolith/engine';
-import { tileKit, tileSide } from '../src/lab/tileSets';
+import { BLANK, TILE_SET, type World } from '@regolith/art';
+import { MAPS } from '@regolith/engine';
+import { kitKey, mapTiles, tileKit, tileSetPlayers, tileSide } from '../src/lab/tileSets';
 
-/** The physical tiles a map lays, as the board assigns them. */
-const tilesOf = (map: MapDef) =>
-  assignTiles(
-    map.layout
-      .flat()
-      .filter((token) => token !== '.')
-      .map((token, index) => {
-        const parsed = parseToken(token);
-        return { index, number: parsed.blank ? BLANK : parsed.number };
-      }),
-  ).values();
+/** A kit's tiles by key: `p7-01`, `p7-01-se`. */
+const keysOf = (worlds: World[], players?: number) => new Set(tileKit(worlds, players).map(kitKey));
 
 describe('physical tile kits', () => {
-  it('covers every map for its player count and world without needing the full set', () => {
+  it('lays every map for its player count and world, each planet where the map puts it, without needing the full set', () => {
     for (const map of MAPS) {
-      const available = new Set(tileKit([map.world ?? 'mars'], map.players).map((tile) => tile.id));
-      for (const id of tilesOf(map)) expect(available, `${map.id}: ${id}`).toContain(id);
+      const kit = keysOf([map.world ?? 'mars'], map.players);
+      for (const k of mapTiles(map)) expect(kit, `${map.id}: ${kitKey(k)}`).toContain(kitKey(k));
     }
     expect(tileKit(['mars'], 2).length).toBeLessThan(TILE_SET.length);
   });
 
+  it('prints a 7 a map moves off the middle that way, as a tile of its own beside the same tile in the middle', () => {
+    // Twin Drift (Deimos, 2 players) moves its 7s to se, n, s and nw.
+    const twin = MAPS.find((m) => m.id === 'twin-drift')!;
+    const off = mapTiles(twin).filter((k) => k.at);
+    expect(off.length).toBeGreaterThan(0);
+    expect(off.every((k) => k.tile.number === 7)).toBe(true);
+    const kit = tileKit(['deimos'], 2);
+    for (const k of off) expect(kit.some((t) => t.tile.id === k.tile.id && t.at === k.at)).toBe(true);
+    // A tile is in a kit once for each spot its maps put its planet, and nowhere else.
+    expect(new Set(kit.map(kitKey)).size).toBe(kit.length);
+  });
+
   it('gives a world only the tiles its maps lay, without a player count too', () => {
     // No Mars map lays a Mass Driver or a Deep Space Array, which stand on Phobos and Deimos only.
-    expect(tileKit(['mars']).some((tile) => tile.number === 11 || tile.number === 12)).toBe(false);
-    expect(tileKit(['phobos']).some((tile) => tile.number === 11)).toBe(true);
+    expect(tileKit(['mars']).some((k) => k.tile.number === 11 || k.tile.number === 12)).toBe(false);
+    expect(tileKit(['phobos']).some((k) => k.tile.number === 11)).toBe(true);
     for (const world of ['mars', 'phobos', 'deimos'] as World[]) {
-      const all = new Set(tileKit([world]).map((tile) => tile.id));
-      for (const players of new Set(MAPS.filter((m) => (m.world ?? 'mars') === world).map((m) => m.players)))
-        for (const tile of tileKit([world], players)) expect(all, `${world} ${players}p`).toContain(tile.id);
+      const all = keysOf([world]);
+      for (const players of tileSetPlayers([world]))
+        for (const key of keysOf([world], players)) expect(all, `${world} ${players}p`).toContain(key);
     }
+  });
+
+  it('offers only the player counts a world has maps for, and is empty for one it hasn’t', () => {
+    for (const world of ['mars', 'phobos', 'deimos'] as World[])
+      expect(tileSetPlayers([world])).toEqual([...new Set(MAPS.filter((m) => (m.world ?? 'mars') === world).map((m) => m.players))].sort());
+    expect(tileKit(['mars'], 99)).toEqual([]);
   });
 
   it('makes a side open ground where its world can’t hold the tile’s objective', () => {
@@ -47,15 +56,13 @@ describe('physical tile kits', () => {
   it('makes a two-sided kit that lays every map on either side, with no more tiles than both sides need', () => {
     const worlds: World[] = ['mars', 'phobos'];
     for (const players of [2, 3, 4, 5, undefined]) {
-      const kit = tileKit(worlds, players);
-      const ids = new Set(kit.map((tile) => tile.id));
+      const kit = keysOf(worlds, players);
       for (const map of MAPS.filter((m) => worlds.includes(m.world ?? 'mars') && (players === undefined || m.players === players)))
-        for (const id of tilesOf(map)) expect(ids, `${map.id}: ${id}`).toContain(id);
+        for (const k of mapTiles(map)) expect(kit, `${map.id}: ${kitKey(k)}`).toContain(kitKey(k));
       // No bigger than either side's own kit needs.
-      const sides = new Set(worlds.flatMap((w) => tileKit([w], players).map((t) => t.id)));
-      expect(ids).toEqual(sides);
+      expect(kit).toEqual(new Set(worlds.flatMap((w) => [...keysOf([w], players)])));
     }
     // No Mars or Phobos map lays a Deep Space Array.
-    expect(tileKit(worlds).some((tile) => tile.number === 12)).toBe(false);
+    expect(tileKit(worlds).some((k) => k.tile.number === 12)).toBe(false);
   });
 });

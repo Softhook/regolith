@@ -95,17 +95,20 @@ function cutFile(piece: Piece, bleed: boolean): ZipFile | null {
   return textFile('cut.svg', svg, 'image/svg+xml');
 }
 
-/** Opens the print dialog on sheets of these faces at trim size, fronts only (sheets.ts `sheetsHtml`); each distinct face is drawn once. */
+/**
+ * Opens the print dialog on sheets of these faces with their bleed, fronts only (sheets.ts `sheetsHtml`); each
+ * distinct face is drawn once.
+ */
 export async function printSheets(piece: Piece, faces: { front: Printable }[], o: { paper: Paper }, progress: Progress): Promise<void> {
   const unique = new Map(faces.map((f) => [f.front.name, f.front]));
-  const { w, h } = pieceSize(piece, false);
+  const { w, h } = pieceSize(piece, true);
   const urls = new Map<string, string>();
   const revokeAll = () => urls.forEach((u) => URL.revokeObjectURL(u));
   try {
     for (const [name, item] of unique) {
       progress(`Rendering ${urls.size + 1}/${unique.size}`);
       await paint();
-      urls.set(name, URL.createObjectURL(await svgToPng(await printSvg(item, false), w, h, piece.dpi)));
+      urls.set(name, URL.createObjectURL(await svgToPng(await printSvg(item, true), w, h, piece.dpi)));
     }
     progress('Opening print dialog…');
     await paint();

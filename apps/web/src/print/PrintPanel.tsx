@@ -124,7 +124,7 @@ export function PrintPanel({
       <p className="lab-note">
         {sizeNote(piece, bleed)}
         {bleed ? ', as print services want it' : ''}. PNGs are RGB: opaque, tagged sRGB and carry their dpi. Bleed is for the PNGs; the CMYK
-        files always have it, the print sheets never.
+        files and the print sheets always have it.
       </p>
       {fontsMissing && <p className="lab-note">The fonts didn’t load (offline?), so exports are off: they would print in system fonts.</p>}
 
@@ -207,8 +207,9 @@ export function PrintPanel({
         )}
       </div>
       <p className="lab-note">
-        For a home printer, not a press: {piece.cols * piece.rows} per page at trim size with crop marks, through the browser’s print
-        dialog, so a “Save as PDF” is RGB. Print at 100 % (no fit to page).
+        For a home printer, not a press: {piece.cols * piece.rows} per page with crop marks and bleed round each block
+        {piece.die && `, a grey guide on each ${piece.id}'s cut, the art running past it`}, through the browser’s print dialog, so a “Save
+        as PDF” is RGB. Print at 100 % (no fit to page).
         {backs && ' Fronts only: a home printer’s duplex puts a back millimetres off its front, so two-sided pieces go to a press.'}
       </p>
       <ExportStatus progress={progress} error={error} />

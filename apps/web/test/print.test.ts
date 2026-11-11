@@ -2,19 +2,10 @@
 import { describe, expect, it } from 'vitest';
 import { PIECES, fileName, pieceSize, setName, sheetName, type Piece } from '../src/print/pieces';
 import { hexTileShape } from '@regolith/art';
-import type { Polygon } from '../src/print/pdf';
-import { A4, PAPER, pressPages, sheetsHtml, type Paper } from '../src/print/sheets';
+import type { Line, PdfPage, Polygon } from '../src/print/pdf';
+import { A4, PAPER, homeBleed, homePages, pressPages, sheetsHtml, type Paper } from '../src/print/sheets';
 
 const pieces = Object.values(PIECES) as Piece[];
-
-/**
- * The marks a piece's cuts inside its square get on a sheet, slanted ones or level ones (drawn as the grid's are): one
- * a column for each exit by the top or bottom, one a row for each by the sides.
- */
-const innerMarks = (p: Piece, slanted: boolean) =>
-  (p.die?.exits ?? [])
-    .filter((e) => (Math.abs(e.dx) > 1e-9 && Math.abs(e.dy) > 1e-9) === slanted)
-    .reduce((n, e) => n + (e.y < 1e-6 || e.y > p.h - 1e-6 ? p.cols : p.rows), 0);
 
 /** Each sheet's images as [src, left, top] in mm. */
 function sheets(html: string) {
@@ -22,11 +13,32 @@ function sheets(html: string) {
     .split('<section class="sheet">')
     .slice(1)
     .map((s) =>
-      [...s.matchAll(/<img src="([^"]*)" style="left:([\d.]+)mm;top:([\d.]+)mm">/g)].map(
+      [...s.matchAll(/<img src="([^"]*)" style="left:([\d.-]+)mm;top:([\d.-]+)mm/g)].map(
         (m) => [m[1], Number(m[2]), Number(m[3])] as const,
       ),
     );
 }
+
+/** Whether a point is inside a convex polygon (either way round), not on its edge. */
+function inConvex(poly: Polygon, x: number, y: number): boolean {
+  let sign = 0;
+  for (let i = 0; i < poly.length; i++) {
+    const [ax, ay] = poly[i];
+    const [bx, by] = poly[(i + 1) % poly.length];
+    const c = (bx - ax) * (y - ay) - (by - ay) * (x - ax);
+    if (Math.abs(c) < 1e-9) return false;
+    if (!sign) sign = Math.sign(c);
+    else if (Math.sign(c) !== sign) return false;
+  }
+  return true;
+}
+
+/** How many of a page's marks lie along the line through a side. */
+const marksOn = (page: PdfPage, [x1, y1, x2, y2]: Line) => {
+  const len = Math.hypot(x2 - x1, y2 - y1);
+  const off = (x: number, y: number) => Math.abs((x2 - x1) * (y - y1) - (y2 - y1) * (x - x1)) / len;
+  return page.marks!.filter(([a, b, c, d]) => off(a, b) < 0.01 && off(c, d) < 0.01).length;
+};
 
 describe('print sheets', () => {
   /** Every piece on every paper. */
@@ -37,46 +49,47 @@ describe('print sheets', () => {
     expect((PAPER[paper].h - p.rows * p.h) / 2).toBeGreaterThan(5);
   });
 
-  it.each(pieces)('put a crop mark at both ends of every cut ($id)', (p) => {
-    const html = sheetsHtml(p, ['a']);
-    expect(html.match(/class="v"/g)).toHaveLength(2 * (p.cols + 1));
-    expect(html.match(/class="h"/g)).toHaveLength(2 * (p.rows + 1) + innerMarks(p, false));
-    expect(html.match(/class="d"/g) ?? []).toHaveLength(innerMarks(p, true));
+  it.each(onPaper)('have bleed round each block, less only where the paper leaves no room ($id, $paper)', ({ p, paper }) => {
+    const b = homeBleed(p, paper);
+    expect(b).toBeGreaterThanOrEqual(1);
+    expect(b).toBeLessThanOrEqual(p.bleed);
+    // Only cards on US Letter (6.35 mm above and below the grid) have less than the piece's own.
+    if (!(p.id === 'card' && paper === 'letter')) expect(b).toBe(p.bleed);
+    const [page] = homePages(p, 1, { paper });
+    const [{ at, clip }] = page.images;
+    // Each face is drawn with its full bleed and shows the home bleed of it.
+    expect(at.w).toBeCloseTo(p.w + 2 * p.bleed);
+    if (!p.die) expect(clip).toEqual({ x: at.x + p.bleed - b, y: at.y + p.bleed - b, w: p.w + 2 * b, h: p.h + 2 * b });
   });
 
-  it.each(onPaper)('keep the crop marks 4 mm inside the paper, where home printers print ($id, $paper)', ({ p, paper }) => {
-    const size = PAPER[paper];
-    const html = sheetsHtml(p, ['a'], { paper });
-    expect(html).toContain(`@page{size:${size.w}mm ${size.h}mm;margin:0}`);
-    expect(html.match(/class="[vhd]" style/g)).toHaveLength(2 * (p.cols + p.rows + 2) + innerMarks(p, false) + innerMarks(p, true));
-    for (const [, left, top, len] of html.matchAll(/class="v" style="left:([\d.-]+)mm;top:([\d.-]+)mm;height:([\d.-]+)mm"/g)) {
-      expect(Number(len)).toBeGreaterThan(1);
-      expect(Number(top)).toBeGreaterThanOrEqual(4 - 1e-9);
-      expect(Number(top) + Number(len)).toBeLessThanOrEqual(size.h - 4 + 1e-9);
-      expect(Number(left)).toBeGreaterThan(0);
-    }
-    for (const [, top, left, len] of html.matchAll(/class="h" style="top:([\d.-]+)mm;left:([\d.-]+)mm;width:([\d.-]+)mm"/g)) {
-      expect(Number(len)).toBeGreaterThan(1);
-      expect(Number(left)).toBeGreaterThanOrEqual(4 - 1e-9);
-      expect(Number(left) + Number(len)).toBeLessThanOrEqual(size.w - 4 + 1e-9);
-      expect(Number(top)).toBeGreaterThan(0);
-    }
-    for (const [, left, top, len, angle] of html.matchAll(
-      /class="d" style="left:([\d.-]+)mm;top:([\d.-]+)mm;width:([\d.-]+)mm;transform:rotate\(([\d.-]+)deg\)/g,
-    )) {
-      expect(Number(len)).toBeGreaterThan(1);
-      const rad = (Number(angle) * Math.PI) / 180;
-      const x2 = Number(left) + Number(len) * Math.cos(rad);
-      const y2 = Number(top) + 0.1 + Number(len) * Math.sin(rad);
-      for (const x of [Number(left), x2]) {
-        expect(x).toBeGreaterThanOrEqual(4 - 1e-9);
-        expect(x).toBeLessThanOrEqual(size.w - 4 + 1e-9);
+  it.each(onPaper)(
+    'keep the crop marks 4 mm inside the paper, where home printers print, and clear of the bleed ($id, $paper)',
+    ({ p, paper }) => {
+      const size = PAPER[paper];
+      const b = homeBleed(p, paper);
+      const x0 = (size.w - p.cols * p.w) / 2;
+      const y0 = (size.h - p.rows * p.h) / 2;
+      const [page] = homePages(p, p.cols * p.rows, { paper });
+      for (const [x1, y1, x2, y2] of page.marks!) {
+        expect(Math.hypot(x2 - x1, y2 - y1)).toBeGreaterThan(1);
+        for (const [x, y] of [
+          [x1, y1],
+          [x2, y2],
+        ]) {
+          expect(x).toBeGreaterThanOrEqual(4 - 1e-9);
+          expect(x).toBeLessThanOrEqual(size.w - 4 + 1e-9);
+          expect(y).toBeGreaterThanOrEqual(4 - 1e-9);
+          expect(y).toBeLessThanOrEqual(size.h - 4 + 1e-9);
+          const inside = x > x0 - b + 1e-6 && x < x0 + p.cols * p.w + b - 1e-6 && y > y0 - b + 1e-6 && y < y0 + p.rows * p.h + b - 1e-6;
+          expect(inside).toBe(false);
+        }
       }
-      for (const y of [Number(top) + 0.1, y2]) {
-        expect(y).toBeGreaterThanOrEqual(4 - 1e-9);
-        expect(y).toBeLessThanOrEqual(size.h - 4 + 1e-9);
-      }
-    }
+    },
+  );
+
+  it.each(pieces.filter((p) => !p.die))('put a crop mark at both ends of every cut ($id)', (p) => {
+    const [page] = homePages(p, 1);
+    expect(page.marks).toHaveLength(2 * (p.cols + 1) + 2 * (p.rows + 1));
   });
 
   it("marks where each of a hex tile's cuts inside its square, carried on, leaves it, pointing on along it", () => {
@@ -112,6 +125,25 @@ describe('print sheets', () => {
     }
   });
 
+  it.each([
+    ['home', (n: number) => homePages(PIECES.tile, n)],
+    [
+      'press',
+      (n: number) =>
+        pressPages(
+          PIECES.tile,
+          Array.from({ length: n }, (_, k) => k),
+        ),
+    ],
+  ] as const)('mark both ends of the line of every side of every tile, a full page or one alone (%s)', (_, pagesFor) => {
+    for (const n of [1, 4]) {
+      const [page] = pagesFor(n);
+      const lines = page.guides ?? page.cuts!;
+      expect(lines).toHaveLength(18 * n);
+      for (const side of lines) expect(marksOn(page, side), `${n} tiles: ${side.map((v) => v.toFixed(1))}`).toBeGreaterThanOrEqual(2);
+    }
+  });
+
   it('fills pages in reading order, then starts a new page', () => {
     const p = PIECES.card;
     const pages = sheets(
@@ -122,7 +154,9 @@ describe('print sheets', () => {
     );
     expect(pages.map((s) => s.length)).toEqual([9, 1]);
     const [, x0, y0] = pages[0][0];
-    expect(pages[0][4]).toEqual(['f4', x0 + p.w, y0 + p.h]);
+    expect(pages[0][4][0]).toBe('f4');
+    expect(pages[0][4][1]).toBeCloseTo(x0 + p.w);
+    expect(pages[0][4][2]).toBeCloseTo(y0 + p.h);
     expect(pages[1][0]).toEqual(['f9', x0, y0]);
   });
 
@@ -130,9 +164,11 @@ describe('print sheets', () => {
     expect(sheets(sheetsHtml(PIECES.card, ['f0', 'f1']))).toHaveLength(1);
   });
 
-  it('draws the marks as borders, which print without "Background graphics", and avoids a trailing blank page', () => {
-    const html = sheetsHtml(PIECES.tile, ['a']);
-    expect(html).not.toMatch(/background:#000/);
+  it('clip each face to what shows of it, and draw the marks as SVG strokes, which print without "Background graphics"', () => {
+    const html = sheetsHtml(PIECES.card, ['a', 'b']);
+    expect(html).not.toMatch(/background/);
+    expect(html).toMatch(/<img [^>]*clip-path:path\('M/);
+    expect(html).toMatch(/<path class="marks" d="M[^"]+" stroke="#000"/);
     expect(html).toContain('.sheet:last-child{break-after:auto}');
     expect(sheets(html)).toHaveLength(1);
   });
@@ -175,7 +211,8 @@ describe('press sheets', () => {
         expect(y).toBeGreaterThanOrEqual(0);
         expect(x).toBeLessThanOrEqual(A4.w);
         expect(y).toBeLessThanOrEqual(A4.h);
-        const inside = x > x0 - bleed && x < x0 + cols * w + bleed && y > y0 - bleed && y < y0 + rows * h + bleed;
+        const e = 1e-6;
+        const inside = x > x0 - bleed + e && x < x0 + cols * w + bleed - e && y > y0 - bleed + e && y < y0 + rows * h + bleed - e;
         expect(inside).toBe(false);
       }
     }
@@ -204,16 +241,33 @@ describe('tiles', () => {
     expect(pressPages(PIECES.aid, [0])[0].cuts).toBeUndefined();
   });
 
-  it('show only their flower with its bleed on the press sheets, so no neighbour covers it', () => {
+  it('show only their flower with its bleed on the press sheets, its left cut where a tile is beside it', () => {
     const [page] = pressPages(p, [0, 1]);
     const x0 = (A4.w - 2 * p.w) / 2;
     const y0 = (A4.h - 2 * p.h) / 2;
-    for (const [k, { clip }] of page.images.entries()) {
-      expect(Array.isArray(clip)).toBe(true);
-      const xs = (clip as Polygon[]).flat().map(([x]) => x);
-      // The flower is 92.4 mm across, 1.8 mm in from its box each side; with its bleed, 1.2 mm past the box.
-      expect(Math.min(...xs)).toBeCloseTo(x0 + k * p.w + 1.81 - 3 / Math.cos(Math.PI / 6), 1);
+    const xs = (k: number) => (page.images[k].clip as Polygon[]).flat().map(([x]) => x);
+    // The flower is 92.4 mm across, 1.8 mm in from its box each side; with its bleed, 1.65 mm past the box.
+    expect(Math.min(...xs(0))).toBeCloseTo(x0 + 1.81 - 3 / Math.cos(Math.PI / 6), 1);
+    // Beside the first, the second's bleed stops at its box: the 3.6 mm between them is 1.8 mm of each one's bleed.
+    expect(Math.min(...xs(1))).toBeCloseTo(x0 + p.w, 6);
+    for (const { clip } of page.images)
       expect(Math.max(...(clip as Polygon[]).flat().map(([, y]) => y))).toBeCloseTo(y0 + p.h + p.bleed, 6);
+  });
+
+  it('never cover a tile drawn before with a later tile’s bleed, on the press sheets or at home', () => {
+    for (const page of [pressPages(p, [0, 1, 2, 3], [4, 5, 6, 7]), homePages(p, 4)].flat()) {
+      for (const [k, { at }] of page.images.entries()) {
+        // The tile's own flower, a hair inside its cut.
+        const flower = hexTileShape(-0.01).map((hex) => hex.map((q) => [q.x + at.x + p.bleed, q.y + at.y + p.bleed] as const));
+        const later = page.images.slice(k + 1).flatMap((i) => i.clip as Polygon[]);
+        for (let x = at.x; x < at.x + at.w; x += 0.5)
+          for (let y = at.y; y < at.y + at.h; y += 0.5)
+            if (flower.some((hex) => inConvex(hex, x, y)))
+              expect(
+                later.some((poly) => inConvex(poly, x, y)),
+                `${x}, ${y}`,
+              ).toBe(false);
+      }
     }
   });
 
@@ -268,8 +322,11 @@ describe('tiles', () => {
     expect(through).toHaveLength(12);
   });
 
-  it('need no cut line on the home print sheets: their art is knocked out past it', () => {
-    expect(sheetsHtml(p, ['a'])).not.toMatch(/<svg|stroke/);
+  it('print a grey guide on their cut on the home print sheets, never a cut line', () => {
+    const [page] = homePages(p, 2);
+    expect(page.cuts).toBeUndefined();
+    expect(page.guides).toEqual(pressPages(p, [0, 1])[0].cuts);
+    expect(sheetsHtml(p, ['a'])).toMatch(/<path class="guide" d="M[^"]+" stroke="#8c8c8c"/);
   });
 
   it('are named as tiles', () => {

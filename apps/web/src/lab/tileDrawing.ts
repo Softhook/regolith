@@ -53,9 +53,9 @@ export function litGround(t: TileSpec, o: TileView): Promise<string> {
 
 /** Thumbnails of tiles as they print, as image URLs, by the tile and how it's shown (`thumbnail`). */
 const thumbnails = new Map<string, Promise<string>>();
-/** A tile's latest thumbnail on each world, to show while its next is drawn (a reroll, markings on or off). */
+/** A tile's latest thumbnail on each world and planet spot, to show while its next is drawn (a reroll, markings on or off). */
 const latestThumbnails = new Map<string, string>();
-const latestKey = (t: TileSpec, world: TileOptions['world']) => `${t.id}:${world}`;
+const latestKey = (t: TileSpec, o: TileView) => `${t.id}:${o.world}:${o.planetAt ?? ''}`;
 
 /**
  * A tile as it prints, drawn small (`px` across) for a thumbnail: its own ground drawn once at full size
@@ -68,11 +68,11 @@ export function thumbnail(t: TileSpec, o: Omit<TileOptions, 'ground'>, px: numbe
     url = printedTileSvg(t, o)
       .then((svg) => rasterise(svg, px, px))
       .then((blob) => URL.createObjectURL(blob));
-    url.then((u) => latestThumbnails.set(latestKey(t, o.world), u)).catch(() => thumbnails.delete(key));
+    url.then((u) => latestThumbnails.set(latestKey(t, o), u)).catch(() => thumbnails.delete(key));
     thumbnails.set(key, url);
   }
   return url;
 }
 
-/** The latest thumbnail drawn of a tile on a world (`thumbnail`), if any. */
-export const latestThumbnail = (t: TileSpec, world: TileOptions['world']) => latestThumbnails.get(latestKey(t, world));
+/** The latest thumbnail drawn of a tile on a world, its planet where it is (`thumbnail`), if any. */
+export const latestThumbnail = (t: TileSpec, o: TileView) => latestThumbnails.get(latestKey(t, o));

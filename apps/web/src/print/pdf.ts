@@ -46,8 +46,11 @@ export interface PdfPage {
   guides?: readonly Line[];
 }
 
-/** A hand-cutting guide's ink, CMYK 0–1, and width, mm. To check on a test print against each world's ground. */
-const GUIDE = { cmyk: [0, 0, 0, 0.5], width: 0.15 } as const;
+/**
+ * A hand-cutting guide's ink, CMYK 0–1, the sRGB it prints as for the home print sheets, and width, mm. To check
+ * on a test print against each world's ground.
+ */
+export const GUIDE = { cmyk: [0, 0, 0, 0.5], rgb: '#8c8c8c', width: 0.15 } as const;
 
 export interface PdfOptions {
   title: string;

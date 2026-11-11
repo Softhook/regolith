@@ -1,36 +1,47 @@
-import { BLANK, TILE_SET, type TileSpec, type World } from '@regolith/art';
-import { MAPS, WORLD_OBJECTIVES, parseToken } from '@regolith/engine';
+import { BLANK, TILE_SET, assignTiles, type TileSpec, type World } from '@regolith/art';
+import { MAPS, WORLD_OBJECTIVES, parseToken, type MapDef } from '@regolith/engine';
 
-/** The player counts maps are made for, for the Tiles page's kit choice. */
-export const TILE_SET_PLAYERS = [...new Set(MAPS.map((map) => map.players))].sort((a, b) => a - b);
+/** The maps on any of these worlds, for one player count or every one. */
+const mapsOn = (worlds: readonly World[], players?: number) =>
+  MAPS.filter((map) => worlds.includes(map.world ?? 'mars') && (players === undefined || map.players === players));
+
+/** The player counts the maps on these worlds are made for, for the Tiles page's kit choice. */
+export const tileSetPlayers = (worlds: readonly World[]) => [...new Set(mapsOn(worlds).map((map) => map.players))].sort((a, b) => a - b);
 
 /**
- * The tiles a kit needs: the most of each kind any one of its maps lays, so the k-th tile of a kind
- * (art `assignTiles`) is always there. Without a player count, every map on its worlds. A two-sided kit has a
- * world on each side, so it takes its maps from both.
+ * One physical tile of a kit: the tile (art `TILE_SET`) and where its planet sits, as a map's layout token says
+ * (`se`), `''` for the middle. A map that moves a 7 off the middle lays a tile printed that way, so a kit
+ * can hold the same tile twice: `p7-01` in the middle for one map, `p7-01` at `se` for another.
  */
-export function tileKit(worlds: readonly World[], players?: number): TileSpec[] {
-  const maps = MAPS.filter((map) => worlds.includes(map.world ?? 'mars') && (players === undefined || map.players === players));
-  if (!maps.length) throw new Error(`No ${players ?? ''}-player maps on ${worlds.join(' or ')}`);
+export interface KitTile {
+  tile: TileSpec;
+  at: string;
+}
 
-  const needed = new Map<number, number>();
-  for (const map of maps) {
-    const counts = new Map<number, number>();
-    for (const token of map.layout.flat()) {
-      if (token === '.') continue;
-      const parsed = parseToken(token);
-      const number = parsed.blank ? BLANK : parsed.number;
-      counts.set(number, (counts.get(number) ?? 0) + 1);
-    }
-    for (const [number, count] of counts) needed.set(number, Math.max(needed.get(number) ?? 0, count));
-  }
+/** A kit tile's key, unique in its kit: `p7-01`, `p7-01-se`. */
+export const kitKey = (k: KitTile) => k.tile.id + (k.at ? `-${k.at}` : '');
 
-  const seen = new Map<number, number>();
-  return TILE_SET.filter((tile) => {
-    const index = seen.get(tile.number) ?? 0;
-    seen.set(tile.number, index + 1);
-    return index < (needed.get(tile.number) ?? 0);
-  });
+/** The tiles a map lays, as the board assigns them (art `assignTiles`), each with where its planet sits. */
+export function mapTiles(map: MapDef): KitTile[] {
+  const tokens = map.layout
+    .flat()
+    .filter((token) => token !== '.')
+    .map((token) => parseToken(token));
+  const ids = assignTiles(tokens.map((t, index) => ({ index, number: t.blank ? BLANK : t.number })));
+  return tokens.map((t, index) => ({ tile: TILE_SET.find((s) => s.id === ids.get(index))!, at: t.dir ?? '' }));
+}
+
+/**
+ * The tiles a kit needs: every tile any of its maps lays, where that map puts its planet, so each map is laid
+ * with the tiles the screen shows (art `assignTiles`). Without a player count, every map on its worlds. A
+ * two-sided kit has a world on each side, so it takes its maps from both. Empty when no map fits. In set
+ * order, a tile in the middle before the same tile off it.
+ */
+export function tileKit(worlds: readonly World[], players?: number): KitTile[] {
+  const kit = new Map<string, KitTile>();
+  for (const map of mapsOn(worlds, players)) for (const k of mapTiles(map)) kit.set(kitKey(k), k);
+  const order = (k: KitTile) => TILE_SET.indexOf(k.tile);
+  return [...kit.values()].sort((a, b) => order(a) - order(b) || a.at.localeCompare(b.at));
 }
 
 /**

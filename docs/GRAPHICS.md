@@ -146,30 +146,36 @@ tile needs a start version. The map setup sheets show which.
 | Blank ground | 10 |
 | **Total** | **45** |
 
-**Player-count kits.** The Tiles page can cut the set down to the kit for one player count: the most of each
-kind of tile any one of that count's maps on the world lays at once (`tileKit`), not every map's tiles added
-up. "All maps" is the kit for every map on the world, whatever its player count: never the full 45, since no
-world lays every landmark (a Mass Driver stands on Phobos only, a Deep Space Array on Deimos only).
+**Player-count kits.** The Tiles page can cut the set down to the kit for one player count: every tile any
+one of that count's maps on the world lays (`tileKit`), each with its planet where that map puts it. The k-th
+planet of a number is that number's k-th tile (art `assignTiles`), so this is the most of each kind any one map
+lays at once, not every map's tiles added up, and every map is laid with the tiles the screen shows. A 7 a map
+moves off the middle (`7se`, *Off the middle*) is a tile of its own, printed that way: a kit can hold `p7-01` in
+the middle and `p7-01` at `se`. The page shows these as `p7-01-se`. "All maps" is the kit for every map on the
+world, whatever its player count: never the full set, since no world lays every landmark (a Mass Driver stands
+on Phobos only, a Deep Space Array on Deimos only). The page offers only the player counts the world has maps for.
 
 | Players | Phobos | Deimos | Mars | Mars / Phobos, two-sided |
 |---|--:|--:|--:|--:|
-| 2 | 14 | 17 | 31 | 31 |
-| 3 | 24 | 15 | 28 | 29 |
-| 4 | 27 | 17 | 23 | 27 |
+| 2 | 16 (2 off the middle) | 21 (4) | 31 | 33 (2) |
+| 3 | 24 | 18 (3) | 28 | 29 |
+| 4 | 29 (2) | 17 | 23 | 29 (2) |
 | 5 | 19 | 12 | 19 | 21 |
-| All maps | 32 | 24 | 33 | 35 |
+| All maps | 36 (4) | 31 (7) | 33 | 39 (4) |
 
 **Two-sided tiles.** A tile can carry another world on its back: the same tile (`p7-01` is a Habitat on both
 sides), so one kit lays the maps of both worlds. Mars with Phobos on the back is the pairing for now. Each side
 is lit for its own world, and nothing else differs. The Tiles page's **Back** sets the world, **Show backs**
 shows that side. The kit is then the most either world's maps need: a Mars / Phobos 2-player kit is no bigger
-than Mars's alone, and a Deep Space Array (Deimos only) is in no Mars / Phobos kit. A side whose world can't hold
-the tile's landmark is open ground (`tileSide`): the Mars side of a Mass Driver is `blank-p11-01`. The flower cut
-is its own mirror image, so one cut serves both sides.
+than Mars's and Phobos's own kits together, and a Deep Space Array (Deimos only) is in no Mars / Phobos kit. A side whose world can't hold
+the tile's landmark is open ground (`tileSide`): the Mars side of a Mass Driver is `blank-p11-01`. A tile printed
+with its 7 off the middle has it there on both sides. The flower cut is its own mirror image, so one cut serves
+both sides.
 
 **Sheets.** A tile with bleed fits **2 × 2 per A4 page**; print-on-demand vendors get one file per tile, a
-two-sided tile a front and a back of the same name, one per world. The kit chosen goes to the CMYK press
-sheets, the print sheets and the PNG ZIP. Two-sided, each press sheet is followed by its backs, columns mirrored
+two-sided tile a front and a back, one per world, which the ZIP's README pairs (names carry their world, and a
+blank side's is the blank's). The kit chosen goes to the CMYK press sheets, the print sheets and the PNG ZIP,
+named for its worlds and player count (`regolith-tiles-mars-phobos-2p-bleed.zip`). Two-sided, each press sheet is followed by its backs, columns mirrored
 for long-edge duplex; the back page has crop marks but no cut line or guide, since the cut follows the front.
 Two-sided tiles are for a press only: the home print sheets print fronts.
 
@@ -179,12 +185,15 @@ front, so the back's bleed is what keeps art at its edge; what's left of the err
 to a millimetre off centre. So a back has nothing near its cut that would show that: no border or outline along
 the flower. Butted 2 × 2, the bleed is less than 3 mm between tiles: tiles one above the other share a flat side,
 so there a back that's off shows its neighbour's ground, not paper; side by side they are 3.6 mm apart, 1.8 mm
-of bleed each.
+of bleed each. Each tile's bleed stops at its square where the tile before it on the sheet is there (above it
+or left of it), so no tile's bleed covers another tile's art.
 
-**Cutting a flower by hand.** Eighteen sides, six of them meeting at inward corners. Every side lies on a line
-the sheet marks (below), but a cut carried on past an inward corner runs into the next hex: for 12 of the 18
-sides, a cut from mark to mark goes some 36 mm into the tile. Lay the rule on the marks and stop each cut at the
-corners, or use scissors, which take inward corners better.
+**Cutting a flower by hand.** Eighteen sides, six of them meeting at inward corners. Every side of every tile
+lies on a line the sheet marks at both ends (below): a line that leaves a tile into the next one on the sheet is
+carried on through it to the margin. Where two slanted lines cross at the grid's edge their marks make a V. A
+cut carried on past an inward corner runs into the next hex: for 12 of the 18 sides, a cut from mark to mark goes
+some 36 mm into the tile. Lay the rule on the marks and cut along the printed guide, stopping at the corners, or
+use scissors, which take inward corners better.
 
 ### Cards
 
@@ -260,9 +269,9 @@ Every printed piece goes through one module, `apps/web/src/print/`, so all piece
 - `pieces.ts` holds each piece's print spec (trim, bleed, sheet grid, dpi) and the file-name pattern:
   `regolith-<piece>-<name>[-bleed][-<dpi>dpi].<ext>` for one face, `regolith-<pieces>[-<part>][-bleed|-fogra39[-deep]].zip`
   for a set. A tile is die-cut along its flower (`Die`): its art is **knocked out** past the flower, at the cut
-  at trim size, so the home print sheets show the shape to cut with scissors, and past it by the bleed in files
-  with bleed, so a die cut that wanders still has art under it. The press sheets clip each tile to that shape,
-  so no neighbour's knocked-out corner covers its bleed. Every export for a press carries the cut line: `cut.svg`
+  at trim size, and past it by the bleed in files with bleed, so a cut that wanders still has art under it. The
+  press and home print sheets clip each tile to that shape, so no neighbour's knocked-out corner covers its
+  bleed, and print a guide on the cut for cutting by hand. Every export for a press carries the cut line: `cut.svg`
   in the PNG ZIP, a `CutContour` spot colour in the CMYK PDFs (overprinting; a print service cuts along it and
   doesn't print it), and a `cut` layer in the Illustrator SVG.
 - `PrintPanel.tsx` is the export panel on every lab page: this face as a PNG (plus page extras such as SVG for
@@ -294,11 +303,16 @@ Every printed piece goes through one module, `apps/web/src/print/`, so all piece
       the `CutContour` spot might print it. Whether the guide shows on every world's ground, and how much of it
       is left on a cut tile's edge, is for a test print to settle.
     - **Die cut**, for a print service with a die: each tile with its bleed past the cut, and the cut line.
-- `sheets.ts` lays out print sheets for home printers: pieces at trim size in a grid (cards 3 × 3, tiles
-  2 × 2, aid and map sheets 1 × 2), crop marks drawn as borders so they print without "Background graphics",
-  fronts only (a home duplex is too far off for backs), crop marks kept 4 mm in from the paper's edge, and on a
-  hex tile's cuts inside its square (slanted and level) a mark along each where, carried on, it leaves the grid
-  (`HEX_TILE_CUT_EXITS`, worked out from the cut), to lay a rule on: it lines up every side on that line, but a
+- `sheets.ts` lays out both kinds of sheet the same way (`sheetPages`): pieces in a grid (cards 3 × 3, tiles
+  2 × 2, aid and map sheets 1 × 2), butted, with bleed round each block, each face cut at its left and top where
+  a piece is there, so it covers the bleed of the one before but never its art. Home print sheets (`homePages`,
+  `sheetsHtml`) are the press sheets in RGB through the browser: fronts only (a home duplex is too far off for
+  backs), with their bleed (`homeBleed`: the piece's 3 mm, less only where the paper has no room for it and a
+  2 mm crop mark, 1 mm for cards on US Letter), crop marks kept 4 mm in from the paper's edge, a tile's cut
+  printed as a grey guide, each face clipped with CSS `clip-path: path()`, and the marks and guides as SVG
+  strokes, which print without "Background graphics". On a hex tile's cuts inside its square (slanted and level)
+  a mark along each where, carried on, it leaves the grid (`HEX_TILE_CUT_EXITS`, worked out from the cut, carried
+  through the next tile when it leaves into one), to lay a rule on: it lines up every side on that line, but a
   cut carried past an inward corner runs into the tile (*Cutting a flower by hand*). A4 or US Letter.
 
 A new piece is a `PIECES` entry and a `Printable` per face.

@@ -5,7 +5,7 @@ import { mapSheet } from '../art/mapSheet';
 import type { PressSheets } from '../print/exports';
 import { PIECES, slugOf, type Printable } from '../print/pieces';
 import { printedTileSvg, type TileView } from './tileDrawing';
-import { tileKit, tileSide } from './tileSets';
+import { tileKit, tileSide, type KitTile } from './tileSets';
 
 /** Fonts for press sheets, which can't go out in system fonts: a failed load stops the export. */
 async function fontsFor(load: () => Promise<string>): Promise<string> {
@@ -81,27 +81,29 @@ export interface TileKit {
 }
 
 /**
- * A kit's tiles, blanks too, planets in the middle, on press sheets of their own, to die-cut or cut by hand
- * (exports.ts `exportCmykSheets`). A two-sided kit's backs follow each page, mirrored for long-edge duplex; a
+ * A kit's tiles, blanks too, each planet where its maps put it, on press sheets of their own, to die-cut or cut by
+ * hand (exports.ts `exportCmykSheets`). A two-sided kit's backs follow each page, mirrored for long-edge duplex; a
  * side whose world can't hold the tile's objective is open ground (`tileSide`).
  */
 export const tileSheets = ({ world, back, players }: TileKit): PressSheets => {
-  const tiles = tileKit(back ? [world, back] : [world], players);
+  const kit = tileKit(back ? [world, back] : [world], players);
   const worlds = back ? `${WORLD_NAMES[world]} / ${WORLD_NAMES[back]}` : WORLD_NAMES[world];
   const maps = players === undefined ? 'every map' : `the ${players}-player maps`;
+  const side = (k: KitTile, on: World, fontCss: string) =>
+    printableTile(tileSide(k.tile, on), fontCss, true, { world: on, planetAt: k.at });
   return {
     name: `tiles-${world}${back ? `-${back}` : ''}${players === undefined ? '' : `-${players}p`}`,
     label: `${worlds} tiles${players === undefined ? '' : ` · ${players} players`}`,
     contents:
-      `${tiles.length} tiles for ${maps} on ${worlds} (${PIECES.tile.cols * PIECES.tile.rows} a page)` +
+      `${kit.length} tiles for ${maps} on ${worlds} (${PIECES.tile.cols * PIECES.tile.rows} a page)` +
       (back ? `; each page's backs (${WORLD_NAMES[back]}) follow it, mirrored for long-edge duplex` : ''),
     async groups() {
       const tile = await fontsFor(tileFontCss);
       return [
         {
           piece: PIECES.tile,
-          faces: tiles.map((t) => printableTile(tileSide(t, world), tile, true, { world })),
-          ...(back && { backs: tiles.map((t) => printableTile(tileSide(t, back), tile, true, { world: back })) }),
+          faces: kit.map((k) => side(k, world, tile)),
+          ...(back && { backs: kit.map((k) => side(k, back, tile)) }),
         },
       ];
     },
