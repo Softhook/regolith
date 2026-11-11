@@ -6,6 +6,9 @@ the Community rules as a control, while Regolith was a mode of Cubic; that colum
 The AI's card values ([cardValues.ts](../packages/ai/src/cardValues.ts)) come from these runs and Cubic's
 earlier Community benchmark (2026-10-09, in this repo's history).
 
+> Written before the engine took Regolith's words; [RULES.md, Reading older docs](RULES.md#reading-older-docs)
+> translates the old ones.
+
 ## Summary
 
 - **Defence gets stronger** than in Community. Unstable Reactor and Entrenched lead, with Science Survey and

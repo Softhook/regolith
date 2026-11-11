@@ -3,6 +3,9 @@
 How we build and evaluate the rules of **Regolith**, our own rule set, with Basic, its cards-free form. The
 mode was called Prototyping until October 2026; this log keeps the word for the work, not the mode.
 
+> Sections 1–8 are kept in the words they were written in (ships, planets, conquest, the original classes);
+> §9 follows the code. [RULES.md, Reading older docs](../RULES.md#reading-older-docs) translates them.
+
 > **Design Thesis: From Arithmetic Sprint to Positional War**  
 > In base Quantum, hyper-mobility collapsed geography. Ships with 5–6 movement on compact boards crossed the map with ease, turning battles into isolated teleport raids and conquest into an arithmetic puzzle.  
 > **Regolith aims to restore territorial gravity**: the current movement cap creates distance;
@@ -848,7 +851,7 @@ export const beacon: MechAbility = {
    (mechs.ts) to build the rule sets. Engine modules read the rule set
    through `rulesOf` (rules.ts), which imports no mode, so the engine loads the same whichever module comes
    first (`load-order.test.ts`).
-2. **Hooks over names.** Mechs have built-in abilities (`strike`, `transport`...) or
+2. **Hooks over names.** Mechs have built-in abilities (`freeAttack`, `carry`...) or
    `hooks: MechHooks`. The engine evaluates hooks via `hooksOf(state, die)`:
 
    | Hook | Evaluated By | Purpose / User |

@@ -26,10 +26,39 @@ The engine uses the words players read (REGOLITH.md §7): `mech`, `objective`, `
 on the state). A mech is a `Die`; its face is its kind (1–6). A mech's own ability is an *ability* (the `ability`
 action, [`abilities/`](../packages/engine/src/abilities/)), never a power: Power is the track.
 
+The 1 to 4's built-in ability ids are named after their actions: `freeAttack`, `carry`, `swap`, `change`.
 A few ids keep their original names, because they are data rather than words: each card's `effect` (named
-after the Community card it began as, such as `warp-gate` for Ice Tunnel), the 1 to 4's built-in ability ids
-(`strike`, `transport`, `warp`, `modify`), and the physical tile ids (`p7-01`, `void`). The words test
-([`words.test.ts`](../packages/engine/test/words.test.ts)) keeps the original words out of the game's log.
+after the Community card it began as, such as `warp-gate` for Ice Tunnel) and the physical tile ids (`p7-01`,
+`void`). The words test ([`words.test.ts`](../packages/engine/test/words.test.ts)) keeps the original words
+out of the game's log.
+
+### Reading older docs
+
+The history docs ([PROTOTYPING.md](regolith/PROTOTYPING.md) §1–8, [REGOLITH.md](regolith/REGOLITH.md),
+[SPLIT.md](regolith/SPLIT.md), [HEX-CONCEPTS.md](HEX-CONCEPTS.md), [card-benchmark.md](card-benchmark.md))
+keep the words they were written in, and old commits name code that has since moved. Read them with this table:
+
+| Then | Now |
+|---|---|
+| ship, `ships`, `shipOf` | mech, `mechs`, `mechOf` |
+| ship power | ability |
+| planet, orbit (orbital position) | objective, perimeter |
+| conquer, conquest | claim |
+| deploy | drop |
+| reconfigure | refit |
+| scrapyard, scrap | salvage yard, salvage |
+| dominance (dom) | power |
+| missile | atomic |
+| void | Alien Artefact (`artefact`; the tile id is still `void`) |
+| warp gate, gate | Ice Tunnel, tunnel (the card effect is still `warp-gate`) |
+| home shipyard | home objective |
+| 1 Battlestation, Strike (`strike`) | 1 Breacher, Free Attack (`freeAttack`) |
+| 2 Flagship, Transport (`transport`) | 2 Behemoth, Carry & Move (`carry`) |
+| 3 Destroyer, Warp (`warp`) | 3 Tactician, Swap (`swap`) |
+| 4 Frigate, Modify (`modify`) | 4 Chameleon, Change to 3 or 5 (`change`) |
+| 5 Interceptor, Manoeuvre | 5 Sniper, Shoot |
+| 6 Scout, Free Reconfigure | 6 Wisp, Barrier |
+| Prototyping (the mode) | Regolith |
 
 ## Components
 

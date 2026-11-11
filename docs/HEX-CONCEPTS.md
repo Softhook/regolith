@@ -4,6 +4,9 @@ Ideas for a game that grows out of the hex board rather than porting Quantum ont
 built or tested, and nothing is chosen: each section is a menu of options to knock about, pick from and try
 with the AI. For the hex board as it plays today (the Basic rules, unchanged), see [HEX.md](HEX.md).
 
+> Written in Quantum's words (ships, planets, the original classes); [RULES.md, Reading older
+> docs](RULES.md#reading-older-docs) translates them.
+
 ## The aim
 
 A small abstract game with a simple core of rules, as basic Santorini is, plus **ship powers on the die

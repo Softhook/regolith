@@ -6,6 +6,9 @@ It starts from the Community Edition cards and moves away from them, card by car
 action. This doc sets out the structure for that: where each part lives, what it reuses, and the order to
 build it in. It does not design the cards.
 
+> Written before the engine took Regolith's words; [RULES.md, Reading older docs](../RULES.md#reading-older-docs)
+> translates the old ones.
+
 The look comes from the [Regolith mood board](../moodboards/regolith/README.md): the CardStyles, CardScale and
 Vocabulary boards for the cards (flat inks on paper, three passes per part: colour plate, key ink, accent;
 mechs and objectives built from one kit), HexSurface for the ground.

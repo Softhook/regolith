@@ -9,6 +9,9 @@ Two games come out of this repository:
 - **Cubic**, this repository, which keeps **Basic, Classic and Community** and nothing of Regolith. It is
   called Cubic throughout, in place of the `quantum` names it carries today.
 
+> Written before the engine took Regolith's words; [RULES.md, Reading older docs](../RULES.md#reading-older-docs)
+> translates the old ones.
+
 The rules of Regolith stay in [PROTOTYPING.md](PROTOTYPING.md) and its cards and look in
 [REGOLITH.md](REGOLITH.md). Both move with it.
 
