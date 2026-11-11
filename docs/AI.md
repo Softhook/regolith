@@ -5,8 +5,8 @@ The AI comes in five levels. Each player seat in the lobby picks one; the defaul
 | Level | Name | How it chooses | Thinking time per decision |
 |:-:|---|---|---|
 | 1 | **Cadet** | One action at a time. Scores the position after each legal action and takes the best. Random actions are sampled 3 times. | ~5 ms |
-| 2 | **Sergeant** | One action at a time, with exact odds for re-rolls and combat and an evaluation that knows whose turn is next and which enemy ships can reach which of its ships. | ~5 ms |
-| 3 | **Captain** | Plans the whole turn: searches combinations of up to 3 actions (plus free ship abilities) and the outcomes of every dice roll on the way. | ~10–20 ms, ≤ 0.1 s |
+| 2 | **Sergeant** | One action at a time, with exact odds for re-rolls and combat and an evaluation that knows whose turn is next and which enemy mechs can reach which of its mechs. | ~5 ms |
+| 3 | **Captain** | Plans the whole turn: searches combinations of up to 3 actions (plus free mech abilities) and the outcomes of every dice roll on the way. | ~10–20 ms, ≤ 0.1 s |
 | 4 | **Colonel** | Wider turn search, includes Behemoth carries, and checks its best three plans against the opponent's actual next turn. | ~25–50 ms, ≤ 0.2 s |
 | 5 | **General** | Deeper and wider turn search (4 actions, more samples), and checks its best four plans against three replies each, with the same dice for every plan, averaged. | ~65–100 ms, ≤ 0.5 s |
 
@@ -73,21 +73,21 @@ a difference of a few percent (the script prints z; |z| > 2 is about p < 0.05).
 ## What was wrong with the original AI
 
 The original AI is kept as level 1. Self-play showed it rarely fought (about one attack per Basic
-game, with dominance often never leaving 1), re-rolled ships with no purpose, and in the Original
+game, with power often never leaving 1), re-rolled ships with no purpose, and in the Original
 mode researched about 27 times a game. The causes were assumptions built into its design:
 
 1. **One action at a time.** It scored each action on its own and never planned how a turn's three
    actions work together. In this game the strong moves are combinations ("move A out, move B in,
-   conquer").
+   claim").
 2. **No idea of the opponent's next turn.** The score was a snapshot. It didn't know whose turn was
-   next, and it ignored enemy threats like a conquest that will happen next turn. Its danger term
-   measured straight-line distance through planets and ships.
+   next, and it ignored enemy threats like a claim that will happen next turn. Its danger term
+   measured straight-line distance through objectives and mechs.
 3. **Sampling bias.** Re-rolls and attacks were scored from 3 random samples, and the best-looking
    action was chosen. Whichever random action got lucky in the samples won, which is why it
-   reconfigured so often. With 1 sample it reconfigured 70% more.
-4. **Weights out of scale.** Dominance 5 scored 150 points while Take Over is worth a cube (1000), so
-   destroying ships hardly paid. Research scored a flat 14 per step. Every skill was worth the same.
-5. **Reach ignored blocking**, and ignored whether a ship's value fits the planet's sum.
+   refitted so often. With 1 sample it refitted 70% more.
+4. **Weights out of scale.** Power 5 scored 150 points while Take Over is worth a cube (1000), so
+   destroying mechs hardly paid. Research scored a flat 14 per step. Every skill was worth the same.
+5. **Reach ignored blocking**, and ignored whether a mech's value fits the objective's sum.
 
 ## How levels 2–5 work
 
@@ -97,21 +97,21 @@ mode researched about 27 times a game. The causes were assumptions built into it
 | [`packages/ai/src/greedy.ts`](../packages/ai/src/greedy.ts) | Level 1, unchanged (the golden tests replay it) |
 | [`packages/ai/src/evaluate.ts`](../packages/ai/src/evaluate.ts) | Position evaluation for levels 2+ |
 | [`packages/ai/src/chance.ts`](../packages/ai/src/chance.ts) | The outcomes of an action, with probabilities |
-| [`packages/ai/src/search.ts`](../packages/ai/src/search.ts) | Expectimax over the current turn, the opponent-reply check, missile decisions |
+| [`packages/ai/src/search.ts`](../packages/ai/src/search.ts) | Expectimax over the current turn, the opponent-reply check, atomic decisions |
 
 **Evaluation** (`evaluate.ts`) scores a position in *cube points* (one cube = 1000) as my value
 minus the strongest rival's. A position in my own turn is scored as if I end the turn now; the
 search decides whether to do more first. Each player's value adds up:
 
-- cubes placed; dominance as progress towards Take Over (5 → 6 is worth about a cube); research as
-  progress towards a card; skills, missiles, ships on the map and in the scrapyard;
-- **conquest potential**: for the best three planets, how many actions a conquest is away (orbit
-  already adds up; one ship of the right value can reach orbit; one orbiting ship can leave;
-  a re-roll could fix the sum; two ships can fill the gap…), scaled by whether that player moves
+- cubes placed; power as progress towards Take Over (5 → 6 is worth about a cube); research as
+  progress towards a card; skills, atomics, mechs on the map and in the salvage yard;
+- **claim potential**: for the best three objectives, how many actions a claim is away (perimeter
+  already adds up; one mech of the right value can reach perimeter; one perimeter mech can leave;
+  a re-roll could fix the sum; two mechs can fill the gap…), scaled by whether that player moves
   next. Reach uses real paths;
-- **exposure**: for each ship, the chance an enemy ship that can actually reach it destroys it,
-  times what that costs: the ship, a dominance step, and the attacker's gain, which is a cube if
-  it gives them Take Over. Ships of the player who moves next are less exposed (they can react).
+- **exposure**: for each mech, the chance an enemy mech that can actually reach it destroys it,
+  times what that costs: the mech, a power step, and the attacker's gain, which is a cube if
+  it gives them Take Over. Mechs of the player who moves next are less exposed (they can react).
 
 **Chance** (`chance.ts`): a re-roll branches into each value it can show, following the mode's
 rule (a value not yet shown this turn). An attack branches into
@@ -141,15 +141,15 @@ In rough order of value:
 2. **Value Regolith's cards on their own.** Each card is valued by the Community card it began as
    (`cardValues.ts`, through its `effect`); Regolith's own benchmark ([card-benchmark.md](card-benchmark.md))
    shows several are worth quite different amounts here.
-3. **Missiles in the search.** The chance model assumes nobody fires a missile into a battle. The
-   defender's possible missile should lower the attacker's odds.
+3. **Atomics in the search.** The chance model assumes nobody fires an atomic into a battle. The
+   defender's possible atomic should lower the attacker's odds.
 4. **Faster engine for search.** Done (2026-10): states are copied by a plain recursive copy instead
    of `structuredClone`, the board's neighbours are cached per board, and movement (`reach`,
    `moveIndexes`) runs over cell indexes; the search reuses an action's outcomes when it deepens
    it and caches evaluations. Levels 3 and 4 got 3–4× faster with identical choices (88 fixed
    positions). A second round (2026-10-09) made levels 2–5 another 2–3.5× faster, again with
    identical choices: the evaluation's movement uses a plain breadth-first search over cell indexes
-   (`shipReach`, checked against `moveIndexes` by the consistency tests), the skills' rules are
+   (`mechReach`, checked against `moveIndexes` by the consistency tests), the skills' rules are
    cached by card set, a Move is validated without building string-keyed maps, the search settles
    decisions without first testing every answer (`decisionCandidates`), and the reply checks share
    the search's evaluation cache. Now about half the time is the evaluation and a sixth is copying
@@ -159,6 +159,6 @@ In rough order of value:
    time-boxed in the worker, as originally planned in the roadmap.
 6. **More than 2 players.** The evaluation subtracts the strongest rival and a quarter of the
    others; it doesn't model who attacks whom.
-7. **Explain moves.** The evaluation's terms (conquest potential, exposure, dominance) can be shown
+7. **Explain moves.** The evaluation's terms (claim potential, exposure, power) can be shown
    as the reason for a move.
 8. **Easier than Cadet.** Level 1's `noise` option already makes it weaker if beginners need it.

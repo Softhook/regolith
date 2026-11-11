@@ -46,13 +46,13 @@ That holds for passive skills, which are hooks. Activated skills are still sprea
   consistency test, and the UI controller. The compiler only enforces the first two.
 
 The same duplication, availability written once for listing and once for applying, once let the
-`missile` handler accept missiles that `legalActions` never offered.
+`atomic` handler accept atomics that `legalActions` never offered.
 
 **Change:** give `SkillRule` an `activated: { options(s, player): Action[]; apply(s, action) }` entry,
-like `ShipHooks.action` for prototype powers, and have `legal.ts` and the handlers read it. The
+like `MechHooks.action` for prototype abilities, and have `legal.ts` and the handlers read it. The
 prototype `power` action already shows the pattern: options computed once, and `apply` accepts only
 an offered option. Related: [queries.ts](../packages/engine/src/queries.ts) has grown to about 800
-lines of unrelated questions (movement, conquest, combat, cards, skills), and splitting it by topic
+lines of unrelated questions (movement, claim, combat, cards, skills), and splitting it by topic
 would make it easier to find one.
 
 **Status: left as is.** The level-1 AI breaks ties by the order in which `legalActions` lists

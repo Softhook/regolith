@@ -36,15 +36,15 @@ store small signed messages for anyone. We run nothing.
 - **Seats.** Each browser has a Nostr key (localStorage). A post counts only if its author
   plays the seat (an open seat goes to its earliest claimant, but once someone has played it, it is
   theirs), `mayAct` agrees (engine: the
-  actor, or the player named in a missile/re-roll), and `apply` accepts it. Anyone may move
+  actor, or the player named in an atomic/re-roll), and `apply` accepts it. Anyone may move
   an AI seat.
 - **AI seats** are played by the browser that made the last move; if it has gone, any other
   browser takes over after 15 s (the others in turn, 15 s apart).
-- **Missiles (open question #21).** Only the attacker and defender may respond to a battle
-  (fire a missile, re-roll). A battle waits for each of them who can, unless their `ask` setting
+- **Atomics (open question #21).** Only the attacker and defender may respond to a battle
+  (fire an atomic, re-roll). A battle waits for each of them who can, unless their `ask` setting
   is *never* (the default is *my battles*). Each responds or passes ("Done"); once all have
   passed, every browser resolves the battle the same way. A fighter set to *never* may still
-  respond, but once those the battle waits for have passed it is decided: a missile or re-roll
+  respond, but once those the battle waits for have passed it is decided: an atomic or re-roll
   that arrives later is dropped on every browser, whichever arrived first (two browsers moving one
   AI seat can race like this too). AI seats always answer, so all-AI battles resolve at once.
   On screen, a decided battle you fought in stays up until you click OK; other players'
@@ -311,7 +311,7 @@ Limits compared with a real server:
 - **AI seats** run in the host's browser, which already works today (AI web worker).
 
 **The important design choice:** write the game room (seats, `mayAct`, apply, broadcast views,
-missile window, undo) as one module that doesn't care how messages arrive. The same module
+atomic window, undo) as one module that doesn't care how messages arrive. The same module
 then runs in the host's browser over WebRTC now, and in a Durable Object or Node server later.
 Starting serverless wastes very little: only the WebRTC transport is P2P-specific.
 
@@ -337,11 +337,11 @@ Starting serverless wastes very little: only the WebRTC transport is P2P-specifi
        │    + new log entries      │     + new log entries          │
 ```
 
-- **Messages from the client:** `join`, `act(action, version)`, `undo`, `pass` (missile window), `chat`.
+- **Messages from the client:** `join`, `act(action, version)`, `undo`, `pass` (atomic window), `chat`.
 - **Messages from the server:** `view(state, version)`, `log(entries)`, `error(reason)`, `presence(who's online)`, `timer`.
 - **Version numbers** stop double-submits and stale clicks: an action for an old version is rejected and the client refreshes.
 - **Start simple:** send the whole redacted view after each action (a few tens of KB including the log; trim the log to the newest entries). Diffs only if this turns out slow on mobile.
-- **No client-side prediction** at first. Moves come back from the server in ~100 ms, and the existing ship animation hides most of that.
+- **No client-side prediction** at first. Moves come back from the server in ~100 ms, and the existing mech animation hides most of that.
 
 ### Storage
 Per game: config (players, map, mode, seed, **engine version**), the action list, and a
@@ -360,7 +360,7 @@ All small, and all testable without a server:
       by placeholders (count kept), other players' `skillDraft.options` and `peek.top` hidden.
       Spectators get `viewFor(state, null)`.
 - [x] **`mayAct(state, seat, action)`** — the authorisation rule in one place: the seat is
-      `actor(state)`; or the action is a `missile` with `by === seat`; `resolveCombat` only from
+      `actor(state)`; or the action is a `atomic` with `by === seat`; `resolveCombat` only from
       the server. Built ([engine.ts](../packages/engine/src/engine.ts)); the timeline checks every
       post with it. Hot-seat play on one device still dispatches for every human.
 - [x] **Validate untrusted actions** — a malformed action from a client must be rejected,
@@ -371,7 +371,7 @@ All small, and all testable without a server:
 - [ ] **Tests:** `legalActions(viewFor(s, actor))` equals `legalActions(s)` (the UI computes
       highlights from the view, so it must be enough); no log entry leaks a hidden card;
       `viewFor` passes `checkInvariants` (with a flag for hidden decks).
-- [ ] **Missile response window** — see §5.
+- [ ] **Atomic response window** — see §5.
 
 ### Client changes
 
@@ -398,20 +398,20 @@ connection status, timers.
 
 ## 5. The hard parts
 
-### Missiles: who may interrupt, and for how long?
-In a combat, **any** player holding missiles may fire one, on either side. Hot-seat, the
+### Atomics: who may interrupt, and for how long?
+In a combat, **any** player holding atomics may fire one, on either side. Hot-seat, the
 combat overlay simply waits for someone to click *Resolve*. Online, the server must know
 when everyone has had their chance. (Settled as [RULES.md ruling 2](RULES.md#rulings).)
 
 Proposal:
-1. After both combat dice are rolled, open a **response window** for every player with missiles.
+1. After both combat dice are rolled, open a **response window** for every player with atomics.
 2. Each such player either fires or passes. If anyone fires, the window reopens for the
    others (they may want to answer it).
 3. When everyone has passed, the server resolves the combat.
 4. **Timer:** real-time ~15 s, then auto-pass. Async: no timer per combat (it would take days);
    instead each player sets an **auto-pass rule** — "never", "only in my own fights",
    "always ask me" — so async games don't stall on every battle.
-5. Players without missiles are never asked, so most combats resolve instantly.
+5. Players without atomics are never asked, so most combats resolve instantly.
 
 The same mechanism covers **Dangerous** (#22, defender decides before the roll) and any
 future "on another player's turn" decision.
@@ -456,9 +456,9 @@ phase 5 of [MOBILE.md](MOBILE.md). For the serverless build, see
 Each phase is playable on its own.
 
 ### Phase 0 — Decisions & engine prep (2–3 days)
-- [ ] Decide hosting (§2) and the missile window (§5, closes open question #21).
+- [ ] Decide hosting (§2) and the atomic window (§5, closes open question #21).
 - [ ] `viewFor` and its tests (§4). `mayAct` and action validation are built.
-- [ ] Engine response window for missiles (also improves hot-seat: no more manual *Resolve*).
+- [ ] Engine response window for atomics (also improves hot-seat: no more manual *Resolve*).
 - [ ] Measure AI think time per level on a small server instance.
 
 ### Phase 1 — Split the client (1–2 days)
@@ -477,7 +477,7 @@ and the site stays on GitHub Pages. Moving the same room module to a server late
 - [ ] Storage of config + actions + snapshot; local dev server (`npm run dev:server`).
 
 **Done when:** two people on different devices finish a Regolith game via a link,
-including combats with missiles and a page reload in the middle.
+including combats with atomics and a page reload in the middle.
 
 ### Phase 2b — Move the room to a server (2–3 days, when needed)
 Needed for async play (phase 4), public play, or if P2P connections fail too often.
@@ -486,7 +486,7 @@ Needed for async play (phase 4), public play, or if P2P connections fail too oft
 
 ### Phase 3 — AI seats and timers (2–3 days)
 - [ ] AI seats played by the server (or the host's browser, per §5).
-- [ ] Missile window timers and auto-pass settings.
+- [ ] Atomic window timers and auto-pass settings.
 - [ ] Replace-with-AI for players who leave.
 
 ### Phase 4 — Asynchronous play (4–6 days)
@@ -501,7 +501,7 @@ Needed for async play (phase 4), public play, or if P2P connections fail too oft
 - [ ] Table chat (and quick emotes); spectators.
 - [ ] Replay viewer (step through the action list; reuses the board).
 - [ ] Rematch with the same seats.
-- [ ] Missile trading / "give missile" (open question #23), if we adopt it.
+- [ ] Atomic trading / "give atomic" (open question #23), if we adopt it.
 
 ### Phase 6 — Public play (only if we want strangers to play)
 - [ ] Open lobbies / matchmaking, ratings.
@@ -520,7 +520,7 @@ phase 4 another 1–2 weeks.
    public matchmaking (phase 6). This decides how soon accounts are needed.
 2. **Hosting:** start serverless (P2P from GitHub Pages, §2a), then Cloudflare Durable Objects
    (recommended) or a Node server (Fly.io/Render/VPS) when async play is wanted.
-3. **Missile window** in real-time: timer length; whether to only ask players whose missile
+3. **Atomic window** in real-time: timer length; whether to only ask players whose atomic
    could change the result (the UI already computes "decisive").
 4. **AI on the server or in the host's browser** — depends on the think-time measurement.
 5. **Order with [MOBILE.md](MOBILE.md):** mobile first, multiplayer first, or interleaved?

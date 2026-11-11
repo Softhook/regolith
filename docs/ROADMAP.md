@@ -36,7 +36,7 @@ here is in [PROTOTYPING.md](regolith/PROTOTYPING.md).
 - [ ] Run the interaction measure (`npm run interaction`) with 3 to 5 players.
 - [ ] Measure the five-player maps' seats (`npm run selfplay:maps`): they are balanced by a mirror, not a turn
       ([HEX.md](HEX.md#five-players)).
-- [ ] Over-conquest stays off unless a playtest wants it back (`REGOLITH_OVER_CONQUEST`, PROTOTYPING.md §6.10).
+- [ ] Over-claim stays off unless a playtest wants it back (`REGOLITH_OVER_CLAIM`, PROTOTYPING.md §6.10).
 
 ## AI
 

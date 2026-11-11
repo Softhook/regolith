@@ -41,21 +41,21 @@ Chrome's address bar and Android's navigation bar, and changes as the address ba
 - **Result:** 28 of 28 device × map checks pass (was 2 of 21 at the start of the day).
 - **Testing on the G55** is by eye through the GitHub Pages build. USB remote debugging was
   dropped (Step 0).
-- **Step 2 done (same evening):** tap an opponent's ship (or any ship or planet when the tap has
-  nothing else to do) for a bubble with its info; stats, tracks, cubes, action pips and scrapyard
+- **Step 2 done (same evening):** tap an opponent's mech (or any mech or objective when the tap has
+  nothing else to do) for a bubble with its info; stats, tracks, cubes, action pips and salvage yard
   dice explain themselves on tap too. Checked in G55 emulation on Asymptote.
 - **Refactor before Step 2:** default seats in one place (`game/seats.ts`, used by the lobby and
   the dev link), `--topbar-h` instead of a repeated 52px, and a `useMediaQuery` hook so the
   fleet-roll dice resize when the phone is turned.
-- **On the real G55:** Asymptote now fits but its cells are about 26px (ships ≈ 15px). That is
-  the expected limit of fit-to-screen; bigger needs zoom (Step 4). Tapping a ship for its info
+- **On the real G55:** Asymptote now fits but its cells are about 26px (mechs ≈ 15px). That is
+  the expected limit of fit-to-screen; bigger needs zoom (Step 4). Tapping a mech for its info
   helps in the meantime.
 - **Step 3 layout (late evening):** below 980px the turn panel is a compact bar stuck to the
-  bottom of the screen, with your scrapyard in it whenever you can deploy; phone landscape has the
+  bottom of the screen, with your salvage yard in it whenever you can drop; phone landscape has the
   board on the left and one scrolling column on the right; on iPad portrait the players and log
   sit side by side; the market starts collapsed on phones. A first version passed the old checks
-  but, played to a real turn, covered a third of the board on the iPhone SE and left the ships to
-  deploy off screen on the iPad, so `mobile:shots` now plays to your first turn and checks that
+  but, played to a real turn, covered a third of the board on the iPhone SE and left the mechs to
+  drop off screen on the iPad, so `mobile:shots` now plays to your first turn and checks that
   (see Step 0). 28 of 28 pass; the matrix runs devices in parallel (≈ 2 minutes).
 - **In-game popups checked (late evening):** `mobile:shots` now also opens combat, Change of Heart,
   game over and the rules on every device (dev link `&scene=combat|changeOfHeart|over|turn`). Combat
@@ -63,7 +63,7 @@ Chrome's address bar and Android's navigation bar, and changes as the address ba
 
 **2026-10-07:**
 - Phone portrait became map + bottom sheet, the board zooms (Step 4, brought forward), and the
-  selected ship's row never wraps (see Steps 3–4).
+  selected mech's row never wraps (see Steps 3–4).
 - Zoomed in, the map follows opponent and AI moves that land off screen (Step 4).
 - Step 1's last emulated item (market re-fit at ≥ 980px) checked: works.
 - **Step 5 built:** service worker (offline vs AI) with updates that never interrupt a game.
@@ -77,18 +77,18 @@ Chrome's address bar and Android's navigation bar, and changes as the address ba
     of a row was off screen. Now each deck is a row of three cards sharing the width (Step 3). It was the same
     on the iPad (Community's seven cards): while you pick, a row that doesn't fit wraps. `mobile:shots` now
     opens a pick on every device (`-pick`, `-pickClassic`).
-  - **The AI took minutes over Unveil the Fleet** (4p Community, all its ships destroyed), "thinking…" all
-    the while: about 4½ minutes with five ships to place, and 3½ for one step with a skill that deploys to
-    any isolated space (a hundred spaces per ship). Looking ahead, it tried every re-roll, ship and space at
-    every step; now it looks ahead with the remaining ships on their first space (where each goes is still
+  - **The AI took minutes over Unveil the Fleet** (4p Community, all its mechs destroyed), "thinking…" all
+    the while: about 4½ minutes with five mechs to place, and 3½ for one step with a skill that drops to
+    any isolated space (a hundred spaces per mech). Looking ahead, it tried every re-roll, mech and space at
+    every step; now it looks ahead with the remaining mechs on their first space (where each goes is still
     chosen, one per decision). Also, states share the board's cells instead of copying them, which was most
-    of the AI's time. Now about 10 s for five ships on the Mac, no step over about 2 s; every AI decision
+    of the AI's time. Now about 10 s for five mechs on the Mac, no step over about 2 s; every AI decision
     is faster, which matters more on a phone.
   - **A die could take a tap meant for something else:** a 3D die turned to show some faces has one face
     edge-on, which Chrome hit-tests as a thin invisible line reaching well beyond the die. On the iPhone SE
-    such a line crossed the planet above a selected ship, so *Conquer* did nothing, by touch or mouse. The
-    cube no longer takes taps (its box and the ship's space still do). `mobile:play` now requires a tap on the
-    map to reach the ship, space or planet itself.
+    such a line crossed the objective above a selected mech, so *Claim* did nothing, by touch or mouse. The
+    cube no longer takes taps (its box and the mech's space still do). `mobile:play` now requires a tap on the
+    map to reach the mech, space or objective itself.
   - **Phone landscape: after taking a card lower in the column, the turn panel stayed scrolled out of view.**
     It now scrolls back into view when the pick ends.
 - **Next:** play Step 3 on the G55 (2p Basic and 3p Regolith, setup to game over), then Step 4. Still to check from
@@ -108,7 +108,7 @@ Already done, mostly as side effects of other work:
 | Dev server reachable on the LAN (`host: true`, LAN address used in invites) | [vite.config.ts](../apps/web/vite.config.ts) |
 | Market is collapsible, remembers the choice, opens itself during a card pick | [Market.tsx](../apps/web/src/components/Market.tsx) |
 | Cards (skills, tech, decks) open a large `CardViewer` on tap, so card text works on touch | [PlayerList.tsx](../apps/web/src/components/PlayerList.tsx), [CardViewer.tsx](../apps/web/src/components/CardViewer.tsx) |
-| Ships and highlights take the whole cell as their tap area (option G for ships) | [Board.tsx](../apps/web/src/components/Board.tsx) |
+| Mechs and highlights take the whole cell as their tap area (option G for mechs) | [Board.tsx](../apps/web/src/components/Board.tsx) |
 | Full screen on Android and on the app installed on a computer: from the opening's click to start, back after the phone drops it; a button to leave or return. Not on iPhone (no API) or iPad (Safari's misbehaves) | [fullscreen.ts](../apps/web/src/fullscreen.ts), [FullscreenButton.tsx](../apps/web/src/components/FullscreenButton.tsx) |
 | Lobby and dialogs (fleet roll etc.) fit a 320px phone, *as long as the board doesn't widen the page* (§2, point 1) | |
 | Invite uses the native share sheet on touch devices | [OnlineScreen.tsx](../apps/web/src/online/OnlineScreen.tsx) |
@@ -148,7 +148,7 @@ tools and libraries named here are compared in §5.
 |---|---|---|---|
 | 0 Test setup ✅ | ½ day | One command shows every device; HTTPS on the phone | — |
 | 1 Stop the breakage | ½ day | Nothing broken anywhere (target 1) | `mobile:shots` passes; G55 by hand |
-| 2 Info on touch | 1 day | Ship and planet info by tap | iPad-size emulation; G55 |
+| 2 Info on touch | 1 day | Mech and objective info by tap | iPad-size emulation; G55 |
 | 3 Phone layout | 1–2 days | No scrolling to act; landscape works (target 2) | `mobile:shots` + G55 + one BrowserStack iOS pass |
 | 4 Board zoom | 3–4 days, 1-day spike first | 4–5 player maps on phones (target 3) | G55 + one BrowserStack iOS pass |
 | 5 Home-screen app | ½–1 day | Fullscreen on iPhone, offline vs AI | Pages deploy on the G55 |
@@ -165,12 +165,12 @@ Steps 1–3 come first; Step 4 is the big one and can wait until they are in.
       16 of 28 failed on popups, fixed the same day (Step 3's setup popups): 28 of 28 pass.
       `--url` checks a running dev server instead, `--webkit` uses WebKit (needs
       `npx playwright install webkit`). It then plays on to your first turn: while you place
-      your ships, the scrapyard must be on screen and not covered; with a ship selected, so must
-      *End turn* and the ship's buttons, and the turn bar must not cover the board (screenshot
+      your mechs, the salvage yard must be on screen and not covered; with a mech selected, so must
+      *End turn* and the mech's buttons, and the turn bar must not cover the board (screenshot
       `-turn`). Devices run in parallel: about 2 minutes.
 - [x] **`npm run mobile:play`** ([scripts/mobile-play.ts](../scripts/mobile-play.ts), 2026-10-07): plays
       whole games by tapping, on the G55 (both orientations) and the iPhone SE: 2p Basic and 3p Regolith
-      (Cubic's 2p Basic, 3p Classic and 4p Community when it was written). On your turn the level-1 AI chooses (so you conquer, research and take cards) and the script
+      (Cubic's 2p Basic, 3p Classic and 4p Community when it was written). On your turn the level-1 AI chooses (so you claim, research and take cards) and the script
       taps it out; every decision, popup and card pick is taken by a tap. Reports every tap on something off
       screen or covered, a game that stops moving (saving its state as `-stuck.json`), page errors, and a game
       that doesn't end. Screenshots of the first of each kind of decision in `test-results/mobile-play/`.
@@ -220,35 +220,35 @@ on every device), and on the G55 a double-tap never zooms the page and nothing s
 tap.
 
 ### Step 2: Info on touch ✅ (2026-10-06)
-- [x] **Tap any ship to see its info.** `onDie` / `onPlanet` in
+- [x] **Tap any mech to see its info.** `onDie` / `onObjective` in
       [controller.ts](../apps/web/src/game/controller.ts) now return whether the tap did
-      anything; when it didn't (an opponent's ship, your own outside your action phase, a planet
-      that isn't highlighted), the board shows a bubble: owner, ship, value and ability, or the
-      planet's free cube spaces and whose cubes are on it. Tapping it again or anywhere else
-      closes it. Ships and planets keep `title=` for mouse users.
+      anything; when it didn't (an opponent's mech, your own outside your action phase, an objective
+      that isn't highlighted), the board shows a bubble: owner, mech, value and ability, or the
+      objective's free cube spaces and whose cubes are on it. Tapping it again or anywhere else
+      closes it. Mechs and objectives keep `title=` for mouse users.
 - [x] **`Tip` / `InfoPop`** ([InfoPop.tsx](../apps/web/src/components/InfoPop.tsx)): one bubble
       for things that aren't controls, on hover with a mouse and on tap with a finger. Built on
       the **Popover API** (top layer, light dismiss) and **CSS anchor positioning** (above the
       thing, flips below, kept on screen); without anchor positioning it sits at the bottom of
-      the screen. Replaces `title=` on the dominance and research tracks, cubes, player stats,
-      action pips and their badges, and scrapyard dice (a deployable die still deploys on tap).
+      the screen. Replaces `title=` on the power and research tracks, cubes, player stats,
+      action pips and their badges, and salvage yard dice (a die that can drop still drops on tap).
 - Left as `title=`: buttons (their label says what they do; the title is a desktop extra), the
-      lobby, market chips and decks (a tap opens the card viewer), the ✦ badge (now in the ship
+      lobby, market chips and decks (a tap opens the card viewer), the ✦ badge (now in the mech
       bubble).
-- [ ] Long-press for info on actionable things (own ships during your turn, highlighted
-      planets): skip unless real-device testing shows it's needed. Your selected ship's ability
-      is already in ShipPanel.
+- [ ] Long-press for info on actionable things (own mechs during your turn, highlighted
+      objectives): skip unless real-device testing shows it's needed. Your selected mech's ability
+      is already in MechPanel.
 
 **Done when:** on an iPad you can find every piece of information without a mouse. ✅ in
 emulation; G55 by eye still to do.
 
 ### Step 3: Phone layout, minimal version (medium, 1–2 days)
 Keep the scrolling column, but pin what matters:
-- [x] **Sticky bottom turn bar** below 980px: the TurnPanel (with ShipPanel) itself in a compact
+- [x] **Sticky bottom turn bar** below 980px: the TurnPanel (with MechPanel) itself in a compact
       form, `position: sticky; bottom: 0`. Compact: "Turn 4" beside the name, the hint at most 3
-      lines (2 below 400px), the selected ship one row (ability text hidden, a tap on its name
-      shows it; below 400px no die and Undo is just its icon). Your scrapyard is in the bar
-      whenever you can deploy (setup placement, your action phase, Unveil). During a card pick
+      lines (2 below 400px), the selected mech one row (ability text hidden, a tap on its name
+      shows it; below 400px no die and Undo is just its icon). Your salvage yard is in the bar
+      whenever you can drop (setup placement, your action phase, Unveil). During a card pick
       the bar lets go (`:has(.market.picking)`), so it can't cover the cards. The sidebar becomes
       `display: contents` so its panels join one flex column (board, market, online panel,
       players, log, turn panel). The turn panel goes **last**: pinned to the bottom of the screen
@@ -268,7 +268,7 @@ Keep the scrolling column, but pin what matters:
       **Combat was broken on every phone:** below 980px the two sides stacked, making the battle
       ≈ 850px tall with *Resolve battle* off screen and no way to scroll to it. Now the sides stay
       side by side with 40px dice and tighter spacing; in phone landscape each side's roll and
-      ship share a row and the rule sits beside the verdict; the battle box scrolls as a last
+      mech share a row and the rule sits beside the verdict; the battle box scrolls as a last
       resort. Change of Heart and the rules scroll their content with the heading (and ×) in view;
       game over fits as it was. The compact battle also serves windows up to 720px high (laptops, under
       the browser's bars), with an 88px mech strip; `mobile:shots` checks that on short windows and the
@@ -285,14 +285,14 @@ Keep the scrolling column, but pin what matters:
       turn panel at rest; drag or tap its handle for the online panel, market, players and log (the
       sheet opens by itself while you pick a card, scrolled to the market, which stays first). A tap on the dimmed map
       or Esc shuts it. Its resting height only grows during a game, so the map doesn't jump when
-      the turn panel gains the ship row. With no page scroll, every touch on the map is the zoom's
+      the turn panel gains the mech row. With no page scroll, every touch on the map is the zoom's
       (Step 4). Landscape, tablets and desktop are unchanged.
-- [x] **The selected ship's row is always one line** (2026-10-07): its name and every action button. In a narrow
+- [x] **The selected mech's row is always one line** (2026-10-07): its name and every action button. In a narrow
       turn panel (container query, ≤ 540px: phone portrait and the landscape column) the die is left out (the
-      ship glows on the board), buttons are tighter and long labels get short ones (*→ 3*, *Switch*, *Carry*,
+      mech glows on the board), buttons are tighter and long labels get short ones (*→ 3*, *Switch*, *Carry*,
       *Tactical*, *Sacrifice*; the full text stays as `aria-label`). The name is cut short before the buttons
       shrink; only if they still don't fit (rare skill combinations) do they scroll sideways. `mobile:shots`
-      selects each of your ships and fails if a row wraps or its buttons scroll.
+      selects each of your mechs and fails if a row wraps or its buttons scroll.
 - [x] **Zoom feel** (2026-10-07): the zoom buttons, "whole map", the edge arrows and mouse-wheel
       notches glide (eased, ~250ms) instead of jumping; a flung map carries on and slows down;
       pulled past an edge or the zoom limits it rubber-bands and springs back. Still to try on the G55.
@@ -338,13 +338,13 @@ the G55 shows gesture problems we can't fix.
       page still scrolls over it.
 - [x] Buttons: zoom in / out / whole map with a mouse; on touch only *Whole map*, while zoomed (so
       they don't cover the corner space).
-- [x] Zoomed in: an arrow at each edge beyond which something is highlighted (spaces, planets,
-      ships you can pick), with a count; a tap pans to the nearest.
+- [x] Zoomed in: an arrow at each edge beyond which something is highlighted (spaces, objectives,
+      mechs you can pick), with a count; a tap pans to the nearest.
 - [x] A map of another size starts at the whole map.
 - [ ] **On the G55:** a pinch at the fitted size while the portrait page can scroll. If the
       fingers drift, Chrome may take it as a page scroll and cancel it part-way. The map + bottom
       sheet layout (no page scroll, the board takes every touch) is the real fix.
-- [x] **Follow opponent and AI moves** (2026-10-07): zoomed in, a ship this screen doesn't play for that
+- [x] **Follow opponent and AI moves** (2026-10-07): zoomed in, a mech this screen doesn't play for that
       moves or arrives off screen glides the map to it at the same zoom (`useFollowMoves` in
       [ZoomUi.tsx](../apps/web/src/components/board/ZoomUi.tsx), `reveal` in useBoardZoom). Never at the whole
       map, never while a finger is on the map, never for your own moves. Checked in G55 emulation on Event
@@ -352,10 +352,10 @@ the G55 shows gesture problems we can't fix.
 - [ ] Optional: double-tap to zoom, a mini-map.
 - [x] Pinch test in `mobile:shots` (2026-10-07): on every touch device, on your turn, a synthesised
       pinch (`Input.synthesizePinchGesture`), a one-finger pan and *Whole map*. Checks the spaces grow,
-      the pan moves the map without moving a ship or scrolling the page, and *Whole map* fits it again.
+      the pan moves the map without moving a mech or scrolling the page, and *Whole map* fits it again.
       Chrome only. All 30 touch device × map cases pass (iPad Alpha Sector doesn't zoom: spaces big already).
 
-**Done when:** a 4-player map is playable on the Moto G55 and an iPhone with ships
+**Done when:** a 4-player map is playable on the Moto G55 and an iPhone with mechs
 ≥ 44px when zoomed in, and panning never makes a move.
 
 ### Step 5: Home-screen app (built 2026-10-07; G55 check to do)

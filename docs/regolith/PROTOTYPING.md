@@ -15,7 +15,7 @@ Nothing here is permanently adopted. Rulings, once decided, go to [RULES.md](../
 > **Status key:** **Current** rules are enabled in the playable Regolith mode and covered by
 > [regolith.test.ts](../../packages/engine/test/regolith.test.ts). **Candidates** are described
 > design work or partially implemented building blocks; they do not change a Regolith game until
-> they are registered in `MECHS` ([ships.ts](../../packages/engine/src/ships.ts)) or `REGOLITH` ([rulesets.ts](../../packages/engine/src/rulesets.ts)).
+> they are registered in `MECHS` ([mechs.ts](../../packages/engine/src/mechs.ts)) or `REGOLITH` ([rulesets.ts](../../packages/engine/src/rulesets.ts)).
 
 ## Current Regolith baseline
 
@@ -176,7 +176,7 @@ No up-front refactor is needed. Do each step when a rule needs it. Step 2 is don
 | 8 | UI driven by the rule set: ship names and powers, player tracks, generic decision dialogs | Showing dynamic rule sets on screen | Large |
 
 Step 2 mattered most for ship redesign and is complete. A ship's identity was formerly hard-coded as
-`d.value === N` across [abilities.ts](../../packages/engine/src/abilities.ts), `moveOptions`, and
+`d.value === N` across [abilities/index.ts](../../packages/engine/src/abilities/index.ts), `moveOptions`, and
 [legal.ts](../../packages/engine/src/legal.ts). Now each mode has a ship table (`RuleSet.ships`): the engine
 queries `hasAbility(state, d, 'warp')` or reads a prototype's hooks, and the UI reads names and ability texts
 through `shipOf(state, value)`.
@@ -791,76 +791,77 @@ park ships in orbit on purpose.
 
 ## 9. Developer guide: working on Regolith
 
-Everything specific to Regolith's mechs lives in [`ships.ts`](../../packages/engine/src/ships.ts) and
-[`powers/`](../../packages/engine/src/powers); the mode itself is `REGOLITH` in
+Everything specific to Regolith's mechs lives in [`mechs.ts`](../../packages/engine/src/mechs.ts) and
+[`abilities/`](../../packages/engine/src/abilities/); the mode itself is `REGOLITH` in
 [`rulesets.ts`](../../packages/engine/src/rulesets.ts). The core engine and web UI never hard-code its
-powers or mode name.
+abilities or mode name.
 
 ### File Layout
 
 ```
 packages/engine/src/
-  rulesets.ts       Basic and Regolith: REGOLITH, BASIC, REGOLITH_DECKS, REGOLITH_OVER_CONQUEST
-  ships.ts          ShipHooks, Power, the MECHS table (which mech has which power) and SHIPS
-  powers/picket.ts  Picket's hooks, applied to every ship as the zone-of-control rule
-  powers/shoot.ts   power text and hooks for Shoot (5)
-  powers/barrier.ts power text and hooks for Barrier (6); the barriers themselves are GameState.barriers
+  rulesets.ts          Basic and Regolith: REGOLITH, BASIC, REGOLITH_DECKS, REGOLITH_OVER_CLAIM
+  mechs.ts             MechHooks, MechAbility, the BASE_MECHS table (which mech has which ability) and MECHS
+  abilities/index.ts   the ability action, and the 1 to 4's built-in abilities (Free Attack, Carry, Swap, Change)
+  abilities/picket.ts  Picket's hooks, applied to every mech as the zone-of-control rule
+  abilities/shoot.ts   ability text and hooks for Shoot (5)
+  abilities/barrier.ts ability text and hooks for Barrier (6); the barriers themselves are GameState.barriers
 ```
 
 | To Change | File to Edit |
 |---|---|
 | Mode summary, actions per turn, cards, maps | `REGOLITH` in [rulesets.ts](../../packages/engine/src/rulesets.ts) |
 | Movement cap | `MAX_MOVEMENT` in [queries.ts](../../packages/engine/src/queries.ts) |
-| Over-conquest on/off | `REGOLITH_OVER_CONQUEST` in [rulesets.ts](../../packages/engine/src/rulesets.ts) |
-| Contested orbit | `orbitBlockers` in [queries.ts](../../packages/engine/src/queries.ts) |
-| Which ship has which power, ship names | `MECHS` in [ships.ts](../../packages/engine/src/ships.ts) |
-| A power's rules text, range, or hooks | Power file in [powers/](../../packages/engine/src/powers) |
-| Add a power using existing hooks | New file in `powers/`, referenced in `MECHS` |
-| Add a new kind of rule hook | Add to `ShipHooks` in [ships.ts](../../packages/engine/src/ships.ts) |
+| Over-claim on/off | `REGOLITH_OVER_CLAIM` in [rulesets.ts](../../packages/engine/src/rulesets.ts) |
+| Contested perimeter | `perimeterBlockers` in [queries.ts](../../packages/engine/src/queries.ts) |
+| Which mech has which ability, mech names | `BASE_MECHS` in [mechs.ts](../../packages/engine/src/mechs.ts) |
+| An ability's rules text, range, or hooks | Its file in [abilities/](../../packages/engine/src/abilities/) |
+| Add an ability using existing hooks | New file in `abilities/`, referenced in `BASE_MECHS` |
+| Add a new kind of rule hook | Add to `MechHooks` in [mechs.ts](../../packages/engine/src/mechs.ts) |
 
-### Defining a Power
+### Defining an Ability
 
-A power is a `Power` object (ships.ts) combining UI metadata with optional engine hooks. The current
-implementation is [shoot.ts](../../packages/engine/src/powers/shoot.ts); a small passive example
+An ability is a `MechAbility` object (mechs.ts) combining UI metadata with optional engine hooks. The current
+implementation is [shoot.ts](../../packages/engine/src/abilities/shoot.ts); a small passive example
 (Beacon, not registered) would be:
 
 ```ts
-// packages/engine/src/powers/beacon.ts
+// packages/engine/src/abilities/beacon.ts
 import { surrounding } from '../board';
 import { cellOf } from '../lookups';
-import { type Power } from '../ships';
+import { type MechAbility } from '../mechs';
 
-export const beacon: Power = {
+export const beacon: MechAbility = {
   ability: {
     name: 'Beacon',
-    text: 'You may deploy into any empty space around this ship.',
+    text: 'You may drop into any empty space around this mech.',
   },
   hooks: {
-    deployTargets: (state, ship) => surrounding(state.board, cellOf(ship)!),
+    dropTargets: (state, mech) => surrounding(state.board, cellOf(mech)!),
   },
 };
 ```
 
 ### Engine Integration & Hooks
 
-1. **One import.** [rulesets.ts](../../packages/engine/src/rulesets.ts) is the only place importing the ship table
-   (ships.ts) to build the rule sets. Engine modules read the rule set
+1. **One import.** [rulesets.ts](../../packages/engine/src/rulesets.ts) is the only place importing the mech table
+   (mechs.ts) to build the rule sets. Engine modules read the rule set
    through `rulesOf` (rules.ts), which imports no mode, so the engine loads the same whichever module comes
    first (`load-order.test.ts`).
-2. **Hooks over names.** Ships have built-in official powers (`strike`, `transport`...) or
-   `hooks: ShipHooks`. The engine evaluates hooks via `hooksOf(state, die)`:
+2. **Hooks over names.** Mechs have built-in abilities (`strike`, `transport`...) or
+   `hooks: MechHooks`. The engine evaluates hooks via `hooksOf(state, die)`:
 
    | Hook | Evaluated By | Purpose / User |
    |---|---|---|
-   | `stopsEnemies` | `stopZone` → `moveIndexes`, `shipReach` | Stops enemy movement when entering zone (Picket) |
-   | `deployTargets` | `deployTargets` | Additional valid cells for Deploy action (Beacon) |
-   | `action` (`options`, `apply`) | generic `power` action handler | Custom active power button & execution (Shoot, Barrier) |
+   | `stopsEnemies` | `stopZone` → `moveIndexes`, `mechReach` | Stops enemy movement when entering zone (Picket) |
+   | `dropTargets` | `dropTargets` | Additional valid cells for Drop action (Beacon) |
+   | `action` (`options`, `apply`) | generic `ability` action handler | Custom active ability button & execution (Shoot, Barrier) |
 
    Barrier needed one piece of engine state no hook could hold: `GameState.barriers`, which `isEmptySpace`
-   (deploys, shots, Tactical, Nomadic, start slots), the move searches (`reach`, `shipReach`), `carryOptions`,
-   Warp Gate placement and `checkInvariants` read.
+   (drops, shots, Tactical, Nomadic, start slots), the move searches (`reach`, `mechReach`), `carryOptions`,
+   Ice Tunnel placement and `checkInvariants` read.
 
-3. **Generic action pipeline.** Powers with an `action` hook produce `{ type: 'power', die, target?, to? }`.
+3. **Generic action pipeline.** Abilities with an `action` hook produce `{ type: 'ability', die, target?, to? }`.
    The UI automatically renders a button with `ability.name`, highlights valid targets, and displays
    `ability.hint` without needing UI code changes.
 4. **Cheap when unused.** Active hooks are cached per mode (`modeHasHook`).
@@ -874,7 +875,7 @@ export const beacon: Power = {
 ### Adding a New Hook
 
 Only add a new hook when no existing hook fits:
-1. Add the optional hook signature to `ShipHooks` in [ships.ts](../../packages/engine/src/ships.ts).
-2. Name the hook after the **rule concept** (e.g. `stopsEnemies`), not the specific power name (`picket`).
+1. Add the optional hook signature to `MechHooks` in [mechs.ts](../../packages/engine/src/mechs.ts).
+2. Name the hook after the **rule concept** (e.g. `stopsEnemies`), not the specific ability name (`picket`).
 3. Read the hook via `hooksOf` in the single engine function it affects.
 4. Add a scenario test in [regolith.test.ts](../../packages/engine/test/regolith.test.ts).

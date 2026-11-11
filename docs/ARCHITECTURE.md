@@ -19,22 +19,22 @@ How the code is organised, and where to make the common changes.
 |---|---|
 | `engine.ts` | Public API (`apply`, `tryApply`, `actor`) and the handler registry |
 | `rules.ts` | `RuleSet`: everything that differs between Basic and Regolith; `rulesOf()` |
-| `rulesets.ts` | `RULESETS`, the rule set of each mode, with the mechs (`ships.ts`). It hands the table to `rules.ts` when it loads, so each module that takes a state from outside (`setup`, `engine`, `invariants`) imports it |
+| `rulesets.ts` | `RULESETS`, the rule set of each mode, with the mechs (`mechs.ts`). It hands the table to `rules.ts` when it loads, so each module that takes a state from outside (`setup`, `engine`, `invariants`) imports it |
 | `actionShape.ts` | `isWellFormed()`: the shape of every action, checked by `apply` before any handler (actions from other browsers are untrusted) |
 | `setup.ts` | `createGame` and the setup decisions |
-| `actions.ts` | Move/Attack, Deploy, Reconfigure, Research, Conquer, end turn |
+| `actions.ts` | Move/Attack, Drop, Refit, Research, Claim, end turn |
 | `abilities.ts` | The mechs' powers built into the engine (1–4) |
-| `ships.ts`, `powers/` | The mechs by die value, and the powers that plug in through `ShipHooks` (Shoot, Barrier, the zone of control) |
-| `combat.ts` | Attacks, missiles, advancing, Take Over |
+| `mechs.ts`, `abilities/` | The mechs by die value, and the abilities: the 1 to 4's built in, the others plugged in through `MechHooks` (Shoot, Barrier, the zone of control) |
+| `combat.ts` | Attacks, atomics, advancing, Take Over |
 | `cards.ts` | Card market, Tactic effects, card decisions |
 | `effects.ts` | The implemented Skill and Tactic effects, as types |
 | `skillRules.ts` | What every skill does: one entry of hooks per skill (`SKILL_RULES`) |
 | `skillActions.ts` | Skills used as an action of their own |
 | `turn.ts` | Start/end of turn; `settle()` auto-resolves decisions after each action |
 | `legal.ts` | `legalActions()` |
-| `queries.ts` | Read-only questions: movement, conquer check, combat totals… |
+| `queries.ts` | Read-only questions: movement, claim check, combat totals… |
 | `lookups.ts` | Where dice are, what is on a space; no rules |
-| `core.ts` | Shared helpers: errors, log, dice, dominance/research, cubes |
+| `core.ts` | Shared helpers: errors, log, dice, power/research, cubes |
 | `invariants.ts` | `checkInvariants()`: consistency checks every state must pass |
 | `board.ts`, `mapStats.ts`, `data.ts`, `rng.ts`, `types.ts`, `undo.ts` | Board geometry, map stats, card/map data, RNG, types, undo policy |
 
@@ -62,9 +62,9 @@ In [`apps/web/src/game`](../apps/web/src/game):
 | `useAiDriver.ts` | Moves for the AI players, with delays so humans can follow; AI responses in combat |
 | `aiClient.ts`, `aiWorker.ts` | Runs the AI in a Web Worker, falling back to the main thread |
 | `toasts.ts`, `sounds.ts` | The toast and sound for each step, derived from what changed and the new log entries |
-| `strike.ts`, `cast.ts`, `useTransient.ts` | Ships destroyed by a step, which card a step is the doing of, and transient step effects |
+| `strike.ts`, `cast.ts`, `useTransient.ts` | Mechs destroyed by a step, which card a step is the doing of, and transient step effects |
 | `review.ts`, `past.ts` | Looking back at earlier positions from the log |
-| `controller.ts` | The human's selection (`Sel`) and what a click on a die, space or planet does |
+| `controller.ts` | The human's selection (`Sel`) and what a click on a die, space or objective does |
 | `highlights.ts` | `highlightsFor()`: what the board lights up, derived from the legal actions |
 | `hints.ts` | The one-line hint for the current decision or selection |
 | `legal.ts` | The legal actions indexed by type, for buttons and highlights |
@@ -103,7 +103,7 @@ IndexedDB), `lab/` (the Art Lab pages), `print/` (print exports and sheets, shar
   ([ErrorBoundary.tsx](../apps/web/src/components/ErrorBoundary.tsx)), not a blank page, and logs the
   last saved position.
 - `npm run test:deep` runs the legal-action cross-check exhaustively over more games (minutes).
-- `npm run ui:check` checks in Chrome what unit tests can't render: choosing how to conquer a planet, the
+- `npm run ui:check` checks in Chrome what unit tests can't render: choosing how to claim an objective, the
   manual's maps drawn only as they're reached, and the crash screen. CI runs it with `mobile:shots` before every deploy.
 - `npm run replay:check` checks in Chrome looking back at a game from its log: the map, the log and the
   way back to the game, a reload keeping the game's past, and the phone layout. CI runs it with `ui:check`.
@@ -125,7 +125,7 @@ automatically, and `data.test.ts` drops it from the not-yet-implemented list.
 
 **Add a Skill.** Add the card to `data/regolith.yaml` and its effect to `SKILL_EFFECTS` in `effects.ts`;
 the compiler then asks for its entry in `SKILL_RULES` (`skillRules.ts`). An entry is a set of hooks the
-rules read — `movement`, `conquer.sums`, `combat.modifier`, `startOfTurn`, `onDestroy`… — so a skill
+rules read — `movement`, `claim.sums`, `combat.modifier`, `startOfTurn`, `onDestroy`… — so a skill
 is defined in one place. If no hook fits, add one to `SkillRule` and read it where the rule lives
 (via `skillRules(state, player)`; rules never name a skill). A skill that is an action of its own
 sets `activated` and gets a handler in `skillActions.ts`.
@@ -147,7 +147,7 @@ or barriers (`start:` in the YAML, group `prepared`): `npm run map:show -- <id>`
 | [`basic.test.ts`](../packages/engine/test/basic.test.ts) | Every rule Basic inherits from the 2013 FunForge rulebook, one scenario each, citing its page |
 | [`regolith.test.ts`](../packages/engine/test/regolith.test.ts) | Regolith's own rules: the movement cap, zones of control, Shoot, Barrier, contested perimeters |
 | [`hex.test.ts`](../packages/engine/test/hex.test.ts), [`offset.test.ts`](../packages/engine/test/offset.test.ts) | Hex geometry; objectives off the middle of their tiles |
-| [`engine.test.ts`](../packages/engine/test/engine.test.ts) | Card effects, modes, missiles, undo |
+| [`engine.test.ts`](../packages/engine/test/engine.test.ts) | Card effects, modes, atomics, undo |
 | [`card-audit.test.ts`](../packages/engine/test/card-audit.test.ts) | The card audit ([`audit.ts`](../packages/engine/test/audit.ts)) on its quick games: AI games with skills dealt so every card is held, checking at every step legality, soundness of card decisions, invariants, and each card's effect against its text. `npm run audit:cards` plays the whole matrix (`-- --deep`: level 4 and more maps) and prints each anomaly with the game log, plus card coverage |
 | [`card-scenarios.test.ts`](../packages/engine/test/card-scenarios.test.ts) | A scenario per card (every mode), driven through its real trigger; fails if a card has none. At every decision a scenario reaches, the engine accepts no answer `legalActions` doesn't offer ([`decisions.ts`](../packages/engine/test/decisions.ts)), which covers decisions the AI games rarely reach |
 | [`card-rulings.test.ts`](../packages/engine/test/card-rulings.test.ts) | Prospectors, Remodel, Stolen Flag, Strategic Plan and Signal Jammer, edge cases included |

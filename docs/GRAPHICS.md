@@ -88,14 +88,14 @@ it shows that ground.
   scales it up (`tileGroundSvg`), and the Art Lab shows tiles as they print.
 - **Layers.** Every tile stacks in one order (`TILE_LAYERS`): `ground` (with the building), `spaces` (a well
   per space), `standing` (what stands on the ground again, so the wells are etched into the ground and not
-  across the buildings), `planet` (the number and cube pads). Print joins them (`tileSvg`); the Illustrator
+  across the buildings), `objective` (the number and cube pads). Print joins them (`tileSvg`); the Illustrator
   export (`editableTileSvg`) puts the filtered layers in a 600 dpi bitmap and the rest over it as vectors; the
   map ([`MapTiles.tsx`](../apps/web/src/components/board/MapTiles.tsx)) stacks the same layers, each raster
   layer drawn alone (`rasterLayerSvg`, over its `RASTER_AREA`; what stands is cut out of the ground's image
   with `standingMaskSvg`). The map's spaces and numbers come from the board, not the tile, since a perimeter
   can reach onto the next tile.
-- **Off the middle.** An objective may sit on any hex of its tile (docs/HEX.md, *Off-centre planets*); the
-  Art Lab shows the set with each objective on any spot (`planetAt`). Only the 7s go off the middle on
+- **Off the middle.** An objective may sit on any hex of its tile (docs/HEX.md, *Off-centre objectives*); the
+  Art Lab shows the set with each objective on any spot (`objectiveAt`). Only the 7s go off the middle on
   today's maps (`OFF_CENTRE`); a larger building would spill over the tile's edge.
 - **Where tiles meet.** Each tile's ground is laid by its own noise, so its broad patches (Mars's basalt, the
   brightness's mottle) would stop dead at the cut. They fade out over the last 0.6 of a space in (`rimFade`),
@@ -147,8 +147,8 @@ tile needs a start version. The map setup sheets show which.
 | **Total** | **45** |
 
 **Player-count kits.** The Tiles page can cut the set down to the kit for one player count: every tile any
-one of that count's maps on the world lays (`tileKit`), each with its planet where that map puts it. The k-th
-planet of a number is that number's k-th tile (art `assignTiles`), so this is the most of each kind any one map
+one of that count's maps on the world lays (`tileKit`), each with its objective where that map puts it. The k-th
+objective of a number is that number's k-th tile (art `assignTiles`), so this is the most of each kind any one map
 lays at once, not every map's tiles added up, and every map is laid with the tiles the screen shows. A 7 a map
 moves off the middle (`7se`, *Off the middle*) is a tile of its own, printed that way: a kit can hold `p7-01` in
 the middle and `p7-01` at `se`. The page shows these as `p7-01-se`. "All maps" is the kit for every map on the

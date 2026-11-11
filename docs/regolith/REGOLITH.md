@@ -118,7 +118,7 @@ Expansion card (`expansionCard(state)`, which the market and card flights ask).
   cards by effect ([cardValues.ts](../../packages/ai/src/cardValues.ts)).
 - **Reworked and new cards** need new rules. Where an effect can be written as a hook, it goes in
   `packages/engine/src/cards/`, one file per effect, like
-  [powers/](../../packages/engine/src/powers), so a card's rules stay out of the core. That
+  [abilities/](../../packages/engine/src/abilities/), so a card's rules stay out of the core. That
   needs a card-hook surface in the kit next to `ShipHooks` (PROTOTYPING.md §9 *Adding a New Hook*), built
   when the first reworked card needs it. An effect too tangled for a hook goes into the engine's effects
   like any card, registered in `IMPLEMENTED_EFFECTS`, and only Regolith's deck deals it.

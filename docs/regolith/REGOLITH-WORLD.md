@@ -142,9 +142,7 @@ decided, not forgotten.
 | Skill / Tactic | **Skill / Tactic** |
 | Sector (map names) | **Region**: Utopia Planitia, Hellas Basin, Shackleton |
 
-**Power** is also what the game calls a mech's ability (the 5's Shoot is a "power" in the code and the
-docs). Players only see "ability" today, so there is no clash on screen, but the rulebook should say
-"ability" for mechs once dominance is called power.
+**Power** is the track (dominance, in the original). A mech's own power is its **ability**, in the game, the rulebook and the code (`abilities/`, the `ability` action) alike.
 
 ## In the game
 
@@ -152,9 +150,9 @@ What a Regolith game shows today:
 
 - **The name**, in the lobby's mode menu and the game's top bar.
 - **The mech names and power texts**, everywhere a ship is named: board, sidebar, log, combat and the other
-  overlays. They live in the mode's ship table (`SHIPS` in
-  [ships.ts](../../packages/engine/src/ships.ts)), and the engine and web app ask the
-  game's rules for a name (`shipOf`, `shipName`), so each rule set can name its own mechs.
+  overlays. They live in the mode's mech table (`MECHS` in
+  [mechs.ts](../../packages/engine/src/mechs.ts)), and the engine and web app ask the
+  game's rules for a name (`mechOf`, `mechName`), so each rule set can name its own mechs.
 - **Hex maps only**, on Phobos's, Deimos's and Mars's ground.
 - **The words** in the table above, across the game's text: log, hints, cards, panels and errors
   ([REGOLITH.md](REGOLITH.md) §7).

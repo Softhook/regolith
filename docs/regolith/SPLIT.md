@@ -26,7 +26,7 @@ The rules of Regolith stay in [PROTOTYPING.md](PROTOTYPING.md) and its cards and
 
 [REGOLITH.md §1](REGOLITH.md#1-the-rename) kept Regolith apart. The engine reaches it only through
 `RULESETS.regolith` ([rulesets.ts](../../packages/engine/src/rulesets.ts)). Its mechs
-([ships.ts](../../packages/engine/src/ships.ts), [powers/](../../packages/engine/src/powers)) are the one place its powers live. The rest of the code asks the rule set
+([mechs.ts](../../packages/engine/src/mechs.ts), [abilities/](../../packages/engine/src/abilities/)) are the one place its powers live. The rest of the code asks the rule set
 (`contestedOrbit`, `words`, `look`, …), and `regolith.test.ts` checks it. Removing a mode means deleting
 its rule set and following the type errors.
 
@@ -128,7 +128,7 @@ Regolith's two modes become the engine's only rule sets. One commit per step, `n
    way powers plug in.
 6. **Words at the source.** Write the log, rule errors and card text in Regolith's words ("mech",
    "objective", "control"), then drop `REGOLITH_WORDS`, `reword` and `useSay`. Code identifiers (`Die`, `ship`,
-   `planet`) can stay; renaming them is last, and only if wanted.
+   `planet`) can stay; renaming them is last, and only if wanted. (Renamed 2026-11-11: RULES.md, *Words*.)
 7. **Square grid.** Regolith is hex only, so the square paths in `board.ts`, the art and the web board go,
    after the Tile Lab stops printing square tiles (step 10).
 8. **AI.** Every term and value the AI keeps must still mean something: `cardValues.ts` keyed by Regolith's

@@ -21,21 +21,15 @@ Both are `RuleSet`s in [`rulesets.ts`](../packages/engine/src/rulesets.ts); Basi
 
 ## Words
 
-The engine keeps its original identifiers; players read Regolith's words (REGOLITH.md §7).
+The engine uses the words players read (REGOLITH.md §7): `mech`, `objective`, `perimeter`, `claim`, `drop`,
+`refit`, `salvageYard`, `power`, `atomic`, Alien Artefact (`artefact` on a board cell) and Ice Tunnel (`tunnels`
+on the state). A mech is a `Die`; its face is its kind (1–6). A mech's own ability is an *ability* (the `ability`
+action, [`abilities/`](../packages/engine/src/abilities/)), never a power: Power is the track.
 
-| Players read | Engine | Notes |
-|---|---|---|
-| mech | ship, `Die` | A die on the map; its face is its kind (1–6) |
-| objective | planet | Numbered 7–10 |
-| perimeter | orbit, orbital spaces | The 6 spaces next to an objective |
-| claim | conquer | |
-| drop | deploy | |
-| refit | reconfigure | |
-| salvage yard | scrapyard | Destroyed mechs, waiting to drop |
-| Power | dominance | |
-| atomic | missile | |
-| Alien Artefact | void | A tile with no objective |
-| Ice Tunnel | warp gate | Made by the Ice Tunnel tactic |
+A few ids keep their original names, because they are data rather than words: each card's `effect` (named
+after the Community card it began as, such as `warp-gate` for Ice Tunnel), the 1 to 4's built-in ability ids
+(`strike`, `transport`, `warp`, `modify`), and the physical tile ids (`p7-01`, `void`). The words test
+([`words.test.ts`](../packages/engine/test/words.test.ts)) keeps the original words out of the game's log.
 
 ## Components
 
@@ -72,7 +66,7 @@ may share a space: a mech there is on both.
 
 1. **Start.** Regolith: +1 Research for each of your mechs on an Alien Artefact.
 2. **Up to 3 actions**, any order, any repeats. Each mech makes at most one move, attack or shot a turn.
-   Mech powers and cards may also be used after the last action.
+   Mech abilities and cards may also be used after the last action.
 3. **Cards** (Regolith): take 1 for each objective you claimed this turn (Take Over included), and 1 if your
    Research is at 6, which then resets to 1.
 
@@ -106,10 +100,10 @@ claim one you are already on. The sum needed rises by 3 for each of your cubes t
 
 ## The mechs
 
-Each mech's kind is its die face ([`ships.ts`](../packages/engine/src/ships.ts), [`powers/`](../packages/engine/src/powers)).
-A power is used on your turn, on the map, once per die per turn, even if the die changes kind.
+Each mech's kind is its die face ([`mechs.ts`](../packages/engine/src/mechs.ts), [`abilities/`](../packages/engine/src/abilities/)).
+An ability is used on your turn, on the map, once per die per turn, even if the die changes kind.
 
-| | Mech | Power |
+| | Mech | Ability |
 |---|---|---|
 | 1 | Breacher | **Free Attack:** attack an adjacent enemy without using its move. |
 | 2 | Behemoth | **Carry & Move:** carry one of your mechs next to it as part of its move, and set it down next to it. |
