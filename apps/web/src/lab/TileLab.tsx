@@ -14,9 +14,8 @@ import { groundDrawn, latestThumbnail, litGround, printedTileSvg, printedTileSvg
 /**
  * Art Lab, tiles page (#lab): every tile of the physical set, die-cut along its flower, on Phobos, Deimos or
  * Mars, with controls to explore seeds and to export print files: single tiles, the whole set, print sheets,
- * and each world's CMYK press sheets. See docs/GRAPHICS.md §3–4. The set can be shown with its objectives moved
- * off the middle, as maps place them (docs/HEX.md), cut down to the kit a player count needs, and made
- * two-sided, another world on the back.
+ * and each world's CMYK press sheets. See docs/GRAPHICS.md §3–4. The set can be cut down to the kit a player count
+ * needs, and made two-sided, another world on the back.
  */
 
 /** A thumbnail's size, px: its tile shown up to ~200 px across, at 2× device pixels. */

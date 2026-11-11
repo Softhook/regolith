@@ -79,8 +79,8 @@ Reinforcements pile.
 ## The map
 
 Hex maps of 7-hex tiles ([`data/maps.yaml`](../data/maps.yaml), [HEX.md](HEX.md)). A tile is an objective with
-its six spaces, an Alien Artefact, or blank ground. An objective may sit off the middle of its tile, and two perimeters
-may share a space: a mech there is on both.
+its six spaces, an Alien Artefact, or blank ground. The objective sits in the middle of its tile, and its six
+spaces are its perimeter.
 
 - An objective numbered *n* holds *n* − 6 cubes, at most one per player.
 - Objectives, mechs and barriers block movement. Mechs move out of a side of their space, never diagonally.

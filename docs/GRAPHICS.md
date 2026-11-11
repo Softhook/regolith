@@ -143,29 +143,26 @@ tile needs a start version. The map setup sheets show which.
 | **Total** | **45** |
 
 **Player-count kits.** The Tiles page can cut the set down to the kit for one player count: every tile any
-one of that count's maps on the world lays (`tileKit`), each with its objective where that map puts it. The k-th
+one of that count's maps on the world lays (`tileKit`). The k-th
 objective of a number is that number's k-th tile (art `assignTiles`), so this is the most of each kind any one map
-lays at once, not every map's tiles added up, and every map is laid with the tiles the screen shows. A 7 a map
-moves off the middle (`7se`, *Off the middle*) is a tile of its own, printed that way: a kit can hold `p7-01` in
-the middle and `p7-01` at `se`. The page shows these as `p7-01-se`. "All maps" is the kit for every map on the
+lays at once, not every map's tiles added up, and every map is laid with the tiles the screen shows. "All maps" is the kit for every map on the
 world, whatever its player count: never the full set, since no world lays every landmark (a Mass Driver stands
 on Phobos only, a Deep Space Array on Deimos only). The page offers only the player counts the world has maps for.
 
 | Players | Phobos | Deimos | Mars | Mars / Phobos, two-sided |
 |---|--:|--:|--:|--:|
-| 2 | 16 (2 off the middle) | 21 (4) | 31 | 33 (2) |
-| 3 | 24 | 18 (3) | 28 | 29 |
-| 4 | 29 (2) | 17 | 23 | 29 (2) |
+| 2 | 14 | 13 | 31 | 31 |
+| 3 | 24 | 15 | 28 | 29 |
+| 4 | 27 | 17 | 26 | 27 |
 | 5 | 19 | 12 | 19 | 21 |
-| All maps | 36 (4) | 31 (7) | 33 | 39 (4) |
+| All maps | 32 | 23 | 34 | 35 |
 
 **Two-sided tiles.** A tile can carry another world on its back: the same tile (`p7-01` is a Habitat on both
 sides), so one kit lays the maps of both worlds. Mars with Phobos on the back is the pairing for now. Each side
 is lit for its own world, and nothing else differs. The Tiles page's **Back** sets the world, **Show backs**
 shows that side. The kit is then the most either world's maps need: a Mars / Phobos 2-player kit is no bigger
 than Mars's and Phobos's own kits together, and a Deep Space Array (Deimos only) is in no Mars / Phobos kit. A side whose world can't hold
-the tile's landmark is open ground (`tileSide`): the Mars side of a Mass Driver is `blank-p11-01`. A tile printed
-with its 7 off the middle has it there on both sides. The flower cut is its own mirror image, so one cut serves
+the tile's landmark is open ground (`tileSide`): the Mars side of a Mass Driver is `blank-p11-01`. The flower cut is its own mirror image, so one cut serves
 both sides.
 
 **Sheets.** A tile with bleed fits **2 × 2 per A4 page**; print-on-demand vendors get one file per tile, a

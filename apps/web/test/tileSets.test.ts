@@ -3,11 +3,11 @@ import { BLANK, TILE_SET, type World } from '@regolith/art';
 import { MAPS } from '@regolith/engine';
 import { mapTiles, tileKit, tileSetPlayers, tileSide } from '../src/lab/tileSets';
 
-/** A kit's tiles by key: `p7-01`, `p7-01-se`. */
+/** A kit's tiles by id: `p7-01`. */
 const keysOf = (worlds: World[], players?: number) => new Set(tileKit(worlds, players).map((t) => t.id));
 
 describe('physical tile kits', () => {
-  it('lays every map for its player count and world, each objective where the map puts it, without needing the full set', () => {
+  it('lays every map for its player count and world, without needing the full set', () => {
     for (const map of MAPS) {
       const kit = keysOf([map.world ?? 'mars'], map.players);
       for (const k of mapTiles(map)) expect(kit, `${map.id}: ${k.id}`).toContain(k.id);

@@ -31,7 +31,7 @@ const KEEP_GROUNDS = 32;
 /** Whether a tile's ground is drawn, so `printedTileSvgNow` has it. */
 export const groundDrawn = (t: TileSpec, o: TileView) => !!grounds.get(groundKey(t, o))?.drawn;
 
-/** What a tile's ground is drawn from: the tile (its seed) and its world and objective's spot. */
+/** What a tile's ground is drawn from: the tile (its seed) and its world. */
 const groundKey = (t: TileSpec, o: TileView) => JSON.stringify([t, o.world]);
 
 /** A tile's lit ground on its world (art `tileGroundSvg`), drawn at the size its light is made for, once. */

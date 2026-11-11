@@ -25,7 +25,7 @@ export interface ObjectiveSetup {
   /** The hub's number on the base map, played as the control: 0 where the base map has an Alien Artefact there. */
   control: number;
   world: World;
-  /** Rows of tile tokens, `H` for each hub. Tokens sit in the middle of their tiles (no drift), so turning the map keeps them. */
+  /** Rows of tile tokens, `H` for each hub. Each objective sits in the middle of its tile, so turning the map keeps it. */
   layout: string[];
   /** Cube counts to play: one leaving the hub optional, one forcing it (see `slack`). */
   cubes: number[];

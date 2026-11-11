@@ -30,13 +30,16 @@ import { CORES } from './cores';
 /** Which way the objective's number lies from its middle, in degrees: its bottom right, where three hexes meet. */
 const NUMBER_CORNER = (Math.atan2(MEET.y, MEET.x) * 180) / Math.PI;
 
+/** How far apart two headings are, in degrees (0–180). */
+const apart = (a: number, b: number) => Math.abs(((((a - b) % 360) + 540) % 360) - 180);
+
 /**
  * The ways a base may spread from its objective's space, best first in a random order: towards the neighbouring
  * hexes (flat-topped, so they meet it at 30° + k·60°), not past the number's corner.
  */
 function exits(r: Rng, numbered: boolean): number[] {
   return [-90, -30, 30, 90, 150, 210]
-    .filter((a) => !numbered || Math.abs(((((a - NUMBER_CORNER) % 360) + 540) % 360) - 180) > 50)
+    .filter((a) => !numbered || apart(a, NUMBER_CORNER) > 50)
     .map((a) => ({ a, k: r.next() }))
     .sort((p, q) => p.k - q.k)
     .map((p) => p.a);
@@ -243,8 +246,7 @@ export function base(number: number, r: Rng, design?: string): Drawn | undefined
   const taken: Taken[] = [];
   const links: [Spot, Spot][] = [];
   const outskirtsOf = (hubReach: number, pool: Annex[], blocked: number[] = []) => {
-    const off = (a: number, b: number) => Math.abs(((((a - b) % 360) + 540) % 360) - 180);
-    const open = ways.filter((a) => blocked.every((b) => off(a, b) > 40));
+    const open = ways.filter((a) => blocked.every((b) => apart(a, b) > 40));
     return outer(outskirts(r, open, count, pool, hubReach, taken, links));
   };
   // The hub (or the sinkhole) is taken, then the small things go round what stands.
