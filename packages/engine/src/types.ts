@@ -77,7 +77,7 @@ export interface PlayerState extends PlayerConfig {
   atomics: number;
   cubesLeft: number;
   /**
-   * Home home objective (Regolith): the objective this player may always drop to. Their starting objective; when
+   * Home objective (Regolith): the objective this player may always drop to. Their starting objective; when
    * their last cube there leaves, it goes with the cube (Relocation) or to another of their objectives.
    */
   home?: number;
@@ -199,7 +199,7 @@ export type Pending =
   | { kind: 'unstableReactor'; player: PlayerId; attacker: string; defender: string; from: Cell; ranged?: true }
   /**
    * The player chooses the number of a mech that was just rolled: Engineering, one of `options` (the refitted
-   * number ± 1); Remodel, any number for a mech going to the salvageYard.
+   * number ± 1); Remodel, any number for a mech going to the salvage yard.
    */
   | { kind: 'engineering'; player: PlayerId; die: string; options?: number[]; source?: 'remodel' | 'engineering' }
   | { kind: 'advance'; player: PlayerId; die: string; to: Cell }
@@ -209,10 +209,10 @@ export type Pending =
   | { kind: 'peek'; player: PlayerId; deck: DeckKind; top: string; store?: boolean }
   /** `cannotDiscard`: a card that must be kept (Stolen Flag, just taken). */
   | { kind: 'discardSkill'; player: PlayerId; reason?: 'limit'; cannotDiscard?: string }
-  | { kind: 'placeReinforcement'; player: PlayerId; die: string }
+  | { kind: 'reinforcements'; player: PlayerId; die: string }
   | { kind: 'orbitalCannon'; player: PlayerId }
   | { kind: 'iceTunnel'; player: PlayerId; placed: Cell[] }
-  | { kind: 'placeBarrier'; player: PlayerId; placed: Cell[] }
+  | { kind: 'barricade'; player: PlayerId; placed: Cell[] }
   | { kind: 'kineticShunt'; player: PlayerId }
   | { kind: 'headhunter'; player: PlayerId }
   /** Stolen Flag: take Stolen Flag from victim who lost a mech. */
@@ -342,18 +342,18 @@ export type Action =
   | { type: 'takeCard'; deck: DeckKind | 'reinforcement'; index: number; store?: boolean }
   | { type: 'peekChoice'; takeTop: boolean }
   /** Arms Deal: take 1 atomic instead of a card earned by claiming. */
-  | { type: 'profiteer' }
+  | { type: 'armsDeal' }
   | { type: 'discardSkill'; skill: string }
-  | { type: 'placeReinforcement'; to: Cell | null }
+  | { type: 'reinforcements'; to: Cell | null }
   | { type: 'orbitalCannon'; die: string }
   | { type: 'iceTunnel'; cell: Cell }
-  | { type: 'placeBarrier'; cell: Cell }
+  | { type: 'barricade'; cell: Cell }
   | { type: 'kineticShunt'; die: string; to: Cell }
-  | { type: 'shuntBarrier'; from: Cell; to: Cell }
+  | { type: 'kineticShuntBarrier'; from: Cell; to: Cell }
   | { type: 'headhunter'; skill: string }
   | { type: 'stolenFlag'; take: boolean }
   | { type: 'signalJammer'; skill?: string }
-  | { type: 'playStoredTactic'; card: string }
+  | { type: 'strategicPlanPlay'; card: string }
   /** Strategic Plan, when taken: store the face-up Tactic at `index`, or none if left out. */
   | { type: 'strategicPlanTactic'; index?: number }
   | { type: 'invasionReroll'; die: string }

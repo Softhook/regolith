@@ -47,7 +47,7 @@ const DECISION_BRUTE_FORCE: { [K in Pending['kind']]: (s: GameState) => Action[]
   ],
   infamy: (s) => s.board.objectives.map((p) => ({ type: 'infamy', objective: p.id })),
   takeCard: () => [
-    { type: 'profiteer' },
+    { type: 'armsDeal' },
     ...(['skill', 'tactic', 'reinforcement'] as const).flatMap((deck) =>
       ROW_INDEXES.flatMap((index) => [{ type: 'takeCard', deck, index } as const, { type: 'takeCard', deck, index, store: true } as const]),
     ),
@@ -57,13 +57,10 @@ const DECISION_BRUTE_FORCE: { [K in Pending['kind']]: (s: GameState) => Action[]
     { type: 'peekChoice', takeTop: false },
   ],
   discardSkill: () => CARD_IDS.map((skill) => ({ type: 'discardSkill', skill })),
-  placeReinforcement: (s) => [
-    { type: 'placeReinforcement', to: null },
-    ...allCells(s).map((to) => ({ type: 'placeReinforcement', to }) as const),
-  ],
+  reinforcements: (s) => [{ type: 'reinforcements', to: null }, ...allCells(s).map((to) => ({ type: 'reinforcements', to }) as const)],
   orbitalCannon: (s) => s.dice.map((d) => ({ type: 'orbitalCannon', die: d.id })),
   iceTunnel: (s) => allCells(s).map((cell) => ({ type: 'iceTunnel', cell })),
-  placeBarrier: (s) => allCells(s).map((cell) => ({ type: 'placeBarrier', cell })),
+  barricade: (s) => allCells(s).map((cell) => ({ type: 'barricade', cell })),
   kineticShunt: (s) => s.dice.flatMap((d) => allCells(s).map((to) => ({ type: 'kineticShunt', die: d.id, to }) as const)),
   headhunter: () => CARD_IDS.map((skill) => ({ type: 'headhunter', skill })),
   strategicPlanTactic: () => [

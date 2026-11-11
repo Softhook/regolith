@@ -314,7 +314,7 @@ export function cardTaken(before: GameState, action: Action, after: GameState): 
 
 /** The Tactic, Gambit or Reinforcements played in this step, and by whom. */
 function playedCard(c: Step): { id: string; p: PlayerId } | undefined {
-  if (c.action.type === 'playStoredTactic') return { id: c.action.card, p: c.before.turn.player };
+  if (c.action.type === 'strategicPlanPlay') return { id: c.action.card, p: c.before.turn.player };
   const taken = cardTaken(c.before, c.action, c.after);
   if (taken?.played) return taken;
 }
@@ -458,10 +458,7 @@ const ORACLES: ((c: Step) => void)[] = [
         if (!pending('iceTunnel')) bad('no tunnels to place');
         break;
       case 'barricade':
-        if (
-          spaces(before.board).some((c) => isEmptySpace(before, c) && !before.tunnels?.some((g) => same(g, c))) &&
-          !pending('placeBarrier')
-        )
+        if (spaces(before.board).some((c) => isEmptySpace(before, c) && !before.tunnels?.some((g) => same(g, c))) && !pending('barricade'))
           bad('no barrier to place');
         break;
       case 'kinetic-shunt':
@@ -474,7 +471,7 @@ const ORACLES: ((c: Step) => void)[] = [
         if (!pending('invasion')) bad('no mechs to re-roll and drop');
         break;
       case 'reinforcements':
-        if (reserve(before, p).length && !pending('placeReinforcement')) bad('no new mech to place');
+        if (reserve(before, p).length && !pending('reinforcements')) bad('no new mech to place');
         break;
     }
   },
@@ -502,7 +499,7 @@ const ORACLES: ((c: Step) => void)[] = [
       before.players[p].storedTactics?.length &&
       !before.turn.storedTacticPlayed
     ) {
-      if (!legal.some((a) => a.type === 'playStoredTactic')) c.fail('strategic-plan', 'stored Tactic not playable');
+      if (!legal.some((a) => a.type === 'strategicPlanPlay')) c.fail('strategic-plan', 'stored Tactic not playable');
     }
   },
 
@@ -513,7 +510,7 @@ const ORACLES: ((c: Step) => void)[] = [
     const prospectors = held(before, p, 'prospectors');
     if (!prospectors || !legal || before.pending.length || before.turn.phase !== 'actions') return;
     if (c.turn.prospectorsUsed) {
-      if (legal.some((a) => a.type !== 'endTurn' && a.type !== 'playStoredTactic'))
+      if (legal.some((a) => a.type !== 'endTurn' && a.type !== 'strategicPlanPlay'))
         c.fail(prospectors, 'more actions offered after the Prospectors action');
       return;
     }
@@ -584,9 +581,9 @@ const ORACLES: ((c: Step) => void)[] = [
     const head = c.before.pending[0];
     if (c.legal && head?.kind === 'takeCard' && head.claim) {
       const armsDeal = held(c.before, head.player, 'arms-deal');
-      if (armsDeal && !c.legal.some((a) => a.type === 'profiteer')) c.fail(armsDeal, 'no atomic offered for a claim pick');
+      if (armsDeal && !c.legal.some((a) => a.type === 'armsDeal')) c.fail(armsDeal, 'no atomic offered for a claim pick');
     }
-    if (c.action.type === 'profiteer') c.fire(held(c.before, decider(c.before), 'arms-deal'));
+    if (c.action.type === 'armsDeal') c.fire(held(c.before, decider(c.before), 'arms-deal'));
   },
 ];
 
@@ -695,9 +692,9 @@ export function auditGame(g: AuditGame, opts: { maxSteps?: number; onStep?: (ste
 
     // Soundness at card decisions: every option offered is accepted.
     const head = s.pending[0];
-    if (legal && s.phase === 'play' && (head || legal.some((a) => a.type === 'playStoredTactic'))) {
+    if (legal && s.phase === 'play' && (head || legal.some((a) => a.type === 'strategicPlanPlay'))) {
       for (const option of legal) {
-        if (!head && option.type !== 'playStoredTactic') continue;
+        if (!head && option.type !== 'strategicPlanPlay') continue;
         try {
           apply(s, option);
         } catch (e) {

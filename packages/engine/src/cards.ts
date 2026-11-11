@@ -34,7 +34,7 @@ import {
   barrierShuntTargets,
   canShunt,
   canPlayStoredTactic,
-  canProfiteer,
+  canArmsDeal,
   canTakeCard,
   dropTargets,
   shuntPaths,
@@ -94,7 +94,7 @@ const TACTIC_EFFECTS: Record<TacticEffect, TacticEffectFn> = {
     s.pending.unshift({ kind: 'iceTunnel', player: p, placed: [] });
   },
   barricade: (s, p) => {
-    if (barrierSpaces(s).length > 0) s.pending.unshift({ kind: 'placeBarrier', player: p, placed: [] });
+    if (barrierSpaces(s).length > 0) s.pending.unshift({ kind: 'barricade', player: p, placed: [] });
   },
   'kinetic-shunt': (s, p) => {
     if (canShunt(s)) s.pending.unshift({ kind: 'kineticShunt', player: p });
@@ -106,7 +106,7 @@ const TACTIC_EFFECTS: Record<TacticEffect, TacticEffectFn> = {
       return;
     }
     // Placed after the roll is final (an Engineering choice comes first).
-    s.pending.unshift({ kind: 'placeReinforcement', player: p, die: res[0].id });
+    s.pending.unshift({ kind: 'reinforcements', player: p, die: res[0].id });
     roll(s, res[0]);
   },
 };
@@ -206,7 +206,7 @@ export const cardHandlers = {
       if (!res.length) fail('Your reserve is empty');
       consumeCardPick(s);
       s.market.reinforcements--;
-      s.pending.unshift({ kind: 'placeReinforcement', player: p, die: res[0].id });
+      s.pending.unshift({ kind: 'reinforcements', player: p, die: res[0].id });
       roll(s, res[0]);
       log(s, `${name(s, p)} reinforces their mechs.`, p, 'reinforcement');
       tally(s, p, 'cardsTaken');
@@ -234,9 +234,9 @@ export const cardHandlers = {
     takeOrStore(s, head.player, id, head.store);
   },
   /** Arms Deal: a pick earned by a Claim action (not by Take Over; RULES.md ruling 7) becomes 1 atomic. */
-  profiteer(s) {
+  armsDeal(s) {
     const head = headOf(s, 'takeCard', 'Not taking a card');
-    if (!canProfiteer(s)) fail('No card for claiming to trade');
+    if (!canArmsDeal(s)) fail('No card for claiming to trade');
     head.claim!--;
     s.players[head.player].atomics++;
     log(s, `${name(s, head.player)} takes an atomic instead of a card (${cardName('arms-deal')}).`, head.player);
@@ -259,8 +259,8 @@ export const cardHandlers = {
     log(s, `${pl.name} discards ${card(a.skill).name}.`, head.player, 'discard');
     if (pl.skills.length > skillLimit(s, head.player)) s.pending.unshift({ ...head, reason: 'limit' });
   },
-  placeReinforcement(s, a) {
-    const head = headOf(s, 'placeReinforcement', 'No reinforcement to place');
+  reinforcements(s, a) {
+    const head = headOf(s, 'reinforcements', 'No reinforcement to place');
     const d = die(s, head.die);
     if (a.to) {
       if (!dropTargets(s, head.player).some((p) => same(p, a.to!))) fail('Place it on the perimeter of one of your objectives');
@@ -298,8 +298,8 @@ export const cardHandlers = {
       note(s, `${name(s, head.player)} opens a pair of ice tunnels.`, head.player);
     }
   },
-  placeBarrier(s, a) {
-    const head = headOf(s, 'placeBarrier', 'No barrier to place');
+  barricade(s, a) {
+    const head = headOf(s, 'barricade', 'No barrier to place');
     const cell = s.board.cells[a.cell.r]?.[a.cell.c];
     if (!cell || cell.kind !== 'space') fail('Barriers go on spaces, not objectives');
     if (!canHoldBarrier(s, a.cell)) fail('Barriers go on empty spaces');
@@ -320,7 +320,7 @@ export const cardHandlers = {
     const targetName = head.player === d.owner ? `their ${mechName(s, d)}` : `${name(s, d.owner)}'s ${mechName(s, d)}`;
     logTo(s, head.player, `${name(s, head.player)} pushes ${targetName}${path.tunnel ? ' through an ice tunnel' : ''}`, a.to);
   },
-  shuntBarrier(s, a) {
+  kineticShuntBarrier(s, a) {
     const head = headOf(s, 'kineticShunt', 'No Kinetic Shunt to resolve');
     const b = barrierAt(s, a.from);
     if (!b) fail('Choose a barrier on the map');
@@ -373,7 +373,7 @@ export const cardHandlers = {
     s.pending.shift();
   },
   /** Strategic Plan: ends the action phase by playing one stored Tactic; unused actions are forfeited (RULES.md ruling 4). */
-  playStoredTactic(s, a) {
+  strategicPlanPlay(s, a) {
     const t = requireActionPhase(s, true);
     const p = t.player;
     if (!canPlayStoredTactic(s, p)) fail('Cannot play a stored tactic right now');

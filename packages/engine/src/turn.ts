@@ -1,7 +1,7 @@
 /** Turn structure: start of turn, the end-of-turn card phase, and passing the turn on. */
 import { checkInfamy, emptyTurn, gainResearch, log, name, type PendingOf } from './core';
 import { cellOf, salvageYard, mechsOnBoard } from './lookups';
-import { breakthroughAt, canProfiteer, canShunt, canTakeAnyCard, infamyTargets, startSlots } from './queries';
+import { breakthroughAt, canArmsDeal, canShunt, canTakeAnyCard, infamyTargets, startSlots } from './queries';
 import { next } from './rng';
 import { rulesOf } from './rules';
 import { activeSkills, ruleOf, stealableSkill, type TurnBonus } from './skillRules';
@@ -170,7 +170,7 @@ const AUTO_RESOLVE: { [K in Pending['kind']]?: (s: GameState, head: PendingOf<K>
     return true;
   },
   takeCard(s, head) {
-    if (canTakeAnyCard(s, head.player) || canProfiteer(s)) return false;
+    if (canTakeAnyCard(s, head.player) || canArmsDeal(s)) return false;
     s.pending.shift();
     return true;
   },

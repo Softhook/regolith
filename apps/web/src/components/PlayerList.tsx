@@ -165,7 +165,7 @@ function PlayerCard({
           })}
           {p.storedTactics?.map((tId, i) => {
             const def = card(tId);
-            const canPlay = ctl.legal.can('playStoredTactic', (a) => a.card === tId);
+            const canPlay = ctl.legal.can('strategicPlanPlay', (a) => a.card === tId);
             return (
               <button
                 type="button"
@@ -196,12 +196,12 @@ function PlayerCard({
           single
           onClose={() => setViewing(null)}
           action={
-            ctl.legal.can('playStoredTactic', (a) => a.card === viewing) ? (
+            ctl.legal.can('strategicPlanPlay', (a) => a.card === viewing) ? (
               <button
                 type="button"
                 className="btn btn-primary"
                 onClick={() => {
-                  dispatch({ type: 'playStoredTactic', card: viewing });
+                  dispatch({ type: 'strategicPlanPlay', card: viewing });
                   setViewing(null);
                 }}
               >

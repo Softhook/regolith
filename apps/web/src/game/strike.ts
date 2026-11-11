@@ -14,7 +14,7 @@ const STRIKE_MS: Partial<Record<Pending['kind'], number>> = { orbitalCannon: LAN
 export const strikeOf = (before: GameState) => (before.pending[0] && STRIKE_MS[before.pending[0].kind]) ?? 0;
 
 /**
- * The mechs the step from `before` to `game` destroys, in `before`'s order: from the map to the salvageYard.
+ * The mechs the step from `before` to `game` destroys, in `before`'s order: from the map to the salvage yard.
  * Invasion and Recycle take the player's own mechs there too — recalled or
  * salvaged rather than blown up (CardEffects draws their cloak or fold). One list, so each
  * mech's boom, blast and wait line up: heard (sounds), seen (Explosions) and kept on the map until then

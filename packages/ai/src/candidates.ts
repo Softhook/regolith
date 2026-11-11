@@ -20,7 +20,7 @@ const REMODEL_ORDER = [4, 3, 5, 2, 6, 1];
  * putting the barrier on an enemy home's, is good; taking one of their own home's spaces is bad.
  */
 export function barrierShuntRank(s: GameState, a: Action, me: PlayerId): number {
-  if (a.type !== 'shuntBarrier') return 0;
+  if (a.type !== 'kineticShuntBarrier') return 0;
   const home = homeObjective(s, me);
   const onHome = (c: Cell) => !!home && perimeterSpaces(s.board, home).some((o) => same(o, c));
   const onEnemyHome = (c: Cell) =>
@@ -56,7 +56,7 @@ export function candidates(s: GameState, opts?: { includeCarry?: boolean }): Act
     all.sort((a, b) => ranked.get(b)! - ranked.get(a)!);
   }
   const options = nearestAttacks(all);
-  return s.turn.actionsLeft > 0 ? options.filter((a) => a.type !== 'playStoredTactic') : options;
+  return s.turn.actionsLeft > 0 ? options.filter((a) => a.type !== 'strategicPlanPlay') : options;
 }
 
 /**

@@ -60,7 +60,7 @@ function bruteForce(s: GameState, withCarry: boolean): Action[] {
     out.push({ type: 'claim', objective: p.id });
     for (const pl of s.players) if (pl.id !== me) out.push({ type: 'claim', objective: p.id, replace: pl.id });
   }
-  for (const card of s.players[me].storedTactics ?? []) out.push({ type: 'playStoredTactic', card });
+  for (const card of s.players[me].storedTactics ?? []) out.push({ type: 'strategicPlanPlay', card });
   for (const d of mine) {
     out.push(
       { type: 'refit', die: d.id },

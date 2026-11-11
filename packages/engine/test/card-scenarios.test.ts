@@ -145,7 +145,7 @@ describe('tactics and reinforcements', () => {
           expect(r.seen).toContain('invasion');
           break;
         case 'barricade':
-          expect(r.seen).toContain('placeBarrier');
+          expect(r.seen).toContain('barricade');
           expect(s.barriers).toHaveLength((before.barriers?.length ?? 0) + 2);
           break;
         case 'kinetic-shunt':
@@ -226,7 +226,7 @@ describe('activated skills', () => {
     s = takeTactic(s, 'r-power-grab', true);
     expect(s.players[p].storedTactics).toEqual(['r-power-grab']);
     const power = s.players[p].power;
-    s = apply(s, { type: 'playStoredTactic', card: 'r-power-grab' });
+    s = apply(s, { type: 'strategicPlanPlay', card: 'r-power-grab' });
     expect(s.players[p].power).toBe(power + 2);
     expect(s.players[p].storedTactics).toEqual([]);
     expect(legalActions(s)).toEqual([{ type: 'endTurn' }]);
@@ -251,7 +251,7 @@ describe('activated skills', () => {
     s.players[p].skills = [{ id: 'r-arms-deal', active: true }];
     s.pending.unshift({ kind: 'takeCard', player: p, count: 1, claim: 1 });
     const atomics = s.players[p].atomics;
-    s = apply(s, { type: 'profiteer' });
+    s = apply(s, { type: 'armsDeal' });
     expect(s.players[p].atomics).toBe(atomics + 1);
   });
 });
@@ -270,7 +270,7 @@ describe('triggered and choice skills', () => {
   });
 
   cardCase(['r-remodel'], 'Remodel', () => {
-    // Player 1's defending mech is destroyed: its owner picks the number it shows in the salvageYard.
+    // Player 1's defending mech is destroyed: its owner picks the number it shows in the salvage yard.
     let s = duel(703, { foe: ['r-remodel'] }, true);
     expect(die(s, 'p1d0').loc.zone).toBe('salvageYard');
     expect(s.pending.find((p) => p.kind === 'engineering')).toMatchObject({ player: 1, die: 'p1d0', source: 'remodel' });

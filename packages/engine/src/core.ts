@@ -135,7 +135,7 @@ export function rerollNew(s: GameState, d: Die) {
   }
 }
 
-/** A destroyed mech is re-rolled and goes to its owner's salvageYard. */
+/** A destroyed mech is re-rolled and goes to its owner's salvage yard. */
 export function destroyMech(s: GameState, d: Die) {
   d.loc = { zone: 'salvageYard' };
   roll(s, d);

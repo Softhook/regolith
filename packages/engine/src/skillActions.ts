@@ -157,7 +157,7 @@ export function skillUsed(s: GameState, a: Action): { player: PlayerId; card: st
       return a.destroy && head?.kind === 'unstableReactor' ? find(head.player, (r) => r.combat?.destroyBoth) : undefined;
     case 'signalJammer':
       return a.skill && head?.kind === 'signalJammer' ? find(head.player, (r) => r.disableSkillOnDestroy) : undefined;
-    case 'profiteer':
+    case 'armsDeal':
       return head?.kind === 'takeCard' ? find(head.player, (r) => r.atomicForClaim) : undefined;
     default:
       // Activated skills are actions of the player's own turn.

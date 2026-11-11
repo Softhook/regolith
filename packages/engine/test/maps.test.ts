@@ -117,7 +117,7 @@ describe("prepared ground (a map's `start`)", () => {
     const s = quickStart(2, 1, 'regolith', 'switchback');
     const from = { r: s.barriers![0].r, c: s.barriers![0].c };
     s.pending.unshift({ kind: 'kineticShunt', player: s.turn.player });
-    const push = legalActions(s).find((a) => a.type === 'shuntBarrier' && same(a.from, from));
+    const push = legalActions(s).find((a) => a.type === 'kineticShuntBarrier' && same(a.from, from));
     expect(push).toBeDefined();
     const t = apply(s, push!);
     expect(t.barriers).toHaveLength(s.barriers!.length);

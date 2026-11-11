@@ -102,7 +102,7 @@ export function canPlayStoredTactic(state: GameState, player: PlayerId): boolean
 }
 
 /** Arms Deal: whether the current card pick may be taken as an atomic instead. */
-export function canProfiteer(state: GameState): boolean {
+export function canArmsDeal(state: GameState): boolean {
   const head = state.pending[0];
   return head?.kind === 'takeCard' && (head.claim ?? 0) > 0 && anySkill(state, head.player, (r) => r.atomicForClaim);
 }

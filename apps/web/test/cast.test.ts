@@ -43,7 +43,7 @@ describe('castOf', () => {
     g.pending[0] = { kind: 'takeCard', player: g.turn.player, count: 2 };
     g = apply(g, { type: 'takeCard', deck: 'tactic', index: 0 });
     g = apply(g, { type: 'takeCard', deck: 'reinforcement', index: 0 });
-    const placed = apply(g, { type: 'placeReinforcement', to: null });
+    const placed = apply(g, { type: 'reinforcements', to: null });
     expect(castOf(g, placed)).toBeUndefined();
   });
 

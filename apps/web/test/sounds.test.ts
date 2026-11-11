@@ -46,7 +46,7 @@ describe('soundsFor', () => {
       (s) => void (die(s, 'p0d1').loc = { zone: 'board', r: 2, c: 2 }),
       (s) => {
         die(s, 'p0d1').loc = { zone: 'reserve' };
-        s.pending.unshift({ kind: 'placeReinforcement', player: 0, die: 'p0d1' });
+        s.pending.unshift({ kind: 'reinforcements', player: 0, die: 'p0d1' });
       },
     );
     expect(first).toEqual([]);

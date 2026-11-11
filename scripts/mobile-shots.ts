@@ -13,7 +13,7 @@
  * than its stage, a page wider than the screen (the phone then zooms the page out), a setup popup
  * whose buttons or cards are off screen without scrolling, or something you'd have to scroll to (or
  * that is covered) while placing your mechs or on your turn, or the turn bar over the board.
- * Then each device opens the in-game popups (`-combat`, `-combatFull`, `-changeOfHeart`, `-over`, `-rules`, see
+ * Then each device opens the in-game popups (`-combat`, `-combatFull`, `-headhunter`, `-over`, `-rules`, see
  * POPUPS): the popup must fit the screen, and its buttons must be on screen without scrolling inside
  * it (Headhunter and the rules scroll their content, so only their heading and × must show).
  * Short desktop windows (SHORT_WINDOWS) open the popups too.

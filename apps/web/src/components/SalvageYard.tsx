@@ -37,7 +37,7 @@ export function turnYardOwner(game: GameState, ctl: Controller): PlayerState {
   return ctl.mine(acting.id) ? acting : (game.players.find((q) => ctl.mine(q.id)) ?? acting);
 }
 
-/** A player's salvageYard: their mechs off the board, which they tap to drop when they can. */
+/** A player's salvage yard: their mechs off the board, which they tap to drop when they can. */
 export function SalvageYard({ game, p, ctl, dispatch }: { game: GameState; p: PlayerState; ctl: Controller; dispatch: Dispatch }) {
   const salvage = salvageYard(game, p.id);
   if (!salvage.length) return null;

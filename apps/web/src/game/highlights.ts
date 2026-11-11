@@ -53,9 +53,9 @@ export function highlightsFor(game: GameState, sel: Sel, legal: Legal, actionPha
       case 'infamy':
         for (const a of legal.of('infamy')) h.objectives.set(a.objective, { tone: 'infamy', label: 'Seize' });
         break;
-      case 'placeReinforcement':
+      case 'reinforcements':
         addCells(
-          legal.of('placeReinforcement').flatMap((a) => (a.to ? [a.to] : [])),
+          legal.of('reinforcements').flatMap((a) => (a.to ? [a.to] : [])),
           'drop',
         );
         break;
@@ -71,18 +71,18 @@ export function highlightsFor(game: GameState, sel: Sel, legal: Legal, actionPha
           'tunnel',
         );
         break;
-      case 'placeBarrier':
+      case 'barricade':
         addCells(
-          legal.of('placeBarrier').map((a) => a.cell),
+          legal.of('barricade').map((a) => a.cell),
           'tunnel',
         );
         break;
       case 'kineticShunt':
         for (const a of legal.of('kineticShunt')) h.dice.set(a.die, 'target');
-        for (const a of legal.of('shuntBarrier')) h.cells.set(key(a.from), { cell: a.from, tone: 'barrier' });
-        if (sel.kind === 'shuntBarrier') {
+        for (const a of legal.of('kineticShuntBarrier')) h.cells.set(key(a.from), { cell: a.from, tone: 'barrier' });
+        if (sel.kind === 'kineticShuntBarrier') {
           addCells(
-            legal.of('shuntBarrier', (a) => same(a.from, sel.from)).map((a) => a.to),
+            legal.of('kineticShuntBarrier', (a) => same(a.from, sel.from)).map((a) => a.to),
             'move',
           );
         }

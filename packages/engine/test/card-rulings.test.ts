@@ -194,10 +194,10 @@ describe('Strategic Plan', () => {
 
     // Spend actions
     s.turn.actionsLeft = 0;
-    // Legal actions now include playStoredTactic
-    expect(legalActions(s).some((a) => a.type === 'playStoredTactic')).toBe(true);
+    // Legal actions now include strategicPlanPlay
+    expect(legalActions(s).some((a) => a.type === 'strategicPlanPlay')).toBe(true);
 
-    s = apply(s, { type: 'playStoredTactic', card: 'r-power-grab' });
+    s = apply(s, { type: 'strategicPlanPlay', card: 'r-power-grab' });
     expect(s.players[me].storedTactics).toEqual([]);
     expect(s.players[me].power).toBe(5); // Power Grab gives +2 power
     expect(s.turn.storedTacticPlayed).toBe(true);
@@ -210,9 +210,9 @@ describe('Strategic Plan', () => {
     expect(s.turn.actionsLeft).toBe(3);
 
     // Allowed even with 3 actions left
-    expect(legalActions(s).some((a) => a.type === 'playStoredTactic')).toBe(true);
+    expect(legalActions(s).some((a) => a.type === 'strategicPlanPlay')).toBe(true);
 
-    s = apply(s, { type: 'playStoredTactic', card: 'r-power-grab' });
+    s = apply(s, { type: 'strategicPlanPlay', card: 'r-power-grab' });
     expect(s.players[me].storedTactics).toEqual([]);
     expect(s.players[me].power).toBe(5);
     expect(s.turn.actionsLeft).toBe(0);
@@ -460,7 +460,7 @@ describe('Strategic Plan edge cases', () => {
     s.players[me].storedTactics = ['r-sabotage'];
     s = apply(s, { type: 'attack', die: `p${me}d0`, target: `p${1 - me}d0` });
     expect(s.pending[0].kind).toBe('combat');
-    expect(() => apply(s, { type: 'playStoredTactic', card: 'r-sabotage' })).toThrow('Resolve the current decision first');
+    expect(() => apply(s, { type: 'strategicPlanPlay', card: 'r-sabotage' })).toThrow('Resolve the current decision first');
   });
 
   it('discards stored tactics to the market discard pile if Strategic Plan is discarded', () => {

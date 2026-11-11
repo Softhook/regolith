@@ -1,9 +1,9 @@
 /**
- * The card effects the engine implements. A card's effect is its `effect` field in
- * data/regolith.yaml: the Community Edition card it started as, or its own. Cards whose effect is not
+ * The card effects the engine implements. A card's effect is its `effect` field in data/regolith.yaml:
+ * the card's name without the `r-` (`from` keeps the card it started as). Cards whose effect is not
  * listed here are left out of the decks.
  *
- * Effect names are types, so `hasSkill(s, p, 'rightous')` is a compile error rather than a
+ * Effect names are types, so `hasSkill(s, p, 'fanatcs')` is a compile error rather than a
  * skill that silently never applies.
  */
 

@@ -1,6 +1,6 @@
 /**
- * Regolith mode (docs/regolith/PROTOTYPING.md; rulesets.ts, mechs.ts, powers/): Community Edition with movement capped at 3,
- * zones of control (every mech pickets the spaces around it), a new power for the 5 (Shoot), which
+ * Regolith mode (docs/regolith/PROTOTYPING.md; rulesets.ts, mechs.ts, abilities/): Community Edition with movement capped at 3,
+ * zones of control (every mech pickets the spaces around it), a new ability for the 5 (Shoot), which
  * replaces Manoeuvre, a 6 that fires barriers, contested perimeters, and over-claim (a perimeter of 12) when
  * REGOLITH_OVER_CLAIM is on. The first block checks the two modes, Basic and Regolith.
  *
@@ -900,28 +900,28 @@ describe('Barricade tactic card (Regolith)', () => {
     s.pending.unshift({ kind: 'takeCard', player: me, count: 1 });
     s = apply(s, { type: 'takeCard', deck: 'tactic', index: 0 });
 
-    expect(s.pending[0]).toMatchObject({ kind: 'placeBarrier', player: me, placed: [] });
+    expect(s.pending[0]).toMatchObject({ kind: 'barricade', player: me, placed: [] });
     const legal = legalActions(s);
-    expect(legal.every((a) => a.type === 'placeBarrier')).toBe(true);
+    expect(legal.every((a) => a.type === 'barricade')).toBe(true);
     // Cannot place on objectives
     const objective = s.board.objectives[0];
-    expect(legal).not.toContainEqual({ type: 'placeBarrier', cell: { r: objective.r, c: objective.c } });
-    expect(() => apply(s, { type: 'placeBarrier', cell: { r: objective.r, c: objective.c } })).toThrow(/Barriers go on spaces/);
+    expect(legal).not.toContainEqual({ type: 'barricade', cell: { r: objective.r, c: objective.c } });
+    expect(() => apply(s, { type: 'barricade', cell: { r: objective.r, c: objective.c } })).toThrow(/Barriers go on spaces/);
     // Cannot place on an occupied space (mech)
-    expect(legal).not.toContainEqual({ type: 'placeBarrier', cell: { r: 7, c: 2 } });
-    expect(() => apply(s, { type: 'placeBarrier', cell: { r: 7, c: 2 } })).toThrow(/Barriers go on empty spaces/);
+    expect(legal).not.toContainEqual({ type: 'barricade', cell: { r: 7, c: 2 } });
+    expect(() => apply(s, { type: 'barricade', cell: { r: 7, c: 2 } })).toThrow(/Barriers go on empty spaces/);
 
     // Place the first barrier on (8, 3)
-    s = apply(s, { type: 'placeBarrier', cell: { r: 8, c: 3 } });
+    s = apply(s, { type: 'barricade', cell: { r: 8, c: 3 } });
     expect(s.barriers).toEqual([{ r: 8, c: 3, owner: me }]);
-    expect(s.pending[0]).toMatchObject({ kind: 'placeBarrier', player: me, placed: [{ r: 8, c: 3 }] });
+    expect(s.pending[0]).toMatchObject({ kind: 'barricade', player: me, placed: [{ r: 8, c: 3 }] });
 
     // Cannot place second barrier on the same space
-    expect(legalActions(s)).not.toContainEqual({ type: 'placeBarrier', cell: { r: 8, c: 3 } });
-    expect(() => apply(s, { type: 'placeBarrier', cell: { r: 8, c: 3 } })).toThrow(/Barriers go on empty spaces/);
+    expect(legalActions(s)).not.toContainEqual({ type: 'barricade', cell: { r: 8, c: 3 } });
+    expect(() => apply(s, { type: 'barricade', cell: { r: 8, c: 3 } })).toThrow(/Barriers go on empty spaces/);
 
     // Place the second barrier on (8, 4)
-    s = apply(s, { type: 'placeBarrier', cell: { r: 8, c: 4 } });
+    s = apply(s, { type: 'barricade', cell: { r: 8, c: 4 } });
     expect(s.barriers).toEqual([
       { r: 8, c: 3, owner: me },
       { r: 8, c: 4, owner: me },
@@ -986,13 +986,13 @@ describe('Kinetic Shunt tactic card (Regolith)', () => {
     let s = scenario({ p0d0: [7, 2, 6], p1d0: [4, 4, 5] });
     s.barriers = [{ r: 6, c: 6, owner: null }];
     s.pending.unshift({ kind: 'kineticShunt', player: s.turn.player });
-    const to = (r: number, c: number) => ({ type: 'shuntBarrier', from: { r: 6, c: 6 }, to: { r, c } });
-    const pushes = legalActions(s).filter((a) => a.type === 'shuntBarrier');
+    const to = (r: number, c: number) => ({ type: 'kineticShuntBarrier', from: { r: 6, c: 6 }, to: { r, c } });
+    const pushes = legalActions(s).filter((a) => a.type === 'kineticShuntBarrier');
     expect(pushes.length).toBeGreaterThan(0);
     for (const a of pushes) expect(barrierShuntTargets(s, { r: 6, c: 6 })).toContainEqual(a.to);
     expect(() => apply(s, to(4, 4) as never)).toThrow(/Not a valid push destination/);
-    const dest = pushes[0].type === 'shuntBarrier' ? pushes[0].to : { r: 0, c: 0 };
-    s = apply(s, { type: 'shuntBarrier', from: { r: 6, c: 6 }, to: dest });
+    const dest = pushes[0].type === 'kineticShuntBarrier' ? pushes[0].to : { r: 0, c: 0 };
+    s = apply(s, { type: 'kineticShuntBarrier', from: { r: 6, c: 6 }, to: dest });
     expect(s.barriers).toEqual([{ ...dest, owner: null }]);
     expect(s.pending).toHaveLength(0);
   });
@@ -1141,7 +1141,7 @@ describe('Kinetic Shunt tactic card (Regolith)', () => {
     s = apply(s, { type: 'takeCard', deck: 'tactic', index: 0 });
 
     expect(s.pending[0]).toMatchObject({ kind: 'kineticShunt' });
-    expect(legalActions(s).every((a) => a.type === 'shuntBarrier')).toBe(true);
+    expect(legalActions(s).every((a) => a.type === 'kineticShuntBarrier')).toBe(true);
   });
 
   it('Player can shunt friendly mech onto perimeter to claim objective', () => {
@@ -1179,7 +1179,7 @@ describe('Kinetic Shunt tactic card (Regolith)', () => {
     expect(s.players[0].storedTactics).toContain('r-kinetic-shunt');
     expect(s.pending).toHaveLength(0);
 
-    s = apply(s, { type: 'playStoredTactic', card: 'r-kinetic-shunt' });
+    s = apply(s, { type: 'strategicPlanPlay', card: 'r-kinetic-shunt' });
     expect(s.pending[0]).toMatchObject({ kind: 'kineticShunt', player: 0 });
 
     s = apply(s, { type: 'kineticShunt', die: 'p1d0', to: { r: 4, c: 6 } });

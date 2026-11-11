@@ -1,21 +1,20 @@
-import type { GameState, LogEntry } from '@regolith/engine';
+import type { GameState, LogEntry, Pending } from '@regolith/engine';
 import { lastLogId } from './steps';
 
 /** The decisions a Tactic leaves its player, where it lands: each step that settles one is the card's doing. */
-const LANDING = new Set([
+const LANDING = new Set<Pending['kind']>([
   'orbitalCannon',
   'iceTunnel',
-  'placeBarrier',
+  'barricade',
   'kineticShunt',
-  'shuntBarrier',
-  'placeReinforcement',
+  'reinforcements',
   'invasion',
   'headhunter',
 ]);
 
 /**
- * The card whose effect the step from `before` to `game` is: the Tactic whose decision it settles (Show of
- * Force's target…), else one it played or used (a Tactic, a skill, a skill firing by itself). A Tactic comes
+ * The card whose effect the step from `before` to `game` is: the Tactic whose decision it settles (Orbital
+ * Cannon's target…), else one it played or used (a Tactic, a skill, a skill firing by itself). A Tactic comes
  * first: its blow may set off skills of their own (Exploit after Orbital Cannon), which cast for themselves
  * (see `gains`). Not a card taken: it flies from the market instead (CardFlight).
  */

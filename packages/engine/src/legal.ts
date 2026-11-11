@@ -71,7 +71,7 @@ const DECISION_CANDIDATES: { [K in Pending['kind']]: (s: GameState, head: Pendin
       if (strategicPlan) out.push({ type: 'takeCard', deck: 'tactic', index, store: true });
     });
     if (m.reinforcements > 0 && reserve(s, head.player).length) out.push({ type: 'takeCard', deck: 'reinforcement', index: 0 });
-    out.push({ type: 'profiteer' });
+    out.push({ type: 'armsDeal' });
     return out;
   },
   peek: () => [
@@ -80,20 +80,20 @@ const DECISION_CANDIDATES: { [K in Pending['kind']]: (s: GameState, head: Pendin
   ],
   discardSkill: (s, head) =>
     s.players[head.player].skills.filter((sk) => sk.id !== head.cannotDiscard).map((sk) => ({ type: 'discardSkill', skill: sk.id })),
-  placeReinforcement: (s, head) => [
-    { type: 'placeReinforcement', to: null },
-    ...dropTargets(s, head.player).map((to) => ({ type: 'placeReinforcement', to }) as const),
+  reinforcements: (s, head) => [
+    { type: 'reinforcements', to: null },
+    ...dropTargets(s, head.player).map((to) => ({ type: 'reinforcements', to }) as const),
   ],
   orbitalCannon: (s) => mechsOnBoard(s).map((d) => ({ type: 'orbitalCannon', die: d.id })),
   iceTunnel: (s, head) =>
     spaces(s.board)
       .filter((cell) => !head.placed.some((p) => same(p, cell)) && !barrierAt(s, cell) && !s.wormhole?.some((w) => same(w, cell)))
       .map((cell) => ({ type: 'iceTunnel', cell })),
-  placeBarrier: (s) => barrierSpaces(s).map((cell) => ({ type: 'placeBarrier', cell })),
+  barricade: (s) => barrierSpaces(s).map((cell) => ({ type: 'barricade', cell })),
   kineticShunt: (s) => [
     ...mechsOnBoard(s).flatMap((d) => shuntTargets(s, d).map((to) => ({ type: 'kineticShunt', die: d.id, to }) as const)),
     ...(s.barriers ?? []).flatMap((b) =>
-      barrierShuntTargets(s, b).map((to) => ({ type: 'shuntBarrier', from: { r: b.r, c: b.c }, to }) as const),
+      barrierShuntTargets(s, b).map((to) => ({ type: 'kineticShuntBarrier', from: { r: b.r, c: b.c }, to }) as const),
     ),
   ],
   headhunter: (s) => [...new Set(s.market.skillDeck)].map((skill) => ({ type: 'headhunter', skill })),
@@ -135,7 +135,7 @@ function actionPhaseOptions(s: GameState, opts: { includeCarry?: boolean }): Act
   const out: Action[] = [{ type: 'endTurn' }];
 
   if (canPlayStoredTactic(s, me)) {
-    for (const c of pl.storedTactics ?? []) out.push({ type: 'playStoredTactic', card: c });
+    for (const c of pl.storedTactics ?? []) out.push({ type: 'strategicPlanPlay', card: c });
   }
 
   if (actionsClosed(t)) return out;

@@ -47,7 +47,7 @@ export function TurnPanel({ game, ctl, dispatch, undo }: { game: GameState; ctl:
                 +1 prospectors
               </Tip>
             )}
-            {legal.can('playStoredTactic') && (
+            {legal.can('strategicPlanPlay') && (
               <Tip as="em" tip={`${cardName('strategic-plan')}: you may play a stored tactic from your player card`}>
                 +stored tactic
               </Tip>
@@ -114,7 +114,7 @@ export function TurnPanel({ game, ctl, dispatch, undo }: { game: GameState; ctl:
             <span className="undo-label">Undo</span>
           </button>
           <button
-            className={`btn btn-primary ${canAct && t.actionsLeft === 0 && !canProspectors(game, t.player) && !legal.can('playStoredTactic') ? 'pulse' : ''}`}
+            className={`btn btn-primary ${canAct && t.actionsLeft === 0 && !canProspectors(game, t.player) && !legal.can('strategicPlanPlay') ? 'pulse' : ''}`}
             disabled={!legal.can('endTurn')}
             onClick={() => dispatch({ type: 'endTurn' })}
           >
@@ -124,9 +124,9 @@ export function TurnPanel({ game, ctl, dispatch, undo }: { game: GameState; ctl:
       )}
 
       {head?.kind === 'advance' && ctl.human && <AdvanceChoice dispatch={dispatch} />}
-      {head?.kind === 'placeReinforcement' && ctl.human && (
+      {head?.kind === 'reinforcements' && ctl.human && (
         <div className="turn-actions">
-          <button className="btn" onClick={() => dispatch({ type: 'placeReinforcement', to: null })}>
+          <button className="btn" onClick={() => dispatch({ type: 'reinforcements', to: null })}>
             {'Send to salvage yard'}
           </button>
         </div>

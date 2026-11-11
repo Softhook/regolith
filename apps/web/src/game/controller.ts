@@ -33,7 +33,7 @@ export type Sel =
   | { kind: 'ability'; die: string }
   | { kind: 'advanceSkill'; die: string }
   | { kind: 'kineticShunt'; die: string }
-  | { kind: 'shuntBarrier'; from: Cell }
+  | { kind: 'kineticShuntBarrier'; from: Cell }
   // An objective that can be claimed in more than one way, waiting for the player to choose how.
   | { kind: 'claim'; objective: number }
   // `advanceSkill`: a 1-space carry using the Advance skill instead of a Move action.
@@ -56,7 +56,7 @@ export function useController(game: GameState, dispatch: Dispatch, mine: (p: Pla
   useEffect(() => setSel(NONE), [pendingSig]);
   // Drop a selection that is no longer valid (mech destroyed, already moved…).
   useEffect(() => {
-    if (sel.kind === 'none' || sel.kind === 'claim' || sel.kind === 'shuntBarrier') return;
+    if (sel.kind === 'none' || sel.kind === 'claim' || sel.kind === 'kineticShuntBarrier') return;
     const d = game.dice.find((x) => x.id === sel.die);
     if (!d || d.loc.zone !== (sel.kind === 'salvage' ? 'salvageYard' : 'board')) setSel(NONE);
   }, [game, sel]);
@@ -135,21 +135,21 @@ export function useController(game: GameState, dispatch: Dispatch, mine: (p: Pla
         return setSel(sel.kind === 'salvage' ? sel : sel.kind === 'attackFrom' ? { kind: 'mech', die: sel.die } : NONE);
       if (head?.kind === 'advance') return void dispatch({ type: 'advance', move: true });
       if (head?.kind === 'iceTunnel') return void dispatch({ type: 'iceTunnel', cell });
-      if (head?.kind === 'placeBarrier') return void dispatch({ type: 'placeBarrier', cell });
+      if (head?.kind === 'barricade') return void dispatch({ type: 'barricade', cell });
       // A barrier to push: tapping one picks it, whatever was picked before.
       if (head?.kind === 'kineticShunt' && highlights.cells.get(key(cell))?.tone === 'barrier')
-        return select({ kind: 'shuntBarrier', from: cell });
+        return select({ kind: 'kineticShuntBarrier', from: cell });
       if (head?.kind === 'kineticShunt' && sel.kind === 'kineticShunt') {
         dispatch({ type: 'kineticShunt', die: sel.die, to: cell });
         return setSel(NONE);
       }
-      if (head?.kind === 'kineticShunt' && sel.kind === 'shuntBarrier' && highlights.cells.get(key(cell))?.tone === 'move') {
-        dispatch({ type: 'shuntBarrier', from: sel.from, to: cell });
+      if (head?.kind === 'kineticShunt' && sel.kind === 'kineticShuntBarrier' && highlights.cells.get(key(cell))?.tone === 'move') {
+        dispatch({ type: 'kineticShuntBarrier', from: sel.from, to: cell });
         return setSel(NONE);
       }
-      if (head?.kind === 'placeReinforcement') return void dispatch({ type: 'placeReinforcement', to: cell });
+      if (head?.kind === 'reinforcements') return void dispatch({ type: 'reinforcements', to: cell });
       if (head?.kind === 'placeMechs') {
-        // Place the selected mech, or the next one in the salvageYard.
+        // Place the selected mech, or the next one in the salvage yard.
         const d = sel.kind === 'salvage' ? sel.die : salvageYard(game, head.player)[0]?.id;
         if (d) dispatch({ type: 'placeMech', die: d, to: cell });
         return setSel(NONE);

@@ -235,11 +235,11 @@ export function Market({
           Don't store a tactic
         </button>
       )}
-      {legal.can('profiteer') && (
+      {legal.can('armsDeal') && (
         <button
           className="btn btn-ghost market-refresh"
           title={`${cardName('arms-deal')}: a card earned by a Claim action`}
-          onClick={() => dispatch({ type: 'profiteer' })}
+          onClick={() => dispatch({ type: 'armsDeal' })}
         >
           {'Take 1 atomic instead of a card'}
         </button>

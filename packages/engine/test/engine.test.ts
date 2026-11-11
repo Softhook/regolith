@@ -547,13 +547,13 @@ describe('Arms Deal: a card for a Claim action may be 1 atomic (RULES.md ruling 
     if (opts.breakthrough) s.players[me].research = 6;
     return apply(s, { type: 'endTurn' });
   }
-  const offered = (s: GameState) => legalActions(s).some((a) => a.type === 'profiteer');
+  const offered = (s: GameState) => legalActions(s).some((a) => a.type === 'armsDeal');
 
   it('trades a claim pick for an atomic', () => {
     const s = cardPhase({ claimed: 1 });
     const me = s.turn.player;
     expect(offered(s)).toBe(true);
-    const next = apply(s, { type: 'profiteer' });
+    const next = apply(s, { type: 'armsDeal' });
     expect(next.players[me].atomics).toBe(s.players[me].atomics + 1);
     expect(next.pending.some((x) => x.kind === 'takeCard' && x.player === me)).toBe(false);
   });
@@ -569,7 +569,7 @@ describe('Arms Deal: a card for a Claim action may be 1 atomic (RULES.md ruling 
     s = apply(s, { type: 'takeCard', deck: 'skill', index: 0 });
     expect(s.pending[0]).toMatchObject({ kind: 'takeCard', count: 1, claim: 1 });
     expect(offered(s)).toBe(true);
-    s = apply(s, { type: 'profiteer' });
+    s = apply(s, { type: 'armsDeal' });
     expect(offered(s)).toBe(false);
   });
 });

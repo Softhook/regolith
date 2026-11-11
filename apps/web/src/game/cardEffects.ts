@@ -49,7 +49,7 @@ export function cardEffectsOf(before: GameState, game: GameState): CardEffect[] 
       else if (used.has('recycle')) out.push({ kind: 'implode', ...fx, at: from });
       else if (invading) out.push({ kind: 'cloak', ...fx, at: from });
     } else if (!from && to) {
-      if (head?.kind === 'placeReinforcement') out.push({ kind: 'reinforcement', ...fx, at: to });
+      if (head?.kind === 'reinforcements') out.push({ kind: 'reinforcement', ...fx, at: to });
       else if (head?.kind === 'invasion') out.push({ kind: 'decloak', ...fx, at: to });
     } else if (from && to) {
       if (d.value !== p.value && d.rolls === p.rolls && (head?.kind === 'engineering' || used.has('field-refit'))) {

@@ -6,7 +6,7 @@
  *
  *   setup.ts      game creation, mech roll, starting skill, starting objective and mechs
  *   actions.ts    Move/Attack, Drop, Refit, Research, Claim, end turn
- *   abilities.ts  mech abilities 1–6
+ *   abilities/    mech abilities 1–6: the 1 to 4 in index.ts, Shoot and Barrier a file each
  *   combat.ts     attacks, atomics, advancing, Take Over
  *   cards.ts      the card market, Tactic effects and their decisions
  *   effects.ts    the implemented Skill and Tactic effects, as types

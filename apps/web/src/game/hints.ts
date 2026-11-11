@@ -1,6 +1,6 @@
 import {
   cardName,
-  canProfiteer,
+  canArmsDeal,
   claimCheck,
   dropTargets,
   die,
@@ -26,19 +26,19 @@ export function hintFor(game: GameState, sel: Sel): string {
       case 'infamy':
         return 'Take Over! Seize any objective that does not have your cube yet.';
       case 'takeCard':
-        return `Take ${head.count} card${head.count > 1 ? 's' : ''} from the market below${canProfiteer(game) ? `, or take an atomic instead of a card earned by claiming (${cardName('arms-deal')})` : ''}.`;
+        return `Take ${head.count} card${head.count > 1 ? 's' : ''} from the market below${canArmsDeal(game) ? `, or take an atomic instead of a card earned by claiming (${cardName('arms-deal')})` : ''}.`;
       case 'strategicPlanTactic':
         return `${cardName('strategic-plan')}: you may take a face-up tactic from the market below and store it.`;
-      case 'placeReinforcement':
+      case 'reinforcements':
         return 'Place your new mech on the perimeter of one of your objectives, or send it to your salvage yard.';
       case 'orbitalCannon':
         return `${cardName('orbital-cannon')}: choose any mech on the map to destroy.`;
       case 'iceTunnel':
         return `Place Ice Tunnel ${head.placed.length + 1} of 2 on an empty space.`;
-      case 'placeBarrier':
+      case 'barricade':
         return `Place Barrier ${head.placed.length + 1} of 2 on an empty space.`;
       case 'kineticShunt':
-        return sel.kind === 'kineticShunt' || sel.kind === 'shuntBarrier'
+        return sel.kind === 'kineticShunt' || sel.kind === 'kineticShuntBarrier'
           ? 'Kinetic Shunt: choose an empty space in a straight line to push it to.'
           : 'Kinetic Shunt: choose any mech or barrier on the map to push.';
       case 'invasion':

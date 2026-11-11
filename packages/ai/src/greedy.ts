@@ -163,7 +163,7 @@ const PREFERRED: { [K in Pending['kind']]?: (a: Action, s: GameState, me: Player
   takeCard: (a) => a.type === 'takeCard' && a.deck === 'reinforcement',
   strategicPlanTactic: (a) => a.type === 'strategicPlanTactic' && a.index !== undefined,
   invasion: (a) => a.type === 'invasionDrop',
-  placeReinforcement: (a) => a.type === 'placeReinforcement' && !!a.to,
+  reinforcements: (a) => a.type === 'reinforcements' && !!a.to,
   signalJammer: (a) => a.type === 'signalJammer' && !!a.skill,
   stolenFlag: (a) => a.type === 'stolenFlag' && a.take,
 };
@@ -177,7 +177,7 @@ function quickPolicy(s: GameState, me: PlayerId): Action | null {
   const prefer = PREFERRED[head.kind];
   const best = (prefer && options.find((a) => prefer(a, s, me))) ?? options[0] ?? null;
   // Kinetic Shunt with only barriers to push: the least harmful, not the first.
-  if (head.kind !== 'kineticShunt' || best?.type !== 'shuntBarrier') return best;
+  if (head.kind !== 'kineticShunt' || best?.type !== 'kineticShuntBarrier') return best;
   return options.reduce((x, y) => (barrierShuntRank(s, y, me) > barrierShuntRank(s, x, me) ? y : x), best);
 }
 
