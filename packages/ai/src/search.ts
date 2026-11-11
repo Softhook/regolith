@@ -44,7 +44,7 @@ export interface SearchParams {
   budget: number;
   /** Samples for card draws and other random effects that are not enumerated. */
   samples: number;
-  /** Include every Flagship transport (many options). */
+  /** Include every Behemoth carry (many options). */
   carry: boolean;
   /** How many of the best plans to test against the opponent's next turn (0 = none). */
   replies: number;

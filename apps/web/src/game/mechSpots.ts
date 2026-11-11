@@ -4,7 +4,7 @@ import { cellOf, delta, drawing, type GameState } from '@regolith/engine';
 export type MechSpots = Map<string, { r: number; c: number }>;
 
 /**
- * Whether two drawn spots are next to each other on the map (diagonally too: an Interceptor's step), not a way
+ * Whether two drawn spots are next to each other on the map (a hex's diagonal too), not a way
  * across a joined edge or through an Ice Tunnel. A hex's diagonal is √3 spaces away.
  */
 export const touching = (p: { r: number; c: number }, q: { r: number; c: number }) => Math.hypot(p.r - q.r, p.c - q.c) < 1.8;

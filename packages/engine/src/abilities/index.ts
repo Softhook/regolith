@@ -37,23 +37,23 @@ function useAbility(s: GameState, d: Die, ability: BuiltInAbility) {
 }
 
 /**
- * Flagship Transport: picks up `passenger` from a surrounding space, flies to `to` (within `range`,
- * default the flagship's movement) and sets it down at `setDown`, next to the flagship. Validates first;
+ * The Behemoth's Carry & Move: picks up `passenger` from a surrounding space, flies to `to` (within `range`,
+ * default the carrier's movement) and sets it down at `setDown`, next to the carrier. Validates first;
  * the caller pays for it.
  */
-export function transport(s: GameState, flagship: Die, passenger: string, to: Cell, setDown: Cell, range?: number) {
-  if (!carryPassengers(s, flagship.id).some((x) => x.id === passenger)) fail('Passenger must be next to the flagship');
-  const dest = carryOptions(s, flagship.id, passenger, range).get(key(to));
+export function transport(s: GameState, carrier: Die, passenger: string, to: Cell, setDown: Cell, range?: number) {
+  if (!carryPassengers(s, carrier.id).some((x) => x.id === passenger)) fail(`The carried mech must be next to the ${mechName(s, carrier)}`);
+  const dest = carryOptions(s, carrier.id, passenger, range).get(key(to));
   if (!dest || !dest.setDowns.some((p) => same(p, setDown))) fail('Invalid carry');
-  if (same(to, setDown)) fail('Set the passenger down next to the flagship');
+  if (same(to, setDown)) fail(`Set the carried mech down next to the ${mechName(s, carrier)}`);
   return () => {
-    flagship.loc = boardLoc(to);
+    carrier.loc = boardLoc(to);
     die(s, passenger).loc = boardLoc(setDown);
   };
 }
 
 export const abilityHandlers = {
-  /** 1 Battlestation — Strike: a free 1-space move/attack that must attack; doesn't use its move. */
+  /** 1 Breacher — Free Attack: a free 1-space move/attack that must attack; doesn't use its move. */
   freeAttack(s, a) {
     requireActionPhase(s);
     const d = ownMech(s, a.die, 'board');
@@ -61,7 +61,7 @@ export const abilityHandlers = {
     useAbility(s, d, 'strike');
     startCombat(s, d, die(s, a.target), cellOf(d)!);
   },
-  /** 2 Flagship — Transport: pick up a mech from a surrounding space, move, set it down in a surrounding space. */
+  /** 2 Behemoth — Carry & Move: pick up a mech from a surrounding space, move, set it down in a surrounding space. */
   carry(s, a) {
     requireActionPhase(s);
     const d = ownMech(s, a.die, 'board');
@@ -73,7 +73,7 @@ export const abilityHandlers = {
     markMoved(s, d);
     logTo(s, d.owner, `${name(s, d.owner)}'s ${mechName(s, d)} carries their ${mechName(s, die(s, a.passenger))}`, a.to);
   },
-  /** 3 Destroyer — Warp: swap places with another of your mechs on the map; not its move. */
+  /** 3 Tactician — Swap: swap places with another of your mechs on the map; not its move. */
   swap(s, a) {
     requireActionPhase(s);
     const d = ownMech(s, a.die, 'board');
@@ -83,7 +83,7 @@ export const abilityHandlers = {
     [d.loc, o.loc] = [o.loc, d.loc];
     note(s, `${name(s, d.owner)}'s ${mechName(s, d)} swaps places with their ${mechName(s, o)}.`, d.owner);
   },
-  /** 4 Frigate — Modify: become a 3 or a 5 (and so can't use the new mech's ability this turn). */
+  /** 4 Chameleon — Change to 3 or 5: become a 3 or a 5 (and so can't use the new mech's ability this turn). */
   change(s, a) {
     requireActionPhase(s);
     const d = ownMech(s, a.die, 'board');

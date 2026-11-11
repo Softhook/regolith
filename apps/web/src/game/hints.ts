@@ -11,7 +11,7 @@ import {
 } from '@regolith/engine';
 import type { Sel } from './controller';
 
-/** The carrying mech's name in this game's rules, as a common noun: "flagship", or "behemoth" in Regolith. */
+/** The carrying mech's name in this game's rules, as a common noun: "behemoth". */
 const carrier = (game: GameState, id: string) => mechOf(game, die(game, id).value).name.toLowerCase();
 
 /** One-line guidance for the current human decision. */

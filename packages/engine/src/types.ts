@@ -330,7 +330,7 @@ export type Action =
   | { type: 'ambitious' }
   | { type: 'flexible'; die: string; delta: 1 | -1 }
   | { type: 'resourceful'; die: string }
-  /** Tactical's 1-space move (`to`) or attack (`target`); with `passenger` + `setDown` it is a Flagship transport. */
+  /** Tactical's 1-space move (`to`) or attack (`target`); with `passenger` + `setDown` it is a Behemoth carry. */
   | { type: 'tactical'; die: string; to?: Cell; target?: string; passenger?: string; setDown?: Cell }
   // combat & decisions
   | { type: 'atomic'; by: PlayerId; side: CombatRole }

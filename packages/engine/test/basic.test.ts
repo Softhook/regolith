@@ -376,9 +376,9 @@ describe('mech abilities (p.8)', () => {
   it('only mechs on the map, on your own turn', () => {
     const s = scenario({ p1d0: [0, 5, 3], p1d1: [12, 2, 3] });
     expect(() => apply(s, { type: 'swap', die: 'p1d0', other: 'p1d1' })).toThrow(/Not your mech/);
-    const scrap = scenario({});
-    at(scrap, 'p0d0').value = 4;
-    expect(() => apply(scrap, { type: 'change', die: 'p0d0', value: 3 })).toThrow(/not on the map/);
+    const salvaged = scenario({});
+    at(salvaged, 'p0d0').value = 4;
+    expect(() => apply(salvaged, { type: 'change', die: 'p0d0', value: 3 })).toThrow(/not on the map/);
   });
 
   it('one ability per die per turn, even if its number changes', () => {
@@ -387,7 +387,7 @@ describe('mech abilities (p.8)', () => {
     expect(() => apply(s, { type: 'swap', die: 'p0d0', other: 'p0d1' })).toThrow(/already used its ability/);
   });
 
-  it('1 Breacher — Strike: a free 1-space attack, even after moving and attacking', () => {
+  it('1 Breacher — Free Attack: a free 1-space attack, even after moving and attacking', () => {
     let s = scenario({ p0d0: [7, 2, 1], p1d0: [7, 4, 1] });
     s = apply(s, { type: 'move', die: 'p0d0', to: { r: 7, c: 3 } });
     s = resolve(attack(s, { type: 'freeAttack', die: 'p0d0', target: 'p1d0' }, 6, 1));
@@ -407,7 +407,7 @@ describe('mech abilities (p.8)', () => {
     expect(() => apply(s, { type: 'freeAttack', die: 'p0d0', target: 'p1d0' })).toThrow(/adjacent/);
   });
 
-  it('2 Behemoth — Transport: carry a mech from a surrounding space, move 1–2, drop it in a surrounding space', () => {
+  it('2 Behemoth — Carry & Move: carry a mech from a surrounding space, move 1–2, drop it in a surrounding space', () => {
     const base = scenario({ p0d0: [7, 3, 2], p0d1: [7, 2, 5] });
     const carry = (to: Cell, setDown: Cell): Action => ({ type: 'carry', die: 'p0d0', passenger: 'p0d1', to, setDown });
     expect(() => apply(base, carry({ r: 7, c: 6 }, { r: 7, c: 5 }))).toThrow(/Invalid carry/); // 3 spaces
@@ -422,7 +422,7 @@ describe('mech abilities (p.8)', () => {
     expect(loc(s, 'p0d1')).toEqual(board(6, 7));
   });
 
-  it('2 Behemoth — Transport may fly out and back, ending where it started (designer, BGG thread 1074052)', () => {
+  it('2 Behemoth — Carry & Move may fly out and back, ending where it started (designer, BGG thread 1074052)', () => {
     const s = scenario({ p0d0: [7, 3, 2], p0d1: [7, 2, 5] });
     const back = apply(s, { type: 'carry', die: 'p0d0', passenger: 'p0d1', to: { r: 7, c: 3 }, setDown: { r: 8, c: 3 } });
     expect(loc(back, 'p0d0')).toEqual(board(7, 3));
@@ -434,7 +434,7 @@ describe('mech abilities (p.8)', () => {
     expect([...carryOptions(boxed, 'p0d0', 'p0d1').keys()].sort()).toEqual(['0,5', '0,6']);
   });
 
-  it('3 Tactician — Warp: swap with any of your mechs; not the Tactician’s move', () => {
+  it('3 Tactician — Swap: swap with any of your mechs; not the Tactician’s move', () => {
     let s = scenario({ p0d0: [0, 5, 3], p0d1: [12, 2, 6] });
     s = apply(s, { type: 'swap', die: 'p0d0', other: 'p0d1' });
     expect(loc(s, 'p0d0')).toEqual(board(12, 2));
@@ -443,7 +443,7 @@ describe('mech abilities (p.8)', () => {
     expect(s.turn.actionsLeft).toBe(2);
   });
 
-  it('4 Chameleon — Modify: becomes a 3 or a 5; a Sniper may still shoot, which is its move, not its ability', () => {
+  it('4 Chameleon — Change to 3 or 5: becomes a 3 or a 5; a Sniper may still shoot, which is its move, not its ability', () => {
     const s = scenario({ p0d0: [7, 3, 4], p1d0: [7, 5, 6] });
     expect(() => apply(s, { type: 'change', die: 'p0d0', value: 2 as 3 })).toThrow(/Malformed action/);
     const five = apply(s, { type: 'change', die: 'p0d0', value: 5 });

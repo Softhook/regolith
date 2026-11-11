@@ -29,7 +29,7 @@ function legalIndex(actions: Action[]): Legal {
 
 export const NO_LEGAL: Legal = legalIndex([]);
 
-/** Every legal action, Flagship transports included. */
+/** Every legal action, Behemoth carries included. */
 export function legalFor(game: GameState): Legal {
   return legalIndex(legalActions(game, { includeCarry: true }));
 }

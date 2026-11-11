@@ -20,7 +20,7 @@ interface AbilityRow {
   offeredTurns: number;
   /** Player-turns in which it was used at least once. */
   usedTurns: number;
-  /** False for abilities with no action of their own (the Interceptor's diagonals are automatic). */
+  /** False for abilities with no action of their own (they work by themselves). */
   hasAction: boolean;
 }
 

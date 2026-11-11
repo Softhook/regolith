@@ -40,7 +40,7 @@ export function candidates(s: GameState, opts?: { includeCarry?: boolean }): Act
   const all = legalActions(s, opts);
   const head = s.pending[0];
   // Calculating: the evaluation can't tell mech numbers in the salvage yard apart, so ties go to the
-  // first. A Frigate (4) can become a 3 or 5 for free, the most flexible; over 200 games each,
+  // first. A Chameleon (4) can become a 3 or 5 for free, the most flexible; over 200 games each,
   // Calculating won 57% this way against 40% taking 1s (docs/card-benchmark.md).
   if (head?.kind === 'clever' && head.source === 'calculating') {
     const rank = (a: Action) => (a.type === 'clever' ? CALCULATING_ORDER.indexOf(a.value) : 99);

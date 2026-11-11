@@ -118,7 +118,7 @@ const DECISION_CANDIDATES: { [K in Pending['kind']]: (s: GameState, head: Pendin
   },
 };
 
-/** Every Flagship transport by `d`: passenger, destination and where it is set down. `range` 1 is Tactical's step. */
+/** Every Behemoth carry by `d`: passenger, destination and where it is set down. `range` 1 is Tactical's step. */
 function carries(s: GameState, d: Die, range?: number) {
   return carryPassengers(s, d.id).flatMap((p) =>
     [...carryOptions(s, d.id, p.id, range).values()].flatMap((dest) =>
@@ -127,7 +127,7 @@ function carries(s: GameState, d: Die, range?: number) {
   );
 }
 
-/** Phase-1 options for the current player. `includeCarry` adds every Flagship transport (many). */
+/** Phase-1 options for the current player. `includeCarry` adds every Behemoth carry (many). */
 function actionPhaseOptions(s: GameState, opts: { includeCarry?: boolean }): Action[] {
   const me = s.turn.player;
   const t = s.turn;

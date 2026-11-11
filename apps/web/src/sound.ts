@@ -263,7 +263,7 @@ export const sfx = {
     tone(660, 0.12, 'triangle', 0.05, 0, 1320);
     tone(1320, 0.18, 'sine', 0.035, 0.08, 1760);
   },
-  /** A mech scrapped by Resourceful: everything rushing inward, then a small dull pop as it's gone. */
+  /** A mech salvaged by Resourceful: everything rushing inward, then a small dull pop as it's gone. */
   implode: () => {
     tone(900, 0.28, 'sine', 0.06, 0, 90, 0.02);
     noise(0.28, 0.09, { type: 'bandpass', from: 5000, to: 300, q: 2, rise: 0.2 });

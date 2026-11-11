@@ -10,7 +10,7 @@ import { Search, type SearchParams } from './search';
  *   2 Sergeant    one action at a time, but exact odds and an evaluation that knows
  *                whose turn is next and what the enemy can reach (evaluate.ts, chance.ts)
  *   3 Captain  plans the whole turn: searches combinations of actions (search.ts)
- *   4 Colonel    wider turn search, Flagship transports, and its best plans checked
+ *   4 Colonel    wider turn search, Behemoth carries, and its best plans checked
  *                against the opponent's actual reply
  *   5 General  deeper and wider turn search, and each checked plan played against
  *                several replies (different dice, the same for every plan), averaged

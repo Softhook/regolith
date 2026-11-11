@@ -110,7 +110,7 @@ export function highlightsFor(game: GameState, sel: Sel, legal: Legal, actionPha
   for (const p of game.board.objectives)
     if (!h.objectives.has(p.id) && claimCheck(game, game.turn.player, p.id).blocked)
       h.objectives.set(p.id, { tone: 'blocked', label: 'Blocked' });
-  // A Flagship transport, as a regular carry or as a Tactical step.
+  // A Behemoth carry, as a regular carry or as a Tactical step.
   const transports = (die: string, tactical?: boolean) =>
     tactical
       ? legal

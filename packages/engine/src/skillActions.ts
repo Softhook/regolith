@@ -75,7 +75,7 @@ export const skillHandlers = {
     // Tactical moves the mech, and leaves it its own move for the turn.
     const use = () => oncePerTurn(s, 'tactical');
     if (a.passenger) {
-      // Flagship Transport over the 1 space (forum consensus, BGG thread 1093051).
+      // Behemoth carry over the 1 space (forum consensus, BGG thread 1093051).
       if (!hasAbility(s, d, 'transport')) fail('Only a mech with Carry & Move can transport');
       if (!a.to || !a.setDown) fail('Invalid carry');
       const fly = transport(s, d, a.passenger, a.to, a.setDown, 1);
@@ -116,7 +116,7 @@ export const skillHandlers = {
     const skill = head.source === 'calculating' ? cardName('calculating') : cardName('clever');
     note(
       s,
-      `${name(s, head.player)} makes ${d.loc.zone === 'board' ? 'it' : 'their scrapped mech'} ${aMech(s, d)} (${skill}).`,
+      `${name(s, head.player)} makes ${d.loc.zone === 'board' ? 'it' : 'their mech in the salvage yard'} ${aMech(s, d)} (${skill}).`,
       head.player,
     );
   },
@@ -125,7 +125,7 @@ export const skillHandlers = {
     requireSkill(s, t.player, 'resourceful');
     const d = ownMech(s, a.die, 'board');
     oncePerTurn(s, 'resourceful');
-    note(s, `${name(s, d.owner)} scraps their ${mechName(s, d)} for an extra action (${cardName('resourceful')}).`, d.owner);
+    note(s, `${name(s, d.owner)} salvages their ${mechName(s, d)} for an extra action (${cardName('resourceful')}).`, d.owner);
     destroyMech(s, d);
     t.actionsLeft++;
   },

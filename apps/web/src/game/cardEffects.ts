@@ -13,7 +13,7 @@ export interface MapEffect {
 /**
  * A card's mark on the map, over the plain action effects (ActionEffects): Show of Force striking a mech,
  * Ice Tunnels linked and the old pair closed (the board draws the tunnels themselves), an expansion mech
- * arriving, a fleet cloaked and unveiled, a mech number nudged (Flexible, Clever), a mech scrapped
+ * arriving, a fleet cloaked and unveiled, a mech number nudged (Flexible, Clever), a mech salvaged
  * (Resourceful), and the two mechs Dangerous destroys. `replaces` names what the effect stands in for an action's effect on
  * (ActionEffects): a mech, or `objective:<id>` for the objective a cube was relocated to.
  */

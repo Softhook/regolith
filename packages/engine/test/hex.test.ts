@@ -144,7 +144,7 @@ describe('hex maps', () => {
     const from = perimeterSpaces(BASE.board, CENTRE)[0];
     const s = scenario({ p0d0: [from, 1] });
     const moves = [...moveOptions(s, 'p0d0').moves.values()].map((m) => m.cell);
-    // Next to the objective, a Battlestation (moves 1) has the 5 spaces around it that aren't the objective.
+    // Next to the objective, a Breacher (moves 1) has the 5 spaces around it that aren't the objective.
     expect(moves).toHaveLength(5);
     for (const q of moves) expect(distance(from, q)).toBe(1);
     const s3 = scenario({ p0d0: [from, 3] });

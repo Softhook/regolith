@@ -3,7 +3,7 @@
  * assertions only guard the measurement itself, so an ability can be judged by eye:
  * an ability that is offered often but never used is dead weight, one used every time may be too strong.
  * By default one quick game per mode, so the suite stays fast; the numbers worth reading need more games
- * and level 4, the lowest that uses Flagship transports:
+ * and level 4, the lowest that uses Behemoth carries:
  * ABILITY_USAGE_GAMES=4 ABILITY_USAGE_LEVEL=4 npx vitest run abilityUsage  (or `npm run ability:usage`).
  */
 import { describe, expect, it } from 'vitest';
@@ -31,8 +31,8 @@ describe('ability usage by mode', () => {
 
   // The quick games above are below level 4, so no transport is played in them: one game that plays some (about 2s).
   it('counts Behemoth transports', () => {
-    const flagship = measureAbilityUsage('basic', { games: 1, level: 4 }).rows.find((r) => r.mech === 'Behemoth')!;
-    expect(flagship.used).toBeGreaterThan(0);
-    expect(flagship.usedTurns).toBeLessThanOrEqual(flagship.offeredTurns);
+    const behemoth = measureAbilityUsage('basic', { games: 1, level: 4 }).rows.find((r) => r.mech === 'Behemoth')!;
+    expect(behemoth.used).toBeGreaterThan(0);
+    expect(behemoth.usedTurns).toBeLessThanOrEqual(behemoth.offeredTurns);
   }, 120_000);
 });

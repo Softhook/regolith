@@ -478,44 +478,44 @@ export function mechReach(state: GameState, d: Die, at: (Die | undefined)[]): Me
 }
 
 /**
- * Destinations for a flagship carrying `passenger`, and where the passenger may be set down.
- * `range` defaults to the flagship's movement; Tactical transports exactly 1 space.
+ * Destinations for a mech carrying `passenger`, and where the passenger may be set down.
+ * `range` defaults to the carrier's movement; Tactical transports exactly 1 space.
  */
-export function carryOptions(state: GameState, flagshipId: string, passengerId: string, range?: number) {
-  const flag = die(state, flagshipId);
+export function carryOptions(state: GameState, carrierId: string, passengerId: string, range?: number) {
+  const carrier = die(state, carrierId);
   const passenger = die(state, passengerId);
-  const start = cellOf(flag);
+  const start = cellOf(carrier);
   const pCell = cellOf(passenger);
   const result = new Map<string, { cell: Cell; setDowns: Cell[] }>();
   if (!start || !pCell) return result;
-  range ??= movementRange(state, flag);
+  range ??= movementRange(state, carrier);
   const { cols, cells, space } = grid(state.board);
   const { found, steps } = reach(state, start, range, [pCell]);
   for (const i of found) {
-    // The flagship must move, but may fly out and back to its own space (designer ruling,
+    // The carrier must move, but may fly out and back to its own space (designer ruling,
     // BGG thread 1074052): that needs 2 movement and one free neighbouring space.
     if (steps[i] === 0 && (range < 2 || found.length < 2)) continue;
     const cell = cells[i];
     const setDowns = adjacent(state.board, cell).filter((q) => {
       if (!space[q.r * cols + q.c] || barrierAt(state, q)) return false;
       const occupant = dieAt(state, q);
-      return !occupant || occupant.id === flag.id || occupant.id === passenger.id;
+      return !occupant || occupant.id === carrier.id || occupant.id === passenger.id;
     });
     if (setDowns.length) result.set(key(cell), { cell, setDowns });
   }
   return result;
 }
 
-export function carryPassengers(state: GameState, flagshipId: string): Die[] {
-  const flag = die(state, flagshipId);
-  const start = cellOf(flag);
+export function carryPassengers(state: GameState, carrierId: string): Die[] {
+  const carrier = die(state, carrierId);
+  const start = cellOf(carrier);
   if (!start) return [];
   return adjacent(state.board, start)
     .map((p) => dieAt(state, p))
-    .filter((d): d is Die => !!d && d.owner === flag.owner);
+    .filter((d): d is Die => !!d && d.owner === carrier.owner);
 }
 
-/** Enemy mechs a battlestation can attack with its free attack. */
+/** Enemy mechs a Breacher can attack with its free attack. */
 export function freeAttackTargets(state: GameState, dieId: string): Die[] {
   const d = die(state, dieId);
   const start = cellOf(d);
