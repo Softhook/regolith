@@ -2,7 +2,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { Cell, CombatOutcome, CombatPending, GameState, LogEntry } from '@regolith/engine';
 import { arrange, quickStart } from '../../../packages/engine/test/helpers';
-import { EXPANSION } from '../src/beats';
+import { REINFORCEMENT } from '../src/beats';
 
 vi.mock('../src/sound', () => ({ sfx: {} }));
 const { battleSounds, soundsFor } = await import('../src/game/sounds');
@@ -41,16 +41,16 @@ describe('soundsFor', () => {
     expect(lands).toBeUndefined();
   });
 
-  it('hears an expansion mech land as its lance brings it', () => {
+  it('hears a reinforcement land as its lance brings it', () => {
     const { first, lands } = step(
       (s) => void (die(s, 'p0d1').loc = { zone: 'board', r: 2, c: 2 }),
       (s) => {
         die(s, 'p0d1').loc = { zone: 'reserve' };
-        s.pending.unshift({ kind: 'placeExpansion', player: 0, die: 'p0d1' });
+        s.pending.unshift({ kind: 'placeReinforcement', player: 0, die: 'p0d1' });
       },
     );
     expect(first).toEqual([]);
-    expect(lands).toBe(EXPANSION.strike);
+    expect(lands).toBe(REINFORCEMENT.strike);
   });
 
   it('hears two mechs trade places as a swap', () => {
@@ -70,31 +70,31 @@ describe('soundsFor', () => {
     expect(destroyed).toBe(2);
   });
 
-  it('hears no explosion for a mech Unveil the Fleet or Resourceful takes off the map', () => {
-    const unveil = step((s) => {
+  it('hears no explosion for a mech Invasion or Recycle takes off the map', () => {
+    const invasion = step((s) => {
       die(s, 'p0d0').loc = { zone: 'salvageYard' };
-      const e: LogEntry = { id: ++s.logCounter, player: 0, text: '', event: 'cardPlayed', card: 'r-unveil-the-fleet' };
+      const e: LogEntry = { id: ++s.logCounter, player: 0, text: '', event: 'cardPlayed', card: 'r-invasion' };
       s.log.push(e);
       return [e];
     });
-    expect(unveil.first).toEqual(['unveil']);
-    expect(unveil.then).toEqual([]);
-    expect(unveil.destroyed).toBe(0);
+    expect(invasion.first).toEqual(['invasion']);
+    expect(invasion.then).toEqual([]);
+    expect(invasion.destroyed).toBe(0);
 
-    const resourceful = step((s) => {
+    const recycle = step((s) => {
       die(s, 'p0d0').loc = { zone: 'salvageYard' };
-      s.turn.oncePerTurn.push('resourceful');
-      const e: LogEntry = { id: ++s.logCounter, player: 0, text: '', card: 'r-resourceful' };
+      s.turn.oncePerTurn.push('recycle');
+      const e: LogEntry = { id: ++s.logCounter, player: 0, text: '', card: 'r-recycle' };
       s.log.push(e);
       return [e];
     });
-    expect(resourceful.first).toEqual(['implode']);
-    expect(resourceful.destroyed).toBe(0);
+    expect(recycle.first).toEqual(['implode']);
+    expect(recycle.destroyed).toBe(0);
   });
 
   it('hears a card played by the card its entry names', () => {
     expect(step((s) => [entry(s, 'cardPlayed')]).first).toEqual(['card']);
-    expect(step((s) => [{ ...entry(s, 'cardPlayed'), card: 'r-change-of-heart' }]).first).toEqual(['shuffle']);
+    expect(step((s) => [{ ...entry(s, 'cardPlayed'), card: 'r-headhunter' }]).first).toEqual(['shuffle']);
   });
 
   it('hears a barrier blown, and each card that blows or pushes one as its own', () => {
@@ -137,8 +137,8 @@ describe('soundsFor', () => {
         },
         (s) => void s.pending.unshift({ player: 0, ...pending } as GameState['pending'][number]),
       ).first;
-    expect(blow({ kind: 'showOfForce' })).toEqual(['lance', 'explode']);
-    expect(blow({ kind: 'dangerous', attacker: 'p0d0', defender: 'p1d0' })).toEqual(['arc', 'explode']);
+    expect(blow({ kind: 'orbitalCannon' })).toEqual(['lance', 'explode']);
+    expect(blow({ kind: 'unstableReactor', attacker: 'p0d0', defender: 'p1d0' })).toEqual(['arc', 'explode']);
   });
 
   it('hears a mech renumbered without a roll', () => {
@@ -148,7 +148,7 @@ describe('soundsFor', () => {
   it('plays a Tactic’s own sound first, then its effect', () => {
     const { first, then } = step((s) => {
       s.players[0].atomics += 2;
-      return [{ ...entry(s, 'cardPlayed'), card: 'r-black-market' }];
+      return [{ ...entry(s, 'cardPlayed'), card: 'r-contraband' }];
     });
     expect(first).toEqual(['coins']);
     expect(then).toEqual(['atomicLoad']);
@@ -235,7 +235,7 @@ describe('battleSounds', () => {
   const battle = (ranged?: true) => ({ attacker: { player: 0 }, defender: { player: 1 }, ranged }) as CombatPending;
   const won = { winner: 'attacker', destroyed: 'defender' } as CombatOutcome;
   const repelled = { winner: 'defender', destroyed: null } as CombatOutcome;
-  const stubborn = { winner: 'defender', destroyed: 'attacker' } as CombatOutcome;
+  const entrenched = { winner: 'defender', destroyed: 'attacker' } as CombatOutcome;
   const me = (p: number) => p === 0;
 
   it('hears a mech destroyed as a triumph for the winner and a defeat for the loser', () => {
@@ -256,6 +256,6 @@ describe('battleSounds', () => {
   it('hears a shot fired, then what it does as it reaches its target', () => {
     expect(battleSounds(battle(true), won, me)).toEqual({ now: ['gunshot'], hit: ['wreck', 'triumph'] });
     expect(battleSounds(battle(true), repelled, me)).toEqual({ now: ['gunshot', 'whizz'], hit: [] });
-    expect(battleSounds(battle(true), stubborn, me)).toEqual({ now: ['gunshot', 'whizz'], hit: ['wreck', 'defeat'] });
+    expect(battleSounds(battle(true), entrenched, me)).toEqual({ now: ['gunshot', 'whizz'], hit: ['wreck', 'defeat'] });
   });
 });

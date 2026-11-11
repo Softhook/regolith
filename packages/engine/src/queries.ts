@@ -31,13 +31,13 @@ export function usedThisTurn(state: GameState, tag: OncePerTurn): boolean {
   return state.turn.oncePerTurn.includes(tag);
 }
 
-/** Cunning: one mech ability may be used a second time each turn. */
-export function cunningAvailable(state: GameState, player: PlayerId): boolean {
-  return anySkill(state, player, (r) => r.abilityTwice) && !usedThisTurn(state, 'cunning');
+/** Boost: one mech ability may be used a second time each turn. */
+export function boostAvailable(state: GameState, player: PlayerId): boolean {
+  return anySkill(state, player, (r) => r.abilityTwice) && !usedThisTurn(state, 'boost');
 }
 
 export function canUseAbility(state: GameState, d: Die): boolean {
-  return !state.turn.abilityUsed[d.id] || cunningAvailable(state, d.owner);
+  return !state.turn.abilityUsed[d.id] || boostAvailable(state, d.owner);
 }
 
 /**
@@ -49,7 +49,7 @@ export function canRefit(state: GameState, d: Die): boolean {
 }
 
 /**
- * Unlike other skills, a held Talented raises the limit at once, before it becomes active at the end
+ * Unlike other skills, a held Veteran Crew raises the limit at once, before it becomes active at the end
  * of the turn, so taking it as a 4th skill forces no discard (RULES.md ruling 13).
  */
 export function skillLimit(state: GameState, player: PlayerId): number {
@@ -62,21 +62,21 @@ export function breakthroughAt(state: GameState, player: PlayerId): number {
   return Math.min(limit, ...skillRules(state, player).map((r) => r.breakthroughAt ?? limit));
 }
 
-/** Power needed for Take Over (normally 6, or 4 with Prideful). */
+/** Power needed for Take Over (normally 6, or 4 with Stolen Flag). */
 export function infamyAt(state: GameState, player: PlayerId): number {
   return Math.min(6, ...skillRules(state, player).map((r) => r.infamyAt ?? 6));
 }
 
 /**
  * Whether no more actions may be taken this turn, only ending it (or playing a stored Tactic): after
- * the CE Curious extra action or a stored Tactic (Patient).
+ * the CE Prospectors extra action or a stored Tactic (Strategic Plan).
  */
 export function actionsClosed(t: TurnState): boolean {
-  return !!(t.curiousUsed || t.storedTacticPlayed);
+  return !!(t.prospectorsUsed || t.storedTacticPlayed);
 }
 
-/** CE Curious: whether the player may take an additional Move or Research action. */
-export function canCurious(state: GameState, player: PlayerId): boolean {
+/** CE Prospectors: whether the player may take an additional Move or Research action. */
+export function canProspectors(state: GameState, player: PlayerId): boolean {
   const t = state.turn;
   return (
     anySkill(state, player, (r) => r.peacefulExtraAction) &&
@@ -84,11 +84,11 @@ export function canCurious(state: GameState, player: PlayerId): boolean {
     t.phase === 'actions' &&
     !t.attacked &&
     (t.claimed ?? 0) === 0 &&
-    !t.curiousUsed
+    !t.prospectorsUsed
   );
 }
 
-/** Patient: whether the player can play a stored Tactic at the end of their turn. */
+/** Strategic Plan: whether the player can play a stored Tactic at the end of their turn. */
 export function canPlayStoredTactic(state: GameState, player: PlayerId): boolean {
   const t = state.turn;
   const pl = state.players[player];
@@ -101,7 +101,7 @@ export function canPlayStoredTactic(state: GameState, player: PlayerId): boolean
   );
 }
 
-/** Profiteering: whether the current card pick may be taken as an atomic instead. */
+/** Arms Deal: whether the current card pick may be taken as an atomic instead. */
 export function canProfiteer(state: GameState): boolean {
   const head = state.pending[0];
   return head?.kind === 'takeCard' && (head.claim ?? 0) > 0 && anySkill(state, head.player, (r) => r.atomicForClaim);
@@ -127,7 +127,7 @@ export function movementRange(state: GameState, d: Die): number {
 /**
  * Spaces where `mover`'s mechs must stop, by board cell index (`at` is mechsByIndex): around enemy
  * mechs with `stopsEnemies` (an ability, MechHooks). Undefined when nothing stops them, so plain searches stay plain.
- * Devious ignores them: it slips past enemy mechs (ruling 2026-10-12).
+ * Sneak ignores them: it slips past enemy mechs (ruling 2026-10-12).
  */
 export function stopZone(state: GameState, mover: PlayerId, at: (Die | undefined)[]): Uint8Array | undefined {
   if (!modeHasHook(state, 'stopsEnemies') || anySkill(state, mover, (r) => r.moveThroughEnemies)) return undefined;
@@ -162,7 +162,7 @@ export interface AttackLaunch {
  * Spaces a mech can reach within `range` steps, with the fewest steps to each, by board cell index
  * (see board.ts grid): this runs for every mech in every position the AI scores. `found` lists
  * them in the order they were first reached, the start first. `ignore` lists occupied spaces
- * treated as empty. With `through` (Devious), the mech may pass through that player's enemies'
+ * treated as empty. With `through` (Sneak), the mech may pass through that player's enemies'
  * mechs at no cost; such spaces are marked in `passing`, as it can't stop there. The search doesn't
  * go on from a space in `zone` (stopZone), other than the start.
  */
@@ -185,7 +185,7 @@ function reach(
   const tunnel = tunnels(state, g);
   const near = g.ortho;
   const walls = barrierMask(state, g);
-  /** 0 = blocked, 1 = free, 2 = passed through (Devious). */
+  /** 0 = blocked, 1 = free, 2 = passed through (Sneak). */
   const entry = (i: number): number => {
     if (!g.space[i] || walls?.[i]) return 0;
     const d = at[i];
@@ -368,7 +368,7 @@ export function moveIndexes(state: GameState, mech: string | Die, at = mechsByIn
   const range = movementRange(state, d);
   const zone = stopZone(state, d.owner, at);
 
-  // Devious: normal moves only, not Carry & Move or the Tactical step (RULES.md ruling 8).
+  // Sneak: normal moves only, not Carry & Move or the Advance step (RULES.md ruling 8).
   const through = anySkill(state, d.owner, (r) => r.moveThroughEnemies) ? d.owner : undefined;
   const g = grid(state.board);
   const tunnel = tunnels(state, g);
@@ -433,7 +433,7 @@ export function mechReach(state: GameState, d: Die, at: (Die | undefined)[]): Me
   const zone = stopZone(state, d.owner, at);
   const walls = barrierMask(state, g);
   const near = g.ortho;
-  // Plain breadth-first search: without Devious every step costs 1.
+  // Plain breadth-first search: without Sneak every step costs 1.
   STEPS.fill(-1, 0, g.size);
   STEPS[from] = 0;
   QUEUE[0] = from;
@@ -479,7 +479,7 @@ export function mechReach(state: GameState, d: Die, at: (Die | undefined)[]): Me
 
 /**
  * Destinations for a mech carrying `passenger`, and where the passenger may be set down.
- * `range` defaults to the carrier's movement; Tactical carries exactly 1 space.
+ * `range` defaults to the carrier's movement; Advance carries exactly 1 space.
  */
 export function carryOptions(state: GameState, carrierId: string, passengerId: string, range?: number) {
   const carrier = die(state, carrierId);
@@ -525,16 +525,16 @@ export function freeAttackTargets(state: GameState, dieId: string): Die[] {
     .filter((x): x is Die => !!x && x.owner !== d.owner);
 }
 
-export interface TacticalOptions {
+export interface AdvanceSkillOptions {
   moves: { cell: Cell }[];
   attacks: { die: Die }[];
 }
 
-/** Tactical: one step (or an attack on an adjacent enemy) for a single mech. */
-export function tacticalOptions(state: GameState, dieId: string): TacticalOptions {
+/** Advance: one step (or an attack on an adjacent enemy) for a single mech. */
+export function advanceSkillOptions(state: GameState, dieId: string): AdvanceSkillOptions {
   const d = die(state, dieId);
   const start = cellOf(d);
-  const result: TacticalOptions = { moves: [], attacks: [] };
+  const result: AdvanceSkillOptions = { moves: [], attacks: [] };
   if (!start) return result;
   for (const cell of stepNeighbours(state, start)) {
     const target = dieAt(state, cell);
@@ -553,19 +553,20 @@ export function startSlots(state: GameState, objectiveId: number): Cell[] {
 }
 
 /**
- * Whether the player may take this face-up card. An Expansion needs a mech in the reserve:
- * "If you already have both of your expansion mechs in the game, you cannot use EXPANSION
+ * Whether the player may take this face-up card. A Reinforcements card needs a mech in the reserve, as
+ * Expansion did: "If you already have both of your expansion mechs in the game, you cannot use EXPANSION
  * cards" (2013 rulebook p.9).
  */
 export function canTakeCard(state: GameState, player: PlayerId, id: string): boolean {
-  return effectOf(id) !== 'expansion' || reserve(state, player).length > 0;
+  return effectOf(id) !== 'reinforcements' || reserve(state, player).length > 0;
 }
 
 /** Whether there is anything the player could do with a card pick. */
 export function canTakeAnyCard(state: GameState, player: PlayerId): boolean {
   const m = state.market;
   return (
-    [...m.skillRow, ...m.tacticRow].some((id) => canTakeCard(state, player, id)) || (m.expansions > 0 && reserve(state, player).length > 0)
+    [...m.skillRow, ...m.tacticRow].some((id) => canTakeCard(state, player, id)) ||
+    (m.reinforcements > 0 && reserve(state, player).length > 0)
   );
 }
 
@@ -591,7 +592,7 @@ export function dropTargets(state: GameState, player: PlayerId): Cell[] {
       if (isEmptySpace(state, p) && !linked(state, p).some((q) => dieAt(state, q))) targets.set(key(p), p);
     }
   }
-  // Contested drop (PROTOTYPING.md §6.8): every way of dropping (Expansion, Stealthy, Beacon too) stays out of
+  // Contested drop (PROTOTYPING.md §6.8): every way of dropping (Reinforcements, Infiltration, Beacon too) stays out of
   // a contested perimeter, except a home objective's, so nobody is shut out.
   const home = homeObjective(state, player);
   for (const objective of state.board.objectives) {
@@ -706,11 +707,11 @@ export interface CombatTotal {
   parts: CombatPart[];
 }
 
-/** The value a side's combat roll is set to, overriding the dice: an atomic, Plan Ahead or Rational (in that priority). */
+/** The value a side's combat roll is set to, overriding the dice: an atomic, Kill Zone or Drill Sergeant (in that priority). */
 function rollOverride(state: GameState, combat: CombatPending, side: CombatRole): CombatPart | undefined {
   const s = combat[side];
   if (s.atomic) return { kind: 'roll', set: true, label: 'Atomic', value: 1 };
-  if (state.players[s.player].planAhead > 0) return { kind: 'roll', set: true, label: cardName('plan-ahead'), value: 1 };
+  if (state.players[s.player].killZone > 0) return { kind: 'roll', set: true, label: cardName('kill-zone'), value: 1 };
   const fixed = activeSkills(state, s.player)
     .filter((a) => a.rule.combat?.roll !== undefined)
     .pop();
@@ -719,7 +720,7 @@ function rollOverride(state: GameState, combat: CombatPending, side: CombatRole)
 
 /**
  * Combat roll pipeline (docs/RULES.md ruling 1):
- * roll (Brutal: lower of two) → set effects (Rational 3, Plan Ahead 1) → atomic (1) → modifiers.
+ * roll (Paired Cannons: lower of two) → set effects (Drill Sergeant 3, Kill Zone 1) → atomic (1) → modifiers.
  */
 export function combatTotal(state: GameState, combat: CombatPending, side: CombatRole): CombatTotal {
   const s = combat[side];
@@ -727,7 +728,7 @@ export function combatTotal(state: GameState, combat: CombatPending, side: Comba
   const parts: CombatPart[] = [];
   const set = rollOverride(state, combat, side);
   const roll = set?.value ?? (s.dice.length > 1 ? Math.min(...s.dice) : s.dice[0]);
-  parts.push(set ?? { kind: 'roll', label: s.dice.length > 1 ? `${cardName('brutal')} roll` : 'Roll', value: roll });
+  parts.push(set ?? { kind: 'roll', label: s.dice.length > 1 ? `${cardName('paired-cannons')} roll` : 'Roll', value: roll });
   parts.push({ kind: 'mech', label: 'Mech', value: s.mech });
   for (const { card: id, rule } of skills) {
     const value = rule.combat!.modifier?.({ state, combat, side }) ?? 0;
@@ -741,14 +742,14 @@ export function combatOutcome(state: GameState, combat: CombatPending) {
   const a = combatTotal(state, combat, 'attacker');
   const d = combatTotal(state, combat, 'defender');
   const tie = a.total === d.total;
-  const stubbornDefence = anySkill(state, combat.defender.player, (r) => r.combat?.stubborn);
-  const attackerWins = a.total < d.total || (tie && !stubbornDefence);
-  // Stubborn: when the defender wins (ties included), the attacker is destroyed.
-  const stubborn = stubbornDefence && !attackerWins;
+  const entrenchedDefence = anySkill(state, combat.defender.player, (r) => r.combat?.entrenched);
+  const attackerWins = a.total < d.total || (tie && !entrenchedDefence);
+  // Entrenched: when the defender wins (ties included), the attacker is destroyed.
+  const entrenched = entrenchedDefence && !attackerWins;
   const winner: CombatRole = attackerWins ? 'attacker' : 'defender';
   // The mech the result destroys; none when the attack is only repelled.
-  const destroyed: CombatRole | null = attackerWins ? 'defender' : stubborn ? 'attacker' : null;
-  return { attacker: a, defender: d, attackerWins, stubborn, winner, destroyed };
+  const destroyed: CombatRole | null = attackerWins ? 'defender' : entrenched ? 'attacker' : null;
+  return { attacker: a, defender: d, attackerWins, entrenched, winner, destroyed };
 }
 
 export type CombatOutcome = ReturnType<typeof combatOutcome>;
@@ -799,16 +800,16 @@ function previewCombat(attacker: Die, defender: Die, from: Cell): CombatPending 
 
 /**
  * Probability that `attacker` beats `defender` if it attacks from `from` (by default, where it is
- * now), with both players' combat skills and Plan Ahead (not re-rolls, atomics or Dangerous).
+ * now), with both players' combat skills and Kill Zone (not re-rolls, atomics or Unstable Reactor).
  */
 export function attackChance(state: GameState, attacker: Die, defender: Die, from: Cell = cellOf(attacker)!): number {
-  const plain = (p: PlayerId) => !state.players[p].planAhead && !activeSkills(state, p).some((a) => a.rule.combat);
+  const plain = (p: PlayerId) => !state.players[p].killZone && !activeSkills(state, p).some((a) => a.rule.combat);
   if (plain(attacker.owner) && plain(defender.owner)) return attackOdds(attacker.value, defender.value);
   const combat = previewCombat(attacker, defender, from);
   /** Chance of each total: the roll (a set value, or the lowest of n dice) plus what doesn't depend on it. */
   const totals = (role: CombatRole): Map<number, number> => {
     const t = combatTotal(state, combat, role);
-    // A set roll (Rational, Plan Ahead): the 6 rolled was ignored.
+    // A set roll (Drill Sergeant, Kill Zone): the 6 rolled was ignored.
     if (t.roll !== 6) return new Map([[t.total, 1]]);
     const n = combatDice(state, combat[role].player);
     // The lowest of n dice is r with chance ((7 - r)^n - (6 - r)^n) / 6^n.
@@ -816,9 +817,9 @@ export function attackChance(state: GameState, attacker: Die, defender: Die, fro
   };
   const att = totals('attacker');
   const def = totals('defender');
-  const stubborn = anySkill(state, defender.owner, (r) => r.combat?.stubborn);
+  const entrenched = anySkill(state, defender.owner, (r) => r.combat?.entrenched);
   let wins = 0;
-  for (const [a, pa] of att) for (const [d, pd] of def) if (a < d || (a === d && !stubborn)) wins += pa * pd;
+  for (const [a, pa] of att) for (const [d, pd] of def) if (a < d || (a === d && !entrenched)) wins += pa * pd;
   return wins;
 }
 
@@ -847,8 +848,8 @@ export function attackFactors(
     for (const part of parts) if (part.kind === 'modifier') out.push(`${part.label} ${signed(part.value)}`);
     const n = combatDice(state, combat[role].player);
     if (n > 1 && !set) out.push(`${skillName(state, combat[role].player, (r) => (r.combat?.dice ?? 1) > 1)!}: lowest of ${n} dice`);
-    const stubborn = role === 'defender' && skillName(state, defender.owner, (r) => r.combat?.stubborn);
-    if (stubborn) out.push(`${stubborn}: wins ties`);
+    const entrenched = role === 'defender' && skillName(state, defender.owner, (r) => r.combat?.entrenched);
+    if (entrenched) out.push(`${entrenched}: wins ties`);
     return out;
   };
   return { attacker: factors('attacker'), defender: factors('defender') };

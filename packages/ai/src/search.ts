@@ -252,7 +252,7 @@ export class Search {
       let pick: GameState | null = null;
       let top = -Infinity;
       // Candidates are tried here, which is all legalActions would do to them first.
-      for (const a of head.kind === 'unveil' ? unveilPlacements(s) : decisionCandidates(s)) {
+      for (const a of head.kind === 'invasion' ? invasionPlacements(s) : decisionCandidates(s)) {
         const outs = outcomes(s, a, this.seeds.slice(0, 1));
         if (!outs) continue;
         // Nested decisions are settled with the first option, to keep this cheap.
@@ -317,9 +317,9 @@ function quickSettle(state: GameState): GameState {
   let s = state;
   for (let i = 0; i < 6 && s.pending.length && s.phase !== 'over'; i++) {
     const head = s.pending[0];
-    // Unveil's first option is always Done; asking legalActions would test every placement first.
-    if (head.kind === 'combat' || head.kind === 'unveil') {
-      s = apply(s, { type: head.kind === 'combat' ? 'resolveCombat' : 'unveilDone' });
+    // Invasion's first option is always Done; asking legalActions would test every placement first.
+    if (head.kind === 'combat' || head.kind === 'invasion') {
+      s = apply(s, { type: head.kind === 'combat' ? 'resolveCombat' : 'invasionDone' });
       continue;
     }
     // legalActions(s)[0], without trying the answers after it.
@@ -332,18 +332,18 @@ function quickSettle(state: GameState): GameState {
 }
 
 /**
- * Settling Unveil the Fleet: the next mech onto the first space it may take, or Done when
- * none is left, so every option at the root is played out alike and cheaply. Unveil is many steps, each with up to
+ * Settling Invasion: the next mech onto the first space it may take, or Done when
+ * none is left, so every option at the root is played out alike and cheaply. Invasion is many steps, each with up to
  * a hundred spaces (a skill that drops anywhere isolated): trying them all at each step made one AI decision
  * take minutes. Where each mech goes is still chosen properly, one mech per decision, at the root (`choose`).
  */
-function unveilPlacements(s: GameState): Action[] {
+function invasionPlacements(s: GameState): Action[] {
   // Built directly: legalActions would build and test every placement to take the first.
-  const head = s.pending[0] as Extract<Pending, { kind: 'unveil' }>;
+  const head = s.pending[0] as Extract<Pending, { kind: 'invasion' }>;
   const targets = dropTargets(s, head.player);
-  if (!targets.length) return [{ type: 'unveilDone' }];
+  if (!targets.length) return [{ type: 'invasionDone' }];
   const die = salvageYard(s, head.player)[0];
-  return [die ? { type: 'unveilDrop', die: die.id, to: targets[0] } : { type: 'unveilDone' }];
+  return [die ? { type: 'invasionDrop', die: die.id, to: targets[0] } : { type: 'invasionDone' }];
 }
 
 function seed(random: () => number): number {
@@ -379,7 +379,7 @@ function signature(s: GameState): string {
     s.dice.map((d) => [d.value, d.loc.zone === 'board' ? d.loc.r * 100 + d.loc.c : d.loc.zone]),
     [turn, sortedEntries(moved), sortedEntries(abilityUsed), sortedEntries(seen)],
     s.players.map(({ id: _id, name: _name, color: _color, ai: _ai, aiLevel: _aiLevel, stats: _stats, ...changing }) => changing),
-    [m.skillRow, m.tacticRow, m.skillDeck.length, m.tacticDeck.length, m.skillDiscard.length, m.tacticDiscard.length, m.expansions],
+    [m.skillRow, m.tacticRow, m.skillDeck.length, m.tacticDeck.length, m.skillDiscard.length, m.tacticDiscard.length, m.reinforcements],
     s.board.objectives.map((p) => p.cubes),
     s.tunnels,
     s.barriers ?? [],

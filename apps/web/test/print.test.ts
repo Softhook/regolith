@@ -338,8 +338,8 @@ describe('tiles', () => {
 
 describe('print file names', () => {
   it('follow regolith-<piece>-<name>[-bleed][-<dpi>dpi] regolith-<pieces>[-<part>][-<tag>] and regolith-<name>-a4-<condition>', () => {
-    const card = { name: 'skill/07-agile', svg: () => '' };
-    expect(fileName(PIECES.card, card, { bleed: true, dpi: 300, ext: 'png' })).toBe('regolith-card-skill-07-agile-bleed-300dpi.png');
+    const card = { name: 'skill/07-tune-up', svg: () => '' };
+    expect(fileName(PIECES.card, card, { bleed: true, dpi: 300, ext: 'png' })).toBe('regolith-card-skill-07-tune-up-bleed-300dpi.png');
     expect(fileName(PIECES.tile, { name: 'p7-01', svg: () => '' }, { bleed: false, ext: 'svg' })).toBe('regolith-tile-p7-01.svg');
     expect(setName(PIECES.card, { part: 'community', tag: 'bleed' })).toBe('regolith-cards-community-bleed.zip');
     expect(setName(PIECES.tile, {})).toBe('regolith-tiles.zip');

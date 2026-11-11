@@ -9,10 +9,10 @@ const UNDOABLE = new Set<Action['type']>([
   'carry',
   'swap',
   'change',
-  'flexible',
-  'composed',
-  'ambitious',
-  'tactical',
+  'fieldRefit',
+  'standDown',
+  'finalPush',
+  'advanceSkill',
 ]);
 
 /**
@@ -23,7 +23,7 @@ const UNDOABLE = new Set<Action['type']>([
  */
 export function isUndoable(prev: GameState, action: Action, next: GameState): boolean {
   if (!UNDOABLE.has(action.type)) return false;
-  if (action.type === 'tactical' && action.target) return false;
+  if (action.type === 'advanceSkill' && action.target) return false;
   if (next.rng !== prev.rng || next.phase !== 'play') return false;
   if (next.turn.number !== prev.turn.number || next.pending.length) return false;
   const m = (s: GameState) =>

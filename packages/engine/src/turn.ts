@@ -32,8 +32,8 @@ function startTurn(s: GameState, player: PlayerId, actions: number, bonus: boole
   s.turn.freeDrops = extra.freeDrops;
   for (const d of s.dice) if (d.owner === player) s.turn.seen[d.id] = [d.value];
 
-  // Skills a Ruthless player disabled come back at the start of that player's next regular turn,
-  // not a Momentum turn, as with Sabotage (RULES.md ruling 9).
+  // Skills a Signal Jammer player disabled come back at the start of that player's next regular turn,
+  // not a Forced March turn, as with Sabotage (RULES.md ruling 9).
   if (!bonus) for (const o of s.players) activateSkills(s, o.id, (sk) => sk.disabledUntil === player);
 
   if (extra.research) gainResearch(s, player, extra.research);
@@ -69,7 +69,7 @@ export function beginPlay(s: GameState) {
 
 /**
  * Queues a player's card picks for this card phase: `count` earned this turn (`claim` of them by
- * Claim actions) plus any carried over by Momentum (see carryPicks in cards.ts).
+ * Claim actions) plus any carried over by Forced March (see carryPicks in cards.ts).
  */
 function queuePicks(s: GameState, player: PlayerId, count: number, claim: number) {
   const pl = s.players[player];
@@ -109,8 +109,8 @@ function finishTurn(s: GameState) {
   // Skills taken this turn, by anyone (off-turn picks too), work from now on, unless disabled.
   for (const o of s.players) activateSkills(s, o.id, (sk) => sk.disabledUntil === undefined);
   const pl = s.players[p];
-  if (pl.planAhead > 0) pl.planAhead--;
-  // Momentum turns: the active player's first, then those earned on this turn by other players
+  if (pl.killZone > 0) pl.killZone--;
+  // Forced March turns: the active player's first, then those earned on this turn by other players
   // (taken off-turn, so "immediately" means right after this turn), in turn order. Then the
   // regular turn order picks up where it left off.
   for (let i = 0; i < n; i++) {
@@ -125,7 +125,7 @@ function finishTurn(s: GameState) {
 }
 
 /**
- * Puts the player's inactive skills that pass `which` into effect. A Prideful taking effect can
+ * Puts the player's inactive skills that pass `which` into effect. A Stolen Flag taking effect can
  * make the player's Power already enough for Take Over (RULES.md ruling 3).
  */
 function activateSkills(s: GameState, player: PlayerId, which: (sk: OwnedSkill) => boolean) {
@@ -159,7 +159,7 @@ const AUTO_RESOLVE: { [K in Pending['kind']]?: (s: GameState, head: PendingOf<K>
     s.pending.shift();
     return true;
   },
-  showOfForce(s) {
+  orbitalCannon(s) {
     if (mechsOnBoard(s).length) return false;
     s.pending.shift();
     return true;
@@ -174,17 +174,17 @@ const AUTO_RESOLVE: { [K in Pending['kind']]?: (s: GameState, head: PendingOf<K>
     s.pending.shift();
     return true;
   },
-  patientTactic(s) {
+  strategicPlanTactic(s) {
     if (s.market.tacticRow.length) return false;
     s.pending.shift();
     return true;
   },
-  ruthless(s, head) {
+  signalJammer(s, head) {
     if (s.players[head.victim].skills.some((sk) => sk.active)) return false;
     s.pending.shift();
     return true;
   },
-  prideful(s, head) {
+  stolenFlag(s, head) {
     if (stealableSkill(s, head.victim) >= 0) return false;
     s.pending.shift();
     return true;

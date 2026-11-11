@@ -2,7 +2,7 @@ export * from './types';
 export * from './data';
 export {
   defaultMapFor,
-  expansionCard,
+  reinforcementCard,
   hasAbility,
   hooksOf,
   modeHasHook,

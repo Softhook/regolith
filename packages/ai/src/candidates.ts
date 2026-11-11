@@ -12,8 +12,8 @@ import {
   type PlayerId,
 } from '@regolith/engine';
 
-/** Calculating: the salvage yard numbers to take first (see candidates). */
-const CALCULATING_ORDER = [4, 3, 5, 2, 6, 1];
+/** Remodel: the salvage yard numbers to take first (see candidates). */
+const REMODEL_ORDER = [4, 3, 5, 2, 6, 1];
 
 /**
  * How much Kinetic Shunt pushing a barrier helps `me`: freeing a space of their own home's perimeter, or
@@ -33,17 +33,17 @@ export function barrierShuntRank(s: GameState, a: Action, me: PlayerId): number 
 
 /**
  * The legal actions an AI considers, ordered for the decisions where the evaluation ties (the first
- * wins a tie). Playing a stored Tactic (Patient) ends the action phase, and the evaluations don't
+ * wins a tie). Playing a stored Tactic (Strategic Plan) ends the action phase, and the evaluations don't
  * value the actions left, so it is only considered once they are spent.
  */
 export function candidates(s: GameState, opts?: { includeCarry?: boolean }): Action[] {
   const all = legalActions(s, opts);
   const head = s.pending[0];
-  // Calculating: the evaluation can't tell mech numbers in the salvage yard apart, so ties go to the
+  // Remodel: the evaluation can't tell mech numbers in the salvage yard apart, so ties go to the
   // first. A Chameleon (4) can become a 3 or 5 for free, the most flexible; over 200 games each,
-  // Calculating won 57% this way against 40% taking 1s (docs/card-benchmark.md).
-  if (head?.kind === 'clever' && head.source === 'calculating') {
-    const rank = (a: Action) => (a.type === 'clever' ? CALCULATING_ORDER.indexOf(a.value) : 99);
+  // Remodel won 57% this way against 40% taking 1s (docs/card-benchmark.md).
+  if (head?.kind === 'engineering' && head.source === 'remodel') {
+    const rank = (a: Action) => (a.type === 'engineering' ? REMODEL_ORDER.indexOf(a.value) : 99);
     all.sort((a, b) => rank(a) - rank(b));
   }
   // Kinetic Shunt: enemy mechs first, pushed furthest first.

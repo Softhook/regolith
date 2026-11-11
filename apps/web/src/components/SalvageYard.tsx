@@ -4,17 +4,17 @@ import type { Dispatch } from '../game/useGame';
 import { Die3D } from './Die3D';
 import { Tip } from './InfoPop';
 
-/** The mechs `player` has re-rolled while unveiling (Unveil tactic) on this device, or null when not unveiling. */
-function unveilingOf(game: GameState, player: number, ctl: Controller): string[] | null {
+/** The mechs `player` has re-rolled while invading (Invasion tactic) on this device, or null when not invading. */
+function invadingOf(game: GameState, player: number, ctl: Controller): string[] | null {
   const head = game.pending[0];
-  return head?.kind === 'unveil' && head.player === player && ctl.human ? head.rerolled : null;
+  return head?.kind === 'invasion' && head.player === player && ctl.human ? head.rerolled : null;
 }
 
-/** Whether `p` can drop from their salvage yard on this device now: in their action phase, unveiling, or placing their starting mechs. */
+/** Whether `p` can drop from their salvage yard on this device now: in their action phase, invading, or placing their starting mechs. */
 function canDropFrom(game: GameState, p: PlayerState, ctl: Controller): boolean {
   const head = game.pending[0];
   const placingStart = head?.kind === 'placeMechs' && head.player === p.id && ctl.human;
-  return (ctl.actionPhase && game.turn.player === p.id) || !!unveilingOf(game, p.id, ctl) || placingStart;
+  return (ctl.actionPhase && game.turn.player === p.id) || !!invadingOf(game, p.id, ctl) || placingStart;
 }
 
 /** A mech's ability in this game's rules, as one line. */
@@ -41,7 +41,7 @@ export function turnYardOwner(game: GameState, ctl: Controller): PlayerState {
 export function SalvageYard({ game, p, ctl, dispatch }: { game: GameState; p: PlayerState; ctl: Controller; dispatch: Dispatch }) {
   const salvage = salvageYard(game, p.id);
   if (!salvage.length) return null;
-  const unveiling = unveilingOf(game, p.id, ctl);
+  const invading = invadingOf(game, p.id, ctl);
   const canDrop = canDropFrom(game, p, ctl);
   const clickSalvaged = (d: Die) => {
     ctl.select(ctl.sel.kind === 'salvage' && ctl.sel.die === d.id ? { kind: 'none' } : { kind: 'salvage', die: d.id });
@@ -66,8 +66,8 @@ export function SalvageYard({ game, p, ctl, dispatch }: { game: GameState; p: Pl
           >
             <Die3D value={d.value} rolls={d.rolls} size={22} color={p.color} sound={false} />
           </Tip>
-          {unveiling && !unveiling.includes(d.id) && (
-            <button className="mini-btn" onClick={() => dispatch({ type: 'unveilReroll', die: d.id })}>
+          {invading && !invading.includes(d.id) && (
+            <button className="mini-btn" onClick={() => dispatch({ type: 'invasionReroll', die: d.id })}>
               re-roll
             </button>
           )}

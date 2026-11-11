@@ -84,7 +84,7 @@ export function CardLab() {
 
   const detail = useSvgUrl(fonts === null ? '' : svgOf(item, { bleed }));
 
-  // Named as the card reads, not by its id: `07-tune-up`, not `07-r-agile`.
+  // Named as the card reads, not by its id: `07-tune-up`, not `07-r-tune-up`.
   const fileName = (i: Item) => (i.face ? `${String(i.face.index).padStart(2, '0')}-${slugOf(i.face.name)}` : 'back');
   const printable = (i: Item): Printable => ({
     name: `${i.deck}/${fileName(i)}`,

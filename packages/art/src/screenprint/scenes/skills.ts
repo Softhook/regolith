@@ -27,7 +27,7 @@ import { outdoors, path, stroke, sideInk, wreck, glove, flag, hexOnGround, dropp
 import type { SpScene } from '../scenes';
 
 export const SKILL_SCENES: Record<string, SpScene> = {
-  'r-agile': {
+  'r-tune-up': {
     world: 'deimos',
     caption: "a mechanic on a step ladder, a wrench on a Wisp's knee joint, sparks flying",
     draw: (s) =>
@@ -43,7 +43,7 @@ export const SKILL_SCENES: Record<string, SpScene> = {
       flash(37, 15.6, 2, 8),
   },
 
-  'r-ambitious': {
+  'r-final-push': {
     world: 'mars',
     caption: 'a Breacher pushed past its limit',
     draw: (s) =>
@@ -57,7 +57,7 @@ export const SKILL_SCENES: Record<string, SpScene> = {
         arms: { plus: [-30, -20], minus: [26, 10] },
       }),
   },
-  'r-brilliant': {
+  'r-science-survey': {
     world: 'phobos',
     caption: 'a radar station on the surface, its dish on the roof, its pulses going down through the strata',
     draw: (s) => {
@@ -82,7 +82,7 @@ export const SKILL_SCENES: Record<string, SpScene> = {
       );
     },
   },
-  'r-brutal': {
+  'r-paired-cannons': {
     world: 'deimos',
     caption: 'a Breacher front on, firing both fists at the viewer, two muzzle flashes',
     draw: (s) =>
@@ -95,7 +95,7 @@ export const SKILL_SCENES: Record<string, SpScene> = {
       sparks(s.r, 14, 31.5, 12, 10) +
       sparks(s.r, 50, 31.5, 12, 10),
   },
-  'r-calculating': {
+  'r-remodel': {
     world: 'phobos',
     caption: 'the salvage yard crane lowering one chassis beside a wreck',
     draw: (s) =>
@@ -107,7 +107,7 @@ export const SKILL_SCENES: Record<string, SpScene> = {
       stroke('M40,22 q1.2,2 2.4,0', s.key, 0.6) +
       mech(s, 'chameleon', 41, 32, 0.045, { yaw: -25 }, { plate: INKS.oxide }),
   },
-  'r-clever': {
+  'r-engineering': {
     world: 'mars',
     caption: 'a Chameleon in a gantry, one arm off and hanging from the hoist beside its open shoulder',
     draw: (s) =>
@@ -118,7 +118,7 @@ export const SKILL_SCENES: Record<string, SpScene> = {
       mech(s, 'chameleon', 35, 38.5, 0.115, { detach: { arm: 'plus', show: 'arm' } }) +
       sparks(s.r, 35.4, 15.5, 10, 5),
   },
-  'r-composed': {
+  'r-stand-down': {
     world: 'phobos',
     caption: 'a Chameleon powered down in a low crouch, a radar dish beside it sweeping the sky',
     draw: (s) =>
@@ -134,7 +134,7 @@ export const SKILL_SCENES: Record<string, SpScene> = {
       rings(51.4, 15.4, 3, 3, 5, INKS.amber, 0.6, 235, 305) +
       print(s, 'dish', 48, 34, { size: 0.3 }),
   },
-  'r-cunning': {
+  'r-boost': {
     world: 'deimos',
     caption: 'a Tactician with its ability pulsing out twice, dotted rings to its left and right',
     draw: (s) => {
@@ -155,7 +155,7 @@ export const SKILL_SCENES: Record<string, SpScene> = {
       );
     },
   },
-  'r-curious': {
+  'r-prospectors': {
     world: 'phobos',
     caption: 'a Wisp working a core drill on its tripod over cracked ice',
     draw: (s) =>
@@ -170,7 +170,7 @@ export const SKILL_SCENES: Record<string, SpScene> = {
       rect(9, 34.6, 8, 1.6, INKS.ice, ` stroke="${s.key}" stroke-width="0.35"`) +
       mech(s, 'wisp', 49, 40, 0.13, { yaw: 42 }),
   },
-  'r-dangerous': {
+  'r-unstable-reactor': {
     world: 'mars',
     caption: 'a Breacher with charges strapped across its chest',
     draw: (s) => {
@@ -192,7 +192,7 @@ export const SKILL_SCENES: Record<string, SpScene> = {
       );
     },
   },
-  'r-devious': {
+  'r-sneak': {
     world: 'deimos',
     caption: 'a Wisp ducking between an enemy Behemoth’s legs',
     draw: (s) =>
@@ -201,7 +201,7 @@ export const SKILL_SCENES: Record<string, SpScene> = {
       mech(s, 'wisp', 30.5, 40.5, 0.08, { yaw: -40, legs: { plus: [24, -24], minus: [-24, 24] } }, { ink: ON_NIGHT }) +
       stroke('M34,39 l5,0 M33,41 l6,0', s.key, 0.45, ' opacity="0.6"'),
   },
-  'r-ferocious': {
+  'r-armour-piercing': {
     world: 'mars',
     caption: 'a Chameleon firing its long gun level, the barrel red hot, a round leaving it',
     draw: (s) =>
@@ -214,7 +214,7 @@ export const SKILL_SCENES: Record<string, SpScene> = {
       stroke('M46,19.6 L66,19.6', INKS.amber, 0.7, ' stroke-dasharray="3 1.4"'),
   },
 
-  'r-flexible': {
+  'r-field-refit': {
     world: 'phobos',
     caption: "a repair arm on its floor mount welding at a Tactician's hip joint",
     draw: (s) => {
@@ -236,7 +236,7 @@ export const SKILL_SCENES: Record<string, SpScene> = {
     },
   },
 
-  'r-hostile': {
+  'r-breakthrough': {
     world: 'mars',
     caption: 'a Chameleon striding on past a smoking wreck, already turning to the next target',
     draw: (s) =>
@@ -245,7 +245,7 @@ export const SKILL_SCENES: Record<string, SpScene> = {
       wreck(s, 'tactician', 8, 39, 0.07, 84, false) +
       mech(s, 'chameleon', 34, 40, 0.115, { yaw: 34, legs: { plus: [-26, 36], minus: [24, 6] }, arms: { plus: [-60, -24] }, lean: -4 }),
   },
-  'r-industrious': {
+  'r-free-drop': {
     world: 'deimos',
     caption: 'two mechs coming down side by side on their booster flames',
     draw: (s) =>
@@ -254,7 +254,7 @@ export const SKILL_SCENES: Record<string, SpScene> = {
       dropping(s, 'breacher', 19, 24, 0.075, 0, {}) +
       dropping(s, 'chameleon', 44, 19, 0.075, 0, {}),
   },
-  'r-intelligent': {
+  'r-hacking': {
     world: 'mars',
     caption: "a hand terminal spliced into an objective's panel, its 8 flickering to 7 and 9",
     draw: (s) =>
@@ -271,7 +271,7 @@ export const SKILL_SCENES: Record<string, SpScene> = {
       `<g transform="rotate(-14 57 30)">${rect(52, 22, 11, 17, s.key)}${rect(53.5, 24, 8, 7, INKS.ice)}${label('ACCESS', 57.5, 28.2, 1.2, s.key)}${[33, 35.5].map((y) => rect(53.5, y, 8, 1.4, s.ink.seam)).join('')}</g>` +
       glove(60, 44, 9, -20, s.key),
   },
-  'r-patient': {
+  'r-strategic-plan': {
     world: 'phobos',
     caption: 'two mechanical robot claws holding a creased hex map of mech battle movements out in the field',
     draw: (s) => {
@@ -415,7 +415,7 @@ export const SKILL_SCENES: Record<string, SpScene> = {
       return bg + left.arm + right.arm + mapBody + left.claw + right.claw;
     },
   },
-  'r-pioneering': {
+  'r-science': {
     world: 'mars',
     caption: 'a survey flag with the research flask on it flying over a refinery',
     draw: (s) =>
@@ -426,7 +426,7 @@ export const SKILL_SCENES: Record<string, SpScene> = {
       icon('research', 30.6, 19, 6.5, s.key, 2.6) +
       person(20, 42, 0.22, { facing: 1, arms: [120, 20], elbows: [-10, 10] }, s.key, s.paper),
   },
-  'r-plundering': {
+  'r-exploit': {
     world: 'deimos',
     caption: 'a salvage drone hovering over a wreck, scanning it in amber lines',
     draw: (s) => {
@@ -441,7 +441,7 @@ export const SKILL_SCENES: Record<string, SpScene> = {
       );
     },
   },
-  'r-precocious': {
+  'r-rush-research': {
     world: 'phobos',
     caption: 'two surveyors running back to camp with a sample case',
     draw: (s) =>
@@ -452,7 +452,7 @@ export const SKILL_SCENES: Record<string, SpScene> = {
       person(34, 40, 0.27, { facing: 1, arms: [-20, -60], elbows: [30, 40], legs: [36, -36], knees: [-40, 30], lean: 18 }, s.key, s.paper) +
       `<g transform="rotate(4 28 31)">${rect(25, 30, 7, 4, INKS.amber)}${rect(27.4, 29.2, 2.2, 1, s.key)}</g>`,
   },
-  'r-prideful': {
+  'r-stolen-flag': {
     world: 'deimos',
     caption: 'a victorious Chameleon holding up a flag over a downed mech',
     draw: (s) =>
@@ -462,7 +462,7 @@ export const SKILL_SCENES: Record<string, SpScene> = {
       mech(s, 'chameleon', 40, 41, 0.1, { yaw: -20, arms: { plus: [-100, -40] } }) +
       flag(s, 57.6, 17, 12.5, INKS.ice, '', -1),
   },
-  'r-profiteering': {
+  'r-arms-deal': {
     world: 'mars',
     caption: 'a strike beacon on its tripod, the atomic it bought landing on the horizon',
     draw: (s) =>
@@ -480,7 +480,7 @@ export const SKILL_SCENES: Record<string, SpScene> = {
       `<circle cx="23" cy="11.4" r="1.4" fill="${INKS.amber}"/>` +
       rings(23, 11.4, 2.6, 2.4, 4, INKS.amber, 0.45, 290, 360),
   },
-  'r-rational': {
+  'r-drill-sergeant': {
     world: 'phobos',
     caption: 'three Snipers lined up in step on a marked drill ground',
     draw: (s) =>
@@ -491,7 +491,7 @@ export const SKILL_SCENES: Record<string, SpScene> = {
       [10, 28, 46].map((x) => mech(s, 'sniper', x, 38, 0.07, { yaw: -25 })).join('') +
       flag(s, 62, 31, 12, INKS.oxide, '3', -1),
   },
-  'r-ravenous': {
+  'r-trophy-hunters': {
     world: 'mars',
     caption: "kill marks stencilled on a mech's hull, a painter adding one more",
     draw: (s) => {
@@ -518,7 +518,7 @@ export const SKILL_SCENES: Record<string, SpScene> = {
       );
     },
   },
-  'r-resourceful': {
+  'r-recycle': {
     world: 'phobos',
     caption: 'a stripped mech kneeling, one arm off, a crew member carrying its glowing core away',
     draw: (s) =>
@@ -536,7 +536,7 @@ export const SKILL_SCENES: Record<string, SpScene> = {
       `<circle cx="50" cy="30" r="5" fill="${INKS.amber}" opacity="0.3"/>` +
       `<rect x="47.4" y="27.4" width="5.2" height="5.2" rx="0.8" fill="${s.key}"/><rect x="48.4" y="28.4" width="3.2" height="3.2" fill="${INKS.amber}"/>`,
   },
-  'r-righteous': {
+  'r-fanatics': {
     world: 'mars',
     caption: 'a wall stencilled NO RETREAT, its flag on the roof, a Breacher standing in front of it',
     draw: (s) =>
@@ -547,7 +547,7 @@ export const SKILL_SCENES: Record<string, SpScene> = {
       flag(s, 6, 14.4, 11, INKS.oxide),
   },
 
-  'r-ruthless': {
+  'r-signal-jammer': {
     world: 'deimos',
     caption: "a jammer pod on a Tactician's shoulder, static rings going out",
     draw: (s) =>
@@ -556,7 +556,7 @@ export const SKILL_SCENES: Record<string, SpScene> = {
       mech(s, 'tactician', 28, 50, 0.16, { yaw: 22, arms: { plus: [-10, 0] } }) +
       `<g transform="translate(28,50) scale(0.16)"><rect x="-56" y="-262" width="44" height="26" fill="${s.key}" stroke="${s.ink.seam}" stroke-width="1.4"/><rect x="-50" y="-256" width="32" height="6" fill="${INKS.oxide}"/></g>`,
   },
-  'r-steadfast': {
+  'r-double-time': {
     world: 'mars',
     caption: 'a column of mechs trudging through a dust storm, heads down',
     draw: (s) => {
@@ -571,12 +571,12 @@ export const SKILL_SCENES: Record<string, SpScene> = {
       );
     },
   },
-  'r-stealthy': {
+  'r-infiltration': {
     world: 'deimos',
     caption: 'a lone mech coming down on its boosters into a dust storm',
     draw: (s) => outdoors(s, 36, { planet: { x: 12, y: 9, r: 8 } }) + dropping(s, 'sniper', 38, 25, 0.068, -20) + storm(s, 14, 40, 0.85),
   },
-  'r-strategic': {
+  'r-close-protection': {
     world: 'phobos',
     caption: 'a towering Behemoth guarded by a Sniper and a Breacher',
     draw: (s) =>
@@ -585,7 +585,7 @@ export const SKILL_SCENES: Record<string, SpScene> = {
       mech(s, 'sniper', 16, 41, 0.085, { yaw: 32, aim: -25 }) +
       mech(s, 'breacher', 48, 41, 0.085, { yaw: -25 }),
   },
-  'r-stubborn': {
+  'r-entrenched': {
     world: 'mars',
     caption: 'a Breacher dug into a trench behind a barricade of boulders',
     draw: (s) =>
@@ -597,7 +597,7 @@ export const SKILL_SCENES: Record<string, SpScene> = {
       print(s, 'barricade', 4, 38, { size: 0.12 }) +
       print(s, 'barricade', 60, 38, { size: 0.12, flip: true }),
   },
-  'r-tactical': {
+  'r-advance': {
     world: 'deimos',
     caption: 'a Breacher lunging forward one hex, its fist level',
     draw: (s) =>
@@ -613,7 +613,7 @@ export const SKILL_SCENES: Record<string, SpScene> = {
         arms: { plus: [-90, 0], minus: [30, 10] },
       }),
   },
-  'r-talented': {
+  'r-veteran-crew': {
     world: 'phobos',
     caption: 'a crew photo: five people, each printed in a different ink',
     draw: (s) => {
@@ -627,7 +627,7 @@ export const SKILL_SCENES: Record<string, SpScene> = {
       );
     },
   },
-  'r-tyrannical': {
+  'r-martial-law': {
     world: 'mars',
     caption: 'a loudspeaker on a mast over a habitat, its sound going out in rings',
     draw: (s) =>

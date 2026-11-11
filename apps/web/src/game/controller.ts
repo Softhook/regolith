@@ -31,15 +31,15 @@ export type Sel =
   | { kind: 'freeAttack'; die: string }
   /** A mech ability's action (MechHooks.action). */
   | { kind: 'ability'; die: string }
-  | { kind: 'tactical'; die: string }
+  | { kind: 'advanceSkill'; die: string }
   | { kind: 'kineticShunt'; die: string }
   | { kind: 'shuntBarrier'; from: Cell }
   // An objective that can be claimed in more than one way, waiting for the player to choose how.
   | { kind: 'claim'; objective: number }
-  // `tactical`: a 1-space carry using the Tactical skill instead of a Move action.
-  | { kind: 'carryPassenger'; die: string; tactical?: boolean }
-  | { kind: 'carryDest'; die: string; passenger: string; tactical?: boolean }
-  | { kind: 'carrySetDown'; die: string; passenger: string; to: Cell; tactical?: boolean };
+  // `advanceSkill`: a 1-space carry using the Advance skill instead of a Move action.
+  | { kind: 'carryPassenger'; die: string; advanceSkill?: boolean }
+  | { kind: 'carryDest'; die: string; passenger: string; advanceSkill?: boolean }
+  | { kind: 'carrySetDown'; die: string; passenger: string; to: Cell; advanceSkill?: boolean };
 
 const NONE: Sel = { kind: 'none' };
 
@@ -89,7 +89,7 @@ export function useController(game: GameState, dispatch: Dispatch, mine: (p: Pla
     (id: string): false | void => {
       if (!human) return false;
       const tone = highlights.dice.get(id);
-      if (head?.kind === 'showOfForce' && tone) return void dispatch({ type: 'showOfForce', die: id });
+      if (head?.kind === 'orbitalCannon' && tone) return void dispatch({ type: 'orbitalCannon', die: id });
       if (head?.kind === 'kineticShunt' && tone)
         return select(sel.kind === 'kineticShunt' && sel.die === id ? NONE : { kind: 'kineticShunt', die: id });
       if (head) return false;
@@ -97,7 +97,7 @@ export function useController(game: GameState, dispatch: Dispatch, mine: (p: Pla
       if (sel.kind === 'freeAttack' && tone === 'attack') return void dispatch({ type: 'freeAttack', die: sel.die, target: id });
       if (sel.kind === 'ability' && tone === 'attack')
         return void (dispatch({ type: 'ability', die: sel.die, target: id }) && setSel(NONE));
-      if (sel.kind === 'tactical' && tone === 'attack') return void dispatch({ type: 'tactical', die: sel.die, target: id });
+      if (sel.kind === 'advanceSkill' && tone === 'attack') return void dispatch({ type: 'advanceSkill', die: sel.die, target: id });
       if ((sel.kind === 'mech' || sel.kind === 'attackFrom') && (tone === 'attack' || tone === 'target')) {
         // One space to attack from: attack. Several: choose one, or tap the target again for the nearest.
         const options = legal.of('attack', (a) => a.die === sel.die && a.target === id);
@@ -111,12 +111,12 @@ export function useController(game: GameState, dispatch: Dispatch, mine: (p: Pla
         return select({ kind: 'mech', die: sel.die });
       }
       if (sel.kind === 'carryPassenger' && tone === 'passenger')
-        return select({ kind: 'carryDest', die: sel.die, passenger: id, tactical: sel.tactical });
+        return select({ kind: 'carryDest', die: sel.die, passenger: id, advanceSkill: sel.advanceSkill });
       if (sel.kind === 'carryDest' && id === sel.die) {
         // Out-and-back carry: the carrier ends where it started.
         const here = cellOf(getDie(game, id));
         if (here && highlights.cells.has(key(here)))
-          return select({ kind: 'carrySetDown', die: sel.die, passenger: sel.passenger, to: here, tactical: sel.tactical });
+          return select({ kind: 'carrySetDown', die: sel.die, passenger: sel.passenger, to: here, advanceSkill: sel.advanceSkill });
       }
       const d = getDie(game, id);
       if (actionPhase && d.owner === game.turn.player) {
@@ -147,15 +147,15 @@ export function useController(game: GameState, dispatch: Dispatch, mine: (p: Pla
         dispatch({ type: 'shuntBarrier', from: sel.from, to: cell });
         return setSel(NONE);
       }
-      if (head?.kind === 'placeExpansion') return void dispatch({ type: 'placeExpansion', to: cell });
+      if (head?.kind === 'placeReinforcement') return void dispatch({ type: 'placeReinforcement', to: cell });
       if (head?.kind === 'placeMechs') {
         // Place the selected mech, or the next one in the salvageYard.
         const d = sel.kind === 'salvage' ? sel.die : salvageYard(game, head.player)[0]?.id;
         if (d) dispatch({ type: 'placeMech', die: d, to: cell });
         return setSel(NONE);
       }
-      if (head?.kind === 'unveil' && sel.kind === 'salvage') {
-        dispatch({ type: 'unveilDrop', die: sel.die, to: cell });
+      if (head?.kind === 'invasion' && sel.kind === 'salvage') {
+        dispatch({ type: 'invasionDrop', die: sel.die, to: cell });
         return setSel(NONE);
       }
       switch (sel.kind) {
@@ -165,14 +165,20 @@ export function useController(game: GameState, dispatch: Dispatch, mine: (p: Pla
           return place({ type: 'attack', die: sel.die, target: sel.target, from: cell });
         case 'salvage':
           return place({ type: 'drop', die: sel.die, to: cell });
-        case 'tactical':
+        case 'advanceSkill':
           return place({ type: sel.kind, die: sel.die, to: cell });
         case 'ability':
           return place({ type: 'ability', die: sel.die, to: cell });
         case 'carryDest':
-          return select({ kind: 'carrySetDown', die: sel.die, passenger: sel.passenger, to: cell, tactical: sel.tactical });
+          return select({ kind: 'carrySetDown', die: sel.die, passenger: sel.passenger, to: cell, advanceSkill: sel.advanceSkill });
         case 'carrySetDown':
-          return place({ type: sel.tactical ? 'tactical' : 'carry', die: sel.die, passenger: sel.passenger, to: sel.to, setDown: cell });
+          return place({
+            type: sel.advanceSkill ? 'advanceSkill' : 'carry',
+            die: sel.die,
+            passenger: sel.passenger,
+            to: sel.to,
+            setDown: cell,
+          });
       }
     },
     [human, highlights, head, sel, game, dispatch, select, place],
@@ -210,7 +216,13 @@ export interface AttackPreview {
 /** For each mech the selected mech may attack: how it would go, from the space it would attack from. */
 function attackPreviews(game: GameState, sel: Sel, dice: ReadonlyMap<string, string>): Map<string, AttackPreview> {
   const out = new Map<string, AttackPreview>();
-  if (sel.kind !== 'mech' && sel.kind !== 'attackFrom' && sel.kind !== 'freeAttack' && sel.kind !== 'ability' && sel.kind !== 'tactical')
+  if (
+    sel.kind !== 'mech' &&
+    sel.kind !== 'attackFrom' &&
+    sel.kind !== 'freeAttack' &&
+    sel.kind !== 'ability' &&
+    sel.kind !== 'advanceSkill'
+  )
     return out;
   const attacker = getDie(game, sel.die);
   // A Move attack goes in from a space next to the target (the nearest, until the player chooses);

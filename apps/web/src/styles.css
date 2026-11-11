@@ -33,16 +33,16 @@
   /* Dialogs and card placeholders. */
   --sheet-1: #1e1c1a;
   --sheet-2: #1e1c1a;
-  /* Card faces by type, in their printed paper and ink (@regolith/art's INKS): a light skill, dark tactic and expansion. */
+  /* Card faces by type, in their printed paper and ink (@regolith/art's INKS): a light skill, dark tactic and reinforcement. */
   --card-skill-1: #E6DDC8;
   --card-skill-2: #E6DDC8;
   --card-skill-ink: #1E1C1A;
   --card-tactic-1: #23211F;
   --card-tactic-2: #23211F;
   --card-tactic-ink: #EDE6D6;
-  --card-expansion-1: #23211F;
-  --card-expansion-2: #23211F;
-  --card-expansion-ink: #EDE6D6;
+  --card-reinforcement-1: #23211F;
+  --card-reinforcement-2: #23211F;
+  --card-reinforcement-ink: #EDE6D6;
   --card-night-edge: rgb(237 230 214 / .25);
   --pc: var(--accent);
   --good: #7FB08A;
@@ -576,7 +576,7 @@ svg.zones polygon {
   /* A px on a 57 px space: the rings around a die go by its space's size, for the reason its own lines do (.die3d-face). */
   --u: calc(var(--cell) * .0175);
 }
-/* A mech a card brings (Expansion, Nomadic) appears as its effect gets there, without gliding there (staging). */
+/* A mech a card brings (Reinforcements, Nomadic) appears as its effect gets there, without gliding there (staging). */
 .mech.late { transition: none; animation: mech-late .25s var(--late) cubic-bezier(.2,.8,.3,1.3) backwards; }
 @keyframes mech-late { from { scale: .3; opacity: 0; } }
 /* A mech a card destroys, as it was, until the blow lands (it blows up then: Explosions). */
@@ -725,7 +725,7 @@ svg.zones polygon {
 /* A card's mark on the map (CardEffects), over mechs and explosions, all over in under 900 ms. */
 .cfx { position: absolute; left: 0; top: 0; z-index: 7; pointer-events: none; }
 .cfx > span { position: absolute; left: 50%; top: 50%; }
-/* Show of Force: a reticle locks on and a lance of light strikes from above. Expansion: a golden one. */
+/* Orbital Cannon: a reticle locks on and a lance of light strikes from above. Reinforcements: a golden one. */
 .cfx-reticle {
   width: 96%; height: 96%; margin: -48% 0 0 -48%; border-radius: 50%;
   border: var(--bw) dashed var(--pc); box-shadow: 0 0 10px var(--pc);
@@ -752,11 +752,11 @@ svg.zones polygon {
     cfx-lance-strike var(--lance-strike) var(--lance-delay) cubic-bezier(.5,0,.8,.4) forwards,
     cfx-lance-fade var(--lance-fade) calc(var(--lance-delay) + var(--lance-strike)) cubic-bezier(.5,0,.8,.4) forwards;
 }
-.cfx-expansion .cfx-lance {
+.cfx-reinforcement .cfx-lance {
   --pc: var(--gold); width: 60%; margin-left: -30%;
   animation:
-    cfx-lance-strike var(--expansion-strike) cubic-bezier(.5,0,.8,.4) forwards,
-    cfx-lance-fade var(--expansion-fade) var(--expansion-strike) cubic-bezier(.5,0,.8,.4) forwards;
+    cfx-lance-strike var(--reinforcement-strike) cubic-bezier(.5,0,.8,.4) forwards,
+    cfx-lance-fade var(--reinforcement-fade) var(--reinforcement-strike) cubic-bezier(.5,0,.8,.4) forwards;
 }
 @keyframes cfx-lance-strike {
   from { transform: scaleY(0); opacity: 1; }
@@ -766,14 +766,14 @@ svg.zones polygon {
   from { transform: scaleY(1); opacity: 1; }
   to { transform: scaleY(1) scaleX(.1); opacity: 0; }
 }
-/* Expansion: rings of light spreading as it lands, the first just before. */
+/* Reinforcements: rings of light spreading as it lands, the first just before. */
 .cfx-halo {
   width: 100%; height: 100%; margin: -50% 0 0 -50%; border-radius: 50%;
   border: calc(var(--bw) * 1.5) solid var(--gold); box-shadow: 0 0 14px var(--gold), inset 0 0 8px var(--pc);
   opacity: 0;
-  animation: fx-ring .6s calc(var(--expansion-strike) - 120ms) cubic-bezier(.2,.7,.3,1) forwards;
+  animation: fx-ring .6s calc(var(--reinforcement-strike) - 120ms) cubic-bezier(.2,.7,.3,1) forwards;
 }
-.cfx-halo.late { animation-delay: var(--expansion-strike); border-color: var(--pc); }
+.cfx-halo.late { animation-delay: var(--reinforcement-strike); border-color: var(--pc); }
 /* Ice Tunnels joined, or a relocated cube: a beam from one space to the other, a spark riding along it. */
 .cfx-ray {
   width: var(--len); height: 10%; margin-top: -5%; transform-origin: 0 50%; transform: rotate(var(--angle));
@@ -797,7 +797,7 @@ svg.zones polygon {
   to { clip-path: inset(0 0 0 0); opacity: 0; }
 }
 @keyframes cfx-ride { 0% { left: 0; opacity: 1; } 90% { opacity: 1; } 100% { left: 100%; opacity: 0; } }
-/* Unveil the Fleet: each mech fades under a cloak as it leaves the map, and shimmers out of it when placed. */
+/* Invasion: each mech fades under a cloak as it leaves the map, and shimmers out of it when placed. */
 .cfx-shimmer {
   width: 100%; height: 100%; margin: -50% 0 0 -50%; border-radius: 22%;
   background: repeating-linear-gradient(0deg, color-mix(in srgb, var(--pc) 55%, transparent) 0 6%, transparent 6% 12%);
@@ -811,11 +811,11 @@ svg.zones polygon {
 .cfx-veil {
   width: 110%; height: 110%; margin: -55% 0 0 -55%; border-radius: 50%;
   border: var(--bw) dashed var(--pc); box-shadow: 0 0 12px var(--pc);
-  animation: cfx-unveil .6s ease-in forwards;
+  animation: cfx-invasion .6s ease-in forwards;
 }
-@keyframes cfx-unveil { 0% { transform: scale(1.8) rotate(0); opacity: 0; } 30% { opacity: 1; } 100% { transform: scale(.7) rotate(120deg); opacity: 0; } }
+@keyframes cfx-invasion { 0% { transform: scale(1.8) rotate(0); opacity: 0; } 30% { opacity: 1; } 100% { transform: scale(.7) rotate(120deg); opacity: 0; } }
 .cfx-cloak > span { animation-direction: reverse; }
-/* Resourceful, or a cube relocated: rings collapse to a point as it goes. */
+/* Recycle, or a cube relocated: rings collapse to a point as it goes. */
 .cfx-collapse {
   width: 100%; height: 100%; margin: -50% 0 0 -50%; border-radius: 50%;
   border: calc(var(--bw) * 1.5) solid var(--pc); box-shadow: 0 0 12px var(--pc), inset 0 0 8px var(--pc);
@@ -830,7 +830,7 @@ svg.zones polygon {
   animation: cfx-core .4s .45s ease-out forwards;
 }
 @keyframes cfx-core { 0% { transform: scale(.4); opacity: 1; } 40% { transform: scale(1.2); opacity: 1; } 100% { transform: scale(0); opacity: 0; } }
-/* Flexible or Clever: chevrons float the way the number went. */
+/* Field Refit or Engineering: chevrons float the way the number went. */
 .cfx-chevrons { width: 40%; margin: -30% 0 0 -20%; display: flex; flex-direction: column; }
 .cfx-chevrons svg {
   width: 100%; fill: none; stroke: #fff; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round;
@@ -845,7 +845,7 @@ svg.zones polygon {
 /* Nomadic: the mech opens out at its new objective (it folded away where it was: .cfx-collapse). */
 .cfx-blink .cfx-halo { border-color: var(--pc); box-shadow: 0 0 14px var(--pc), inset 0 0 8px #fff; animation-delay: var(--blink-open); }
 .cfx-blink .cfx-halo.late { border-color: #fff; animation-delay: calc(var(--blink-open) + 100ms); animation-duration: .45s; }
-/* Dangerous: a crackling arc between the two mechs it destroys. */
+/* Unstable Reactor: a crackling arc between the two mechs it destroys. */
 .cfx-arc .cfx-ray {
   height: 6%; margin-top: -3%;
   background: linear-gradient(90deg, #fff, var(--pc), #fff);
@@ -1155,7 +1155,7 @@ svg.zones polygon {
 .qcard::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 4px; background: var(--cat); }
 .qcard-skill { background: linear-gradient(180deg, var(--card-skill-1), var(--card-skill-2)); color: var(--card-skill-ink); }
 .qcard-tactic { background: linear-gradient(180deg, var(--card-tactic-1), var(--card-tactic-2)); color: var(--card-tactic-ink); border-color: var(--card-night-edge); }
-.qcard-expansion { background: linear-gradient(180deg, var(--card-expansion-1), var(--card-expansion-2)); color: var(--card-expansion-ink); border-color: var(--card-night-edge); }
+.qcard-reinforcement { background: linear-gradient(180deg, var(--card-reinforcement-1), var(--card-reinforcement-2)); color: var(--card-reinforcement-ink); border-color: var(--card-night-edge); }
 /* --cat, the category's accent, is set per card from @regolith/art (categoryStyle in Card.tsx). */
 .qcard-top { display: flex; align-items: center; justify-content: space-between; gap: 4px; }
 .qcard-cat { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--cat-ink, var(--cat)); }
@@ -1227,8 +1227,8 @@ svg.zones polygon {
    board re-fits to the taller market. Gaps are 8px within a deck's row and 14px between rows. */
 .market { --card-min: 90px; flex-wrap: wrap; row-gap: 12px; }
 .market-row { display: flex; align-items: flex-end; gap: 8px; min-width: 0; --fixed: 56px; flex: var(--cards, 3) 1 calc(var(--fixed) + var(--cards, 3) * (var(--card-min) + 8px)); }
-.market-expansion { --fixed: -2px; }
-.market .deck, .market-expansion > .qcard, .market-refresh { margin-left: 6px; }
+.market-reinforcement { --fixed: -2px; }
+.market .deck, .market-reinforcement > .qcard, .market-refresh { margin-left: 6px; }
 .market-card.empty { opacity: .3; }
 /* 134px fits the longest names, e.g. Reorganisation, on one line; narrower cards scale their type down to a
    readable floor, and a name that still doesn't fit breaks at its soft hyphen (NAME_BREAKS in Card.tsx). */
@@ -1284,7 +1284,7 @@ svg.zones polygon {
 .market-toggle:focus-visible { color: var(--text); background: rgb(var(--accent-rgb) / .1); outline: none; }
 /* Collapsed: one 40px line of chips. A strip too narrow for it drops the deck names (the chips' colours tell
    the decks apart; the open market has the decks), and then wraps onto a second line of 40px rather than
-   scrolling sideways, its tactics and Expansion pile together (an iPad's market). */
+   scrolling sideways, its tactics and Reinforcements pile together (an iPad's market). */
 .market.collapsed { align-items: center; gap: 0 12px; padding-top: 0; padding-bottom: 0; min-height: 40px; flex-wrap: wrap; overflow: visible; container: market-strip / inline-size; }
 .market.collapsed > .market-strip-group, .market-strip-line { min-height: 40px; }
 .market-strip-line { display: flex; align-items: center; gap: 12px; flex: none; }
@@ -1310,7 +1310,7 @@ svg.zones polygon {
 }
 .market-chip-skill { background: var(--card-skill-2); color: var(--card-skill-ink); }
 .market-chip-tactic { background: var(--card-tactic-1); color: var(--card-tactic-ink); border-color: var(--card-night-edge); border-left-color: var(--cat); }
-.market-chip-expansion { background: var(--card-expansion-1); color: var(--card-expansion-ink); border-color: var(--card-night-edge); border-left-color: var(--cat); }
+.market-chip-reinforcement { background: var(--card-reinforcement-1); color: var(--card-reinforcement-ink); border-color: var(--card-night-edge); border-left-color: var(--cat); }
 @media (hover: hover) { .market-chip:hover { transform: translateY(-1px); box-shadow: 0 0 0 1px var(--cat); } }
 .market-chip.takeable { box-shadow: 0 0 0 1px var(--accent); }
 .deck { position: relative; flex: none; width: 50px; height: 160px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 2px; padding-bottom: 8px; border: 0; background: none; color: inherit; font: inherit; cursor: pointer; }
@@ -1390,7 +1390,7 @@ svg.zones polygon {
 }
 .card-choice { display: flex; justify-content: center; gap: 18px; flex-wrap: wrap; }
 .card-choice.wrap { gap: 10px; }
-/* Change of Heart: the deck's skills under their categories, each card as tall as its text needs (nothing cut off),
+/* Headhunter: the deck's skills under their categories, each card as tall as its text needs (nothing cut off),
    a grid row as tall as its tallest card. The heading names the category, so the cards don't repeat it. */
 .skill-groups { display: flex; flex-direction: column; gap: 14px; }
 .skill-group h3 {
@@ -1429,10 +1429,10 @@ svg.zones polygon {
 .fleet-die > span, .fleet-sum { opacity: 0; transform: translateY(4px); transition: all .3s; }
 .fleet-die > span { font-size: 12px; color: var(--muted); }
 .fleet-die > span.show, .fleet-sum.show { opacity: 1; transform: none; }
-.clever-row { flex-wrap: wrap; gap: 10px; }
-.clever-choice { gap: 10px; padding: 8px; border: 0; border-radius: 12px; background: none; color: inherit; font: inherit; cursor: pointer; }
-@media (hover: hover) { .clever-choice:hover:not(:disabled) { background: rgba(255,255,255,.06); } }
-.clever-choice:disabled { opacity: .35; cursor: not-allowed; }
+.engineering-row { flex-wrap: wrap; gap: 10px; }
+.engineering-choice { gap: 10px; padding: 8px; border: 0; border-radius: 12px; background: none; color: inherit; font: inherit; cursor: pointer; }
+@media (hover: hover) { .engineering-choice:hover:not(:disabled) { background: rgba(255,255,255,.06); } }
+.engineering-choice:disabled { opacity: .35; cursor: not-allowed; }
 .fleet-sum { text-align: center; margin: 10px 0 0; color: var(--muted); }
 .fleet-sum b { font-weight: 800; color: var(--text); font-size: 20px; margin-left: 6px; }
 
@@ -2162,7 +2162,7 @@ svg.zones polygon {
   /* Open: each deck's cards as a list, one card a row with its whole text, so nothing is cut off and short
      cards stay short. A deck's name and count above its cards open the deck. */
   .market .market-row { display: flex; flex: none; flex-direction: column; align-items: stretch; gap: 6px; max-width: none; }
-  .market-row + .market-row, .market-expansion { margin-top: 4px; }
+  .market-row + .market-row, .market-reinforcement { margin-top: 4px; }
   .market .deck { flex-direction: row; justify-content: flex-start; align-items: baseline; gap: 8px; width: auto; height: auto; min-height: 22px; padding: 0 2px; margin: 0; }
   .market .deck-count { position: static; min-width: 0; padding: 0; background: none; box-shadow: none; font-size: 12px; font-weight: 500; color: var(--muted); text-align: left; }
   .market .deck-count::after { content: ' left \203A'; }
@@ -2175,22 +2175,22 @@ svg.zones polygon {
   .market .qcard-sm .qcard-name { display: block; grid-area: name; min-height: 0; margin: 0 10px 0 0; font-size: 13px; overflow-wrap: normal; }
   .market .qcard-badge { grid-area: badge; align-self: center; margin: 0 0 0 6px; }
   .market .qcard-sm .qcard-text, .market .qcard-sm.long .qcard-text { grid-area: text; margin: 0; font-size: 11.5px; line-height: 1.35; overflow: visible; }
-  .market .market-expansion > .qcard, .market .deck { margin-left: 0; }
-  /* While you pick, the cards you can't take (e.g. Patient's skills) step back, so the ones you can stand out. */
+  .market .market-reinforcement > .qcard, .market .deck { margin-left: 0; }
+  /* While you pick, the cards you can't take (e.g. Strategic Plan's skills) step back, so the ones you can stand out. */
   .market.picking .market-card:not(.takeable) { opacity: .45; }
   .market .market-refresh { align-self: stretch; max-width: none; margin: 4px 0 0; min-height: 40px; justify-content: center; text-align: center; border-color: var(--line-2); color: var(--text); }
 
-  /* Collapsed: a row of three cards per deck, in equal columns (white skills, dark tactics, so no deck names). A long name wraps onto a second line rather than being cut short. The Expansion pile shows
+  /* Collapsed: a row of three cards per deck, in equal columns (white skills, dark tactics, so no deck names). A long name wraps onto a second line rather than being cut short. The Reinforcements pile shows
      in the open market. */
   .market.collapsed { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: stretch; gap: 6px; padding: 0 10px 10px; }
   .market.collapsed .market-toggle { grid-column: 1 / -1; }
   .market.collapsed .market-strip-group, .market.collapsed .market-strip-line { display: contents; }
   .market.collapsed .market-strip-deck { display: none; }
   .market.collapsed .market-toggle { grid-row: 1; }
-  /* The Expansion pile: a chip in the header row's last column, lined up with the cards under it (the
+  /* The Reinforcements pile: a chip in the header row's last column, lined up with the cards under it (the
      toggle gives that column up). */
-  .market.collapsed:has(.market-strip-expansion) .market-toggle { grid-column: 1 / 3; margin-right: 0; }
-  .market.collapsed .market-chip.market-chip-expansion { grid-row: 1; grid-column: 3; align-self: center; margin-top: 4px; white-space: nowrap; text-overflow: ellipsis; }
+  .market.collapsed:has(.market-strip-reinforcement) .market-toggle { grid-column: 1 / 3; margin-right: 0; }
+  .market.collapsed .market-chip.market-chip-reinforcement { grid-row: 1; grid-column: 3; align-self: center; margin-top: 4px; white-space: nowrap; text-overflow: ellipsis; }
   .market.collapsed .market-chip {
     display: flex; align-items: center; min-width: 0; max-width: none; min-height: 28px; padding: 3px 6px 3px 7px; border-radius: 8px; font-size: 11px;
     white-space: normal; text-overflow: clip; line-height: 1.2; text-align: left;

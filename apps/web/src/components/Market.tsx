@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type RefObject } from 'react';
-import { cardName, card, cardKind, effectOf, expansionCard, rulesOf, type DeckKind, type GameState } from '@regolith/engine';
+import { cardName, card, cardKind, effectOf, reinforcementCard, rulesOf, type DeckKind, type GameState } from '@regolith/engine';
 import type { Legal } from '../game/legal';
 import type { Dispatch } from '../game/useGame';
 import { FOLD_MARKET, useMediaQuery } from '../game/useMediaQuery';
@@ -29,29 +29,29 @@ export function Market({
   steady?: boolean;
   scene?: string;
 }) {
-  const patientPick = legal.can('patientTactic');
-  const picking = legal.can('takeCard') || patientPick;
+  const strategicPlanPick = legal.can('strategicPlanTactic');
+  const picking = legal.can('takeCard') || strategicPlanPick;
   const m = game.market;
-  const canPatientStore = (deck: DeckKind | 'expansion', index: number) =>
-    deck === 'tactic' && legal.can('patientTactic', (a) => a.index === index);
-  const canTake = (deck: DeckKind | 'expansion', index: number) =>
-    canPatientStore(deck, index) || legal.can('takeCard', (a) => a.deck === deck && a.index === index);
-  const canStore = (deck: DeckKind | 'expansion', index: number) =>
+  const canStrategicPlanStore = (deck: DeckKind | 'reinforcement', index: number) =>
+    deck === 'tactic' && legal.can('strategicPlanTactic', (a) => a.index === index);
+  const canTake = (deck: DeckKind | 'reinforcement', index: number) =>
+    canStrategicPlanStore(deck, index) || legal.can('takeCard', (a) => a.deck === deck && a.index === index);
+  const canStore = (deck: DeckKind | 'reinforcement', index: number) =>
     legal.can('takeCard', (a) => a.deck === deck && a.index === index && !!a.store);
-  /** Takes the card (Patient: stores it, or asks whether to), or else shows it. */
+  /** Takes the card (Strategic Plan: stores it, or asks whether to), or else shows it. */
   const clickCard = (deck: DeckKind, index: number, id: string) => {
-    if (canPatientStore(deck, index)) dispatch({ type: 'patientTactic', index });
-    else if (canStore(deck, index)) setPatientChoice({ id, index });
+    if (canStrategicPlanStore(deck, index)) dispatch({ type: 'strategicPlanTactic', index });
+    else if (canStore(deck, index)) setStrategicPlanChoice({ id, index });
     else if (canTake(deck, index)) dispatch({ type: 'takeCard', deck, index });
     else setViewingCard(id);
   };
-  const canExpand = canTake('expansion', 0);
+  const canReinforce = canTake('reinforcement', 0);
   const cardRules = rulesOf(game).cards!;
-  const expansion = expansionCard(game);
+  const reinforcement = reinforcementCard(game);
   const peek = cardRules.peek;
   const [viewing, setViewing] = useState<DeckKind | null>(null);
   const [viewingCard, setViewingCard] = useState<string | null>(null);
-  const [patientChoice, setPatientChoice] = useState<{ id: string; index: number } | null>(null);
+  const [strategicPlanChoice, setStrategicPlanChoice] = useState<{ id: string; index: number } | null>(null);
   const { open, toggle } = useCollapse(picking);
   const list = useMediaQuery(LIST);
   const section = useRef<HTMLElement>(null);
@@ -131,24 +131,24 @@ export function Market({
     />
   );
 
-  const takePatient = (index: number, store: boolean) => {
+  const takeStrategicPlan = (index: number, store: boolean) => {
     dispatch({ type: 'takeCard', deck: 'tactic', index, ...(store && { store }) });
-    setPatientChoice(null);
+    setStrategicPlanChoice(null);
   };
-  const patientDialog = patientChoice && (
+  const strategicPlanDialog = strategicPlanChoice && (
     <Dialog
-      title={cardName('patient')}
-      subtitle={`Do you want to play ${card(patientChoice.id).name} immediately, or store it to play at the end of a turn?`}
-      onClose={() => setPatientChoice(null)}
+      title={cardName('strategic-plan')}
+      subtitle={`Do you want to play ${card(strategicPlanChoice.id).name} immediately, or store it to play at the end of a turn?`}
+      onClose={() => setStrategicPlanChoice(null)}
     >
       <div className="card-choice">
-        <CardView id={patientChoice.id} size="md" />
+        <CardView id={strategicPlanChoice.id} size="md" />
       </div>
       <div className="modal-actions">
-        <button type="button" className="btn" onClick={() => takePatient(patientChoice.index, false)}>
+        <button type="button" className="btn" onClick={() => takeStrategicPlan(strategicPlanChoice.index, false)}>
           Play immediately
         </button>
-        <button type="button" className="btn btn-primary" onClick={() => takePatient(patientChoice.index, true)}>
+        <button type="button" className="btn btn-primary" onClick={() => takeStrategicPlan(strategicPlanChoice.index, true)}>
           Store tactic
         </button>
       </div>
@@ -162,7 +162,7 @@ export function Market({
       </button>
       {cards.map((id, index) => {
         const def = card(id);
-        const kind = effectOf(id) === 'expansion' ? 'expansion' : cardKind(id);
+        const kind = effectOf(id) === 'reinforcements' ? 'reinforcement' : cardKind(id);
         return (
           <button
             type="button"
@@ -212,23 +212,25 @@ export function Market({
     <>
       {row('skill', m.skillRow)}
       {row('tactic', m.tacticRow)}
-      {cardRules.expansionPile && (
-        <div className="market-row market-expansion" style={{ '--cards': 1 } as CSSProperties}>
+      {cardRules.reinforcementPile && (
+        <div className="market-row market-reinforcement" style={{ '--cards': 1 } as CSSProperties}>
           <CardView
-            id={expansion.id}
+            id={reinforcement.id}
             size="sm"
-            badge={`×${m.expansions}`}
+            badge={`×${m.reinforcements}`}
             art={!list}
-            onClick={canExpand ? () => dispatch({ type: 'takeCard', deck: 'expansion', index: 0 }) : () => setViewingCard(expansion.id)}
-            className={`market-card ${m.expansions ? '' : 'empty'} ${canExpand ? 'takeable' : ''}`}
+            onClick={
+              canReinforce ? () => dispatch({ type: 'takeCard', deck: 'reinforcement', index: 0 }) : () => setViewingCard(reinforcement.id)
+            }
+            className={`market-card ${m.reinforcements ? '' : 'empty'} ${canReinforce ? 'takeable' : ''}`}
           />
         </div>
       )}
-      {patientPick && (
+      {strategicPlanPick && (
         <button
           className="btn btn-ghost market-refresh"
-          title={`${cardName('patient')}: you may take and store a face-up tactic`}
-          onClick={() => dispatch({ type: 'patientTactic' })}
+          title={`${cardName('strategic-plan')}: you may take and store a face-up tactic`}
+          onClick={() => dispatch({ type: 'strategicPlanTactic' })}
         >
           Don't store a tactic
         </button>
@@ -236,7 +238,7 @@ export function Market({
       {legal.can('profiteer') && (
         <button
           className="btn btn-ghost market-refresh"
-          title={`${cardName('profiteering')}: a card earned by a Claim action`}
+          title={`${cardName('arms-deal')}: a card earned by a Claim action`}
           onClick={() => dispatch({ type: 'profiteer' })}
         >
           {'Take 1 atomic instead of a card'}
@@ -246,23 +248,23 @@ export function Market({
   );
 
   // Collapsed: one slim strip of card-name chips, so the board gets the space back. A chip shows its card.
-  // The Expansion pile goes with the tactics, so a strip too narrow for one line wraps them together.
+  // The Reinforcements pile goes with the tactics, so a strip too narrow for one line wraps them together.
   const strip = (
     <>
       {chips('skill', m.skillRow)}
       <div className="market-strip-line">
         {chips('tactic', m.tacticRow)}
-        {cardRules.expansionPile && (
-          <div className="market-strip-group market-strip-expansion">
+        {cardRules.reinforcementPile && (
+          <div className="market-strip-group market-strip-reinforcement">
             <button
               type="button"
-              className={`market-chip market-chip-expansion ${canExpand ? 'takeable' : ''}`}
-              style={categoryStyle(expansion.category, false)}
-              title={`${m.expansions} ${expansion.name} cards left`}
-              data-card={expansion.id}
-              onClick={() => setViewingCard(expansion.id)}
+              className={`market-chip market-chip-reinforcement ${canReinforce ? 'takeable' : ''}`}
+              style={categoryStyle(reinforcement.category, false)}
+              title={`${m.reinforcements} ${reinforcement.name} cards left`}
+              data-card={reinforcement.id}
+              onClick={() => setViewingCard(reinforcement.id)}
             >
-              {expansion.name} ×{m.expansions}
+              {reinforcement.name} ×{m.reinforcements}
             </button>
           </div>
         )}
@@ -276,7 +278,7 @@ export function Market({
       {open ? rows : strip}
       {viewer}
       {cardViewer}
-      {patientDialog}
+      {strategicPlanDialog}
       <CardFlights game={game} scene={scene} />
     </section>
   );
@@ -353,7 +355,7 @@ function useWarmCards(game: GameState) {
   const ids = [
     ...m.skillRow,
     ...m.tacticRow,
-    ...(rulesOf(game).cards?.expansionPile ? [expansionCard(game).id] : []),
+    ...(rulesOf(game).cards?.reinforcementPile ? [reinforcementCard(game).id] : []),
     ...game.players.flatMap((p) => [...p.skills.map((s) => s.id), ...(p.storedTactics ?? [])]),
     ...m.skillDeck,
     ...m.tacticDeck,

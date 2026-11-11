@@ -111,7 +111,7 @@ function look(page: Page, tapsThisTurn: number, tried: string[], want: Want | nu
         el = undefined;
       } else if (box) {
         // A popup: a card or choice if it offers one, else its main button, else any button.
-        const choices = all('.overlay .qcard, .overlay .card-pick, .overlay .clever-choice');
+        const choices = all('.overlay .qcard, .overlay .card-pick, .overlay .engineering-choice');
         const primary = all('.overlay .btn-primary');
         const keep = primary.find((b) => b.textContent!.includes('Keep mechs'));
         el = keep ?? (choices.length ? pick(choices) : (primary[0] ?? all('.overlay button')[0]));

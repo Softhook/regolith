@@ -25,7 +25,7 @@ const TONES: Record<LogEvent, Toast['tone'] | undefined> = {
   mechDestroyed: 'bad',
   cardTaken: 'info',
   cardPlayed: 'info',
-  expansion: 'info',
+  reinforcement: 'info',
   discard: 'info',
   breakthrough: 'info',
 };

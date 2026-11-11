@@ -22,7 +22,7 @@ export const CARD = {
   artBottom: 43,
 } as const;
 
-export type CardDeck = 'skill' | 'tactic' | 'expansion';
+export type CardDeck = 'skill' | 'tactic' | 'reinforcement';
 
 /** Everything printed on a card face. */
 export interface CardFace {
@@ -67,7 +67,7 @@ export function cardIllustration(f: CardFace): string {
 const DECK_INFO: Record<CardDeck, { label: string; kind: string; light: boolean }> = {
   skill: { label: 'Skill', kind: 'Permanent', light: true },
   tactic: { label: 'Tactic', kind: 'One-shot', light: false },
-  expansion: { label: 'Reinforcements', kind: 'One-shot', light: false },
+  reinforcement: { label: 'Reinforcements', kind: 'One-shot', light: false },
 };
 
 export const deckInfo = (d: CardDeck) => DECK_INFO[d];

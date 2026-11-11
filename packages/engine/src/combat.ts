@@ -25,7 +25,7 @@ import type { Cell, Die, GameState, PlayerId } from './types';
 
 /**
  * The attacker has moved `from` next to the defender, or, `ranged` (an ability), fires from there.
- * A defender with Dangerous may first destroy both mechs; otherwise both combat dice are rolled now.
+ * A defender with Unstable Reactor may first destroy both mechs; otherwise both combat dice are rolled now.
  */
 export function startCombat(s: GameState, attacker: Die, defender: Die, from: Cell, ranged = false) {
   attacker.loc = boardLoc(from);
@@ -37,7 +37,7 @@ export function startCombat(s: GameState, attacker: Die, defender: Die, from: Ce
   );
   if (anySkill(s, defender.owner, (r) => r.combat?.destroyBoth)) {
     s.pending.unshift({
-      kind: 'dangerous',
+      kind: 'unstableReactor',
       player: defender.owner,
       attacker: attacker.id,
       defender: defender.id,
@@ -80,7 +80,7 @@ function resolveCombat(s: GameState, combat: PendingOf<'combat'>) {
     destroyMech(s, def);
     if (!combat.ranged) s.pending.unshift({ kind: 'advance', player: A, die: att.id, to: combat.at });
     onDestroy(s, A, D);
-  } else if (out.stubborn) {
+  } else if (out.entrenched) {
     log(s, `${name(s, D)} holds firm and destroys the attacker (${out.defender.total} vs ${out.attacker.total}).`, D, 'battleWon');
     tally(s, D, 'battlesWon');
     tally(s, A, 'battlesLost');
@@ -106,14 +106,14 @@ export const combatHandlers = {
     side.atomic = true;
     log(s, `${pl.name} fires an atomic: ${name(s, side.player)}'s combat roll becomes 1.`, a.by, 'atomic');
   },
-  /** Dangerous: destroy both mechs (no power change, no "when you destroy" effects), or fight. */
-  dangerous(s, a) {
-    const head = headOf(s, 'dangerous', `No ${cardName('dangerous')} decision`);
+  /** Unstable Reactor: destroy both mechs (no power change, no "when you destroy" effects), or fight. */
+  unstableReactor(s, a) {
+    const head = headOf(s, 'unstableReactor', `No ${cardName('unstable-reactor')} decision`);
     s.pending.shift();
     const att = die(s, head.attacker);
     const def = die(s, head.defender);
     if (!a.destroy) return rollCombat(s, att, def, head.from, head.ranged);
-    log(s, `${name(s, head.player)} is ${cardName('dangerous')}: both mechs are destroyed.`, head.player, 'mechDestroyed');
+    log(s, `${name(s, head.player)} is ${cardName('unstable-reactor')}: both mechs are destroyed.`, head.player, 'mechDestroyed');
     // No "destroy" effects (destroyedEnemyMech), but the losses count.
     for (const d of [att, def]) {
       if (d.owner === head.player) continue;
@@ -163,21 +163,21 @@ export const combatHandlers = {
       (s.turn.offTurnCubes ??= []).push(head.player);
     }
   },
-  prideful(s, a) {
-    const head = headOf(s, 'prideful', `No ${cardName('prideful')} decision`);
+  stolenFlag(s, a) {
+    const head = headOf(s, 'stolenFlag', `No ${cardName('stolen-flag')} decision`);
     s.pending.shift();
     if (!a.take) {
-      log(s, `${name(s, head.player)} declines to take ${cardName('prideful')}.`, head.player);
+      log(s, `${name(s, head.player)} declines to take ${cardName('stolen-flag')}.`, head.player);
       return;
     }
     const victimPl = s.players[head.victim];
     const winnerPl = s.players[head.player];
     const idx = stealableSkill(s, head.victim);
     if (idx !== -1) {
-      // A stolen Prideful works at once, even if a Ruthless player had disabled it (RULES.md ruling 3).
+      // A stolen Stolen Flag works at once, even if a Signal Jammer player had disabled it (RULES.md ruling 3).
       const [stolen] = victimPl.skills.splice(idx, 1);
       winnerPl.skills.push({ id: stolen.id, active: true });
-      log(s, `${winnerPl.name} takes ${cardName('prideful')} from ${victimPl.name}!`, head.player, 'cardTaken');
+      log(s, `${winnerPl.name} takes ${cardName('stolen-flag')} from ${victimPl.name}!`, head.player, 'cardTaken');
       s.log[s.log.length - 1].card = stolen.id;
       if (winnerPl.skills.length > skillLimit(s, head.player)) {
         s.pending.unshift({ kind: 'discardSkill', player: head.player, reason: 'limit', cannotDiscard: stolen.id });
@@ -185,8 +185,8 @@ export const combatHandlers = {
       checkInfamy(s, head.player);
     }
   },
-  ruthless(s, a) {
-    const head = headOf(s, 'ruthless', `No ${cardName('ruthless')} decision`);
+  signalJammer(s, a) {
+    const head = headOf(s, 'signalJammer', `No ${cardName('signal-jammer')} decision`);
     s.pending.shift();
     if (!a.skill) {
       log(s, `${name(s, head.player)} declines to disable a skill.`, head.player);
@@ -197,6 +197,6 @@ export const combatHandlers = {
     if (!sk) fail('Skill is not active or not owned by enemy');
     sk.active = false;
     sk.disabledUntil = head.player;
-    log(s, `${name(s, head.player)} disables ${victimPl.name}'s ${card(sk.id).name} (${cardName('ruthless')}).`, head.player);
+    log(s, `${name(s, head.player)} disables ${victimPl.name}'s ${card(sk.id).name} (${cardName('signal-jammer')}).`, head.player);
   },
 } satisfies Partial<Handlers>;

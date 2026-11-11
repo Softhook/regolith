@@ -26,7 +26,7 @@ export function BattleVerdict({
           <strong>{leader.name}</strong>{' '}
           {lost ? (
             <>
-              {out.stubborn ? `hold${s} firm (${cardName('stubborn')})` : `win${s}`}:{' '}
+              {out.entrenched ? `hold${s} firm (${cardName('entrenched')})` : `win${s}`}:{' '}
               <b>
                 {whose(game.players[lost.player].name)} {mechOf(game, lost.mech).name} will be destroyed
               </b>

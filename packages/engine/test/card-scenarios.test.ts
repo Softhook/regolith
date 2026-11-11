@@ -46,7 +46,7 @@ function cardCase(ids: string[], name: string, fn: () => void) {
 
 /**
  * apply(), after checking that the engine accepts no answer to an open decision that legalActions()
- * doesn't offer: scenarios reach decisions (Relocation, Change of Heart, Brilliant, Ruthless…) that
+ * doesn't offer: scenarios reach decisions (Relocation, Headhunter, Science Survey, Signal Jammer…) that
  * the AI games of consistency.test.ts rarely do.
  */
 function apply(s: GameState, a: Action): GameState {
@@ -103,7 +103,7 @@ function takeTactic(s: GameState, id: string, store = false): GameState {
   return apply(s, { type: 'takeCard', deck: 'tactic', index: 0, store });
 }
 
-describe('tactics and expansion', () => {
+describe('tactics and reinforcements', () => {
   DECKS.tactics.forEach((tactic, i) =>
     cardCase([tactic.id], tactic.name, () => {
       let s = quickStart(2, 200 + i);
@@ -115,36 +115,36 @@ describe('tactics and expansion', () => {
       const r = resolveWithAi(takeTactic(s, tactic.id), seededRandom(i * 31 + 5));
       s = r.s;
       switch (effectOf(tactic.id)) {
-        case 'aggression':
+        case 'power-grab':
           expect(s.players[p].power).toBe(Math.min(6, before.players[p].power + 2));
           break;
-        case 'black-market':
+        case 'contraband':
           expect(s.players[p].atomics).toBe(before.players[p].atomics + 2);
           break;
-        case 'momentum':
+        case 'forced-march':
           expect(s.players[p].bonusTurns).toEqual([...before.players[p].bonusTurns, 2]);
           break;
-        case 'plan-ahead':
-          expect(s.players[p].planAhead).toBe(2);
+        case 'kill-zone':
+          expect(s.players[p].killZone).toBe(2);
           break;
-        case 'sabotage-double':
+        case 'sabotage':
           expect(s.players[foe].actionPenalty).toBe(before.players[foe].actionPenalty + 2);
           break;
-        case 'warp-gate':
+        case 'ice-tunnel':
           expect(s.tunnels).toHaveLength(2);
           break;
-        case 'change-of-heart':
-          expect(r.seen).toContain('changeOfHeart');
+        case 'headhunter':
+          expect(r.seen).toContain('headhunter');
           expect(s.players[p].skills).toHaveLength(1);
           break;
-        case 'show-of-force':
-          expect(r.seen).toContain('showOfForce');
+        case 'orbital-cannon':
+          expect(r.seen).toContain('orbitalCannon');
           expect(mechsOnBoard(s).length).toBe(mechs - 1);
           break;
-        case 'unveil-the-fleet':
-          expect(r.seen).toContain('unveil');
+        case 'invasion':
+          expect(r.seen).toContain('invasion');
           break;
-        case 'barrier':
+        case 'barricade':
           expect(r.seen).toContain('placeBarrier');
           expect(s.barriers).toHaveLength((before.barriers?.length ?? 0) + 2);
           break;
@@ -157,98 +157,98 @@ describe('tactics and expansion', () => {
     }),
   );
 
-  cardCase([DECKS.expansion!.id], 'Expansion', () => {
+  cardCase([DECKS.reinforcement!.id], 'Reinforcements', () => {
     let s = quickStart(2, 199);
     const p = s.turn.player;
-    s.market.expansions = 1;
+    s.market.reinforcements = 1;
     s.pending.unshift({ kind: 'takeCard', player: p, count: 1 });
     const mechs = mechsOnBoard(s, p).length;
-    s = resolveWithAi(apply(s, { type: 'takeCard', deck: 'expansion', index: 0 }), seededRandom(3)).s;
+    s = resolveWithAi(apply(s, { type: 'takeCard', deck: 'reinforcement', index: 0 }), seededRandom(3)).s;
     expect(mechsOnBoard(s, p)).toHaveLength(mechs + 1);
   });
 });
 
 describe('activated skills', () => {
-  cardCase(['r-composed'], 'Composed', () => {
+  cardCase(['r-stand-down'], 'Stand Down', () => {
     let s = quickStart(2, 601);
     const p = s.turn.player;
-    s.players[p].skills = [{ id: 'r-composed', active: true }];
+    s.players[p].skills = [{ id: 'r-stand-down', active: true }];
     s.players[p].power = 3;
     s.players[p].research = 1;
-    s = apply(s, { type: 'composed' });
+    s = apply(s, { type: 'standDown' });
     expect(s.players[p].power).toBe(2);
     expect(s.players[p].research).toBe(4);
   });
 
-  cardCase(['r-ambitious'], 'Ambitious', () => {
+  cardCase(['r-final-push'], 'Final Push', () => {
     let s = quickStart(2, 603);
     const p = s.turn.player;
-    s.players[p].skills = [{ id: 'r-ambitious', active: true }];
+    s.players[p].skills = [{ id: 'r-final-push', active: true }];
     const actions = s.turn.actionsLeft;
-    s = apply(s, { type: 'ambitious' });
+    s = apply(s, { type: 'finalPush' });
     expect(s.turn.actionsLeft).toBe(actions + 1);
     expect(s.players[p].ambitionTokens).toBe(1);
   });
 
-  cardCase(['r-flexible'], 'Flexible', () => {
+  cardCase(['r-field-refit'], 'Field Refit', () => {
     let s = quickStart(2, 604);
     const p = s.turn.player;
-    s.players[p].skills = [{ id: 'r-flexible', active: true }];
+    s.players[p].skills = [{ id: 'r-field-refit', active: true }];
     const mech = mechsOnBoard(s, p)[0].id;
     die(s, mech).value = 3;
-    s = apply(s, { type: 'flexible', die: mech, delta: 1 });
+    s = apply(s, { type: 'fieldRefit', die: mech, delta: 1 });
     expect(die(s, mech).value).toBe(4);
   });
 
-  cardCase(['r-resourceful'], 'Resourceful', () => {
+  cardCase(['r-recycle'], 'Recycle', () => {
     let s = quickStart(2, 606);
     const p = s.turn.player;
-    s.players[p].skills = [{ id: 'r-resourceful', active: true }];
+    s.players[p].skills = [{ id: 'r-recycle', active: true }];
     const mech = mechsOnBoard(s, p)[0].id;
     const actions = s.turn.actionsLeft;
-    s = apply(s, { type: 'resourceful', die: mech });
+    s = apply(s, { type: 'recycle', die: mech });
     expect(die(s, mech).loc.zone).toBe('salvageYard');
     expect(s.turn.actionsLeft).toBe(actions + 1);
   });
 
-  cardCase(['r-tactical'], 'Tactical', () => {
+  cardCase(['r-advance'], 'Advance', () => {
     let s = arrange(quickStart(2, 608), { p0d0: [7, 2, 3] });
-    s.players[0].skills = [{ id: 'r-tactical', active: true }];
+    s.players[0].skills = [{ id: 'r-advance', active: true }];
     s.turn.player = 0;
-    s = apply(s, { type: 'tactical', die: 'p0d0', to: { r: 7, c: 3 } });
+    s = apply(s, { type: 'advanceSkill', die: 'p0d0', to: { r: 7, c: 3 } });
     expect(die(s, 'p0d0').loc).toEqual({ zone: 'board', r: 7, c: 3 });
   });
 
-  cardCase(['r-patient'], 'Patient', () => {
+  cardCase(['r-strategic-plan'], 'Strategic Plan', () => {
     let s = quickStart(2, 611);
     const p = s.turn.player;
-    s.players[p].skills = [{ id: 'r-patient', active: true }];
-    s = takeTactic(s, 'r-aggression', true);
-    expect(s.players[p].storedTactics).toEqual(['r-aggression']);
+    s.players[p].skills = [{ id: 'r-strategic-plan', active: true }];
+    s = takeTactic(s, 'r-power-grab', true);
+    expect(s.players[p].storedTactics).toEqual(['r-power-grab']);
     const power = s.players[p].power;
-    s = apply(s, { type: 'playStoredTactic', card: 'r-aggression' });
+    s = apply(s, { type: 'playStoredTactic', card: 'r-power-grab' });
     expect(s.players[p].power).toBe(power + 2);
     expect(s.players[p].storedTactics).toEqual([]);
     expect(legalActions(s)).toEqual([{ type: 'endTurn' }]);
   });
 
-  cardCase(['r-curious'], 'Curious (CE)', () => {
+  cardCase(['r-prospectors'], 'Prospectors (CE)', () => {
     let s = quickStart(2, 713);
     const p = s.turn.player;
-    s.players[p].skills = [{ id: 'r-curious', active: true }];
+    s.players[p].skills = [{ id: 'r-prospectors', active: true }];
     s.players[p].research = 1;
     for (let i = 0; i < 3; i++) s = apply(s, { type: 'research' });
     expect(s.turn.actionsLeft).toBe(0);
     s = apply(s, { type: 'research' });
-    expect(s.turn.curiousUsed).toBe(true);
+    expect(s.turn.prospectorsUsed).toBe(true);
     expect(s.players[p].research).toBe(5);
     expect(legalActions(s).filter((a) => a.type !== 'change')).toEqual([{ type: 'endTurn' }]);
   });
 
-  cardCase(['r-profiteering'], 'Profiteering', () => {
+  cardCase(['r-arms-deal'], 'Arms Deal', () => {
     let s = quickStart(2, 716);
     const p = s.turn.player;
-    s.players[p].skills = [{ id: 'r-profiteering', active: true }];
+    s.players[p].skills = [{ id: 'r-arms-deal', active: true }];
     s.pending.unshift({ kind: 'takeCard', player: p, count: 1, claim: 1 });
     const atomics = s.players[p].atomics;
     s = apply(s, { type: 'profiteer' });
@@ -257,148 +257,148 @@ describe('activated skills', () => {
 });
 
 describe('triggered and choice skills', () => {
-  cardCase(['r-clever'], 'Clever', () => {
+  cardCase(['r-engineering'], 'Engineering', () => {
     // CE: after a Refit, keep the number or change it by 1.
     let s = arrange(quickStart(2, 701), { p0d0: [7, 2, 3] });
     s.turn.player = 0;
-    s.players[0].skills = [{ id: 'r-clever', active: true }];
+    s.players[0].skills = [{ id: 'r-engineering', active: true }];
     s = apply(s, { type: 'refit', die: 'p0d0' });
-    expect(s.pending[0]).toMatchObject({ kind: 'clever', source: 'clever' });
+    expect(s.pending[0]).toMatchObject({ kind: 'engineering', source: 'engineering' });
     const rolled = die(s, 'p0d0').value;
-    s = apply(s, { type: 'clever', value: rolled });
+    s = apply(s, { type: 'engineering', value: rolled });
     expect(die(s, 'p0d0').value).toBe(rolled);
   });
 
-  cardCase(['r-calculating'], 'Calculating', () => {
+  cardCase(['r-remodel'], 'Remodel', () => {
     // Player 1's defending mech is destroyed: its owner picks the number it shows in the salvageYard.
-    let s = duel(703, { foe: ['r-calculating'] }, true);
+    let s = duel(703, { foe: ['r-remodel'] }, true);
     expect(die(s, 'p1d0').loc.zone).toBe('salvageYard');
-    expect(s.pending.find((p) => p.kind === 'clever')).toMatchObject({ player: 1, die: 'p1d0', source: 'calculating' });
-    while (s.pending[0].kind !== 'clever') s = apply(s, legalActions(s)[0]);
-    s = apply(s, { type: 'clever', value: 4 });
+    expect(s.pending.find((p) => p.kind === 'engineering')).toMatchObject({ player: 1, die: 'p1d0', source: 'remodel' });
+    while (s.pending[0].kind !== 'engineering') s = apply(s, legalActions(s)[0]);
+    s = apply(s, { type: 'engineering', value: 4 });
     expect(die(s, 'p1d0').value).toBe(4);
   });
 
-  cardCase(['r-brilliant'], 'Brilliant', () => {
+  cardCase(['r-science-survey'], 'Science Survey', () => {
     let s = quickStart(2, 704);
     const p = s.turn.player;
-    s.players[p].skills = [{ id: 'r-brilliant', active: true }];
+    s.players[p].skills = [{ id: 'r-science-survey', active: true }];
     s.players[p].research = 1;
     s = apply(s, { type: 'endTurn' });
     s = apply(s, { type: 'endTurn' });
     expect(s.players[p].research).toBe(3);
   });
 
-  cardCase(['r-ruthless'], 'Ruthless', () => {
-    let s = duel(707, { me: ['r-ruthless'], foe: ['r-agile'] }, true);
-    expect(s.pending[0]).toMatchObject({ kind: 'ruthless', player: 0, victim: 1 });
-    s = apply(s, { type: 'ruthless', skill: 'r-agile' });
+  cardCase(['r-signal-jammer'], 'Signal Jammer', () => {
+    let s = duel(707, { me: ['r-signal-jammer'], foe: ['r-tune-up'] }, true);
+    expect(s.pending[0]).toMatchObject({ kind: 'signalJammer', player: 0, victim: 1 });
+    s = apply(s, { type: 'signalJammer', skill: 'r-tune-up' });
     expect(s.players[1].skills[0]).toMatchObject({ active: false, disabledUntil: 0 });
   });
 
-  cardCase(['r-prideful'], 'Prideful', () => {
-    let s = duel(708, { foe: ['r-prideful'] }, true);
-    expect(s.pending[0]).toMatchObject({ kind: 'prideful', player: 0, victim: 1 });
-    s = apply(s, { type: 'prideful', take: true });
-    expect(s.players[0].skills).toEqual([{ id: 'r-prideful', active: true }]);
+  cardCase(['r-stolen-flag'], 'Stolen Flag', () => {
+    let s = duel(708, { foe: ['r-stolen-flag'] }, true);
+    expect(s.pending[0]).toMatchObject({ kind: 'stolenFlag', player: 0, victim: 1 });
+    s = apply(s, { type: 'stolenFlag', take: true });
+    expect(s.players[0].skills).toEqual([{ id: 'r-stolen-flag', active: true }]);
     expect(s.players[1].skills).toEqual([]);
   });
 
-  cardCase(['r-dangerous'], 'Dangerous', () => {
+  cardCase(['r-unstable-reactor'], 'Unstable Reactor', () => {
     let s = arrange(quickStart(2, 709), { p0d0: [7, 2, 3], p1d0: [7, 3, 3] });
     s.turn.player = 0;
-    s.players[1].skills = [{ id: 'r-dangerous', active: true }];
+    s.players[1].skills = [{ id: 'r-unstable-reactor', active: true }];
     s = apply(s, { type: 'attack', die: 'p0d0', target: 'p1d0' });
-    expect(s.pending[0]).toMatchObject({ kind: 'dangerous', player: 1 });
-    s = apply(s, { type: 'dangerous', destroy: true });
+    expect(s.pending[0]).toMatchObject({ kind: 'unstableReactor', player: 1 });
+    s = apply(s, { type: 'unstableReactor', destroy: true });
     expect(die(s, 'p0d0').loc.zone).toBe('salvageYard');
     expect(die(s, 'p1d0').loc.zone).toBe('salvageYard');
   });
 
-  cardCase(['r-cunning'], 'Cunning', () => {
+  cardCase(['r-boost'], 'Boost', () => {
     // A mech's ability twice in a turn: a Tactician swaps, and swaps back.
     let s = arrange(quickStart(2, 714), { p0d0: [0, 5, 3], p0d1: [12, 2, 6] });
-    s.players[0].skills = [{ id: 'r-cunning', active: true }];
+    s.players[0].skills = [{ id: 'r-boost', active: true }];
     s.turn.player = 0;
     s = apply(s, { type: 'swap', die: 'p0d0', other: 'p0d1' });
     s = apply(s, { type: 'swap', die: 'p0d0', other: 'p0d1' });
-    expect(s.turn.oncePerTurn).toContain('cunning');
+    expect(s.turn.oncePerTurn).toContain('boost');
     expect(die(s, 'p0d0').loc).toEqual({ zone: 'board', r: 0, c: 5 });
   });
 });
 
 describe('passive skills and rule hooks', () => {
-  cardCase(['r-agile'], 'Agile', () => {
-    // A 3 moves 3 (Regolith's cap), and Agile's +1 on top: 4 along row 7.
+  cardCase(['r-tune-up'], 'Tune Up', () => {
+    // A 3 moves 3 (Regolith's cap), and Tune Up's +1 on top: 4 along row 7.
     let s = arrange(quickStart(2, 801), { p0d0: [7, 2, 3] });
     s.turn.player = 0;
     expect(() => apply(s, { type: 'move', die: 'p0d0', to: { r: 7, c: 6 } })).toThrow();
-    s.players[0].skills = [{ id: 'r-agile', active: true }];
+    s.players[0].skills = [{ id: 'r-tune-up', active: true }];
     s = apply(s, { type: 'move', die: 'p0d0', to: { r: 7, c: 6 } });
     expect(die(s, 'p0d0').loc).toEqual({ zone: 'board', r: 7, c: 6 });
   });
 
-  cardCase(['r-devious'], 'Devious', () => {
+  cardCase(['r-sneak'], 'Sneak', () => {
     let s = arrange(quickStart(2, 803), { p0d0: [7, 2, 2], p1d0: [7, 3, 4] });
     s.turn.player = 0;
     expect(() => apply(s, { type: 'move', die: 'p0d0', to: { r: 7, c: 4 } })).toThrow();
-    s.players[0].skills = [{ id: 'r-devious', active: true }];
+    s.players[0].skills = [{ id: 'r-sneak', active: true }];
     s = apply(s, { type: 'move', die: 'p0d0', to: { r: 7, c: 4 } });
     expect(die(s, 'p0d0').loc).toEqual({ zone: 'board', r: 7, c: 4 });
   });
 
-  cardCase(['r-stealthy'], 'Stealthy', () => {
+  cardCase(['r-infiltration'], 'Infiltration', () => {
     let s = quickStart(2, 805);
     s.turn.player = 0;
     die(s, 'p0d0').loc = { zone: 'salvageYard' };
     const normal = dropTargets(s, 0).length;
-    s.players[0].skills = [{ id: 'r-stealthy', active: true }];
+    s.players[0].skills = [{ id: 'r-infiltration', active: true }];
     const targets = dropTargets(s, 0);
     expect(targets.length).toBeGreaterThan(normal);
     s = apply(s, { type: 'drop', die: 'p0d0', to: targets[targets.length - 1] });
     expect(die(s, 'p0d0').loc.zone).toBe('board');
   });
 
-  cardCase(['r-steadfast'], 'Steadfast', () => {
+  cardCase(['r-double-time'], 'Double Time', () => {
     let s = arrange(quickStart(2, 807), { p0d0: [7, 2, 1] });
-    s.players[0].skills = [{ id: 'r-steadfast', active: true }];
+    s.players[0].skills = [{ id: 'r-double-time', active: true }];
     s.turn.player = 0;
     s = apply(s, { type: 'move', die: 'p0d0', to: { r: 7, c: 3 } });
     s = apply(s, { type: 'move', die: 'p0d0', to: { r: 7, c: 4 } });
     expect(die(s, 'p0d0').loc).toEqual({ zone: 'board', r: 7, c: 4 });
   });
 
-  cardCase(['r-talented'], 'Talented', () => {
+  cardCase(['r-veteran-crew'], 'Veteran Crew', () => {
     const s = quickStart(2, 809);
     s.players[0].skills = [];
     expect(skillLimit(s, 0)).toBe(3);
-    s.players[0].skills = [{ id: 'r-talented', active: true }];
+    s.players[0].skills = [{ id: 'r-veteran-crew', active: true }];
     expect(skillLimit(s, 0)).toBe(5);
   });
 
-  cardCase(['r-precocious'], 'Precocious', () => {
+  cardCase(['r-rush-research'], 'Rush Research', () => {
     let s = quickStart(2, 810);
     s.turn.player = 0;
     s.players[0].research = 4;
     expect(apply(s, { type: 'endTurn' }).pending.some((p) => p.kind === 'takeCard')).toBe(false);
-    s.players[0].skills = [{ id: 'r-precocious', active: true }];
+    s.players[0].skills = [{ id: 'r-rush-research', active: true }];
     s = apply(s, { type: 'endTurn' });
     expect(s.pending.some((p) => p.kind === 'takeCard')).toBe(true);
   });
 
-  cardCase(['r-righteous'], 'Righteous', () => {
+  cardCase(['r-fanatics'], 'Fanatics', () => {
     // Keeps Power when a mech is destroyed, and blocks every research gain.
     const before = duel(812, {}, false).players[1].power;
     expect(duel(812, {}, true).players[1].power).toBeLessThan(before);
-    expect(duel(812, { foe: ['r-righteous'] }, true).players[1].power).toBe(before);
+    expect(duel(812, { foe: ['r-fanatics'] }, true).players[1].power).toBe(before);
     const s = quickStart(2, 813);
-    s.players[s.turn.player].skills = [{ id: 'r-righteous', active: true }];
+    s.players[s.turn.player].skills = [{ id: 'r-fanatics', active: true }];
     expect(() => apply(s, { type: 'research' })).toThrow('You cannot gain research');
   });
 
-  cardCase(['r-brutal'], 'Brutal', () => {
+  cardCase(['r-paired-cannons'], 'Paired Cannons', () => {
     const s = arrange(quickStart(2, 820), { p0d0: [7, 2, 6], p1d0: [7, 3, 3] });
-    s.players[0].skills = [{ id: 'r-brutal', active: true }];
+    s.players[0].skills = [{ id: 'r-paired-cannons', active: true }];
     s.turn.player = 0;
     expect(combatOf(apply(s, { type: 'attack', die: 'p0d0', target: 'p1d0' })).attacker.dice).toHaveLength(2);
   });
@@ -415,25 +415,25 @@ describe('passive skills and rule hooks', () => {
     return { s, combat, out: combatOutcome(s, combat) };
   }
 
-  cardCase(['r-ferocious'], 'Ferocious', () => {
-    expect(total(['r-ferocious'], 0).out.attacker.total).toBe(total([], 0).out.attacker.total - 1);
+  cardCase(['r-armour-piercing'], 'Armour Piercing', () => {
+    expect(total(['r-armour-piercing'], 0).out.attacker.total).toBe(total([], 0).out.attacker.total - 1);
   });
 
-  cardCase(['r-rational'], 'Rational', () => {
-    const { s, combat } = total(['r-rational'], 0);
+  cardCase(['r-drill-sergeant'], 'Drill Sergeant', () => {
+    const { s, combat } = total(['r-drill-sergeant'], 0);
     combat.attacker.dice = [6];
     expect(combatOutcome(s, combat).attacker.roll).toBe(3);
   });
 
-  cardCase(['r-strategic'], 'Strategic', () => {
+  cardCase(['r-close-protection'], 'Close Protection', () => {
     const support = { p0d1: [8, 2, 2] as [number, number, number] };
-    expect(total(['r-strategic'], 0, support).out.attacker.total).toBe(total([], 0, support).out.attacker.total - 2);
+    expect(total(['r-close-protection'], 0, support).out.attacker.total).toBe(total([], 0, support).out.attacker.total - 2);
   });
 
-  cardCase(['r-stubborn'], 'Stubborn', () => {
-    const { out } = total(['r-stubborn'], 1, { p1d0: [7, 3, 6] });
+  cardCase(['r-entrenched'], 'Entrenched', () => {
+    const { out } = total(['r-entrenched'], 1, { p1d0: [7, 3, 6] });
     expect(out.attackerWins).toBe(false);
-    expect(out.stubborn).toBe(true);
+    expect(out.entrenched).toBe(true);
     expect(out.winner).toBe('defender');
     expect(out.destroyed).toBe('attacker');
   });
@@ -450,16 +450,16 @@ describe('passive skills and rule hooks', () => {
     return claimCheck(s, me, centre).ok;
   }
 
-  cardCase(['r-intelligent', 'r-tyrannical'], 'Claim skills', () => {
+  cardCase(['r-hacking', 'r-martial-law'], 'Claim skills', () => {
     const cases: [string, [number, number, number][], number?][] = [
       [
-        'r-intelligent',
+        'r-hacking',
         [
           [5, 4, 3],
           [7, 4, 4],
         ],
       ], // 7 for an 8
-      ['r-tyrannical', [[5, 4, 6]], 2], // mech 6 + power 2
+      ['r-martial-law', [[5, 4, 6]], 2], // mech 6 + power 2
     ];
     for (const [id, mechs, power] of cases) {
       expect(claims(null, mechs, undefined, power), `${id} needed`).toBe(false);
@@ -467,7 +467,7 @@ describe('passive skills and rule hooks', () => {
     }
   });
 
-  cardCase(['r-pioneering'], 'Science', () => {
+  cardCase(['r-science'], 'Science', () => {
     // Mech 6 + 2 of research 3; mechs 12 − 4 of research 5; research 2 has only 1 to spend.
     const cases: [[number, number, number][], number, boolean][] = [
       [[[5, 4, 6]], 3, true],
@@ -483,38 +483,38 @@ describe('passive skills and rule hooks', () => {
     ];
     for (const [mechs, research, ok] of cases) {
       expect(claims(null, mechs, research)).toBe(false);
-      expect(claims('r-pioneering', mechs, research), `research ${research}`).toBe(ok);
+      expect(claims('r-science', mechs, research), `research ${research}`).toBe(ok);
     }
   });
 
-  cardCase(['r-industrious'], 'Industrious', () => {
+  cardCase(['r-free-drop'], 'Free Drop', () => {
     let s = quickStart(2, 814);
     const p = s.turn.player;
-    s.players[p].skills = [{ id: 'r-industrious', active: true }];
+    s.players[p].skills = [{ id: 'r-free-drop', active: true }];
     s = apply(apply(s, { type: 'endTurn' }), { type: 'endTurn' });
     expect(s.turn.freeDrops).toBe(1);
   });
 
-  cardCase(['r-hostile'], 'Hostile', () => {
+  cardCase(['r-breakthrough'], 'Breakthrough', () => {
     // The attack's action is given back.
-    expect(duel(835, { me: ['r-hostile'] }, true).turn.actionsLeft).toBe(3);
+    expect(duel(835, { me: ['r-breakthrough'] }, true).turn.actionsLeft).toBe(3);
     expect(duel(835, {}, true).turn.actionsLeft).toBe(2);
   });
 
-  cardCase(['r-plundering'], 'Plundering', () => {
-    const s = duel(837, { me: ['r-plundering'] }, true);
+  cardCase(['r-exploit'], 'Exploit', () => {
+    const s = duel(837, { me: ['r-exploit'] }, true);
     expect(s.players[0].research).toBe(duel(837, {}, true).players[0].research + 3);
   });
 
-  cardCase(['r-ravenous'], 'Ravenous', () => {
-    const s = duel(839, { me: ['r-ravenous'] }, true);
+  cardCase(['r-trophy-hunters'], 'Trophy Hunters', () => {
+    const s = duel(839, { me: ['r-trophy-hunters'] }, true);
     expect(s.players[0].power).toBe(duel(839, {}, true).players[0].power + 1);
   });
 });
 
 it('has a scenario for every card', () => {
   const cards = MODES.flatMap((m) =>
-    m.cards ? [...m.cards.skills, ...m.cards.tactics, ...(m.cards.expansion ? [m.cards.expansion] : [])] : [],
+    m.cards ? [...m.cards.skills, ...m.cards.tactics, ...(m.cards.reinforcement ? [m.cards.reinforcement] : [])] : [],
   );
   expect(cards.map((c) => c.id).filter((id) => !covered.has(id))).toEqual([]);
 });

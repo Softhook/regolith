@@ -9,148 +9,148 @@
 # Picked text goes into data/regolith.yaml; this file is only the menu.
 
 skills:
-  r-agile:
+  r-tune-up:
     subtitle: +1 movement
     text: Your mechs move 1 extra space.
-  r-ambitious:
+  r-final-push:
     subtitle: 3 extra actions
     text: Once per turn, take 1 extra action and put a token here. At 3 tokens, discard this card.
-  r-brilliant:
+  r-science-survey:
     subtitle: +2 Research a turn
     text: At the start of your turn, you may gain 2 Research.
-  r-brutal:
+  r-paired-cannons:
     subtitle: Roll twice, keep the best
     text: Roll Combat twice and keep the lower roll.
-  r-calculating:
+  r-remodel:
     subtitle: Choose what comes back
     text: When one of your mechs goes to the salvage yard, choose its type.
-  r-clever:
+  r-engineering:
     subtitle: Fine-tune a refit
     text: After you Refit a mech, you may change its number by 1.
     names:
       - { name: Spanner Crew, why: 'Field Fitter, Field Refit and Full Refit are hard to tell apart' }
       - { name: Shop Foreman, why: 'A person, not a procedure: the one who checks the refit' }
-  r-composed:
+  r-stand-down:
     subtitle: Trade Power for Research
     text: Once per turn, lose 1 Power to gain 3 Research.
-  r-cunning:
+  r-boost:
     subtitle: Double an ability
     text: Once per turn, use one mech ability twice.
-  r-curious:
+  r-prospectors:
     subtitle: Reward a quiet turn
     text: If you didn't Attack or Claim this turn, take 1 extra Move or Research action at the end of it.
-  r-dangerous:
+  r-unstable-reactor:
     subtitle: Take them with you
     text: When you're attacked, before the roll, you may destroy both mechs. No one gains Power.
-  r-devious:
+  r-sneak:
     subtitle: Move through enemies
     text: Your mechs may move through enemy mechs. Those spaces cost no movement.
-  r-ferocious:
+  r-armour-piercing:
     subtitle: −1 Combat
     text: Subtract 1 from your Combat rolls.
-  r-flexible:
+  r-field-refit:
     subtitle: Adjust a mech
     text: Once per turn, change one of your mech numbers by 1.
-  r-hostile:
+  r-breakthrough:
     subtitle: Kill for an action
     text: When you first destroy an enemy mech each turn, gain 1 action.
-  r-industrious:
+  r-free-drop:
     subtitle: Extra drop
     text: Take 1 extra Drop action each turn.
-  r-intelligent:
+  r-hacking:
     subtitle: ±1 when Claiming
     text: When Claiming, you may count the objective's number as 1 higher or lower.
-  r-patient:
+  r-strategic-plan:
     subtitle: Hold Tactics for later
     text: You may hold a Tactic instead of playing it, and play a held Tactic at the end of any of your turns. When you take this Skill, also take and hold a Tactic.
-  r-pioneering:
+  r-science:
     subtitle: Claim with Research
     text: When Claiming, you may lower your Research to add or subtract that amount from your mechs' total.
-  r-plundering:
+  r-exploit:
     subtitle: Learn from wrecks
     text: When you first destroy an enemy mech each turn, gain 3 Research.
-  r-precocious:
+  r-rush-research:
     subtitle: Faster breakthroughs
     text: Your Research resets at 4 instead of 6.
-  r-prideful:
+  r-stolen-flag:
     subtitle: Faster, but a target
     text: Your Power resets at 4 instead of 6. Whoever destroys one of your mechs may take this card.
-  r-profiteering:
+  r-arms-deal:
     subtitle: Cards for Atomics
     text: When Claiming earns you a card, you may take 1 Atomic instead.
-  r-rational:
+  r-drill-sergeant:
     subtitle: Always roll 3
     text: Your Combat rolls are always 3.
-  r-ravenous:
+  r-trophy-hunters:
     subtitle: +1 Power a kill
     text: When you first destroy an enemy mech each turn, gain 1 extra Power.
-  r-resourceful:
+  r-recycle:
     subtitle: Scrap for an action
     text: Once per turn, destroy one of your mechs to gain 1 action.
-  r-righteous:
+  r-fanatics:
     subtitle: Power you can't lose
     text: You never lose Power. You never gain Research.
-  r-ruthless:
+  r-signal-jammer:
     subtitle: Jam a Skill
     text: When you first destroy an enemy mech each turn, you may switch off one of that player's Skills until your next turn.
-  r-steadfast:
+  r-double-time:
     subtitle: Move a mech again
     text: Your mechs may Move (or Move/Attack) more than once a turn. Each move costs an action.
-  r-stealthy:
+  r-infiltration:
     subtitle: Drop anywhere quiet
     text: You may Drop onto any space that isn't adjacent to a mech.
     names:
       - { name: Blind Drop, why: 'Drop Ships and Drop Crew look alike; this one lands alone' }
       - { name: Dust Drop, why: 'Matches the art: a pod falling into a dust storm' }
-  r-strategic:
+  r-close-protection:
     subtitle: −2 with backup
     text: In combat, if your mech is adjacent to another of yours, subtract 2 from your roll.
-  r-stubborn:
+  r-entrenched:
     subtitle: Hold the line
     text: When you're attacked, you win ties, and if you win, the attacker is destroyed and you gain Power.
-  r-tactical:
+  r-advance:
     subtitle: One more step
     text: Once per turn, a mech that has already moved may Move/Attack 1 more space.
-  r-talented:
+  r-veteran-crew:
     subtitle: 5 Skills
     text: You may have up to 5 Skills.
-  r-tyrannical:
+  r-martial-law:
     subtitle: Claim with Power
     text: When Claiming, count your Power number as an extra mech.
 
 tactics:
-  r-aggression:
+  r-power-grab:
     subtitle: +2 Power
     text: Gain 2 Power.
-  r-black-market:
+  r-contraband:
     subtitle: +2 Atomics
     text: Gain 2 Atomics.
-  r-change-of-heart:
+  r-headhunter:
     subtitle: Pick any Skill
     text: Take any Skill from the Skill deck, then shuffle it.
-  r-momentum:
+  r-forced-march:
     subtitle: Bonus turn
     text: Take another turn right now, with 2 actions.
-  r-plan-ahead:
+  r-kill-zone:
     subtitle: Roll 1 until next turn
     text: Until the end of your next turn, your Combat rolls are 1.
   r-sabotage:
     subtitle: Slow every enemy
     text: Each opponent has 2 fewer actions on their next turn.
-  r-show-of-force:
+  r-orbital-cannon:
     subtitle: Destroy any mech
     text: Destroy any mech. Gain 1 Power.
     names:
       - { name: Artillery Strike, why: 'No orbital weapons or superweapons in Regolith (REGOLITH-WORLD.md)' }
       - { name: Called Strike, why: 'Matches the strike-beacon art' }
-  r-unveil-the-fleet:
+  r-invasion:
     subtitle: Rebuild everything
     text: Destroy all your mechs. Reroll any in your salvage yard once, then Drop as many as you like.
-  r-warp-gate:
+  r-ice-tunnel:
     subtitle: Link two spaces
     text: Place the 2 Ice Tunnel tokens on different spaces. Those spaces count as adjacent for everyone.
 
-expansion:
-  r-expansion:
+reinforcements:
+  r-reinforcements:
     subtitle: Add a mech
     text: Roll a reserve mech. Put it on the perimeter of an objective with one of your cubes, or in your salvage yard.

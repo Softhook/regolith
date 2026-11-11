@@ -131,7 +131,7 @@ function Battle({
             ))}
             {s.dice.length > 1 && !rollPart?.set && (
               <li className="muted">
-                {cardName('brutal')}: rolled {s.dice.join(' & ')}
+                {cardName('paired-cannons')}: rolled {s.dice.join(' & ')}
               </li>
             )}
           </ul>

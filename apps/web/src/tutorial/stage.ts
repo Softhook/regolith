@@ -59,7 +59,7 @@ const turnOf = (player: number, actionsLeft: number): TurnState => ({
   destroyedBy: [],
   oncePerTurn: [],
   bonus: false,
-  curiousUsed: false,
+  prospectorsUsed: false,
   storedTacticPlayed: false,
 });
 

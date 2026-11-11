@@ -36,7 +36,7 @@ const ideas: Record<string, Record<string, Ideas>> = read('docs/regolith/card-te
 const DECKS: { key: string; deck: CardDeck; name: string; word: string }[] = [
   { key: 'skills', deck: 'skill', name: 'Skills', word: 'Skill' },
   { key: 'tactics', deck: 'tactic', name: 'Tactics', word: 'Tactic' },
-  { key: 'expansion', deck: 'expansion', name: 'Expansion', word: 'Expansion' },
+  { key: 'reinforcements', deck: 'reinforcement', name: 'Reinforcements', word: 'Reinforcements' },
 ];
 
 const cards = DECKS.flatMap((d) =>

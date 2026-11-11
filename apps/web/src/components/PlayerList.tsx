@@ -114,10 +114,10 @@ function PlayerCard({
           <AtomicIcon size={14} /> {p.atomics}
           <Flash e={effectAt(fx, 'atomics')} />
         </Tip>
-        {p.planAhead > 0 && (
-          <Tip className="stat gold" data-fx="planAhead" tip={`${cardName('plan-ahead')}: all your combat rolls are 1`}>
-            Plan Ahead
-            <Flash e={effectAt(fx, 'planAhead')} />
+        {p.killZone > 0 && (
+          <Tip className="stat gold" data-fx="killZone" tip={`${cardName('kill-zone')}: all your combat rolls are 1`}>
+            Kill Zone
+            <Flash e={effectAt(fx, 'killZone')} />
           </Tip>
         )}
         {p.actionPenalty > 0 && (

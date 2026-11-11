@@ -90,8 +90,8 @@ export function CardView({ id, size = 'md', onClick, disabled, badge, inactive, 
   const def = card(id);
   const kind = cardKind(id);
   const category = CARD_CATEGORIES[def.category]?.label ?? def.category;
-  // One-shot cards name their deck too, where it isn't their category already (Expansion).
-  const kindLabel = kind === 'skill' ? undefined : kind === 'expansion' ? cardName('expansion') : 'Tactic';
+  // One-shot cards name their deck too, where it isn't their category already (Reinforcements).
+  const kindLabel = kind === 'skill' ? undefined : kind === 'reinforcement' ? cardName('reinforcements') : 'Tactic';
   const clickable = !!onClick && !disabled;
   const name = def.name;
   const text = useRef<HTMLDivElement>(null);

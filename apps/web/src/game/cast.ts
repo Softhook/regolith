@@ -3,20 +3,20 @@ import { lastLogId } from './steps';
 
 /** The decisions a Tactic leaves its player, where it lands: each step that settles one is the card's doing. */
 const LANDING = new Set([
-  'showOfForce',
+  'orbitalCannon',
   'iceTunnel',
   'placeBarrier',
   'kineticShunt',
   'shuntBarrier',
-  'placeExpansion',
-  'unveil',
-  'changeOfHeart',
+  'placeReinforcement',
+  'invasion',
+  'headhunter',
 ]);
 
 /**
  * The card whose effect the step from `before` to `game` is: the Tactic whose decision it settles (Show of
  * Force's target…), else one it played or used (a Tactic, a skill, a skill firing by itself). A Tactic comes
- * first: its blow may set off skills of their own (Plundering after Show of Force), which cast for themselves
+ * first: its blow may set off skills of their own (Exploit after Orbital Cannon), which cast for themselves
  * (see `gains`). Not a card taken: it flies from the market instead (CardFlight).
  */
 export function castOf(before: GameState, game: GameState): LogEntry | undefined {
@@ -24,7 +24,7 @@ export function castOf(before: GameState, game: GameState): LogEntry | undefined
   if (head && LANDING.has(head.kind) && 'player' in head) {
     for (let i = before.log.length - 1; i >= 0; i--) {
       const e = before.log[i];
-      if (e.turn || e.event === 'expansion') break;
+      if (e.turn || e.event === 'reinforcement') break;
       if (e.event !== 'cardPlayed') continue;
       if (e.player === head.player) return e;
       break;

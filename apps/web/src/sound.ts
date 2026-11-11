@@ -263,7 +263,7 @@ export const sfx = {
     tone(660, 0.12, 'triangle', 0.05, 0, 1320);
     tone(1320, 0.18, 'sine', 0.035, 0.08, 1760);
   },
-  /** A mech salvaged by Resourceful: everything rushing inward, then a small dull pop as it's gone. */
+  /** A mech salvaged by Recycle: everything rushing inward, then a small dull pop as it's gone. */
   implode: () => {
     tone(900, 0.28, 'sine', 0.06, 0, 90, 0.02);
     noise(0.28, 0.09, { type: 'bandpass', from: 5000, to: 300, q: 2, rise: 0.2 });
@@ -282,7 +282,7 @@ export const sfx = {
     noise(0.05, 0.3, { type: 'lowpass', from: 1600, rise: 0.002 });
     noise(MECH.glide / 1000, 0.1, { delay: 0.03, type: 'bandpass', from: 700, to: 300, q: 2, rise: 0.02 });
   },
-  /** Show of Force's lance: a charging whine, then the crack as it strikes, `strike` ms in (game/strike). */
+  /** Orbital Cannon's lance: a charging whine, then the crack as it strikes, `strike` ms in (game/strike). */
   lance: (strike = 0) => {
     const at = strike / 1000;
     if (at) {
@@ -292,7 +292,7 @@ export const sfx = {
     noise(0.06, 0.4, { delay: at, type: 'highpass', from: 2500, rise: 0.001 });
     tone(1800, 0.22, 'sine', 0.05, at, 300, 0.002);
   },
-  /** Dangerous's arc: an electric buzz and crackle as it reaches across, joining the two mechs `strike` ms in (game/strike). */
+  /** Unstable Reactor's arc: an electric buzz and crackle as it reaches across, joining the two mechs `strike` ms in (game/strike). */
   arc: (strike = 0) => {
     const dur = strike / 1000 + 0.15;
     tone(jitter(120), dur, 'sawtooth', 0.04);
@@ -306,26 +306,26 @@ export const sfx = {
   },
 
   // Tactics and Gambits: a signature sound each, played as the card resolves.
-  /** Aggression: war drums. */
+  /** Power Grab: war drums. */
   drums: () => {
     for (const d of [0, 0.18, 0.3, 0.42]) {
       tone(95, 0.22, 'sine', 0.22, d, 45, 0.004);
       noise(0.08, 0.1, { delay: d, type: 'lowpass', from: 900, rise: 0.003 });
     }
   },
-  /** Black Market: coins changing hands (the atomics' own sound follows). */
+  /** Contraband: coins changing hands (the atomics' own sound follows). */
   coins: () => {
     for (const d of [0, 0.07, 0.16]) {
       tone(jitter(2600, 0.05), 0.15, 'sine', 0.03, d);
       tone(jitter(3900, 0.05), 0.1, 'sine', 0.02, d);
     }
   },
-  /** Change of Heart: a deck being riffled. */
+  /** Headhunter: a deck being riffled. */
   shuffle: () => {
     for (let i = 0; i < 18; i++) tick(0.08, 3000 + Math.random() * 3000, i * 0.025 + Math.random() * 0.01);
   },
-  /** Momentum: a spin-up that keeps getting faster. */
-  momentum: () => {
+  /** Forced March: a spin-up that keeps getting faster. */
+  forcedMarch: () => {
     let t = 0;
     for (let i = 0; i < 8; i++) {
       tone(300 + i * 90, 0.06, 'triangle', 0.04, t);
@@ -333,7 +333,7 @@ export const sfx = {
     }
     tone(1100, 0.3, 'sine', 0.04, t, 1600);
   },
-  /** Plan Ahead: target-lock beeps, then the lock tone. */
+  /** Kill Zone: target-lock beeps, then the lock tone. */
   lockOn: () => {
     [0, 0.16, 0.28, 0.37].forEach((d) => tone(1250, 0.05, 'square', 0.02, d));
     tone(1650, 0.35, 'square', 0.018, 0.46);
@@ -344,15 +344,15 @@ export const sfx = {
     noise(0.8, 0.04, { type: 'lowpass', from: 4000, to: 200 });
     [0.15, 0.22, 0.4].forEach((d) => tick(0.12, 900, d));
   },
-  /** Show of Force: a klaxon while a target is chosen. */
+  /** Orbital Cannon: a klaxon while a target is chosen. */
   alarm: () => [0, 0.22, 0.44, 0.66].forEach((d, i) => tone(i % 2 ? 440 : 560, 0.2, 'square', 0.025, d)),
-  /** Unveil the Fleet: a deep swell as the fleet is recalled. */
-  unveil: () => {
+  /** Invasion: a deep swell as the fleet is recalled. */
+  invasion: () => {
     tone(55, 1.2, 'sawtooth', 0.05, 0, 110, 0.6);
     noise(1.1, 0.08, { type: 'bandpass', from: 200, to: 2500, q: 1.5, rise: 0.8 });
     [220, 277, 330].forEach((f) => tone(f, 0.9, 'triangle', 0.03, 0.8));
   },
-  /** Expansion: a launch horn as a new mech is built. */
+  /** Reinforcements: a launch horn as a new mech is built. */
   launch: () => {
     tone(196, 0.5, 'sawtooth', 0.03, 0, 392, 0.1);
     tone(294, 0.5, 'sawtooth', 0.025, 0.05, 588, 0.1);

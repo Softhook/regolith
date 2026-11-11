@@ -53,14 +53,14 @@ export function highlightsFor(game: GameState, sel: Sel, legal: Legal, actionPha
       case 'infamy':
         for (const a of legal.of('infamy')) h.objectives.set(a.objective, { tone: 'infamy', label: 'Seize' });
         break;
-      case 'placeExpansion':
+      case 'placeReinforcement':
         addCells(
-          legal.of('placeExpansion').flatMap((a) => (a.to ? [a.to] : [])),
+          legal.of('placeReinforcement').flatMap((a) => (a.to ? [a.to] : [])),
           'drop',
         );
         break;
-      case 'showOfForce':
-        for (const a of legal.of('showOfForce')) h.dice.set(a.die, 'target');
+      case 'orbitalCannon':
+        for (const a of legal.of('orbitalCannon')) h.dice.set(a.die, 'target');
         break;
       case 'advance':
         addCells([head.to], 'move');
@@ -93,10 +93,10 @@ export function highlightsFor(game: GameState, sel: Sel, legal: Legal, actionPha
           );
         }
         break;
-      case 'unveil':
+      case 'invasion':
         if (sel.kind === 'salvage')
           addCells(
-            legal.of('unveilDrop', (a) => a.die === sel.die).map((a) => a.to),
+            legal.of('invasionDrop', (a) => a.die === sel.die).map((a) => a.to),
             'drop',
           );
         break;
@@ -110,11 +110,11 @@ export function highlightsFor(game: GameState, sel: Sel, legal: Legal, actionPha
   for (const p of game.board.objectives)
     if (!h.objectives.has(p.id) && claimCheck(game, game.turn.player, p.id).blocked)
       h.objectives.set(p.id, { tone: 'blocked', label: 'Blocked' });
-  // A Behemoth carry, as a regular carry or as a Tactical step.
-  const carries = (die: string, tactical?: boolean) =>
-    tactical
+  // A Behemoth carry, as a regular carry or as an Advance step.
+  const carries = (die: string, advanceSkill?: boolean) =>
+    advanceSkill
       ? legal
-          .of('tactical', (a) => a.die === die && !!a.passenger)
+          .of('advanceSkill', (a) => a.die === die && !!a.passenger)
           .map((a) => ({ passenger: a.passenger!, to: a.to!, setDown: a.setDown! }))
       : legal.of('carry', (a) => a.die === die);
   switch (sel.kind) {
@@ -143,8 +143,8 @@ export function highlightsFor(game: GameState, sel: Sel, legal: Legal, actionPha
         'drop',
       );
       break;
-    case 'tactical': {
-      for (const a of legal.of('tactical', (a) => a.die === sel.die && !a.passenger)) {
+    case 'advanceSkill': {
+      for (const a of legal.of('advanceSkill', (a) => a.die === sel.die && !a.passenger)) {
         if (a.target) h.dice.set(a.target, 'attack');
         else if (a.to) h.cells.set(key(a.to), { cell: a.to, tone: 'move' });
       }
@@ -163,11 +163,11 @@ export function highlightsFor(game: GameState, sel: Sel, legal: Legal, actionPha
       }
       break;
     case 'carryPassenger':
-      for (const t of carries(sel.die, sel.tactical)) h.dice.set(t.passenger, 'passenger');
+      for (const t of carries(sel.die, sel.advanceSkill)) h.dice.set(t.passenger, 'passenger');
       break;
     case 'carryDest':
       addCells(
-        carries(sel.die, sel.tactical)
+        carries(sel.die, sel.advanceSkill)
           .filter((t) => t.passenger === sel.passenger)
           .map((t) => t.to),
         'move',
@@ -175,7 +175,7 @@ export function highlightsFor(game: GameState, sel: Sel, legal: Legal, actionPha
       break;
     case 'carrySetDown':
       addCells(
-        carries(sel.die, sel.tactical)
+        carries(sel.die, sel.advanceSkill)
           .filter((t) => t.passenger === sel.passenger && same(t.to, sel.to))
           .map((t) => t.setDown),
         'setDown',

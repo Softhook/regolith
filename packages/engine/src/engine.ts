@@ -34,7 +34,7 @@ import type { Handlers } from './core';
 import { setupHandlers } from './setup';
 import { card } from './data';
 import { log, name } from './core';
-import { curiousUsed, skillHandlers, skillUsed } from './skillActions';
+import { prospectorsUsed, skillHandlers, skillUsed } from './skillActions';
 import { settle } from './turn';
 import { RuleError, type Action, type GameState, type PlayerId } from './types';
 
@@ -56,7 +56,7 @@ export function apply(prev: GameState, action: Action): GameState {
   const handler = HANDLERS[action.type] as (s: GameState, a: Action) => void;
   const s = copyState(prev);
   handler(s, action);
-  const used = skillUsed(prev, action) ?? curiousUsed(prev, s);
+  const used = skillUsed(prev, action) ?? prospectorsUsed(prev, s);
   if (used) showSkill(s, prev.logCounter, used.player, used.card);
   settle(s);
   return s;
@@ -64,7 +64,7 @@ export function apply(prev: GameState, action: Action): GameState {
 
 /**
  * Names the skill card an action used on the first entry its owner logged, so the UI can show the
- * card; an action that logged nothing for them (Composed…) logs that they used it.
+ * card; an action that logged nothing for them (Stand Down…) logs that they used it.
  */
 function showSkill(s: GameState, before: number, player: PlayerId, id: string) {
   const entry = s.log.find((e) => e.id > before && e.player === player && !e.card && e.event !== 'infamy');
@@ -94,7 +94,7 @@ export function cloneState<T>(x: T): T {
 
 /**
  * A copy of a state to change. The board's cells never change after the board is built, so states
- * share them: copying them was most of the AI's time (an Unveil with five mechs to place took minutes). A log
+ * share them: copying them was most of the AI's time (an Invasion with five mechs to place took minutes). A log
  * entry doesn't change once the step that wrote it is over either, so they share those too: with a position kept
  * for every move of a game (web past.ts), copying them was most of its memory.
  */

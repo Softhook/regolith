@@ -140,7 +140,7 @@ export function Game({
           {sheet ? (
             <BottomSheet
               peek={turnPanel}
-              wantOpen={!!cards && (ctl.legal.can('takeCard') || ctl.legal.can('patientTactic'))}
+              wantOpen={!!cards && (ctl.legal.can('takeCard') || ctl.legal.can('strategicPlanTactic'))}
               closeFor={review?.entry.id}
             >
               {side}

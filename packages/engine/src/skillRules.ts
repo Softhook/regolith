@@ -67,9 +67,9 @@ export interface SkillRule {
   skillLimit?: number;
   /** Research needed for a breakthrough. */
   breakthroughAt?: number;
-  /** Power needed for a Take Over cube (Prideful). */
+  /** Power needed for a Take Over cube (Stolen Flag). */
   infamyAt?: number;
-  /** When a mech is placed in your salvage yard, choose its number instead (Calculating). */
+  /** When a mech is placed in your salvage yard, choose its number instead (Remodel). */
   chooseSalvageYardNumber?: boolean;
   /** One more Move or Research once the actions are spent, on a turn without Attack or Claim. */
   peacefulExtraAction?: boolean;
@@ -107,7 +107,7 @@ export interface SkillRule {
     /** A modifier added to the total, if it applies. */
     modifier?: (ctx: CombatContext) => number;
     /** When defending, ties go to the player, and winning destroys the attacker. */
-    stubborn?: boolean;
+    entrenched?: boolean;
     /** When defending, before the dice are rolled, the player may destroy both mechs. */
     destroyBoth?: boolean;
   };
@@ -131,28 +131,28 @@ function supported(state: GameState, player: PlayerId, self: string, spaces: Cel
 
 export const SKILL_RULES: Record<SkillEffect, SkillRule> = {
   // shared / community skills
-  agile: { movement: 1 },
-  ambitious: { activated: 'ambitious' },
-  brilliant: { startOfTurn: () => ({ research: 2 }) },
-  brutal: { combat: { dice: 2 } },
-  clever: { adjustRefit: true },
-  composed: { activated: 'composed' },
-  devious: { moveThroughEnemies: true },
-  ferocious: { combat: { modifier: () => -1 } },
-  flexible: { activated: 'flexible' },
-  hostile: { onDestroy: (c) => (c.first && c.ownActionPhase ? { actions: 1 } : {}) },
-  industrious: { startOfTurn: () => ({ freeDrops: 1 }) },
-  intelligent: { claim: { tolerance: 1 } },
-  plundering: { onDestroy: (c) => (c.first ? { research: 3 } : {}) },
-  precocious: { breakthroughAt: 4 },
-  profiteering: { atomicForClaim: true },
-  rational: { combat: { roll: 3 } },
-  ravenous: { onDestroy: (c) => (c.first ? { power: 1 } : {}) },
-  resourceful: { activated: 'resourceful' },
-  righteous: { noResearch: true, keepPower: true },
-  steadfast: { moveRepeatedly: true },
-  stealthy: { dropIsolated: true },
-  strategic: {
+  'tune-up': { movement: 1 },
+  'final-push': { activated: 'finalPush' },
+  'science-survey': { startOfTurn: () => ({ research: 2 }) },
+  'paired-cannons': { combat: { dice: 2 } },
+  engineering: { adjustRefit: true },
+  'stand-down': { activated: 'standDown' },
+  sneak: { moveThroughEnemies: true },
+  'armour-piercing': { combat: { modifier: () => -1 } },
+  'field-refit': { activated: 'fieldRefit' },
+  breakthrough: { onDestroy: (c) => (c.first && c.ownActionPhase ? { actions: 1 } : {}) },
+  'free-drop': { startOfTurn: () => ({ freeDrops: 1 }) },
+  hacking: { claim: { tolerance: 1 } },
+  exploit: { onDestroy: (c) => (c.first ? { research: 3 } : {}) },
+  'rush-research': { breakthroughAt: 4 },
+  'arms-deal': { atomicForClaim: true },
+  'drill-sergeant': { combat: { roll: 3 } },
+  'trophy-hunters': { onDestroy: (c) => (c.first ? { power: 1 } : {}) },
+  recycle: { activated: 'recycle' },
+  fanatics: { noResearch: true, keepPower: true },
+  'double-time': { moveRepeatedly: true },
+  infiltration: { dropIsolated: true },
+  'close-protection': {
     combat: {
       // Supported by a friendly mech next to the battle (for the attacker: next to either space).
       modifier: ({ state, combat, side }) => {
@@ -162,19 +162,19 @@ export const SKILL_RULES: Record<SkillEffect, SkillRule> = {
       },
     },
   },
-  stubborn: { combat: { stubborn: true } },
-  talented: { skillLimit: 5 },
-  tyrannical: { claim: { sums: (c) => [c.sum + c.power] } },
-  cunning: { abilityTwice: true },
-  tactical: { activated: 'tactical' },
-  calculating: { chooseSalvageYardNumber: true },
-  curious: { peacefulExtraAction: true },
-  patient: { storeTactics: true },
-  prideful: { infamyAt: 4, stolenOnDestroy: true },
-  ruthless: { disableSkillOnDestroy: true },
-  // Regolith's own Science, in Pioneering's place
+  entrenched: { combat: { entrenched: true } },
+  'veteran-crew': { skillLimit: 5 },
+  'martial-law': { claim: { sums: (c) => [c.sum + c.power] } },
+  boost: { abilityTwice: true },
+  advance: { activated: 'advanceSkill' },
+  remodel: { chooseSalvageYardNumber: true },
+  prospectors: { peacefulExtraAction: true },
+  'strategic-plan': { storeTactics: true },
+  'stolen-flag': { infamyAt: 4, stolenOnDestroy: true },
+  'signal-jammer': { disableSkillOnDestroy: true },
+  // Regolith's own Science, in Science's place
   science: { claim: { spendResearch: true } },
-  dangerous: { combat: { destroyBoth: true } },
+  'unstable-reactor': { combat: { destroyBoth: true } },
 };
 
 export interface ActiveSkill {
@@ -238,12 +238,12 @@ export function anySkill(state: GameState, player: PlayerId, test: (r: SkillRule
   return state.players[player].skills.some((s) => s.active && test(ruleOf(s.id)));
 }
 
-/** The index in the player's skills of a card someone who destroys their mech may take (Prideful), active or not. */
+/** The index in the player's skills of a card someone who destroys their mech may take (Stolen Flag), active or not. */
 export function stealableSkill(state: GameState, player: PlayerId): number {
   return state.players[player].skills.findIndex((s) => ruleOf(s.id).stolenOnDestroy);
 }
 
-/** True when the player owns an active skill with this effect (e.g. Cerebral has the 'composed' effect). */
+/** True when the player owns an active skill with this effect (e.g. Cerebral has the 'stand-down' effect). */
 export function hasSkill(state: GameState, player: PlayerId, effect: SkillEffect): boolean {
   return state.players[player].skills.some((s) => s.active && effectOf(s.id) === effect);
 }

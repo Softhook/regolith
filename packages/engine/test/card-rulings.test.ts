@@ -24,9 +24,9 @@ function cardGame(skills: { me?: string[]; foe?: string[] } = {}): GameState {
   return s;
 }
 
-describe('Curious (Prospectors; CE Option B)', () => {
+describe('Prospectors (Prospectors; CE Option B)', () => {
   it('offers a peaceful move or research when actions reach 0 and neither attack nor claim occurred', () => {
-    let s = cardGame({ me: ['r-curious'] });
+    let s = cardGame({ me: ['r-prospectors'] });
     const me = s.turn.player;
     // Spend 3 actions on peaceful refits
     s = apply(s, { type: 'refit', die: `p${me}d0` });
@@ -34,7 +34,7 @@ describe('Curious (Prospectors; CE Option B)', () => {
     s = apply(s, { type: 'refit', die: `p${me}d0` });
     expect(s.turn.actionsLeft).toBe(0);
 
-    // With 0 actions, Curious allows research or peaceful move
+    // With 0 actions, Prospectors allows research or peaceful move
     const legals = legalActions(s);
     expect(legals.some((a) => a.type === 'research')).toBe(true);
     expect(legals.some((a) => a.type === 'move')).toBe(true);
@@ -43,21 +43,21 @@ describe('Curious (Prospectors; CE Option B)', () => {
     // Take the research action
     s = apply(s, { type: 'research' });
     expect(s.players[me].research).toBe(3);
-    expect(s.turn.curiousUsed).toBe(true);
+    expect(s.turn.prospectorsUsed).toBe(true);
 
-    // Now move and research are no longer offered via Curious
+    // Now move and research are no longer offered via Prospectors
     const after = legalActions(s);
     expect(after.some((a) => a.type === 'research')).toBe(false);
     expect(after.some((a) => a.type === 'move')).toBe(false);
     expect(after).toEqual([{ type: 'endTurn' }]);
 
-    // Engine rejects free mech abilities after Curious
+    // Engine rejects free mech abilities after Prospectors
     s.dice.find((d) => d.id === `p${me}d0`)!.value = 4;
     expect(() => apply(s, { type: 'change', die: `p${me}d0`, value: 3 })).toThrow('No actions allowed after using Prospectors');
   });
 
-  it('does not offer curious actions if the player attacked during their turn', () => {
-    let s = cardGame({ me: ['r-curious'] });
+  it('does not offer Prospectors actions if the player attacked during their turn', () => {
+    let s = cardGame({ me: ['r-prospectors'] });
     const me = s.turn.player;
     s = apply(s, { type: 'attack', die: `p${me}d0`, target: `p${1 - me}d0` });
     // Resolve combat
@@ -69,14 +69,14 @@ describe('Curious (Prospectors; CE Option B)', () => {
       s = apply(s, { type: 'refit', die: `p${me}d0` });
     }
     expect(s.turn.actionsLeft).toBe(0);
-    // Because attacked is true, no curious actions offered (a free ability, such as a Chameleon's change, still is)
+    // Because attacked is true, no Prospectors actions offered (a free ability, such as a Chameleon's change, still is)
     expect(legalActions(s).filter((a) => a.type !== 'change')).toEqual([{ type: 'endTurn' }]);
   });
 });
 
-describe('Calculating', () => {
+describe('Remodel', () => {
   it('lets the player choose any number when a mech is placed in the salvage yard', () => {
-    let s = cardGame({ foe: ['r-calculating'] });
+    let s = cardGame({ foe: ['r-remodel'] });
     const me = s.turn.player;
     const foe = 1 - me;
     // Force attacker win in combat to destroy foe's mech
@@ -90,18 +90,18 @@ describe('Calculating', () => {
     s = apply(s, { type: 'resolveCombat' });
     // Attacker advances
     if (s.pending[0]?.kind === 'advance') s = apply(s, { type: 'advance', move: false });
-    // Calculating triggers a clever prompt for foe on the destroyed mech with source = 'r-calculating'
-    expect(s.pending[0]).toMatchObject({ kind: 'clever', player: foe, die: `p${foe}d0`, source: 'calculating' });
-    s = apply(s, { type: 'clever', value: 1 });
+    // Remodel triggers an Engineering prompt for foe on the destroyed mech with source = 'r-remodel'
+    expect(s.pending[0]).toMatchObject({ kind: 'engineering', player: foe, die: `p${foe}d0`, source: 'remodel' });
+    s = apply(s, { type: 'engineering', value: 1 });
     const destroyed = s.dice.find((d) => d.id === `p${foe}d0`)!;
     expect(destroyed.value).toBe(1);
     expect(destroyed.loc.zone).toBe('salvageYard');
   });
 });
 
-describe('Prideful', () => {
+describe('Stolen Flag', () => {
   it('triggers Take Over at power 4', () => {
-    let s = cardGame({ me: ['r-prideful'] });
+    let s = cardGame({ me: ['r-stolen-flag'] });
     const me = s.turn.player;
     s.players[me].power = 3;
     // Win combat to gain power
@@ -119,8 +119,8 @@ describe('Prideful', () => {
     expect(s.pending.some((p) => p.kind === 'infamy')).toBe(true);
   });
 
-  it('allows the destroyer to take Prideful when destroying its owner’s mech', () => {
-    let s = cardGame({ foe: ['r-prideful'] });
+  it('allows the destroyer to take Stolen Flag when destroying its owner’s mech', () => {
+    let s = cardGame({ foe: ['r-stolen-flag'] });
     const me = s.turn.player;
     const foe = 1 - me;
     s = apply(s, { type: 'attack', die: `p${me}d0`, target: `p${foe}d0` });
@@ -132,19 +132,19 @@ describe('Prideful', () => {
     s = apply(s, { type: 'resolveCombat' });
     if (s.pending[0]?.kind === 'advance') s = apply(s, { type: 'advance', move: false });
 
-    // Winner gets prideful steal decision
-    expect(s.pending[0]).toMatchObject({ kind: 'prideful', player: me, victim: foe });
-    s = apply(s, { type: 'prideful', take: true });
+    // Winner gets Stolen Flag steal decision
+    expect(s.pending[0]).toMatchObject({ kind: 'stolenFlag', player: me, victim: foe });
+    s = apply(s, { type: 'stolenFlag', take: true });
 
-    expect(s.players[me].skills.some((sk) => sk.id === 'r-prideful')).toBe(true);
-    expect(s.players[foe].skills.some((sk) => sk.id === 'r-prideful')).toBe(false);
+    expect(s.players[me].skills.some((sk) => sk.id === 'r-stolen-flag')).toBe(true);
+    expect(s.players[foe].skills.some((sk) => sk.id === 'r-stolen-flag')).toBe(false);
   });
 
-  it('triggers Take Over when a Prideful taken from the market takes effect at the end of the turn', () => {
+  it('triggers Take Over when a Stolen Flag taken from the market takes effect at the end of the turn', () => {
     let s = cardGame();
     const me = s.turn.player;
     s.players[me].power = 5;
-    s.market.skillRow[0] = 'r-prideful';
+    s.market.skillRow[0] = 'r-stolen-flag';
     s.pending = [{ kind: 'takeCard', player: me, count: 1 }];
     s = apply(s, { type: 'takeCard', deck: 'skill', index: 0 });
     // Not in effect yet while the turn lasts.
@@ -155,11 +155,11 @@ describe('Prideful', () => {
     expect(s.pending[0]).toMatchObject({ kind: 'infamy', player: me });
   });
 
-  it('triggers Take Over when a Prideful disabled by Ruthless comes back', () => {
+  it('triggers Take Over when a Stolen Flag disabled by Signal Jammer comes back', () => {
     let s = cardGame();
     const me = s.turn.player;
     const foe = 1 - me;
-    s.players[foe].skills = [{ id: 'r-prideful', active: false, disabledUntil: me }];
+    s.players[foe].skills = [{ id: 'r-stolen-flag', active: false, disabledUntil: me }];
     s.players[foe].power = 4;
     s = apply(s, { type: 'endTurn' });
     expect(s.pending.some((p) => p.kind === 'infamy')).toBe(false);
@@ -180,16 +180,16 @@ describe('Prideful', () => {
   });
 });
 
-describe('Patient', () => {
+describe('Strategic Plan', () => {
   it('allows storing a tactic and playing it at the end of the turn', () => {
-    let s = cardGame({ me: ['r-patient'] });
+    let s = cardGame({ me: ['r-strategic-plan'] });
     const me = s.turn.player;
-    s.market.tacticRow = ['r-aggression'];
+    s.market.tacticRow = ['r-power-grab'];
     s.pending = [{ kind: 'takeCard', player: me, count: 1 }];
 
     // Store tactic
     s = apply(s, { type: 'takeCard', deck: 'tactic', index: 0, store: true });
-    expect(s.players[me].storedTactics).toEqual(['r-aggression']);
+    expect(s.players[me].storedTactics).toEqual(['r-power-grab']);
     expect(s.players[me].power).toBe(3); // Not played yet
 
     // Spend actions
@@ -197,22 +197,22 @@ describe('Patient', () => {
     // Legal actions now include playStoredTactic
     expect(legalActions(s).some((a) => a.type === 'playStoredTactic')).toBe(true);
 
-    s = apply(s, { type: 'playStoredTactic', card: 'r-aggression' });
+    s = apply(s, { type: 'playStoredTactic', card: 'r-power-grab' });
     expect(s.players[me].storedTactics).toEqual([]);
-    expect(s.players[me].power).toBe(5); // Aggression gives +2 power
+    expect(s.players[me].power).toBe(5); // Power Grab gives +2 power
     expect(s.turn.storedTacticPlayed).toBe(true);
   });
 
   it('allows playing a stored tactic even if ending turn with unused actions', () => {
-    let s = cardGame({ me: ['r-patient'] });
+    let s = cardGame({ me: ['r-strategic-plan'] });
     const me = s.turn.player;
-    s.players[me].storedTactics = ['r-aggression'];
+    s.players[me].storedTactics = ['r-power-grab'];
     expect(s.turn.actionsLeft).toBe(3);
 
     // Allowed even with 3 actions left
     expect(legalActions(s).some((a) => a.type === 'playStoredTactic')).toBe(true);
 
-    s = apply(s, { type: 'playStoredTactic', card: 'r-aggression' });
+    s = apply(s, { type: 'playStoredTactic', card: 'r-power-grab' });
     expect(s.players[me].storedTactics).toEqual([]);
     expect(s.players[me].power).toBe(5);
     expect(s.turn.actionsLeft).toBe(0);
@@ -224,37 +224,41 @@ describe('Patient', () => {
     expect(() => apply(s, { type: 'change', die: `p${me}d0`, value: 3 })).toThrow('No actions allowed after playing a stored tactic');
   });
 
-  it('lets the player take and store a face-up tactic when taking Patient, without using a pick', () => {
+  it('lets the player take and store a face-up tactic when taking Strategic Plan, without using a pick', () => {
     let s = cardGame();
     const me = s.turn.player;
-    s.market.skillRow = ['r-patient'];
-    s.market.tacticRow = ['r-aggression', 'r-sabotage'];
-    s.market.tacticDeck = ['r-warp-gate'];
+    s.market.skillRow = ['r-strategic-plan'];
+    s.market.tacticRow = ['r-power-grab', 'r-sabotage'];
+    s.market.tacticDeck = ['r-ice-tunnel'];
     s.pending = [{ kind: 'takeCard', player: me, count: 2 }];
 
     s = apply(s, { type: 'takeCard', deck: 'skill', index: 0 });
-    expect(s.pending[0]).toEqual({ kind: 'patientTactic', player: me });
-    expect(legalActions(s)).toEqual([{ type: 'patientTactic' }, { type: 'patientTactic', index: 0 }, { type: 'patientTactic', index: 1 }]);
+    expect(s.pending[0]).toEqual({ kind: 'strategicPlanTactic', player: me });
+    expect(legalActions(s)).toEqual([
+      { type: 'strategicPlanTactic' },
+      { type: 'strategicPlanTactic', index: 0 },
+      { type: 'strategicPlanTactic', index: 1 },
+    ]);
 
-    s = apply(s, { type: 'patientTactic', index: 1 });
+    s = apply(s, { type: 'strategicPlanTactic', index: 1 });
     expect(s.players[me].storedTactics).toEqual(['r-sabotage']);
-    expect(s.market.tacticRow).toEqual(['r-warp-gate', 'r-aggression']);
+    expect(s.market.tacticRow).toEqual(['r-ice-tunnel', 'r-power-grab']);
     expect(s.pending[0]).toMatchObject({ kind: 'takeCard', count: 1 });
   });
 
   it('may decline the tactic, and skips the choice when no tactic is face up', () => {
     let s = cardGame();
     const me = s.turn.player;
-    s.market.skillRow = ['r-patient', 'r-agile'];
-    s.market.tacticRow = ['r-aggression'];
+    s.market.skillRow = ['r-strategic-plan', 'r-tune-up'];
+    s.market.tacticRow = ['r-power-grab'];
     s.pending = [{ kind: 'takeCard', player: me, count: 1 }];
     s = apply(s, { type: 'takeCard', deck: 'skill', index: 0 });
-    s = apply(s, { type: 'patientTactic' });
+    s = apply(s, { type: 'strategicPlanTactic' });
     expect(s.players[me].storedTactics ?? []).toEqual([]);
-    expect(s.market.tacticRow).toEqual(['r-aggression']);
+    expect(s.market.tacticRow).toEqual(['r-power-grab']);
 
     let t = cardGame();
-    t.market.skillRow = ['r-patient'];
+    t.market.skillRow = ['r-strategic-plan'];
     t.market.tacticRow = [];
     t.market.tacticDeck = [];
     t.pending = [{ kind: 'takeCard', player: t.turn.player, count: 2 }];
@@ -262,12 +266,12 @@ describe('Patient', () => {
     expect(t.pending[0]).toMatchObject({ kind: 'takeCard', count: 1 });
   });
 
-  /** A new game with Patient among this seat's two starting skills, and every player before it through their draft. */
-  function draftingPatient(seat: number) {
+  /** A new game with Strategic Plan among this seat's two starting skills, and every player before it through their draft. */
+  function draftingStrategicPlan(seat: number) {
     let s = createGame({ players: players(2), seed: 1, mode: 'regolith' });
     const drafts = s.pending.flatMap((x) => (x.kind === 'skillDraft' ? [x] : []));
     const swapIn = (list: string[]) => {
-      const i = list.indexOf('r-patient');
+      const i = list.indexOf('r-strategic-plan');
       if (i >= 0) [list[i], drafts[seat].options[0]] = [drafts[seat].options[0], list[i]];
     };
     swapIn(s.market.skillRow);
@@ -280,54 +284,54 @@ describe('Patient', () => {
     return apply(s, { type: 'setupKeep' });
   }
 
-  it('triggers when Patient is the starting skill, then setup goes on', () => {
-    let s = draftingPatient(0);
-    s = apply(s, { type: 'draftSkill', skill: 'r-patient' });
-    expect(s.pending[0]).toEqual({ kind: 'patientTactic', player: 0 });
+  it('triggers when Strategic Plan is the starting skill, then setup goes on', () => {
+    let s = draftingStrategicPlan(0);
+    s = apply(s, { type: 'draftSkill', skill: 'r-strategic-plan' });
+    expect(s.pending[0]).toEqual({ kind: 'strategicPlanTactic', player: 0 });
     const tactic = s.market.tacticRow[0];
-    s = apply(s, { type: 'patientTactic', index: 0 });
+    s = apply(s, { type: 'strategicPlanTactic', index: 0 });
     expect(s.players[0].storedTactics).toEqual([tactic]);
     expect(s.pending[0]).toMatchObject({ kind: 'setupRoll', player: 1 });
   });
 
-  it('starts drop once the last player to draft Patient has settled the tactic, taken or not', () => {
+  it('starts drop once the last player to draft Strategic Plan has settled the tactic, taken or not', () => {
     for (const index of [0, undefined]) {
-      let s = draftingPatient(1);
-      s = apply(s, { type: 'draftSkill', skill: 'r-patient' });
-      expect(s.pending).toEqual([{ kind: 'patientTactic', player: 1 }]);
-      s = apply(s, { type: 'patientTactic', index });
+      let s = draftingStrategicPlan(1);
+      s = apply(s, { type: 'draftSkill', skill: 'r-strategic-plan' });
+      expect(s.pending).toEqual([{ kind: 'strategicPlanTactic', player: 1 }]);
+      s = apply(s, { type: 'strategicPlanTactic', index });
       expect(s.pending.map((p) => p.kind)).toEqual(['placeStart', 'placeStart']);
     }
   });
 
-  it('triggers when Patient is chosen with Change of Heart', () => {
+  it('triggers when Strategic Plan is chosen with Headhunter', () => {
     let s = cardGame();
     const me = s.turn.player;
-    s.market.skillDeck = ['r-patient', 'r-agile'];
-    s.market.tacticRow = ['r-aggression'];
-    s.pending = [{ kind: 'changeOfHeart', player: me }];
-    s = apply(s, { type: 'changeOfHeart', skill: 'r-patient' });
-    expect(s.pending[0]).toEqual({ kind: 'patientTactic', player: me });
+    s.market.skillDeck = ['r-strategic-plan', 'r-tune-up'];
+    s.market.tacticRow = ['r-power-grab'];
+    s.pending = [{ kind: 'headhunter', player: me }];
+    s = apply(s, { type: 'headhunter', skill: 'r-strategic-plan' });
+    expect(s.pending[0]).toEqual({ kind: 'strategicPlanTactic', player: me });
   });
 
-  it('stores the tactic before a skill-limit discard; discarding Patient then loses it', () => {
-    let s = cardGame({ me: ['r-agile', 'r-ferocious', 'r-brutal'] });
+  it('stores the tactic before a skill-limit discard; discarding Strategic Plan then loses it', () => {
+    let s = cardGame({ me: ['r-tune-up', 'r-armour-piercing', 'r-paired-cannons'] });
     const me = s.turn.player;
-    s.market.skillRow = ['r-patient'];
-    s.market.tacticRow = ['r-aggression'];
+    s.market.skillRow = ['r-strategic-plan'];
+    s.market.tacticRow = ['r-power-grab'];
     s.pending = [{ kind: 'takeCard', player: me, count: 1 }];
     s = apply(s, { type: 'takeCard', deck: 'skill', index: 0 });
-    expect(s.pending.map((p) => p.kind)).toEqual(['patientTactic', 'discardSkill']);
-    s = apply(s, { type: 'patientTactic', index: 0 });
-    s = apply(s, { type: 'discardSkill', skill: 'r-patient' });
+    expect(s.pending.map((p) => p.kind)).toEqual(['strategicPlanTactic', 'discardSkill']);
+    s = apply(s, { type: 'strategicPlanTactic', index: 0 });
+    s = apply(s, { type: 'discardSkill', skill: 'r-strategic-plan' });
     expect(s.players[me].storedTactics).toEqual([]);
-    expect(s.market.tacticDiscard).toContain('r-aggression');
+    expect(s.market.tacticDiscard).toContain('r-power-grab');
   });
 });
 
-describe('Ruthless', () => {
+describe('Signal Jammer', () => {
   it('disables an enemy skill until the start of the attacker’s next turn', () => {
-    let s = cardGame({ me: ['r-ruthless'], foe: ['r-agile'] });
+    let s = cardGame({ me: ['r-signal-jammer'], foe: ['r-tune-up'] });
     const me = s.turn.player;
     const foe = 1 - me;
     s = apply(s, { type: 'attack', die: `p${me}d0`, target: `p${foe}d0` });
@@ -339,32 +343,32 @@ describe('Ruthless', () => {
     s = apply(s, { type: 'resolveCombat' });
     if (s.pending[0]?.kind === 'advance') s = apply(s, { type: 'advance', move: false });
 
-    // Ruthless prompts to disable enemy's skill
-    expect(s.pending[0]).toMatchObject({ kind: 'ruthless', player: me, victim: foe });
-    s = apply(s, { type: 'ruthless', skill: 'r-agile' });
+    // Signal Jammer prompts to disable enemy's skill
+    expect(s.pending[0]).toMatchObject({ kind: 'signalJammer', player: me, victim: foe });
+    s = apply(s, { type: 'signalJammer', skill: 'r-tune-up' });
 
-    const agileSkill = s.players[foe].skills.find((sk) => sk.id === 'r-agile')!;
-    expect(agileSkill.active).toBe(false);
-    expect(agileSkill.disabledUntil).toBe(me);
+    const tuneUpSkill = s.players[foe].skills.find((sk) => sk.id === 'r-tune-up')!;
+    expect(tuneUpSkill.active).toBe(false);
+    expect(tuneUpSkill.disabledUntil).toBe(me);
 
     // End turn of player 'me'
     s = apply(s, { type: 'endTurn' });
     // Still disabled during foe's turn!
     expect(s.turn.player).toBe(foe);
-    expect(s.players[foe].skills.find((sk) => sk.id === 'r-agile')!.active).toBe(false);
+    expect(s.players[foe].skills.find((sk) => sk.id === 'r-tune-up')!.active).toBe(false);
 
     // End foe's turn -> back to 'me'
     s = apply(s, { type: 'endTurn' });
     expect(s.turn.player).toBe(me);
     // Re-enabled at start of 'me's turn!
-    expect(s.players[foe].skills.find((sk) => sk.id === 'r-agile')!.active).toBe(true);
+    expect(s.players[foe].skills.find((sk) => sk.id === 'r-tune-up')!.active).toBe(true);
   });
 
-  it('does not re-enable disabled skills on a Momentum bonus turn', () => {
-    let s = cardGame({ me: ['r-ruthless'], foe: ['r-agile'] });
+  it('does not re-enable disabled skills on a Forced March bonus turn', () => {
+    let s = cardGame({ me: ['r-signal-jammer'], foe: ['r-tune-up'] });
     const me = s.turn.player;
     const foe = 1 - me;
-    s.players[me].bonusTurns = [2]; // Queued momentum turn
+    s.players[me].bonusTurns = [2]; // Queued Forced March turn
     s = apply(s, { type: 'attack', die: `p${me}d0`, target: `p${foe}d0` });
     const combat = s.pending.find((p) => p.kind === 'combat')!;
     if (combat && combat.kind === 'combat') {
@@ -373,20 +377,20 @@ describe('Ruthless', () => {
     }
     s = apply(s, { type: 'resolveCombat' });
     if (s.pending[0]?.kind === 'advance') s = apply(s, { type: 'advance', move: false });
-    s = apply(s, { type: 'ruthless', skill: 'r-agile' });
+    s = apply(s, { type: 'signalJammer', skill: 'r-tune-up' });
 
-    // End current turn -> enters Momentum bonus turn for 'me'
+    // End current turn -> enters Forced March bonus turn for 'me'
     s = apply(s, { type: 'endTurn' });
     expect(s.turn.player).toBe(me);
     expect(s.turn.bonus).toBe(true);
     // Should still be disabled!
-    expect(s.players[foe].skills.find((sk) => sk.id === 'r-agile')!.active).toBe(false);
+    expect(s.players[foe].skills.find((sk) => sk.id === 'r-tune-up')!.active).toBe(false);
   });
 });
 
-describe('Prideful edge cases', () => {
+describe('Stolen Flag edge cases', () => {
   it('triggers Take Over when stolen by a player whose power is 4', () => {
-    let s = cardGame({ foe: ['r-prideful'] });
+    let s = cardGame({ foe: ['r-stolen-flag'] });
     const me = s.turn.player;
     const foe = 1 - me;
     s.players[me].power = 3; // Destroying foe mech will bring it to 4
@@ -400,23 +404,23 @@ describe('Prideful edge cases', () => {
     s = apply(s, { type: 'resolveCombat' });
     if (s.pending[0]?.kind === 'advance') s = apply(s, { type: 'advance', move: false });
 
-    // At this moment power is 4, but threshold without prideful was 6, so no infamy yet
+    // At this moment power is 4, but threshold without Stolen Flag was 6, so no infamy yet
     expect(s.players[me].power).toBe(4);
     expect(s.pending.some((p) => p.kind === 'infamy')).toBe(false);
 
-    // Steal Prideful
-    s = apply(s, { type: 'prideful', take: true });
+    // Steal Stolen Flag
+    s = apply(s, { type: 'stolenFlag', take: true });
     // Take Over should now be queued!
     expect(s.pending.some((p) => p.kind === 'infamy' && p.player === me)).toBe(true);
   });
 });
 
-describe('Patient edge cases', () => {
+describe('Strategic Plan edge cases', () => {
   it('allows storing a tactic drawn via peek', () => {
-    let s = cardGame({ me: ['r-patient'] });
+    let s = cardGame({ me: ['r-strategic-plan'] });
     const me = s.turn.player;
-    s.market.tacticRow = ['r-momentum', 'r-show-of-force', 'r-aggression'];
-    s.market.tacticDeck = ['r-warp-gate'];
+    s.market.tacticRow = ['r-forced-march', 'r-orbital-cannon', 'r-power-grab'];
+    s.market.tacticDeck = ['r-ice-tunnel'];
     s.pending = [{ kind: 'takeCard', player: me, count: 1 }];
 
     // Pick 3rd card with store: true -> triggers peek
@@ -426,23 +430,23 @@ describe('Patient edge cases', () => {
     // Choose top of deck
     s = apply(s, { type: 'peekChoice', takeTop: true });
     // It should be stored, not played!
-    expect(s.players[me].storedTactics).toContain('r-warp-gate');
+    expect(s.players[me].storedTactics).toContain('r-ice-tunnel');
   });
 
   it('peeks after reshuffling the discards into an empty deck', () => {
     let s = cardGame();
     const me = s.turn.player;
-    s.market.tacticRow = ['r-momentum', 'r-show-of-force', 'r-aggression'];
+    s.market.tacticRow = ['r-forced-march', 'r-orbital-cannon', 'r-power-grab'];
     s.market.tacticDeck = [];
-    s.market.tacticDiscard = ['r-warp-gate'];
+    s.market.tacticDiscard = ['r-ice-tunnel'];
     s.pending = [{ kind: 'takeCard', player: me, count: 1 }];
     s = apply(s, { type: 'takeCard', deck: 'tactic', index: 2 });
-    expect(s.pending[0]).toMatchObject({ kind: 'peek', player: me, deck: 'tactic', top: 'r-warp-gate' });
+    expect(s.pending[0]).toMatchObject({ kind: 'peek', player: me, deck: 'tactic', top: 'r-ice-tunnel' });
     expect(s.market.tacticDiscard).toEqual([]);
   });
 
-  it('refuses to store a card without Patient, or a Skill', () => {
-    const s = cardGame({ me: ['r-patient'] });
+  it('refuses to store a card without Strategic Plan, or a Skill', () => {
+    const s = cardGame({ me: ['r-strategic-plan'] });
     const me = s.turn.player;
     s.pending = [{ kind: 'takeCard', player: me, count: 1 }];
     expect(() => apply(s, { type: 'takeCard', deck: 'skill', index: 0, store: true })).toThrow('Only a Tactic can be stored');
@@ -451,7 +455,7 @@ describe('Patient edge cases', () => {
   });
 
   it('refuses to play a stored tactic while a decision is open', () => {
-    let s = cardGame({ me: ['r-patient'] });
+    let s = cardGame({ me: ['r-strategic-plan'] });
     const me = s.turn.player;
     s.players[me].storedTactics = ['r-sabotage'];
     s = apply(s, { type: 'attack', die: `p${me}d0`, target: `p${1 - me}d0` });
@@ -459,35 +463,35 @@ describe('Patient edge cases', () => {
     expect(() => apply(s, { type: 'playStoredTactic', card: 'r-sabotage' })).toThrow('Resolve the current decision first');
   });
 
-  it('discards stored tactics to the market discard pile if Patient is discarded', () => {
-    let s = cardGame({ me: ['r-patient', 'r-agile', 'r-ferocious'] });
+  it('discards stored tactics to the market discard pile if Strategic Plan is discarded', () => {
+    let s = cardGame({ me: ['r-strategic-plan', 'r-tune-up', 'r-armour-piercing'] });
     const me = s.turn.player;
-    s.players[me].storedTactics = ['r-aggression', 'r-warp-gate'];
+    s.players[me].storedTactics = ['r-power-grab', 'r-ice-tunnel'];
     s.pending = [{ kind: 'discardSkill', player: me, reason: 'limit' }];
 
-    s = apply(s, { type: 'discardSkill', skill: 'r-patient' });
+    s = apply(s, { type: 'discardSkill', skill: 'r-strategic-plan' });
     expect(s.players[me].storedTactics).toEqual([]);
-    expect(s.market.tacticDiscard).toContain('r-aggression');
-    expect(s.market.tacticDiscard).toContain('r-warp-gate');
+    expect(s.market.tacticDiscard).toContain('r-power-grab');
+    expect(s.market.tacticDiscard).toContain('r-ice-tunnel');
   });
 });
 
-describe('Calculating edge cases', () => {
-  it('resolves mech numbers before unveiling in Unveil the Fleet', () => {
-    let s = cardGame({ me: ['r-calculating'] });
+describe('Remodel edge cases', () => {
+  it('resolves mech numbers before invading in Invasion', () => {
+    let s = cardGame({ me: ['r-remodel'] });
     const me = s.turn.player;
     s.pending = [{ kind: 'takeCard', player: me, count: 1 }];
-    s.market.tacticRow = ['r-unveil-the-fleet'];
+    s.market.tacticRow = ['r-invasion'];
 
-    // Take Unveil the Fleet
+    // Take Invasion
     s = apply(s, { type: 'takeCard', deck: 'tactic', index: 0 });
 
-    // The mech on board is destroyed, and Calculating choice should come BEFORE unveil
-    expect(s.pending[0]).toMatchObject({ kind: 'clever', player: me });
-    s = apply(s, { type: 'clever', value: 4 });
+    // The mech on board is destroyed, and Remodel choice should come BEFORE Invasion
+    expect(s.pending[0]).toMatchObject({ kind: 'engineering', player: me });
+    s = apply(s, { type: 'engineering', value: 4 });
 
-    // Now unveil is the active decision
-    expect(s.pending[0]).toMatchObject({ kind: 'unveil', player: me });
+    // Now Invasion is the active decision
+    expect(s.pending[0]).toMatchObject({ kind: 'invasion', player: me });
   });
 });
 
@@ -498,7 +502,7 @@ describe('attackChance', () => {
     const me = s.turn.player;
     return attackChance(s, die(s, `p${me}d0`), die(s, `p${1 - me}d0`));
   };
-  /** The attacker wins with total a (a roll plus 6) against the defender's 3 + y, ties included unless Stubborn. */
+  /** The attacker wins with total a (a roll plus 6) against the defender's 3 + y, ties included unless Entrenched. */
   const exact = (attackerRoll: (x: number) => number[], tieWins = true) => {
     let wins = 0;
     for (let x = 1; x <= 6; x++) {
@@ -511,17 +515,17 @@ describe('attackChance', () => {
   };
 
   it('is the plain-dice odds without combat skills', () => {
-    expect(odds({ me: ['r-agile'] })).toBeCloseTo(attackOdds(6, 3));
+    expect(odds({ me: ['r-tune-up'] })).toBeCloseTo(attackOdds(6, 3));
   });
 
   it('counts skills on both sides', () => {
-    expect(odds({ me: ['r-rational'] })).toBeCloseTo(exact(() => [3]));
-    expect(odds({ me: ['r-ferocious'] })).toBeCloseTo(exact((x) => [x - 1]));
-    expect(odds({ foe: ['r-stubborn'] })).toBeCloseTo(exact((x) => [x], false));
-    // Brutal: the lower of two dice, so a 1 is eleven times as likely as a 6.
-    const brutal = odds({ me: ['r-brutal'] });
-    expect(brutal).toBeGreaterThan(attackOdds(6, 3));
-    expect(brutal).toBeCloseTo(exact((x) => Array.from({ length: 6 }, (_, k) => Math.min(x, k + 1))));
+    expect(odds({ me: ['r-drill-sergeant'] })).toBeCloseTo(exact(() => [3]));
+    expect(odds({ me: ['r-armour-piercing'] })).toBeCloseTo(exact((x) => [x - 1]));
+    expect(odds({ foe: ['r-entrenched'] })).toBeCloseTo(exact((x) => [x], false));
+    // Paired Cannons: the lower of two dice, so a 1 is eleven times as likely as a 6.
+    const pairedCannons = odds({ me: ['r-paired-cannons'] });
+    expect(pairedCannons).toBeGreaterThan(attackOdds(6, 3));
+    expect(pairedCannons).toBeCloseTo(exact((x) => Array.from({ length: 6 }, (_, k) => Math.min(x, k + 1))));
   });
 
   it('names what changes the odds, beyond the mechs and dice', () => {
@@ -530,12 +534,12 @@ describe('attackChance', () => {
       const me = s.turn.player;
       return attackFactors(s, die(s, `p${me}d0`), die(s, `p${1 - me}d0`));
     };
-    expect(factors({ me: ['r-agile'] })).toEqual({ attacker: [], defender: [] });
-    expect(factors({ me: ['r-ferocious'], foe: ['r-stubborn'] })).toEqual({
+    expect(factors({ me: ['r-tune-up'] })).toEqual({ attacker: [], defender: [] });
+    expect(factors({ me: ['r-armour-piercing'], foe: ['r-entrenched'] })).toEqual({
       attacker: ['Armour Piercing −1'],
       defender: ['Entrenched: wins ties'],
     });
-    expect(factors({ me: ['r-rational'] }).attacker).toEqual(['Drill Sergeant: rolls 3']);
-    expect(factors({ me: ['r-brutal'] }).attacker).toEqual(['Paired Cannons: lowest of 2 dice']);
+    expect(factors({ me: ['r-drill-sergeant'] }).attacker).toEqual(['Drill Sergeant: rolls 3']);
+    expect(factors({ me: ['r-paired-cannons'] }).attacker).toEqual(['Paired Cannons: lowest of 2 dice']);
   });
 });

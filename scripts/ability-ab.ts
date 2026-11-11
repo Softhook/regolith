@@ -51,8 +51,8 @@ function withoutAbility(s: GameState, mech: number): GameState {
   if (s.phase !== 'play' || s.turn.player !== actor(s)) return s;
   const abilityUsed = { ...s.turn.abilityUsed };
   for (const d of s.dice) if (d.owner === s.turn.player && d.value === mech) abilityUsed[d.id] = true;
-  // Cunning's second use too (it then counts as spent for that side's other mechs as well, a small bias).
-  const oncePerTurn = s.turn.oncePerTurn.includes('cunning') ? s.turn.oncePerTurn : [...s.turn.oncePerTurn, 'cunning' as const];
+  // Boost's second use too (it then counts as spent for that side's other mechs as well, a small bias).
+  const oncePerTurn = s.turn.oncePerTurn.includes('boost') ? s.turn.oncePerTurn : [...s.turn.oncePerTurn, 'boost' as const];
   const masked = { ...s, turn: { ...s.turn, abilityUsed, oncePerTurn } };
   if (legalActions(masked).some((a) => a.type === 'ability' && die(s, a.die).value === mech))
     throw new Error(`mech ${mech}'s ability isn't once a turn: it can't be held back this way`);

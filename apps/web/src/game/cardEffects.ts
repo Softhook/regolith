@@ -11,14 +11,15 @@ export interface MapEffect {
 }
 
 /**
- * A card's mark on the map, over the plain action effects (ActionEffects): Show of Force striking a mech,
- * Ice Tunnels linked and the old pair closed (the board draws the tunnels themselves), an expansion mech
- * arriving, a fleet cloaked and unveiled, a mech number nudged (Flexible, Clever), a mech salvaged
- * (Resourceful), and the two mechs Dangerous destroys. `replaces` names what the effect stands in for an action's effect on
+ * A card's mark on the map, over the plain action effects (ActionEffects): Orbital Cannon striking a mech,
+ * Ice Tunnels linked and the old pair closed (the board draws the tunnels themselves), a Reinforcements mech
+ * arriving, a fleet cloaked and invaded, a mech number nudged (Field Refit, Engineering), a mech salvaged
+ * (Recycle), and the two mechs Unstable Reactor destroys. `replaces` names what the effect stands in for an action's effect on
  * (ActionEffects): a mech, or `objective:<id>` for the objective a cube was relocated to.
  */
 export type CardEffect = MapEffect & { replaces?: string } & (
-    { kind: 'strike' | 'expansion' | 'cloak' | 'decloak' | 'implode' | 'raise' | 'lower' | 'blink' } | { kind: 'beam' | 'arc'; to: Cell }
+    | { kind: 'strike' | 'reinforcement' | 'cloak' | 'decloak' | 'implode' | 'raise' | 'lower' | 'blink' }
+    | { kind: 'beam' | 'arc'; to: Cell }
   );
 
 const tunnelsKey = (g: GameState) => g.tunnels.map((c) => `${c.r},${c.c}`).join(' ');
@@ -31,9 +32,9 @@ export function cardEffectsOf(before: GameState, game: GameState): CardEffect[] 
   const colorOf = (p: number) => game.players[p].color;
   const was = new Map(before.dice.map((d) => [d.id, d]));
   const used = cardsUsed(before, game);
-  // Unveil the Fleet takes the player's mechs off the map as it is played (a Clever choice for each
-  // may come before the unveil itself).
-  const unveiling = used.has('unveil-the-fleet');
+  // Invasion takes the player's mechs off the map as it is played (an Engineering choice for each
+  // may come before the invasion itself).
+  const invading = used.has('invasion');
 
   for (const d of game.dice) {
     const p = was.get(d.id);
@@ -42,29 +43,29 @@ export function cardEffectsOf(before: GameState, game: GameState): CardEffect[] 
     const to = cellOf(d);
     const fx = { id: `${d.id}:${step}`, color: colorOf(d.owner), replaces: d.id };
     if (from && !to) {
-      // Dangerous: both mechs go, joined by an arc (below).
-      if (head?.kind === 'dangerous') continue;
-      if (head?.kind === 'showOfForce') out.push({ kind: 'strike', ...fx, at: from, color: colorOf(head.player) });
-      else if (used.has('resourceful')) out.push({ kind: 'implode', ...fx, at: from });
-      else if (unveiling) out.push({ kind: 'cloak', ...fx, at: from });
+      // Unstable Reactor: both mechs go, joined by an arc (below).
+      if (head?.kind === 'unstableReactor') continue;
+      if (head?.kind === 'orbitalCannon') out.push({ kind: 'strike', ...fx, at: from, color: colorOf(head.player) });
+      else if (used.has('recycle')) out.push({ kind: 'implode', ...fx, at: from });
+      else if (invading) out.push({ kind: 'cloak', ...fx, at: from });
     } else if (!from && to) {
-      if (head?.kind === 'placeExpansion') out.push({ kind: 'expansion', ...fx, at: to });
-      else if (head?.kind === 'unveil') out.push({ kind: 'decloak', ...fx, at: to });
+      if (head?.kind === 'placeReinforcement') out.push({ kind: 'reinforcement', ...fx, at: to });
+      else if (head?.kind === 'invasion') out.push({ kind: 'decloak', ...fx, at: to });
     } else if (from && to) {
-      if (d.value !== p.value && d.rolls === p.rolls && (head?.kind === 'clever' || used.has('flexible'))) {
+      if (d.value !== p.value && d.rolls === p.rolls && (head?.kind === 'engineering' || used.has('field-refit'))) {
         out.push({ kind: d.value > p.value ? 'raise' : 'lower', ...fx, at: to });
       }
     }
   }
 
-  if (head?.kind === 'dangerous') {
+  if (head?.kind === 'unstableReactor') {
     const att = was.get(head.attacker);
     const def = was.get(head.defender);
     const a = att && cellOf(att);
     const b = def && cellOf(def);
     const gone = (id: string) => !cellOf(game.dice.find((d) => d.id === id)!);
     if (a && b && gone(head.attacker) && gone(head.defender)) {
-      out.push({ kind: 'arc', id: `dangerous:${step}`, at: b, to: a, color: colorOf(head.player) });
+      out.push({ kind: 'arc', id: `unstableReactor:${step}`, at: b, to: a, color: colorOf(head.player) });
     }
   }
 

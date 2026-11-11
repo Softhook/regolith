@@ -15,7 +15,7 @@
  * that is covered) while placing your mechs or on your turn, or the turn bar over the board.
  * Then each device opens the in-game popups (`-combat`, `-combatFull`, `-changeOfHeart`, `-over`, `-rules`, see
  * POPUPS): the popup must fit the screen, and its buttons must be on screen without scrolling inside
- * it (Change of Heart and the rules scroll their content, so only their heading and × must show).
+ * it (Headhunter and the rules scroll their content, so only their heading and × must show).
  * Short desktop windows (SHORT_WINDOWS) open the popups too.
  * Each device also opens the lobby (`-lobby`): every control of the new-game form must be inside its card, its segmented control and on screen.
  * On touch screens it also pinches, pans and fits the map on your turn (checkZoom; Chrome only).
@@ -59,9 +59,9 @@ const POPUPS: { name: string; play: string; scene: string; must: string; box?: s
   { name: 'combat', play: 'regolith', scene: 'combat', must: COMBAT_MUST },
   { name: 'combatFull', play: 'regolith', scene: 'combatFull', must: COMBAT_MUST },
   {
-    name: 'changeOfHeart',
+    name: 'headhunter',
     play: 'regolith',
-    scene: 'changeOfHeart',
+    scene: 'headhunter',
     must: '.modal h2, .modal .skill-group:first-child .qcard:first-child',
   },
   { name: 'over', play: 'basic', scene: 'over', must: '.modal h2, .modal button' },

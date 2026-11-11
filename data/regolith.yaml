@@ -11,7 +11,7 @@
 # build-data.mjs builds this into packages/engine/src/data/cards.json.
 
 skills:
-  - id: r-agile
+  - id: r-tune-up
     name: "Tune Up"
     subtitle: "Movement bonus"
     text: "Your mechs move 1 extra space."
@@ -19,9 +19,9 @@ skills:
     count: 1
     from: agile
     status: renamed
-    effect: agile
+    effect: tune-up
     art: { title: "Servo bay", brief: "A mechanic's wrench on the open knee joint of a Wisp; sparks printed in the amber plate." }
-  - id: r-ambitious
+  - id: r-final-push
     name: "Final Push"
     subtitle: "3 extra actions"
     text: "Once per turn, take 1 extra action and put a token here. At 3 tokens, discard this card."
@@ -29,9 +29,9 @@ skills:
     count: 1
     from: ambitious
     status: renamed
-    effect: ambitious
+    effect: final-push
     art: { title: "Overheating", brief: "A Breacher pushed past its limit, lunging forward under amber rays." }
-  - id: r-brilliant
+  - id: r-science-survey
     name: "Science Survey"
     subtitle: "Research bonus"
     text: "At the start of your turn, you may gain 2 Research."
@@ -39,9 +39,9 @@ skills:
     count: 1
     from: brilliant
     status: renamed
-    effect: brilliant
+    effect: science-survey
     art: { title: "Deep radar", brief: "A radar station on the surface, its dish on the roof, its pulses going down through the strata." }
-  - id: r-brutal
+  - id: r-paired-cannons
     name: "Paired Cannons"
     subtitle: "Combat with advantage"
     text: "Roll Combat twice and keep the lower roll."
@@ -49,9 +49,9 @@ skills:
     count: 1
     from: brutal
     status: renamed
-    effect: brutal
+    effect: paired-cannons
     art: { title: "Two barrels", brief: "A Breacher front on, firing both arm cannons at the viewer, two muzzle flashes." }
-  - id: r-calculating
+  - id: r-remodel
     name: "Remodel"
     subtitle: "Controlled scrapping"
     text: "When one of your mechs goes to the salvage yard, choose its type."
@@ -59,9 +59,9 @@ skills:
     count: 1
     from: calculating
     status: renamed
-    effect: calculating
+    effect: remodel
     art: { title: "Salvage crane", brief: "The salvage yard crane lowering one chassis over a wreck." }
-  - id: r-clever
+  - id: r-engineering
     name: "Engineering"
     subtitle: "Flexible modification"
     text: "After you Refit a mech, you may change its number by 1."
@@ -69,9 +69,9 @@ skills:
     count: 1
     from: clever
     status: renamed
-    effect: clever
+    effect: engineering
     art: { title: "Gantry", brief: "A Chameleon in a gantry with one arm off, the arm hanging from the hoist beside its open shoulder." }
-  - id: r-composed
+  - id: r-stand-down
     name: "Stand Down"
     subtitle: "Trade Power for Research"
     text: "Once per turn, swap 1 Power for 3 Research."
@@ -79,9 +79,9 @@ skills:
     count: 1
     from: composed
     status: renamed
-    effect: composed
+    effect: stand-down
     art: { title: "Powered down", brief: "A Chameleon powered down in a low crouch on the left, a radar dish on the right sweeping the sky." }
-  - id: r-cunning
+  - id: r-boost
     name: "Boost"
     subtitle: "Extra mech ability"
     text: "Once per turn, use one mech ability twice."
@@ -89,9 +89,9 @@ skills:
     count: 1
     from: cunning
     status: renamed
-    effect: cunning
+    effect: boost
     art: { title: "Double pulse", brief: "A mech with dotted ice-blue rings pulsing out to its left and right." }
-  - id: r-curious
+  - id: r-prospectors
     name: "Prospectors"
     subtitle: "Bonus peaceful move"
     text: "If you didn't Attack or Claim this turn, take 1 extra Move or Research action at the end of it."
@@ -99,9 +99,9 @@ skills:
     count: 1
     from: curious
     status: renamed
-    effect: curious
+    effect: prospectors
     art: { title: "Sample drill", brief: "A Wisp working a core drill on its tripod over cracked ice." }
-  - id: r-dangerous
+  - id: r-unstable-reactor
     name: "Unstable Reactor"
     subtitle: "Destroy your attacker"
     text: "When you’re attacked, before the roll, you may destroy both mechs. No one's Power changes."
@@ -109,9 +109,9 @@ skills:
     count: 1
     from: dangerous
     status: renamed
-    effect: dangerous
+    effect: unstable-reactor
     art: { title: "Strapped charge", brief: "A Breacher with charges strapped across its chest, hazard stripes behind it." }
-  - id: r-devious
+  - id: r-sneak
     name: "Sneak"
     subtitle: "Slingshot past enemies"
     text: "Your mechs ignore zones of control and may move through enemy mechs. Those spaces cost no movement."
@@ -119,9 +119,9 @@ skills:
     count: 1
     from: devious
     status: renamed
-    effect: devious
+    effect: sneak
     art: { title: "Between the legs", brief: "A small mech, printed light, ducking between an enemy mech's dark legs." }
-  - id: r-ferocious
+  - id: r-armour-piercing
     name: "Armour Piercing"
     subtitle: "Combat bonus"
     text: "Subtract 1 from your Combat rolls."
@@ -129,9 +129,9 @@ skills:
     count: 1
     from: ferocious
     status: renamed
-    effect: ferocious
+    effect: armour-piercing
     art: { title: "Red barrel", brief: "A Chameleon firing its long gun level, the barrel red hot in halftone." }
-  - id: r-flexible
+  - id: r-field-refit
     name: "Field Refit"
     subtitle: "Adjust a mech"
     text: "Once per turn, you may change one mech up or down 1."
@@ -139,9 +139,9 @@ skills:
     count: 1
     from: flexible
     status: renamed
-    effect: flexible
+    effect: field-refit
     art: { title: "Repair arm", brief: "A repair arm on its floor mount working at a Tactician's hip joint." }
-  - id: r-hostile
+  - id: r-breakthrough
     name: "Breakthrough"
     subtitle: "Extra action for destruction"
     text: "When you first destroy an enemy mech each turn, gain 1 action."
@@ -149,9 +149,9 @@ skills:
     count: 1
     from: hostile
     status: renamed
-    effect: hostile
+    effect: breakthrough
     art: { title: "Striding on", brief: "A mech striding on past a smoking wreck on the ground to its left, already turning to the next target." }
-  - id: r-industrious
+  - id: r-free-drop
     name: "Free Drop"
     subtitle: "Extra drop"
     text: "Take 1 extra Drop action each turn."
@@ -159,9 +159,9 @@ skills:
     count: 1
     from: industrious
     status: renamed
-    effect: industrious
+    effect: free-drop
     art: { title: "Two drops", brief: "Two mechs coming down side by side on amber booster flames." }
-  - id: r-intelligent
+  - id: r-hacking
     name: "Hacking"
     subtitle: "Flexible claiming"
     text: "When Claiming, you may count the objective's number as 1 higher or lower."
@@ -169,9 +169,9 @@ skills:
     count: 1
     from: intelligent
     status: renamed
-    effect: intelligent
+    effect: hacking
     art: { title: "Spliced panel", brief: "A hacker's hand terminal spliced into an objective's control panel, the 8 on its readout flickering to 7 and 9." }
-  - id: r-patient
+  - id: r-strategic-plan
     name: "Strategic Plan"
     subtitle: "Delayed tactics"
     text: "You can store Tactics instead of playing them. Play stored Tactics at the end of future turns. Get a free Tactic with this card."
@@ -179,9 +179,9 @@ skills:
     count: 1
     from: patient
     status: renamed
-    effect: patient
+    effect: strategic-plan
     art: { title: "Strategic map", brief: "Two robotic claws holding a creased hex battle map out in the field on Phobos, plotting mech movements against enemy positions." }
-  - id: r-pioneering
+  - id: r-science
     name: "Science"
     subtitle: "Claim with research"
     text: "When Claiming, you may lower your Research to add or subtract that amount from your mechs' total."
@@ -191,7 +191,7 @@ skills:
     status: reworked
     effect: science
     art: { title: "Flag and number", brief: "A survey flag with the research flask on it flying over an objective." }
-  - id: r-plundering
+  - id: r-exploit
     name: "Exploit"
     subtitle: "Destruction is research"
     text: "When you first destroy an enemy mech each turn, gain 3 Research."
@@ -199,9 +199,9 @@ skills:
     count: 1
     from: plundering
     status: renamed
-    effect: plundering
+    effect: exploit
     art: { title: "Salvage drone", brief: "A small drone hovering over a wreck, scanning it in amber lines." }
-  - id: r-precocious
+  - id: r-rush-research
     name: "Rush Research"
     subtitle: "Accelerated breakthrough"
     text: "Your Research resets at 4 instead of 6."
@@ -209,9 +209,9 @@ skills:
     count: 1
     from: precocious
     status: renamed
-    effect: precocious
+    effect: rush-research
     art: { title: "Running crew", brief: "Two surveyors running back to camp with a sample case." }
-  - id: r-prideful
+  - id: r-stolen-flag
     name: "Stolen Flag"
     subtitle: "Accelerated domination"
     text: "Your Power resets at 4 instead of 6. Whoever destroys one of your mechs may take this card."
@@ -219,9 +219,9 @@ skills:
     count: 1
     from: prideful
     status: renamed
-    effect: prideful
+    effect: stolen-flag
     art: { title: "Flag raised", brief: "A victorious Chameleon holding up a flag over a downed mech." }
-  - id: r-profiteering
+  - id: r-arms-deal
     name: "Arms Deal"
     subtitle: "Atomics from claiming"
     text: "When Claiming earns you a card, you may take 1 Atomic instead."
@@ -229,9 +229,9 @@ skills:
     count: 1
     from: profiteering
     status: renamed
-    effect: profiteering
+    effect: arms-deal
     art: { title: "Called in", brief: "A strike beacon on its tripod, the atomic it bought landing on the horizon." }
-  - id: r-rational
+  - id: r-drill-sergeant
     name: "Drill Sergeant"
     subtitle: "Fixed combat"
     text: "Your Combat rolls are always 3."
@@ -239,9 +239,9 @@ skills:
     count: 1
     from: rational
     status: renamed
-    effect: rational
+    effect: drill-sergeant
     art: { title: "Drill ground", brief: "Three Snipers lined up in step on a marked drill ground." }
-  - id: r-ravenous
+  - id: r-trophy-hunters
     name: "Trophy Hunters"
     subtitle: "Power amplification"
     text: "When you first destroy an enemy mech each turn, gain 1 extra Power."
@@ -249,9 +249,9 @@ skills:
     count: 1
     from: ravenous
     status: renamed
-    effect: ravenous
+    effect: trophy-hunters
     art: { title: "Tally", brief: "Stencilled kill marks on a mech's hull, a painter adding one more." }
-  - id: r-resourceful
+  - id: r-recycle
     name: "Recycle"
     subtitle: "Sacrifice for action"
     text: "Once per turn, destroy one of your mechs to gain 1 action."
@@ -259,9 +259,9 @@ skills:
     count: 1
     from: resourceful
     status: renamed
-    effect: resourceful
+    effect: recycle
     art: { title: "Core salvage", brief: "A stripped mech kneeling, one arm off, a crew member carrying its glowing core away." }
-  - id: r-righteous
+  - id: r-fanatics
     name: "Fanatics"
     subtitle: "Irreducible power"
     text: "You never lose Power. You never gain Research."
@@ -269,9 +269,9 @@ skills:
     count: 1
     from: righteous
     status: renamed
-    effect: righteous
+    effect: fanatics
     art: { title: "Slogan", brief: "A wall stencilled NO RETREAT, its flag on the roof, a mech standing in front of it." }
-  - id: r-ruthless
+  - id: r-signal-jammer
     name: "Signal Jammer"
     subtitle: "Weaken your enemies"
     text: "When you first destroy an enemy mech each turn, you may switch off one of that player's Skills until your next turn."
@@ -279,9 +279,9 @@ skills:
     count: 1
     from: ruthless
     status: renamed
-    effect: ruthless
+    effect: signal-jammer
     art: { title: "Jammer pod", brief: "A jammer pod on a mech's shoulder, static rings in oxide going out all round." }
-  - id: r-steadfast
+  - id: r-double-time
     name: "Double Time"
     subtitle: "Move more than once"
     text: "Your mechs may Move (or Move/Attack) more than once a turn. Each move costs an action."
@@ -289,9 +289,9 @@ skills:
     count: 1
     from: steadfast
     status: renamed
-    effect: steadfast
+    effect: double-time
     art: { title: "Column", brief: "A column of mechs trudging through a dust storm, heads down." }
-  - id: r-stealthy
+  - id: r-infiltration
     name: "Infiltration"
     subtitle: "Isolated drop"
     text: "You may Drop onto any space that isn't adjacent to a mech."
@@ -299,9 +299,9 @@ skills:
     count: 1
     from: stealthy
     status: renamed
-    effect: stealthy
+    effect: infiltration
     art: { title: "Lone descent", brief: "A lone Sniper coming down on its boosters into a dust storm." }
-  - id: r-strategic
+  - id: r-close-protection
     name: "Close Protection"
     subtitle: "Combat support bonus"
     text: "In combat, if your mech is adjacent to another of yours, subtract 2 from your roll."
@@ -309,9 +309,9 @@ skills:
     count: 1
     from: strategic
     status: renamed
-    effect: strategic
+    effect: close-protection
     art: { title: "Back to back", brief: "Three mechs back to back, guns out in three directions." }
-  - id: r-stubborn
+  - id: r-entrenched
     name: "Entrenched"
     subtitle: "Strong defence"
     text: "When you're attacked, you win ties, and if you win, the attacker is destroyed and you gain Power."
@@ -319,9 +319,9 @@ skills:
     count: 1
     from: stubborn
     status: renamed
-    effect: stubborn
+    effect: entrenched
     art: { title: "Trench", brief: "A Breacher in a trench behind a barricade of boulders." }
-  - id: r-tactical
+  - id: r-advance
     name: "Advance"
     subtitle: "Bonus short move"
     text: "Once per turn, a mech may Move/Attack 1 space, even if it has already moved."
@@ -329,9 +329,9 @@ skills:
     count: 1
     from: tactical
     status: renamed
-    effect: tactical
+    effect: advance
     art: { title: "Lunge", brief: "A Breacher lunging forward one hex, its arm cannon level." }
-  - id: r-talented
+  - id: r-veteran-crew
     name: "Veteran Crew"
     subtitle: "Get more skills"
     text: "You may have up to 5 Skills."
@@ -339,9 +339,9 @@ skills:
     count: 1
     from: talented
     status: renamed
-    effect: talented
+    effect: veteran-crew
     art: { title: "Crew photo", brief: "A crew photo, five people, each printed in a different ink." }
-  - id: r-tyrannical
+  - id: r-martial-law
     name: "Martial Law"
     subtitle: "Claim with power"
     text: "When Claiming, you may count your Power number as an extra mech."
@@ -349,11 +349,11 @@ skills:
     count: 1
     from: tyrannical
     status: renamed
-    effect: tyrannical
+    effect: martial-law
     art: { title: "Loudspeaker", brief: "A loudspeaker on a mast over a habitat, sound rings in oxide." }
 
 tactics:
-  - id: r-aggression
+  - id: r-power-grab
     name: "Power Grab"
     subtitle: "Add power"
     text: "Gain 2 Power."
@@ -361,9 +361,9 @@ tactics:
     count: 2
     from: aggression
     status: renamed
-    effect: aggression
+    effect: power-grab
     art: { title: "Poster", brief: "A two-ink poster of raised fists and a mech standing on the red ground, no words." }
-  - id: r-black-market
+  - id: r-contraband
     name: "Contraband"
     subtitle: "Gain atomics"
     text: "Gain 2 Atomics."
@@ -371,9 +371,9 @@ tactics:
     count: 2
     from: black-market
     status: renamed
-    effect: black-market
+    effect: contraband
     art: { title: "Contraband", brief: "Two atomic rockets in an open crate, warning stencils on them." }
-  - id: r-change-of-heart
+  - id: r-headhunter
     name: "Headhunter"
     subtitle: "Choose a skill"
     text: "Take any Skill from the Skill deck, then shuffle it."
@@ -381,9 +381,9 @@ tactics:
     count: 2
     from: change-of-heart
     status: renamed
-    effect: change-of-heart
+    effect: headhunter
     art: { title: "Files", brief: "A gloved hand pulling one personnel file from an archive drawer of them, stamped ACQUIRED in oxide." }
-  - id: r-momentum
+  - id: r-forced-march
     name: "Forced March"
     subtitle: "Take a bonus turn"
     text: "Take another turn right now, with 2 actions."
@@ -391,9 +391,9 @@ tactics:
     count: 2
     from: momentum
     status: renamed
-    effect: momentum
+    effect: forced-march
     art: { title: "Dawn advance", brief: "Mechs advancing at dawn, long shadows ahead of them." }
-  - id: r-plan-ahead
+  - id: r-kill-zone
     name: "Kill Zone"
     subtitle: "Become the atomic"
     text: "Until the end of your next turn, your Combat rolls are 1."
@@ -401,7 +401,7 @@ tactics:
     count: 2
     from: plan-ahead
     status: renamed
-    effect: plan-ahead
+    effect: kill-zone
     art: { title: "Crossfire", brief: "An enemy mech caught in a marked kill zone, crossfire coming in from both sides." }
   - id: r-sabotage
     name: "Sabotage"
@@ -411,9 +411,9 @@ tactics:
     count: 2
     from: sabotage
     status: reworked
-    effect: sabotage-double
+    effect: sabotage
     art: { title: "Grit", brief: "A hand pouring regolith into an open gearbox." }
-  - id: r-show-of-force
+  - id: r-orbital-cannon
     name: "Orbital Cannon"
     subtitle: "Target destroyed"
     text: "Destroy any mech. Gain 1 Power."
@@ -421,9 +421,9 @@ tactics:
     count: 2
     from: show-of-force
     status: renamed
-    effect: show-of-force
+    effect: orbital-cannon
     art: { title: "Impact", brief: "An enemy mech hit from above, an amber column of light." }
-  - id: r-unveil-the-fleet
+  - id: r-invasion
     name: "Invasion"
     subtitle: "Destroy & reroll mechs"
     text: "Destroy all your mechs. Reroll any in your salvage yard once, then Drop as many as you like."
@@ -431,9 +431,9 @@ tactics:
     count: 2
     from: unveil-the-fleet
     status: renamed
-    effect: unveil-the-fleet
+    effect: invasion
     art: { title: "Mechs raining", brief: "Mechs coming down on their boosters all over the map." }
-  - id: r-warp-gate
+  - id: r-ice-tunnel
     name: "Ice Tunnel"
     subtitle: "Teleportation system"
     text: "Place the 2 Ice Tunnel tokens on different spaces. Those spaces count as adjacent for everyone."
@@ -441,7 +441,7 @@ tactics:
     count: 2
     from: warp-gate
     status: renamed
-    effect: warp-gate
+    effect: ice-tunnel
     art: { title: "Cross-section", brief: "A cut-away of the ground: a tunnel joining two hexes underneath." }
   - id: r-barricade
     name: "Barricade"
@@ -450,7 +450,7 @@ tactics:
     category: movement
     count: 2
     status: new
-    effect: barrier
+    effect: barricade
     art: { title: "Glass bubble", brief: "A Wisp inflating soft glass barrier bubbles across the ground." }
   - id: r-kinetic-shunt
     name: "Kinetic Shunt"
@@ -462,14 +462,14 @@ tactics:
     effect: kinetic-shunt
     art: { title: "Shockwave", brief: "A kinetic pulse blasting out from a mech's cannon, dust rings kicking up as the target is hurled backward." }
 
-expansion:
-  - id: r-expansion
+reinforcements:
+  - id: r-reinforcements
     name: "Reinforcements"
     subtitle: "Add a mech"
     text: "Roll a reserve mech. Put it on the perimeter of an objective with one of your cubes, or in your salvage yard."
-    category: expansion
+    category: reinforcement
     count: 6
     from: expansion
     status: renamed
-    effect: expansion
+    effect: reinforcements
     art: { title: "Rollout", brief: "A new mech walking out of a dark workshop's doors." }

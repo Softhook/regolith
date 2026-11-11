@@ -13,7 +13,7 @@ export const ICONS: Record<string, string> = {
   research: '<path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3l-5-9V3"/>',
   mech: '<rect x="4" y="4" width="16" height="16" rx="3"/><circle cx="9" cy="9" r="1" fill="currentColor"/><circle cx="15" cy="15" r="1" fill="currentColor"/>',
   card: '<rect x="6" y="3" width="12" height="18" rx="2"/><path d="M3 7v12a2 2 0 0 0 2 2"/>',
-  expansion: '<path d="M12 5v14M5 12h14"/>',
+  reinforcement: '<path d="M12 5v14M5 12h14"/>',
   atomic: '<path d="M5 19l3-3M14 4l6 0 0 6-9 9-6-6z"/><path d="M8 13l3 3"/>',
   lock: '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
   shield: '<path d="M12 3l7 3v5c0 5-3 8-7 10-4-2-7-5-7-10V6z"/>',

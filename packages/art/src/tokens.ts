@@ -141,7 +141,7 @@ export const CARD_CATEGORIES: Record<string, { hue: number; label: string }> = {
   research: { hue: RESEARCH, label: 'Research' },
   mech: { hue: 218, label: 'Mechs' },
   card: { hue: 24, label: 'Cards' },
-  expansion: { hue: 172, label: 'Expansion' },
+  reinforcement: { hue: 172, label: 'Reinforcements' },
 };
 
 /** Actions are always a yellow hexagon with a bolt (the action category's hue), on every card and the player aid. */

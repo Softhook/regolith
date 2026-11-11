@@ -6,7 +6,7 @@ import { diagonals, objectivesAround, same } from './board';
 import { cardName, card, cardWithEffect } from './data';
 import type { SkillEffect } from './effects';
 import { die } from './lookups';
-import { actionsClosed, canCurious, canGainResearch, canUseAbility, infamyAt, usedThisTurn } from './queries';
+import { actionsClosed, canProspectors, canGainResearch, canUseAbility, infamyAt, usedThisTurn } from './queries';
 import { d6 } from './rng';
 import { rulesOf, mechOf } from './rules';
 import { activeSkills, anySkill, hasSkill, stealableSkill } from './skillRules';
@@ -107,7 +107,7 @@ export function headOf<K extends Pending['kind']>(s: GameState, kind: K, message
 // ---------------------------------------------------------------------------
 // Dice
 
-/** Rolls a die: a mech at setup or during play (a destroyed mech, an expansion mech…). */
+/** Rolls a die: a mech at setup or during play (a destroyed mech, a reinforcement…). */
 export function roll(s: GameState, d: Die) {
   d.value = d6(s);
   d.rolls++;
@@ -127,11 +127,11 @@ export function rerollNew(s: GameState, d: Die) {
   while (seen.includes(d.value));
   seen.push(d.value);
   d.rolls++;
-  // CE Clever: the result may be shifted by 1, even onto a number already shown this turn; no wrap
-  // between 1 and 6, as with Flexible (RULES.md ruling 6).
+  // CE Engineering: the result may be shifted by 1, even onto a number already shown this turn; no wrap
+  // between 1 and 6, as with Field Refit (RULES.md ruling 6).
   if (anySkill(s, d.owner, (r) => r.adjustRefit)) {
     const options = [d.value - 1, d.value, d.value + 1].filter((v) => v >= 1 && v <= 6);
-    s.pending.unshift({ kind: 'clever', player: d.owner, die: d.id, options, source: 'clever' });
+    s.pending.unshift({ kind: 'engineering', player: d.owner, die: d.id, options, source: 'engineering' });
   }
 }
 
@@ -141,8 +141,8 @@ export function destroyMech(s: GameState, d: Die) {
   roll(s, d);
   s.turn.seen[d.id] = [d.value];
   if (s.phase === 'play' && anySkill(s, d.owner, (r) => r.chooseSalvageYardNumber)) {
-    if (!s.pending.some((p) => p.kind === 'clever' && p.die === d.id)) {
-      s.pending.unshift({ kind: 'clever', player: d.owner, die: d.id, source: 'calculating' });
+    if (!s.pending.some((p) => p.kind === 'engineering' && p.die === d.id)) {
+      s.pending.unshift({ kind: 'engineering', player: d.owner, die: d.id, source: 'remodel' });
     }
   }
 }
@@ -165,21 +165,25 @@ export function emptyTurn(player: PlayerId, number: number): TurnState {
     destroyedBy: [],
     oncePerTurn: [],
     bonus: false,
-    curiousUsed: false,
+    prospectorsUsed: false,
     storedTacticPlayed: false,
   };
 }
 
 /**
  * Phase-1 actions need a game in progress, no open decision, and the action phase. Once it is
- * closed (Curious, Patient: `actionsClosed`) only the actions that end the turn pass `closing`.
+ * closed (Prospectors, Strategic Plan: `actionsClosed`) only the actions that end the turn pass `closing`.
  */
 export function requireActionPhase(s: GameState, closing = false): TurnState {
   if (s.phase !== 'play') fail('The game has not started');
   if (s.pending.length) fail('Resolve the current decision first');
   if (s.turn.phase !== 'actions') fail('Not in the action phase');
   if (!closing && actionsClosed(s.turn)) {
-    fail(s.turn.curiousUsed ? `No actions allowed after using ${cardName('curious')}` : 'No actions allowed after playing a stored tactic');
+    fail(
+      s.turn.prospectorsUsed
+        ? `No actions allowed after using ${cardName('prospectors')}`
+        : 'No actions allowed after playing a stored tactic',
+    );
   }
   return s.turn;
 }
@@ -190,11 +194,11 @@ export function spend(s: GameState, n: number) {
   s.turn.acted = true;
 }
 
-/** Pays for a Move or Research: an action, or once they are spent the CE Curious extra action. */
+/** Pays for a Move or Research: an action, or once they are spent the CE Prospectors extra action. */
 export function spendPeaceful(s: GameState) {
   const t = s.turn;
   if (t.actionsLeft > 0) spend(s, 1);
-  else if (canCurious(s, t.player)) t.curiousUsed = true;
+  else if (canProspectors(s, t.player)) t.prospectorsUsed = true;
   else fail('No actions left');
 }
 
@@ -210,10 +214,10 @@ export function markMoved(s: GameState, d: Die) {
   s.turn.moved[d.id] = (s.turn.moved[d.id] ?? 0) + 1;
 }
 
-/** Uses a die's ability for this turn, falling back to Cunning for a second use. */
+/** Uses a die's ability for this turn, falling back to Boost for a second use. */
 export function markAbility(s: GameState, d: Die) {
   if (!canUseAbility(s, d)) fail('This mech already used its ability this turn');
-  if (s.turn.abilityUsed[d.id]) s.turn.oncePerTurn.push('cunning');
+  if (s.turn.abilityUsed[d.id]) s.turn.oncePerTurn.push('boost');
   s.turn.abilityUsed[d.id] = true;
 }
 
@@ -246,8 +250,8 @@ export function gainPower(s: GameState, p: PlayerId, n: number) {
 }
 
 /**
- * Take Over: Power at the player's threshold (6, or 4 with Prideful) earns a Take Over cube. Checked
- * when Power rises and when Prideful takes effect (RULES.md ruling 3).
+ * Take Over: Power at the player's threshold (6, or 4 with Stolen Flag) earns a Take Over cube. Checked
+ * when Power rises and when Stolen Flag takes effect (RULES.md ruling 3).
  */
 export function checkInfamy(s: GameState, p: PlayerId) {
   const pl = s.players[p];
@@ -257,7 +261,7 @@ export function checkInfamy(s: GameState, p: PlayerId) {
 }
 
 /**
- * A skill that fires by itself (Hostile, Plundering…) says what it gave, on an entry naming
+ * A skill that fires by itself (Breakthrough, Exploit…) says what it gave, on an entry naming
  * its card and its gains so the UI can show it. Nothing for a bonus of nothing (a track already full).
  */
 function logBonus(s: GameState, p: PlayerId, id: string, b: Gains) {
@@ -279,8 +283,8 @@ function logBonus(s: GameState, p: PlayerId, id: string, b: Gains) {
 }
 
 /**
- * `winner` destroyed an enemy mech, in combat or with a card such as Show of Force: gains `power`
- * plus the bonuses of their "destroy" skills (Hostile, Plundering, Ravenous; RULES.md ruling 10).
+ * `winner` destroyed an enemy mech, in combat or with a card such as Orbital Cannon: gains `power`
+ * plus the bonuses of their "destroy" skills (Breakthrough, Exploit, Trophy Hunters; RULES.md ruling 10).
  */
 export function destroyedEnemyMech(s: GameState, winner: PlayerId, power: number, victim?: PlayerId) {
   tally(s, winner, 'mechsDestroyed');
@@ -312,9 +316,9 @@ export function destroyedEnemyMech(s: GameState, winner: PlayerId, power: number
   if (research) gainResearch(s, winner, research);
   gainPower(s, winner, power);
   if (victim !== undefined && victim !== winner) {
-    if (stealableSkill(s, victim) >= 0) s.pending.push({ kind: 'prideful', player: winner, victim });
+    if (stealableSkill(s, victim) >= 0) s.pending.push({ kind: 'stolenFlag', player: winner, victim });
     if (first && anySkill(s, winner, (r) => r.disableSkillOnDestroy) && s.players[victim].skills.some((sk) => sk.active)) {
-      s.pending.push({ kind: 'ruthless', player: winner, victim });
+      s.pending.push({ kind: 'signalJammer', player: winner, victim });
     }
   }
 }

@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react';
-import { cardName, canCurious, card, rulesOf, skillCard, type GameState, type SkillEffect } from '@regolith/engine';
+import { cardName, canProspectors, card, rulesOf, skillCard, type GameState, type SkillEffect } from '@regolith/engine';
 import type { Controller } from '../game/controller';
 import { hintFor } from '../game/hints';
 import type { Dispatch } from '../game/useGame';
@@ -21,7 +21,7 @@ export function TurnPanel({ game, ctl, dispatch, undo }: { game: GameState; ctl:
   const waitingFor = waitingOn ?? (!head && game.phase !== 'over' ? p : null);
   // In setup the panel is about whoever is placing, who needn't be the turn's player; name and colour agree.
   const shown = game.phase === 'setup' && waitingOn ? waitingOn : p;
-  // A decision on this device (advance, place an expansion, unveil) replaces the turn's buttons, which can't be used meanwhile.
+  // A decision on this device (advance, place a reinforcement, invade) replaces the turn's buttons, which can't be used meanwhile.
   const deciding = !!head && head.kind !== 'combat' && ctl.human && !legal.can('endTurn');
 
   return (
@@ -38,17 +38,17 @@ export function TurnPanel({ game, ctl, dispatch, undo }: { game: GameState; ctl:
               <ActionHex key={i} off={i >= t.actionsLeft} />
             ))}
             {t.freeDrops > 0 && (
-              <Tip as="em" tip={`Free drop (${cardName('industrious')})`}>
+              <Tip as="em" tip={`Free drop (${cardName('free-drop')})`}>
                 +1 drop
               </Tip>
             )}
-            {canAct && t.actionsLeft === 0 && canCurious(game, t.player) && (
-              <Tip as="em" tip={`${cardName('curious')}: peaceful Move or Research available`}>
-                +1 curious
+            {canAct && t.actionsLeft === 0 && canProspectors(game, t.player) && (
+              <Tip as="em" tip={`${cardName('prospectors')}: peaceful Move or Research available`}>
+                +1 prospectors
               </Tip>
             )}
             {legal.can('playStoredTactic') && (
-              <Tip as="em" tip={`${cardName('patient')}: you may play a stored tactic from your player card`}>
+              <Tip as="em" tip={`${cardName('strategic-plan')}: you may play a stored tactic from your player card`}>
                 +stored tactic
               </Tip>
             )}
@@ -79,13 +79,13 @@ export function TurnPanel({ game, ctl, dispatch, undo }: { game: GameState; ctl:
               <CategoryIcon category="research" /> Research
             </button>
           )}
-          <SkillButton game={game} effect="composed" disabled={!legal.can('composed')} onClick={() => dispatch({ type: 'composed' })} />
+          <SkillButton game={game} effect="stand-down" disabled={!legal.can('standDown')} onClick={() => dispatch({ type: 'standDown' })} />
           <SkillButton
             game={game}
-            effect="ambitious"
-            label={`${cardName('ambitious')} +1`}
-            disabled={!legal.can('ambitious')}
-            onClick={() => dispatch({ type: 'ambitious' })}
+            effect="final-push"
+            label={`${cardName('final-push')} +1`}
+            disabled={!legal.can('finalPush')}
+            onClick={() => dispatch({ type: 'finalPush' })}
           />
           <button
             className="btn btn-ghost undo-btn"
@@ -114,7 +114,7 @@ export function TurnPanel({ game, ctl, dispatch, undo }: { game: GameState; ctl:
             <span className="undo-label">Undo</span>
           </button>
           <button
-            className={`btn btn-primary ${canAct && t.actionsLeft === 0 && !canCurious(game, t.player) && !legal.can('playStoredTactic') ? 'pulse' : ''}`}
+            className={`btn btn-primary ${canAct && t.actionsLeft === 0 && !canProspectors(game, t.player) && !legal.can('playStoredTactic') ? 'pulse' : ''}`}
             disabled={!legal.can('endTurn')}
             onClick={() => dispatch({ type: 'endTurn' })}
           >
@@ -124,16 +124,16 @@ export function TurnPanel({ game, ctl, dispatch, undo }: { game: GameState; ctl:
       )}
 
       {head?.kind === 'advance' && ctl.human && <AdvanceChoice dispatch={dispatch} />}
-      {head?.kind === 'placeExpansion' && ctl.human && (
+      {head?.kind === 'placeReinforcement' && ctl.human && (
         <div className="turn-actions">
-          <button className="btn" onClick={() => dispatch({ type: 'placeExpansion', to: null })}>
+          <button className="btn" onClick={() => dispatch({ type: 'placeReinforcement', to: null })}>
             {'Send to salvage yard'}
           </button>
         </div>
       )}
-      {head?.kind === 'unveil' && ctl.human && (
+      {head?.kind === 'invasion' && ctl.human && (
         <div className="turn-actions">
-          <button className="btn btn-primary" onClick={() => dispatch({ type: 'unveilDone' })}>
+          <button className="btn btn-primary" onClick={() => dispatch({ type: 'invasionDone' })}>
             Done
           </button>
         </div>

@@ -16,9 +16,9 @@
  * expect one (a reminder goes to stderr). Check a surprise by playing that skill again with another
  * `seed`, which plays other games: the same seed plays the same games, with the same verdict.
  *
- *   npm run selfplay:skills -- [games=2000] [level=3] [mode=community] [skills=none,agile,...] [jobs=fast cores] [margin=5] [seed=0]
+ *   npm run selfplay:skills -- [games=2000] [level=3] [mode=community] [skills=none,tune-up,...] [jobs=fast cores] [margin=5] [seed=0]
  *
- * Any argument may be given by name instead, in any order: `--skills=agile --seed=1` (args.ts).
+ * Any argument may be given by name instead, in any order: `--skills=tune-up --seed=1` (args.ts).
  */
 import type { AiLevel } from '../packages/ai/src';
 import { setSkills } from '../packages/engine/test/audit';

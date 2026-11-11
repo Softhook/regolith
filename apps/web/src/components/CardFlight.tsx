@@ -1,6 +1,6 @@
 import { Component, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
-import { expansionCard, type GameState } from '@regolith/engine';
+import { reinforcementCard, type GameState } from '@regolith/engine';
 import { reducedMotion } from '../game/useMediaQuery';
 import { lastLogId } from '../game/steps';
 import { useTransient } from '../game/useTransient';
@@ -64,8 +64,8 @@ function leaving(was: GameState, game: GameState) {
   ];
   return game.log.flatMap((e) => {
     if (e.id <= before || e.player === undefined) return [];
-    if (e.event === 'expansion' && was.market.expansions > game.market.expansions) {
-      return [{ id: e.id, card: expansionCard(game).id, player: e.player, index: undefined as number | undefined }];
+    if (e.event === 'reinforcement' && was.market.reinforcements > game.market.reinforcements) {
+      return [{ id: e.id, card: reinforcementCard(game).id, player: e.player, index: undefined as number | undefined }];
     }
     if ((e.event !== 'cardTaken' && e.event !== 'cardPlayed') || !e.card) return [];
     const k = gone.findIndex((g) => g.card === e.card);

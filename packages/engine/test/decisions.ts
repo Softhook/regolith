@@ -36,11 +36,11 @@ const DECISION_BRUTE_FORCE: { [K in Pending['kind']]: (s: GameState) => Action[]
     { type: 'resolveCombat' },
     ...s.players.flatMap((p) => (['attacker', 'defender'] as const).map((side) => ({ type: 'atomic', by: p.id, side }) as const)),
   ],
-  dangerous: () => [
-    { type: 'dangerous', destroy: true },
-    { type: 'dangerous', destroy: false },
+  unstableReactor: () => [
+    { type: 'unstableReactor', destroy: true },
+    { type: 'unstableReactor', destroy: false },
   ],
-  clever: () => [0, 1, 2, 3, 4, 5, 6, 7].map((value) => ({ type: 'clever', value })),
+  engineering: () => [0, 1, 2, 3, 4, 5, 6, 7].map((value) => ({ type: 'engineering', value })),
   advance: () => [
     { type: 'advance', move: true },
     { type: 'advance', move: false },
@@ -48,7 +48,7 @@ const DECISION_BRUTE_FORCE: { [K in Pending['kind']]: (s: GameState) => Action[]
   infamy: (s) => s.board.objectives.map((p) => ({ type: 'infamy', objective: p.id })),
   takeCard: () => [
     { type: 'profiteer' },
-    ...(['skill', 'tactic', 'expansion'] as const).flatMap((deck) =>
+    ...(['skill', 'tactic', 'reinforcement'] as const).flatMap((deck) =>
       ROW_INDEXES.flatMap((index) => [{ type: 'takeCard', deck, index } as const, { type: 'takeCard', deck, index, store: true } as const]),
     ),
   ],
@@ -57,23 +57,29 @@ const DECISION_BRUTE_FORCE: { [K in Pending['kind']]: (s: GameState) => Action[]
     { type: 'peekChoice', takeTop: false },
   ],
   discardSkill: () => CARD_IDS.map((skill) => ({ type: 'discardSkill', skill })),
-  placeExpansion: (s) => [{ type: 'placeExpansion', to: null }, ...allCells(s).map((to) => ({ type: 'placeExpansion', to }) as const)],
-  showOfForce: (s) => s.dice.map((d) => ({ type: 'showOfForce', die: d.id })),
+  placeReinforcement: (s) => [
+    { type: 'placeReinforcement', to: null },
+    ...allCells(s).map((to) => ({ type: 'placeReinforcement', to }) as const),
+  ],
+  orbitalCannon: (s) => s.dice.map((d) => ({ type: 'orbitalCannon', die: d.id })),
   iceTunnel: (s) => allCells(s).map((cell) => ({ type: 'iceTunnel', cell })),
   placeBarrier: (s) => allCells(s).map((cell) => ({ type: 'placeBarrier', cell })),
   kineticShunt: (s) => s.dice.flatMap((d) => allCells(s).map((to) => ({ type: 'kineticShunt', die: d.id, to }) as const)),
-  changeOfHeart: () => CARD_IDS.map((skill) => ({ type: 'changeOfHeart', skill })),
-  patientTactic: () => [{ type: 'patientTactic' }, ...ROW_INDEXES.map((index) => ({ type: 'patientTactic', index }) as const)],
-  prideful: () => [
-    { type: 'prideful', take: true },
-    { type: 'prideful', take: false },
+  headhunter: () => CARD_IDS.map((skill) => ({ type: 'headhunter', skill })),
+  strategicPlanTactic: () => [
+    { type: 'strategicPlanTactic' },
+    ...ROW_INDEXES.map((index) => ({ type: 'strategicPlanTactic', index }) as const),
   ],
-  ruthless: () => [{ type: 'ruthless' }, ...CARD_IDS.map((skill) => ({ type: 'ruthless', skill }) as const)],
-  unveil: (s) => [
-    { type: 'unveilDone' },
+  stolenFlag: () => [
+    { type: 'stolenFlag', take: true },
+    { type: 'stolenFlag', take: false },
+  ],
+  signalJammer: () => [{ type: 'signalJammer' }, ...CARD_IDS.map((skill) => ({ type: 'signalJammer', skill }) as const)],
+  invasion: (s) => [
+    { type: 'invasionDone' },
     ...s.dice.flatMap((d) => [
-      { type: 'unveilReroll', die: d.id } as const,
-      ...allCells(s).map((to) => ({ type: 'unveilDrop', die: d.id, to }) as const),
+      { type: 'invasionReroll', die: d.id } as const,
+      ...allCells(s).map((to) => ({ type: 'invasionDrop', die: d.id, to }) as const),
     ]),
   ],
 };

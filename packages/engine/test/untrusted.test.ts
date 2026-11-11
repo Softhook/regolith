@@ -70,7 +70,7 @@ function pool(s: GameState, random: () => number): unknown[] {
     'defender',
     'skill',
     'tactic',
-    'expansion',
+    'reinforcement',
     ...GARBAGE,
   ];
 }

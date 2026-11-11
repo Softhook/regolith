@@ -59,7 +59,7 @@ const CARD_TYPES: [deck: CardDeck, name: string, text: string][] = [
     'Keep it in front of you. It works from the next player’s turn. You can hold 3; take a fourth and you must discard one.',
   ],
   ['tactic', REGOLITH.cards!.terms.tacticDeck, 'Happens the moment you take it, then goes to the discard pile.'],
-  ['expansion', REGOLITH.cards!.expansion.name, REGOLITH.cards!.expansion.text],
+  ['reinforcement', REGOLITH.cards!.reinforcement.name, REGOLITH.cards!.reinforcement.text],
 ];
 
 const SECTIONS: [id: string, title: string][] = [
@@ -783,7 +783,7 @@ export function Manual({ dark, drawMapsWhenNear }: { dark?: boolean; drawMapsWhe
               Maps
             </a>
             ), with anything it starts with on the ground. <Tag>{REGOLITH.name}</Tag> Shuffle each card deck and deal 3 cards face up beside
-            it. Lay out players + 1 {REGOLITH.cards!.expansion.name} cards as a face-up pile.
+            it. Lay out players + 1 {REGOLITH.cards!.reinforcement.name} cards as a face-up pile.
           </li>
           <li>
             Each player takes 7 dice, as many cubes as the map gives, a player board and 1 atomic. Put a die on 1 on your Power and Research
@@ -849,7 +849,7 @@ function RuleSetTable() {
       'Cards',
       (m) =>
         m.cards ? (
-          `${m.cards.terms.skillDeck} & ${m.cards.terms.tacticDeck}${m.cards.expansionPile ? ` + ${m.cards.expansion.name} pile` : ''}`
+          `${m.cards.terms.skillDeck} & ${m.cards.terms.tacticDeck}${m.cards.reinforcementPile ? ` + ${m.cards.reinforcement.name} pile` : ''}`
         ) : (
           <No />
         ),

@@ -8,7 +8,7 @@ import {
   actionsClosed,
   attackLaunches,
   barrierSpaces,
-  canCurious,
+  canProspectors,
   canGainResearch,
   canMoveDie,
   canPlayStoredTactic,
@@ -25,7 +25,7 @@ import {
   shuntTargets,
   barrierShuntTargets,
   startSlots,
-  tacticalOptions,
+  advanceSkillOptions,
   usedThisTurn,
 } from './queries';
 import { hasAbility, hooksOf, rulesOf } from './rules';
@@ -51,11 +51,11 @@ const DECISION_CANDIDATES: { [K in Pending['kind']]: (s: GameState, head: Pendin
     }
     return out;
   },
-  dangerous: () => [
-    { type: 'dangerous', destroy: false },
-    { type: 'dangerous', destroy: true },
+  unstableReactor: () => [
+    { type: 'unstableReactor', destroy: false },
+    { type: 'unstableReactor', destroy: true },
   ],
-  clever: (_, head) => (head.options ?? [1, 2, 3, 4, 5, 6]).map((value) => ({ type: 'clever', value })),
+  engineering: (_, head) => (head.options ?? [1, 2, 3, 4, 5, 6]).map((value) => ({ type: 'engineering', value })),
   advance: () => [
     { type: 'advance', move: true },
     { type: 'advance', move: false },
@@ -64,13 +64,13 @@ const DECISION_CANDIDATES: { [K in Pending['kind']]: (s: GameState, head: Pendin
   takeCard: (s, head) => {
     const m = s.market;
     const out: Action[] = [];
-    const patient = anySkill(s, head.player, (r) => r.storeTactics);
+    const strategicPlan = anySkill(s, head.player, (r) => r.storeTactics);
     m.skillRow.forEach((_, index) => out.push({ type: 'takeCard', deck: 'skill', index }));
     m.tacticRow.forEach((_, index) => {
       out.push({ type: 'takeCard', deck: 'tactic', index });
-      if (patient) out.push({ type: 'takeCard', deck: 'tactic', index, store: true });
+      if (strategicPlan) out.push({ type: 'takeCard', deck: 'tactic', index, store: true });
     });
-    if (m.expansions > 0 && reserve(s, head.player).length) out.push({ type: 'takeCard', deck: 'expansion', index: 0 });
+    if (m.reinforcements > 0 && reserve(s, head.player).length) out.push({ type: 'takeCard', deck: 'reinforcement', index: 0 });
     out.push({ type: 'profiteer' });
     return out;
   },
@@ -80,11 +80,11 @@ const DECISION_CANDIDATES: { [K in Pending['kind']]: (s: GameState, head: Pendin
   ],
   discardSkill: (s, head) =>
     s.players[head.player].skills.filter((sk) => sk.id !== head.cannotDiscard).map((sk) => ({ type: 'discardSkill', skill: sk.id })),
-  placeExpansion: (s, head) => [
-    { type: 'placeExpansion', to: null },
-    ...dropTargets(s, head.player).map((to) => ({ type: 'placeExpansion', to }) as const),
+  placeReinforcement: (s, head) => [
+    { type: 'placeReinforcement', to: null },
+    ...dropTargets(s, head.player).map((to) => ({ type: 'placeReinforcement', to }) as const),
   ],
-  showOfForce: (s) => mechsOnBoard(s).map((d) => ({ type: 'showOfForce', die: d.id })),
+  orbitalCannon: (s) => mechsOnBoard(s).map((d) => ({ type: 'orbitalCannon', die: d.id })),
   iceTunnel: (s, head) =>
     spaces(s.board)
       .filter((cell) => !head.placed.some((p) => same(p, cell)) && !barrierAt(s, cell) && !s.wormhole?.some((w) => same(w, cell)))
@@ -96,29 +96,29 @@ const DECISION_CANDIDATES: { [K in Pending['kind']]: (s: GameState, head: Pendin
       barrierShuntTargets(s, b).map((to) => ({ type: 'shuntBarrier', from: { r: b.r, c: b.c }, to }) as const),
     ),
   ],
-  changeOfHeart: (s) => [...new Set(s.market.skillDeck)].map((skill) => ({ type: 'changeOfHeart', skill })),
-  patientTactic: (s) => [
-    { type: 'patientTactic' } as const,
-    ...s.market.tacticRow.map((_, index) => ({ type: 'patientTactic', index }) as const),
+  headhunter: (s) => [...new Set(s.market.skillDeck)].map((skill) => ({ type: 'headhunter', skill })),
+  strategicPlanTactic: (s) => [
+    { type: 'strategicPlanTactic' } as const,
+    ...s.market.tacticRow.map((_, index) => ({ type: 'strategicPlanTactic', index }) as const),
   ],
-  prideful: () => [
-    { type: 'prideful', take: true },
-    { type: 'prideful', take: false },
+  stolenFlag: () => [
+    { type: 'stolenFlag', take: true },
+    { type: 'stolenFlag', take: false },
   ],
-  ruthless: (s, head) => [
-    { type: 'ruthless' } as const,
-    ...s.players[head.victim].skills.filter((sk) => sk.active).map((sk) => ({ type: 'ruthless', skill: sk.id }) as const),
+  signalJammer: (s, head) => [
+    { type: 'signalJammer' } as const,
+    ...s.players[head.victim].skills.filter((sk) => sk.active).map((sk) => ({ type: 'signalJammer', skill: sk.id }) as const),
   ],
-  unveil: (s, head) => {
-    const out: Action[] = [{ type: 'unveilDone' }];
+  invasion: (s, head) => {
+    const out: Action[] = [{ type: 'invasionDone' }];
     const targets = dropTargets(s, head.player);
-    for (const d of salvageYard(s, head.player)) if (!head.rerolled.includes(d.id)) out.push({ type: 'unveilReroll', die: d.id });
-    for (const d of salvageYard(s, head.player)) for (const to of targets) out.push({ type: 'unveilDrop', die: d.id, to });
+    for (const d of salvageYard(s, head.player)) if (!head.rerolled.includes(d.id)) out.push({ type: 'invasionReroll', die: d.id });
+    for (const d of salvageYard(s, head.player)) for (const to of targets) out.push({ type: 'invasionDrop', die: d.id, to });
     return out;
   },
 };
 
-/** Every Behemoth carry by `d`: passenger, destination and where it is set down. `range` 1 is Tactical's step. */
+/** Every Behemoth carry by `d`: passenger, destination and where it is set down. `range` 1 is Advance's step. */
 function carries(s: GameState, d: Die, range?: number) {
   return carryPassengers(s, d.id).flatMap((p) =>
     [...carryOptions(s, d.id, p.id, range).values()].flatMap((dest) =>
@@ -141,9 +141,9 @@ function actionPhaseOptions(s: GameState, opts: { includeCarry?: boolean }): Act
   if (actionsClosed(t)) return out;
 
   const actions = t.actionsLeft;
-  // A move is paid with an action, or Curious's extra action (spendPeaceful).
-  const curious = actions === 0 && canCurious(s, me);
-  const canPayMove = actions > 0 || curious;
+  // A move is paid with an action, or Prospectors's extra action (spendPeaceful).
+  const prospectors = actions === 0 && canProspectors(s, me);
+  const canPayMove = actions > 0 || prospectors;
   const canAttack = (cost: number) => actions >= cost;
 
   for (const d of mechsOnBoard(s, me)) {
@@ -160,12 +160,12 @@ function actionPhaseOptions(s: GameState, opts: { includeCarry?: boolean }): Act
     const action = hooksOf(s, d)?.action;
     if (action) for (const c of action.options(s, d)) out.push({ type: 'ability', die: d.id, ...c });
     if (actions > 0 && canRefit(s, d)) out.push({ type: 'refit', die: d.id });
-    if (hasSkill(s, me, 'tactical') && !usedThisTurn(s, 'tactical')) {
-      const tac = tacticalOptions(s, d.id);
-      for (const m of tac.moves) out.push({ type: 'tactical', die: d.id, to: m.cell });
-      if (canAttack(0)) for (const x of tac.attacks) out.push({ type: 'tactical', die: d.id, target: x.die.id });
+    if (hasSkill(s, me, 'advance') && !usedThisTurn(s, 'advance')) {
+      const tac = advanceSkillOptions(s, d.id);
+      for (const m of tac.moves) out.push({ type: 'advanceSkill', die: d.id, to: m.cell });
+      if (canAttack(0)) for (const x of tac.attacks) out.push({ type: 'advanceSkill', die: d.id, target: x.die.id });
       if (hasAbility(s, d, 'carry') && opts.includeCarry && canUseAbility(s, d)) {
-        for (const c of carries(s, d, 1)) out.push({ type: 'tactical', die: d.id, ...c });
+        for (const c of carries(s, d, 1)) out.push({ type: 'advanceSkill', die: d.id, ...c });
       }
     }
     if (canUseAbility(s, d)) {
@@ -178,12 +178,12 @@ function actionPhaseOptions(s: GameState, opts: { includeCarry?: boolean }): Act
         for (const c of carries(s, d)) out.push({ type: 'carry', die: d.id, ...c });
       }
     }
-    if (hasSkill(s, me, 'flexible') && !usedThisTurn(s, 'flexible')) {
-      if (d.value < 6) out.push({ type: 'flexible', die: d.id, delta: 1 });
-      if (d.value > 1) out.push({ type: 'flexible', die: d.id, delta: -1 });
+    if (hasSkill(s, me, 'field-refit') && !usedThisTurn(s, 'field-refit')) {
+      if (d.value < 6) out.push({ type: 'fieldRefit', die: d.id, delta: 1 });
+      if (d.value > 1) out.push({ type: 'fieldRefit', die: d.id, delta: -1 });
     }
-    if (hasSkill(s, me, 'resourceful') && !usedThisTurn(s, 'resourceful')) {
-      out.push({ type: 'resourceful', die: d.id });
+    if (hasSkill(s, me, 'recycle') && !usedThisTurn(s, 'recycle')) {
+      out.push({ type: 'recycle', die: d.id });
     }
   }
   const targets = dropTargets(s, me);
@@ -191,7 +191,7 @@ function actionPhaseOptions(s: GameState, opts: { includeCarry?: boolean }): Act
     if (actions > 0 || t.freeDrops > 0) for (const to of targets) out.push({ type: 'drop', die: d.id, to });
     if (actions > 0 && canRefit(s, d)) out.push({ type: 'refit', die: d.id });
   }
-  if (rulesOf(s).cards && (actions > 0 || curious) && pl.research < rulesOf(s).researchLimit && canGainResearch(s, me))
+  if (rulesOf(s).cards && (actions > 0 || prospectors) && pl.research < rulesOf(s).researchLimit && canGainResearch(s, me))
     out.push({ type: 'research' });
   if (actions >= 2)
     for (const p of s.board.objectives) {
@@ -201,8 +201,9 @@ function actionPhaseOptions(s: GameState, opts: { includeCarry?: boolean }): Act
       const o = c.replace ? c : rulesOf(s).overClaim ? claimCheck(s, me, p.id, true) : c;
       if (o.ok && o.replace) for (const replace of o.replace) out.push({ type: 'claim', objective: p.id, replace });
     }
-  if (hasSkill(s, me, 'composed') && !usedThisTurn(s, 'composed') && pl.power > 1 && canGainResearch(s, me)) out.push({ type: 'composed' });
-  if (hasSkill(s, me, 'ambitious') && !usedThisTurn(s, 'ambitious')) out.push({ type: 'ambitious' });
+  if (hasSkill(s, me, 'stand-down') && !usedThisTurn(s, 'stand-down') && pl.power > 1 && canGainResearch(s, me))
+    out.push({ type: 'standDown' });
+  if (hasSkill(s, me, 'final-push') && !usedThisTurn(s, 'final-push')) out.push({ type: 'finalPush' });
   return out;
 }
 

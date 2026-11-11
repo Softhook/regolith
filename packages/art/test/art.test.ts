@@ -237,11 +237,11 @@ const placement = (svg: string) =>
     .map(Number);
 
 describe('screenprint cards', () => {
-  type RegolithRawCard = (typeof regolithCards.skills | typeof regolithCards.tactics | typeof regolithCards.expansion)[number];
+  type RegolithRawCard = (typeof regolithCards.skills | typeof regolithCards.tactics | typeof regolithCards.reinforcements)[number];
   const decks: [CardDeck, RegolithRawCard[]][] = [
     ['skill', regolithCards.skills],
     ['tactic', regolithCards.tactics],
-    ['expansion', regolithCards.expansion],
+    ['reinforcement', regolithCards.reinforcements],
   ];
   const faces = decks.flatMap(([deck, list]) => list.map((c, i) => ({ ...c, deck, copies: c.count, index: i + 1 })));
 

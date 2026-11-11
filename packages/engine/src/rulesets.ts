@@ -13,7 +13,7 @@ import { MECHS } from './mechs';
  * Regolith's decks (data/regolith.yaml, built into data/cards.json): each card started as a Community card
  * (`from`) and plays by its rules (`effect`) until it is reworked. Ingenious isn't among them: hexes have no corners.
  */
-export const REGOLITH_DECKS: { skills: CardDef[]; tactics: CardDef[]; expansion: CardDef[] } = cardsJson;
+export const REGOLITH_DECKS: { skills: CardDef[]; tactics: CardDef[]; reinforcements: CardDef[] } = cardsJson;
 
 /**
  * Over-claim (PROTOTYPING.md §6.10): a perimeter of exactly 12 displaces an opponent's cube. Off since
@@ -36,10 +36,10 @@ const REGOLITH: RuleSet = {
   cards: {
     skills: REGOLITH_DECKS.skills,
     tactics: REGOLITH_DECKS.tactics,
-    expansion: REGOLITH_DECKS.expansion[0],
+    reinforcement: REGOLITH_DECKS.reinforcements[0],
     startingSkillDraft: true,
     peek: true,
-    expansionPile: true,
+    reinforcementPile: true,
     terms: { skill: 'skill', skills: 'skills', skillDeck: 'Skills', tacticDeck: 'Tactics' },
   },
   mapGroups: ['hex', 'open', 'drift', 'prepared'],

@@ -34,7 +34,7 @@ const PARTS: Record<CardEffect['kind'], ReactNode> = {
       <span className="cfx-lance" />
     </>
   ),
-  expansion: (
+  reinforcement: (
     <>
       <span className="cfx-lance" />
       <span className="cfx-halo" />

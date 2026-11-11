@@ -15,7 +15,7 @@ export interface Outcome {
 }
 
 /** Actions with a random result that is not enumerated exactly. */
-const SAMPLED = new Set<Action['type']>(['takeCard', 'peekChoice', 'patientTactic', 'resourceful', 'unveilReroll']);
+const SAMPLED = new Set<Action['type']>(['takeCard', 'peekChoice', 'strategicPlanTactic', 'recycle', 'invasionReroll']);
 
 /** Outcomes of `a` in `s`, or null if it is illegal. `seeds` are used for sampled actions. */
 export function outcomes(s: GameState, a: Action, seeds: number[]): Outcome[] | null {
@@ -30,8 +30,8 @@ export function outcomes(s: GameState, a: Action, seeds: number[]): Outcome[] | 
   }
   const next = tryApply(s, a);
   if (!next) return null;
-  // Under Clever the rolled number is replaced by the player's choice, so the roll doesn't branch.
-  if (a.type === 'refit' && next.pending[0]?.kind !== 'clever') return rerolls(s, next, a.die);
+  // Under Engineering the rolled number is replaced by the player's choice, so the roll doesn't branch.
+  if (a.type === 'refit' && next.pending[0]?.kind !== 'engineering') return rerolls(s, next, a.die);
   if (next.pending[0]?.kind === 'combat' && s.pending[0]?.kind !== 'combat') return battles(next, next.pending[0]);
   return [{ state: next, p: 1 }];
 }
@@ -49,7 +49,7 @@ function rerolls(prev: GameState, next: GameState, dieId: string): Outcome[] {
   });
 }
 
-type Result = 'win' | 'stubborn' | 'repel';
+type Result = 'win' | 'entrenched' | 'repel';
 
 /** The combat dice are rolled when an attack starts: one outcome per possible result. */
 function battles(state: GameState, combat: CombatPending): Outcome[] {
@@ -61,7 +61,7 @@ function battles(state: GameState, combat: CombatPending): Outcome[] {
     const dice: number[] = [];
     for (let k = 0, x = i; k < na + nd; k++, x = Math.floor(x / 6)) dice.push((x % 6) + 1);
     const out = combatOutcome(state, withDice(combat, dice));
-    const r: Result = out.attackerWins ? 'win' : out.stubborn ? 'stubborn' : 'repel';
+    const r: Result = out.attackerWins ? 'win' : out.entrenched ? 'entrenched' : 'repel';
     const t = tally.get(r);
     if (t) t.count++;
     else tally.set(r, { count: 1, dice });

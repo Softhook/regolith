@@ -28,13 +28,13 @@ export const ARRIVE = { land: 330 } as const;
 /** A placed cube (.cube): it falls, lands (its clack, and the claim's shockwave, .fx-claim), and squashes. */
 export const CUBE = { fall: 240, squash: 160 } as const;
 
-/** Show of Force (.cfx-lance): its reticle locks on, its lance strikes the mech (it blows up), then thins away. */
+/** Orbital Cannon (.cfx-lance): its reticle locks on, its lance strikes the mech (it blows up), then thins away. */
 export const LANCE = { delay: 120, strike: 180, fade: 220 } as const;
 
-/** Expansion (.cfx-expansion): its golden lance reaches the space (the new mech appears, its rings spread), then thins away. */
-export const EXPANSION = { strike: 270, fade: 330 } as const;
+/** Reinforcements (.cfx-reinforcement): its golden lance reaches the space (the new mech appears, its rings spread), then thins away. */
+export const REINFORCEMENT = { strike: 270, fade: 330 } as const;
 
-/** Dangerous (.cfx-arc): its arc reaches across to join the two mechs (they blow up), then fades. */
+/** Unstable Reactor (.cfx-arc): its arc reaches across to join the two mechs (they blow up), then fades. */
 export const ARC = { span: 200, fade: 300 } as const;
 
 /** The easing of a beam's spark riding across (.cfx-ray > i), as a CSS cubic-bezier's four numbers. */
@@ -97,7 +97,7 @@ export const CSS_BEATS = {
   mech: MECH,
   cube: CUBE,
   lance: LANCE,
-  expansion: EXPANSION,
+  reinforcement: REINFORCEMENT,
   arc: ARC,
   beam: BEAM,
   blink: BLINK,

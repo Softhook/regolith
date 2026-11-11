@@ -20,38 +20,38 @@ function game(skills: string[]): GameState {
 const fresh = (before: GameState, after: GameState) => after.log.filter((e) => e.id > before.logCounter);
 
 describe('skills firing by themselves', () => {
-  it('Show of Force names its own entry; Plundering adds one of its own, with its gains', () => {
-    const s = game(['r-plundering']);
+  it('Orbital Cannon names its own entry; Exploit adds one of its own, with its gains', () => {
+    const s = game(['r-exploit']);
     const me = s.turn.player;
-    s.pending.unshift({ kind: 'showOfForce', player: me });
-    const after = apply(s, { type: 'showOfForce', die: `p${1 - me}d0` });
+    s.pending.unshift({ kind: 'orbitalCannon', player: me });
+    const after = apply(s, { type: 'orbitalCannon', die: `p${1 - me}d0` });
     const plunder = fresh(s, after).filter((e) => e.card);
-    expect(plunder).toEqual([expect.objectContaining({ card: 'r-plundering', player: me, gains: { research: 3 } })]);
+    expect(plunder).toEqual([expect.objectContaining({ card: 'r-exploit', player: me, gains: { research: 3 } })]);
     expect(after.players[me].research).toBe(5);
   });
 
   it('logs what a bonus really gives at a track’s limit, and nothing once full', () => {
-    const s = game(['r-plundering']);
+    const s = game(['r-exploit']);
     const me = s.turn.player;
     const limit = rulesOf(s).researchLimit;
     s.players[me].research = limit - 1;
-    s.pending.unshift({ kind: 'showOfForce', player: me });
-    const near = apply(s, { type: 'showOfForce', die: `p${1 - me}d0` });
+    s.pending.unshift({ kind: 'orbitalCannon', player: me });
+    const near = apply(s, { type: 'orbitalCannon', die: `p${1 - me}d0` });
     expect(fresh(s, near).find((e) => e.card)?.gains).toEqual({ research: 1 });
 
     s.players[me].research = limit;
-    const full = apply(s, { type: 'showOfForce', die: `p${1 - me}d0` });
+    const full = apply(s, { type: 'orbitalCannon', die: `p${1 - me}d0` });
     expect(fresh(s, full).some((e) => e.card)).toBe(false);
   });
 
-  it('Curious names its card on the Move or Research it pays for', () => {
-    let s = game(['r-curious']);
+  it('Prospectors names its card on the Move or Research it pays for', () => {
+    let s = game(['r-prospectors']);
     const me = s.turn.player;
     for (let i = 0; i < 3; i++) s = apply(s, { type: 'refit', die: `p${me}d0` });
     const after = apply(s, { type: 'research' });
-    expect(fresh(s, after).find((e) => e.card)).toEqual(expect.objectContaining({ card: 'r-curious', player: me }));
+    expect(fresh(s, after).find((e) => e.card)).toEqual(expect.objectContaining({ card: 'r-prospectors', player: me }));
     // An action paid the usual way doesn't.
-    const usual = game(['r-curious']);
+    const usual = game(['r-prospectors']);
     expect(fresh(usual, apply(usual, { type: 'research' })).some((e) => e.card)).toBe(false);
   });
 });

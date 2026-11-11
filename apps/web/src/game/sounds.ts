@@ -34,24 +34,24 @@ const EVENT_SOUNDS: Partial<Record<LogEvent, Sound>> = {
   infamy: 'infamy',
   atomic: 'atomic',
   cardTaken: 'card',
-  expansion: 'launch',
+  reinforcement: 'launch',
   discard: 'discard',
   breakthrough: 'breakthrough',
 };
 
 /** Each Tactic or Gambit effect's signature sound; a card played that the log doesn't name sounds like a card. */
 const TACTIC_SOUNDS: Record<TacticEffect, Sound> = {
-  aggression: 'drums',
-  'black-market': 'coins',
-  'change-of-heart': 'shuffle',
-  momentum: 'momentum',
-  'plan-ahead': 'lockOn',
-  'sabotage-double': 'powerDown',
-  'show-of-force': 'alarm',
-  'unveil-the-fleet': 'unveil',
-  'warp-gate': 'portal',
-  expansion: 'launch',
-  barrier: 'barrier',
+  'power-grab': 'drums',
+  contraband: 'coins',
+  headhunter: 'shuffle',
+  'forced-march': 'forcedMarch',
+  'kill-zone': 'lockOn',
+  sabotage: 'powerDown',
+  'orbital-cannon': 'alarm',
+  invasion: 'invasion',
+  'ice-tunnel': 'portal',
+  reinforcements: 'launch',
+  barricade: 'barrier',
   'kinetic-shunt': 'shunt',
 };
 
@@ -93,7 +93,7 @@ export function soundsFor(
 
   // Mechs: flown, arrived, destroyed, swapped or renumbered.
   const before = new Map(prev.dice.map((d) => [d.id, d]));
-  // A mech a card brings (Expansion, Nomadic) appears as its effect gets there (staging): heard landing
+  // A mech a card brings (Reinforcements, Nomadic) appears as its effect gets there (staging): heard landing
   // then, rather than flying or dropping in on its own.
   const late = stagingOf(prev, next).late;
   let lands: number | undefined;
@@ -133,12 +133,12 @@ export function soundsFor(
   if (rose('research') && !first.has('breakthrough')) effects.add('research');
   if (rose('power') && !destroyed && !first.has('infamy')) effects.add('power');
 
-  // Once-per-turn skills used this step, or a skill disabled by Ruthless.
+  // Once-per-turn skills used this step, or a skill disabled by Signal Jammer.
   const sameTurn = prev.turn.number === next.turn.number && prev.turn.player === next.turn.player;
   const disabledSkill = next.players.some((pl, i) =>
     pl.skills.some((s) => s.disabledUntil !== undefined && prev.players[i].skills.find((x) => x.id === s.id)?.disabledUntil === undefined),
   );
-  // Resourceful's fold says so already.
+  // Recycle's fold says so already.
   if (((sameTurn && next.turn.oncePerTurn.length > prev.turn.oncePerTurn.length) || disabledSkill) && !effects.has('implode'))
     effects.add('skill');
 
@@ -170,7 +170,7 @@ export function playSounds(prev: GameState, next: GameState, mine: (p: PlayerId)
   const { first, then, destroyed, lands } = soundsFor(prev, next, logSince(prev, next), mine);
   // Under reduced motion the staging has none of a card's effects wait: mechs go and come at once, heard so.
   const still = reducedMotion();
-  // Mechs a card's blow destroys (Show of Force, Dangerous) blow up as it lands, heard as seen (Explosions).
+  // Mechs a card's blow destroys (Orbital Cannon, Unstable Reactor) blow up as it lands, heard as seen (Explosions).
   const strike = still ? 0 : strikeOf(prev);
   const timed: Partial<Record<Sound, () => void>> = {
     explode: () => sfx.explode(destroyed, strike),

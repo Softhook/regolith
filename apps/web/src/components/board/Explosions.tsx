@@ -27,7 +27,7 @@ function useExplosions(game: GameState): Explosion[] {
     // Only play: undo also takes mechs off the map, but never adds log entries.
     if (!isPlayStep(before, game) || reducedMotion()) return;
     const spots = mechSpots(before);
-    // A card's blow (Show of Force, Dangerous) lands a moment in: they blow up then. Several go one after
+    // A card's blow (Orbital Cannon, Unstable Reactor) lands a moment in: they blow up then. Several go one after
     // another, as heard (sounds) and as the staging keeps them till then.
     const strike = strikeOf(before);
     destroyedOf(before, game).forEach((p, i) => {

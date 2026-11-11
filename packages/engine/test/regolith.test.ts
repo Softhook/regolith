@@ -23,7 +23,7 @@ import {
   attackLaunches,
   cardKind,
   effectOf,
-  expansionCard,
+  reinforcementCard,
   isEmptySpace,
   legalActions,
   MODES,
@@ -95,9 +95,9 @@ describe('Regolith mode', () => {
     const own = regolith.cards!;
     expect(own.skills).toBe(REGOLITH_DECKS.skills);
     expect(own.tactics).toBe(REGOLITH_DECKS.tactics);
-    expect(own.expansion).toBe(REGOLITH_DECKS.expansion[0]);
+    expect(own.reinforcement).toBe(REGOLITH_DECKS.reinforcements[0]);
     expect(own.tactics.filter((c) => !c.from).map((c) => c.id)).toEqual(['r-barricade', 'r-kinetic-shunt']);
-    for (const c of [...own.skills, ...own.tactics, own.expansion!]) {
+    for (const c of [...own.skills, ...own.tactics, own.reinforcement!]) {
       if (c.status === 'new') {
         expect(['r-barricade', 'r-kinetic-shunt']).toContain(c.id);
         expect(c.from).toBeUndefined();
@@ -105,18 +105,20 @@ describe('Regolith mode', () => {
         expect(c.count).toBe(2);
         expect(c.category).toBe('movement');
         if (c.id === 'r-barricade') {
-          expect(effectOf(c.id)).toBe('barrier');
+          expect(effectOf(c.id)).toBe('barricade');
           expect(c.text).toBe('Place two barriers.');
         } else {
           expect(effectOf(c.id)).toBe('kinetic-shunt');
           expect(c.text).toBe('Choose any mech or barrier. Push it up to 4 spaces in a straight line.');
         }
       } else {
-        expect(c.id, c.id).toBe(`r-${c.from}`);
-        if (c.status !== 'reworked') expect(effectOf(c.id), c.id).toBe(c.from);
+        expect(c.from, c.id).toBeDefined();
       }
+      // A card's id is its name; its effect, the id without the r-.
+      expect(c.id).toBe(`r-${c.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`);
+      expect(effectOf(c.id), c.id).toBe(c.id.slice(2));
     }
-    expect(expansionCard(BASE.regolith)).toBe(own.expansion);
+    expect(reinforcementCard(BASE.regolith)).toBe(own.reinforcement);
     expect(regolith.mapGroups).toEqual(['hex', 'open', 'drift', 'prepared']);
     const played = MAPS.filter((m) => ['hex', 'open', 'drift', 'prepared'].includes(m.group));
     for (const m of played) expect(m.world, m.id).toBeDefined();
@@ -182,9 +184,9 @@ describe('movement cap', () => {
     expect(farthest(scenario({ p0d0: [7, 2, 2] }), 'p0d0')).toBe(2);
   });
 
-  it('applies before skill bonuses: a 6 with Agile moves 4 (ruling 2026-10-08)', () => {
-    expect(farthest(scenario({ p0d0: [7, 2, 6] }, ['r-agile']), 'p0d0')).toBe(4);
-    expect(farthest(scenario({ p0d0: [7, 2, 2] }, ['r-agile']), 'p0d0')).toBe(3);
+  it('applies before skill bonuses: a 6 with Tune Up moves 4 (ruling 2026-10-08)', () => {
+    expect(farthest(scenario({ p0d0: [7, 2, 6] }, ['r-tune-up']), 'p0d0')).toBe(4);
+    expect(farthest(scenario({ p0d0: [7, 2, 2] }, ['r-tune-up']), 'p0d0')).toBe(3);
   });
 });
 
@@ -226,11 +228,11 @@ describe('zones of control (Picket on every mech)', () => {
     expect(moveOptions(scenario({ p0d0: [7, 2, 2], p1d0: [7, 5, 6] }), 'p0d0').attacks.size).toBe(0);
   });
 
-  it('doesn’t stop a player with Devious, who may also pass through the mech', () => {
-    // Devious passes (7,3), next to p1d0, and p1d0 itself for free: (7,6) is 3 steps from (7,2).
-    expect(reachable(scenario({ p0d0: [7, 2, 3], p1d0: [7, 4, 6] }, ['r-devious']))).toContain('7,6');
+  it('doesn’t stop a player with Sneak, who may also pass through the mech', () => {
+    // Sneak passes (7,3), next to p1d0, and p1d0 itself for free: (7,6) is 3 steps from (7,2).
+    expect(reachable(scenario({ p0d0: [7, 2, 3], p1d0: [7, 4, 6] }, ['r-sneak']))).toContain('7,6');
     expect(reachable(scenario({ p0d0: [7, 2, 3], p1d0: [7, 4, 6] }))).not.toContain('7,6');
-    expect(reachable(scenario({ p0d0: [7, 2, 3], p1d0: [8, 4, 6] }, ['r-devious']))).toContain('7,5');
+    expect(reachable(scenario({ p0d0: [7, 2, 3], p1d0: [8, 4, 6] }, ['r-sneak']))).toContain('7,5');
     expect(reachable(scenario({ p0d0: [7, 2, 3], p1d0: [8, 4, 6] }))).not.toContain('7,5');
   });
 
@@ -363,8 +365,8 @@ describe('the way a mech flies (movePath)', () => {
     }
   });
 
-  it('passes through enemy mechs for free with Devious', () => {
-    const s = scenario({ p0d0: [7, 2, 1], p1d0: [7, 3, 6], p1d1: [7, 4, 6] }, ['r-devious']);
+  it('passes through enemy mechs for free with Sneak', () => {
+    const s = scenario({ p0d0: [7, 2, 1], p1d0: [7, 3, 6], p1d1: [7, 4, 6] }, ['r-sneak']);
     expect(path(s, 7, 5)).toEqual(['7,2', '7,3', '7,4', '7,5']);
   });
 
@@ -741,11 +743,11 @@ describe('dropping to a contested objective', () => {
     expect(into(s, objective)).toBeGreaterThan(0);
   });
 
-  it('keeps Stealthy out of a contested perimeter too', () => {
+  it('keeps Infiltration out of a contested perimeter too', () => {
     const base = BASE.regolith;
     const objective = base.board.objectives.find((q) => !q.cubes.includes(0))!;
     const [a] = perimeterSpaces(base.board, objective);
-    const s = scenario({ p1d0: [a.r, a.c, 6] }, ['r-stealthy']);
+    const s = scenario({ p1d0: [a.r, a.c, 6] }, ['r-infiltration']);
     expect(dropTargets(s, 0).some((c) => ring(s, objective).includes(`${c.r},${c.c}`))).toBe(false);
   });
 
@@ -839,7 +841,7 @@ describe('Science: Research spent to move the claim total', () => {
   const objective = base.board.objectives.find((q) => !q.start && !q.cubes.length && q.number > 6)!;
   const [o1, o2] = perimeterSpaces(base.board, objective);
   const short = (research: number) => {
-    const s = scenario({ p0d0: [o1.r, o1.c, 6] }, ['r-pioneering']);
+    const s = scenario({ p0d0: [o1.r, o1.c, 6] }, ['r-science']);
     s.players[0].research = research;
     return s;
   };
@@ -859,20 +861,20 @@ describe('Science: Research spent to move the claim total', () => {
   });
 
   it('subtracts from a perimeter over the target', () => {
-    const s = scenario({ p0d0: [o1.r, o1.c, 6], p0d1: [o2.r, o2.c, 6] }, ['r-pioneering']);
+    const s = scenario({ p0d0: [o1.r, o1.c, 6], p0d1: [o2.r, o2.c, 6] }, ['r-science']);
     s.players[0].research = 6;
     expect(claimCheck(s, 0, objective.id)).toMatchObject({ ok: true, research: 12 - objective.number });
   });
 
   it('spends nothing when the mechs make the total', () => {
-    const s = scenario({ p0d0: [o1.r, o1.c, 6], p0d1: [o2.r, o2.c, objective.number - 6] }, ['r-pioneering']);
+    const s = scenario({ p0d0: [o1.r, o1.c, 6], p0d1: [o2.r, o2.c, objective.number - 6] }, ['r-science']);
     s.players[0].research = 5;
     expect(claimCheck(s, 0, objective.id).research).toBeUndefined();
     expect(apply(s, { type: 'claim', objective: objective.id }).players[0].research).toBe(5);
   });
 
   it('never stops an exact total, even with no Research at all', () => {
-    const s = scenario({ p0d0: [o1.r, o1.c, 6], p0d1: [o2.r, o2.c, objective.number - 6] }, ['r-pioneering']);
+    const s = scenario({ p0d0: [o1.r, o1.c, 6], p0d1: [o2.r, o2.c, objective.number - 6] }, ['r-science']);
     s.players[0].research = 0;
     expect(claimCheck(s, 0, objective.id).ok).toBe(true);
   });
@@ -887,7 +889,7 @@ describe('Barricade tactic card (Regolith)', () => {
     expect(cardDef!.count).toBe(2);
     expect(cardDef!.category).toBe('movement');
     expect(cardDef!.status).toBe('new');
-    expect(cardDef!.effect).toBe('barrier');
+    expect(cardDef!.effect).toBe('barricade');
     expect(cardKind('r-barricade')).toBe('tactic');
   });
 
@@ -1167,8 +1169,8 @@ describe('Kinetic Shunt tactic card (Regolith)', () => {
     expect(claimCheck(s, 0, p.id).ok).toBe(true);
   });
 
-  it('Patient: storing Kinetic Shunt and playing it later as stored tactic works', () => {
-    let s = scenario({ p0d0: [7, 2, 3], p1d0: [4, 4, 4] }, ['r-patient']);
+  it('Strategic Plan: storing Kinetic Shunt and playing it later as stored tactic works', () => {
+    let s = scenario({ p0d0: [7, 2, 3], p1d0: [4, 4, 4] }, ['r-strategic-plan']);
 
     toRow(s, 'tactic', 'r-kinetic-shunt');
     s.pending.unshift({ kind: 'takeCard', player: 0, count: 1 });

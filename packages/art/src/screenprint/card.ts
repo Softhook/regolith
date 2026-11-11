@@ -25,7 +25,7 @@ const SAFE = 4.5;
 const PLATE: Record<string, string> = {
   movement: INKS.ice,
   research: INKS.ice,
-  expansion: INKS.ice,
+  reinforcement: INKS.ice,
   combat: INKS.oxide,
   power: INKS.oxide,
   mech: INKS.oxide,
@@ -41,7 +41,7 @@ const PLATE: Record<string, string> = {
 const DECK: Record<CardDeck, { name: string; mech: MechKind; size: number; dark: boolean }> = {
   skill: { name: 'Skill', mech: 'breacher', size: 0.13, dark: false },
   tactic: { name: 'Tactic', mech: 'tactician', size: 0.13, dark: true },
-  expansion: { name: 'Reinforcements', mech: 'behemoth', size: 0.11, dark: true },
+  reinforcement: { name: 'Reinforcements', mech: 'behemoth', size: 0.11, dark: true },
 };
 
 /** Words set bold in the rules: the game's terms, in Regolith's words. */
@@ -240,9 +240,9 @@ export function screenprintBackSvg(deck: CardDeck, o: Omit<CardOptions, 'measure
   const s = paperStage(deck, {
     id,
     r: rng(`screenprint-back:${deck}`),
-    world: deck === 'expansion' ? 'mars' : 'phobos',
+    world: deck === 'reinforcement' ? 'mars' : 'phobos',
     h: H,
-    plate: deck === 'expansion' ? INKS.ice : INKS.oxide,
+    plate: deck === 'reinforcement' ? INKS.ice : INKS.oxide,
   });
   const area = pageArea(o.bleed);
   const body =

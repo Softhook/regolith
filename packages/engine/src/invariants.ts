@@ -31,7 +31,7 @@ export function checkInvariants(s: GameState): string[] {
     check(p.power >= 1 && p.power <= 6, `${name}: power ${p.power} outside 1–6`);
     check(p.research >= 1 && p.research <= researchLimit, `${name}: research ${p.research} outside 1–${researchLimit}`);
     check(p.atomics >= 0, `${name}: ${p.atomics} atomics`);
-    check(p.actionPenalty >= 0 && p.planAhead >= 0, `${name}: negative penalty or Kill Zone`);
+    check(p.actionPenalty >= 0 && p.killZone >= 0, `${name}: negative penalty or Kill Zone`);
     check(p.ambitionTokens >= 0 && p.ambitionTokens < 3, `${name}: ${p.ambitionTokens} ambition tokens`);
     const placed = s.board.objectives.reduce((n, pl) => n + pl.cubes.filter((x) => x === p.id).length, 0);
     if (map) check(placed + p.cubesLeft === map.cubes, `${name}: ${placed} cubes placed + ${p.cubesLeft} left ≠ ${map.cubes}`);
@@ -95,7 +95,7 @@ export function checkInvariants(s: GameState): string[] {
       check(want === got, `card ${id}: ${got} in play, expected ${want}`);
     }
     check(m.skillRow.length <= 3 && m.tacticRow.length <= 3, 'more than 3 face-up cards in a row');
-    check(m.expansions >= 0, `${m.expansions} expansion cards`);
+    check(m.reinforcements >= 0, `${m.reinforcements} Reinforcements cards`);
   } else {
     const m = s.market;
     const empty = [m.skillDeck, m.skillRow, m.skillDiscard, m.tacticDeck, m.tacticRow, m.tacticDiscard].every((x) => !x.length);

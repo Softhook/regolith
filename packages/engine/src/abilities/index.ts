@@ -66,7 +66,7 @@ export const abilityHandlers = {
     const d = ownMech(s, a.die, 'board');
     if (!canMoveDie(s, d)) fail('This mech already moved this turn');
     const fly = carryMech(s, d, a.passenger, a.to, a.setDown);
-    spendPeaceful(s); // a Carry & Move is a move without an attack, so Curious can pay for it
+    spendPeaceful(s); // a Carry & Move is a move without an attack, so Prospectors can pay for it
     useAbility(s, d, 'carry');
     fly();
     markMoved(s, d);

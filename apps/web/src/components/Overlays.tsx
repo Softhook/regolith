@@ -71,51 +71,51 @@ export function DecisionOverlay({ game, dispatch, human }: { game: GameState; di
         </Modal>
       );
     }
-    case 'changeOfHeart':
+    case 'headhunter':
       return (
         <Modal
-          title={cardName('change-of-heart')}
+          title={cardName('headhunter')}
           subtitle="Search the Skill deck and take any skill."
           pc={game.players[head.player].color}
           wide
         >
-          <SkillsByCategory ids={[...new Set(game.market.skillDeck)]} onPick={(id) => dispatch({ type: 'changeOfHeart', skill: id })} />
+          <SkillsByCategory ids={[...new Set(game.market.skillDeck)]} onPick={(id) => dispatch({ type: 'headhunter', skill: id })} />
         </Modal>
       );
-    case 'dangerous': {
+    case 'unstableReactor': {
       const p = game.players[head.player];
       const att = die(game, head.attacker);
       const def = die(game, head.defender);
       return (
         <Modal
-          title={cardName('dangerous')}
+          title={cardName('unstable-reactor')}
           subtitle={`${game.players[att.owner].name}'s ${mechOf(game, att.value).name} attacks your ${mechOf(game, def.value).name}. Before the dice are rolled, you may destroy both mechs (no power change).`}
           pc={p.color}
         >
           <div className="modal-actions">
-            <button className="btn" onClick={() => dispatch({ type: 'dangerous', destroy: false })}>
+            <button className="btn" onClick={() => dispatch({ type: 'unstableReactor', destroy: false })}>
               Fight
             </button>
-            <button className="btn btn-primary" onClick={() => dispatch({ type: 'dangerous', destroy: true })}>
+            <button className="btn btn-primary" onClick={() => dispatch({ type: 'unstableReactor', destroy: true })}>
               {'Destroy both mechs'}
             </button>
           </div>
         </Modal>
       );
     }
-    case 'clever': {
+    case 'engineering': {
       const p = game.players[head.player];
       const d = die(game, head.die);
-      const isCalculating = head.source === 'calculating';
-      const title = isCalculating ? cardName('calculating') : cardName('clever');
-      const subtitle = isCalculating
+      const isRemodel = head.source === 'remodel';
+      const title = isRemodel ? cardName('remodel') : cardName('engineering');
+      const subtitle = isRemodel
         ? `${p.name}, choose this mech’s number (1–6) for the salvage yard.`
         : `${p.name}, keep this mech’s number or change it by 1.`;
       return (
         <Modal title={title} subtitle={subtitle} pc={p.color}>
-          <div className="fleet-roll clever-row">
+          <div className="fleet-roll engineering-row">
             {(head.options ?? [1, 2, 3, 4, 5, 6]).map((value) => (
-              <button key={value} className="fleet-die clever-choice" onClick={() => dispatch({ type: 'clever', value })}>
+              <button key={value} className="fleet-die engineering-choice" onClick={() => dispatch({ type: 'engineering', value })}>
                 <Die3D value={value} size={54} color={p.color} sound={false} />
                 <span className="show">{mechOf(game, value).name}</span>
               </button>
@@ -125,43 +125,43 @@ export function DecisionOverlay({ game, dispatch, human }: { game: GameState; di
         </Modal>
       );
     }
-    case 'prideful': {
+    case 'stolenFlag': {
       const p = game.players[head.player];
       const victim = game.players[head.victim];
       return (
         <Modal
-          title={cardName('prideful')}
-          subtitle={`${p.name}, you destroyed ${victim.name}’s mech. You may take ${cardName('prideful')} from them.`}
+          title={cardName('stolen-flag')}
+          subtitle={`${p.name}, you destroyed ${victim.name}’s mech. You may take ${cardName('stolen-flag')} from them.`}
           pc={p.color}
         >
           <div className="modal-actions">
-            <button className="btn" onClick={() => dispatch({ type: 'prideful', take: false })}>
+            <button className="btn" onClick={() => dispatch({ type: 'stolenFlag', take: false })}>
               Decline
             </button>
-            <button className="btn btn-primary" onClick={() => dispatch({ type: 'prideful', take: true })}>
-              Take Prideful
+            <button className="btn btn-primary" onClick={() => dispatch({ type: 'stolenFlag', take: true })}>
+              Take Stolen Flag
             </button>
           </div>
         </Modal>
       );
     }
-    case 'ruthless': {
+    case 'signalJammer': {
       const p = game.players[head.player];
       const victim = game.players[head.victim];
       return (
         <Modal
-          title={cardName('ruthless')}
+          title={cardName('signal-jammer')}
           subtitle={`${p.name}, you destroyed an enemy mech. Choose one of ${victim.name}’s skills to disable until the start of your next turn.`}
           pc={p.color}
         >
           <div className="modal-actions">
-            <button className="btn" onClick={() => dispatch({ type: 'ruthless' })}>
+            <button className="btn" onClick={() => dispatch({ type: 'signalJammer' })}>
               Skip
             </button>
             {victim.skills
               .filter((s) => s.active)
               .map((s) => (
-                <button key={s.id} className="btn btn-primary" onClick={() => dispatch({ type: 'ruthless', skill: s.id })}>
+                <button key={s.id} className="btn btn-primary" onClick={() => dispatch({ type: 'signalJammer', skill: s.id })}>
                   Disable {card(s.id).name}
                 </button>
               ))}
@@ -175,7 +175,7 @@ export function DecisionOverlay({ game, dispatch, human }: { game: GameState; di
 }
 
 /**
- * A whole deck of skills to choose from (Change of Heart): grouped under their categories, A–Z within each, and
+ * A whole deck of skills to choose from (Headhunter): grouped under their categories, A–Z within each, and
  * every card's whole text shown, since this is where it's read and compared.
  */
 function SkillsByCategory({ ids, onPick }: { ids: string[]; onPick: (id: string) => void }) {

@@ -242,7 +242,7 @@ describe('PNG', () => {
 describe('ZIP', () => {
   it('stores each file whole, with its name, size and checksum, readable by unzip tools', async () => {
     const files = [
-      { name: 'skill/01-agile.pdf', blob: new Blob([new Uint8Array(3000).fill(9)]) },
+      { name: 'skill/01-tune-up.pdf', blob: new Blob([new Uint8Array(3000).fill(9)]) },
       { name: 'order.csv', blob: new Blob(['file,quantity\n']) },
     ];
     const bytes = new Uint8Array(await (await zip(files)).arrayBuffer());

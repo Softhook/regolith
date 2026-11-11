@@ -50,29 +50,29 @@ describe('game stats', () => {
     expect(gained(before, s)).toEqual([{ battlesLost: 1 }, { battlesWon: 1 }]);
   });
 
-  it('count a Stubborn defender destroying the attacker', () => {
-    const { before, s } = battle(false, ['r-stubborn']);
+  it('count an Entrenched defender destroying the attacker', () => {
+    const { before, s } = battle(false, ['r-entrenched']);
     expect(gained(before, s)).toEqual([
       { battlesLost: 1, mechsLost: 1 },
       { battlesWon: 1, mechsDestroyed: 1 },
     ]);
   });
 
-  it('count Dangerous destroying both mechs as no battle: only the enemy mech', () => {
-    const { before } = battle(true, ['r-dangerous']);
+  it('count Unstable Reactor destroying both mechs as no battle: only the enemy mech', () => {
+    const { before } = battle(true, ['r-unstable-reactor']);
     let s = apply(before, { type: 'attack', die: 'p0d0', target: 'p1d0' });
-    expect(s.pending[0]?.kind).toBe('dangerous');
-    s = apply(s, { type: 'dangerous', destroy: true });
+    expect(s.pending[0]?.kind).toBe('unstableReactor');
+    s = apply(s, { type: 'unstableReactor', destroy: true });
     expect(gained(before, s)).toEqual([{ mechsLost: 1 }, { mechsDestroyed: 1 }]);
   });
 
-  it('count a mech destroyed by Show of Force, but not your own', () => {
+  it('count a mech destroyed by Orbital Cannon, but not your own', () => {
     const before = arrange(quickStart(2, 5), { p0d0: [7, 2, 3], p1d0: [7, 4, 3] });
-    before.pending.unshift({ kind: 'showOfForce', player: 0 });
-    const s = apply(before, { type: 'showOfForce', die: 'p1d0' });
+    before.pending.unshift({ kind: 'orbitalCannon', player: 0 });
+    const s = apply(before, { type: 'orbitalCannon', die: 'p1d0' });
     expect(gained(before, s)).toEqual([{ mechsDestroyed: 1 }, { mechsLost: 1 }]);
-    before.pending[0] = { kind: 'showOfForce', player: 0 };
-    expect(gained(before, apply(before, { type: 'showOfForce', die: 'p0d0' }))).toEqual([{}, {}]);
+    before.pending[0] = { kind: 'orbitalCannon', player: 0 };
+    expect(gained(before, apply(before, { type: 'orbitalCannon', die: 'p0d0' }))).toEqual([{}, {}]);
   });
 
   it('count a claim and an objective seized through Take Over, but not a starting objective', () => {
@@ -91,27 +91,27 @@ describe('game stats', () => {
     expect(gained(s, apply(s, { type: 'infamy', objective: free.id }))).toEqual([{}, { objectivesTaken: 1 }]);
   });
 
-  it('count every card gained: taken, stored with Patient, an Expansion, or drawn by Change of Heart', () => {
+  it('count every card gained: taken, stored with Strategic Plan, a Reinforcements card, or drawn by Headhunter', () => {
     let s = quickStart(2, 611);
     const p = s.turn.player;
     const taken = () => s.players[p].stats!.cardsTaken;
-    s.players[p].skills = [{ id: 'r-patient', active: true }];
-    toRow(s, 'tactic', 'r-aggression');
+    s.players[p].skills = [{ id: 'r-strategic-plan', active: true }];
+    toRow(s, 'tactic', 'r-power-grab');
     s.pending.unshift({ kind: 'takeCard', player: p, count: 1 });
     s = apply(s, { type: 'takeCard', deck: 'tactic', index: 0, store: true });
     expect(taken()).toBe(1);
 
     s.pending.unshift({ kind: 'takeCard', player: p, count: 1 });
     s = apply(s, { type: 'takeCard', deck: 'skill', index: 0 });
-    while (s.pending[0]?.kind === 'patientTactic') s = apply(s, { type: 'patientTactic' });
+    while (s.pending[0]?.kind === 'strategicPlanTactic') s = apply(s, { type: 'strategicPlanTactic' });
     expect(taken()).toBe(2);
 
-    s.pending.unshift({ kind: 'changeOfHeart', player: p });
-    s = apply(s, { type: 'changeOfHeart', skill: s.market.skillDeck[0] });
+    s.pending.unshift({ kind: 'headhunter', player: p });
+    s = apply(s, { type: 'headhunter', skill: s.market.skillDeck[0] });
     expect(taken()).toBe(3);
 
     s.pending.unshift({ kind: 'takeCard', player: p, count: 1 });
-    s = apply(s, { type: 'takeCard', deck: 'expansion', index: 0 });
+    s = apply(s, { type: 'takeCard', deck: 'reinforcement', index: 0 });
     expect(taken()).toBe(4);
   });
 

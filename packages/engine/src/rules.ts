@@ -52,10 +52,10 @@ export interface CardRules {
   startingSkillDraft: boolean;
   /** Taking the oldest face-up card lets you peek at the top of its deck instead. */
   peek: boolean;
-  /** Expansion cards form a separate face-up pile of players + 1. */
-  expansionPile: boolean;
-  /** The card that pile is; see expansionCard. */
-  expansion: CardDef;
+  /** Reinforcements cards form a separate face-up pile of players + 1. */
+  reinforcementPile: boolean;
+  /** The card that pile is; see reinforcementCard. */
+  reinforcement: CardDef;
   terms: {
     skill: string;
     skills: string;
@@ -80,15 +80,15 @@ export function defineRuleSets(table: Record<GameMode, RuleSet>) {
     if (!cards) continue;
     addCards(cards.skills, 'skill');
     addCards(cards.tactics, 'tactic');
-    addCards([cards.expansion], 'expansion');
+    addCards([cards.reinforcement], 'reinforcement');
   }
 }
 
-/** The Expansion card of this game's rules (Regolith's Reinforcements). */
-export function expansionCard(state: GameState): CardDef {
+/** The Reinforcements card of this game's rules (Regolith's Reinforcements). */
+export function reinforcementCard(state: GameState): CardDef {
   const cards = rulesOf(state).cards;
   if (!cards) throw new Error(`${rulesOf(state).name} has no cards`);
-  return cards.expansion;
+  return cards.reinforcement;
 }
 
 /** The rule set a game is played with. */

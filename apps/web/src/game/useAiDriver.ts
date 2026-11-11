@@ -11,9 +11,9 @@ function aiDelay(s: GameState): number {
   const head = s.pending[0];
   if (s.phase === 'setup') return 650;
   if (!head) return s.turn.actionsLeft === 3 && !Object.keys(s.turn.moved).length ? 1100 : 850;
-  if (head.kind === 'takeCard' || head.kind === 'peek' || head.kind === 'patientTactic') return 1100;
+  if (head.kind === 'takeCard' || head.kind === 'peek' || head.kind === 'strategicPlanTactic') return 1100;
   if (head.kind === 'advance') return 700;
-  // A Tactic just played (PlayedCard) lands once it has been read: Show of Force's target, the Ice Tunnels…
+  // A Tactic just played (PlayedCard) lands once it has been read: Orbital Cannon's target, the Ice Tunnels…
   if (landingNext(s)) return 1500;
   return 800;
 }

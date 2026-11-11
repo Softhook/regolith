@@ -50,16 +50,16 @@ export const ALL_CARDS: CardDef[] = [];
 
 const byId = new Map<string, CardDef>();
 const skillIds = new Set<string>();
-const expansionIds = new Set<string>();
+const reinforcementIds = new Set<string>();
 
 /** Adds a mode's decks to the cards `card` knows (rules.ts, as the rule sets are defined); cards already known are skipped. */
-export function addCards(defs: readonly CardDef[], kind: 'skill' | 'tactic' | 'expansion') {
+export function addCards(defs: readonly CardDef[], kind: 'skill' | 'tactic' | 'reinforcement') {
   for (const c of defs) {
     if (byId.has(c.id)) continue;
     byId.set(c.id, c);
     ALL_CARDS.push(c);
     if (kind === 'skill') skillIds.add(c.id);
-    if (kind === 'expansion') expansionIds.add(c.id);
+    if (kind === 'reinforcement') reinforcementIds.add(c.id);
   }
 }
 
@@ -78,12 +78,12 @@ export function cardWithEffect(effect: string): CardDef | undefined {
   return byId.get(effect) ?? [...byId.values()].find((c) => c.effect === effect);
 }
 
-/** The name of the card with this effect, as printed (Profiteering's is Arms Deal). */
+/** The name of the card with this effect, as printed (Arms Deal's is Arms Deal). */
 export const cardName = (effect: string): string => cardWithEffect(effect)?.name ?? effect;
 
 /** Skills are permanent; everything else is one-shot. */
-export function cardKind(id: string): 'skill' | 'tactic' | 'expansion' {
-  if (expansionIds.has(id)) return 'expansion';
+export function cardKind(id: string): 'skill' | 'tactic' | 'reinforcement' {
+  if (reinforcementIds.has(id)) return 'reinforcement';
   return skillIds.has(id) ? 'skill' : 'tactic';
 }
 

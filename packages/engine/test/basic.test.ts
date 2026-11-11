@@ -79,7 +79,7 @@ describe('setup (p.3)', () => {
     expect(numbers(game(4))).toBe('9* 9 8 8* 10 8* 8 9 9*');
   });
 
-  it('gives each player 5 cubes, power and research at 1, 3 mechs, 2 expansion mechs and an atomic, no cards', () => {
+  it('gives each player 5 cubes, power and research at 1, 3 mechs, 2 reserve mechs and an atomic, no cards', () => {
     const s = createGame({ players: players(2), seed: 1, mode: 'basic' });
     for (const p of s.players) {
       expect(p).toMatchObject({ cubesLeft: 5, power: 1, research: 1, atomics: 1, skills: [] });
@@ -88,7 +88,7 @@ describe('setup (p.3)', () => {
     }
     expect(s.market.skillRow).toEqual([]);
     expect(s.market.tacticRow).toEqual([]);
-    expect(s.market.expansions).toBe(0);
+    expect(s.market.reinforcements).toBe(0);
   });
 
   it('allows one re-roll of all 3 starting mechs', () => {
@@ -192,7 +192,7 @@ describe('refit (p.5, as the Community Edition plays it)', () => {
     expect(s.turn.actionsLeft).toBe(0);
   });
 
-  it('can re-roll a mech in the salvage yard, but not an expansion mech', () => {
+  it('can re-roll a mech in the salvage yard, but not a reserve mech', () => {
     const s = scenario({});
     const before = at(s, 'p0d1').value;
     const next = apply(s, { type: 'refit', die: 'p0d1' });
@@ -230,7 +230,7 @@ describe('drop (p.5)', () => {
     expect(s.turn.actionsLeft).toBe(1);
   });
 
-  it('never drops the expansion mechs', () => {
+  it('never drops the reserve mechs', () => {
     const s = scenario({});
     expect(() => apply(s, { type: 'drop', die: 'p0d3', to: { r: 4, c: 6 } })).toThrow(/not in the salvage yard/);
   });

@@ -52,15 +52,15 @@ type TacticEffectFn = (s: GameState, p: PlayerId) => void;
 
 /** What each Tactic does when taken. Effects that need a choice push a pending decision. */
 const TACTIC_EFFECTS: Record<TacticEffect, TacticEffectFn> = {
-  aggression: (s, p) => gainPower(s, p, 2),
-  'black-market': (s, p) => {
+  'power-grab': (s, p) => gainPower(s, p, 2),
+  contraband: (s, p) => {
     s.players[p].atomics += 2;
   },
-  'change-of-heart': (s, p) => {
+  headhunter: (s, p) => {
     // Like a draw: an empty deck is first refilled from its discards.
-    if (refill(s, 'skill').length) s.pending.unshift({ kind: 'changeOfHeart', player: p });
+    if (refill(s, 'skill').length) s.pending.unshift({ kind: 'headhunter', player: p });
   },
-  momentum: (s, p) => {
+  'forced-march': (s, p) => {
     s.players[p].bonusTurns.push(2);
     // Gambits resolve at once (designer, BGG thread 1068669): the bonus turn comes before any
     // picks still owed, which are taken in its card phase (as on Board Game Arena).
@@ -75,38 +75,38 @@ const TACTIC_EFFECTS: Record<TacticEffect, TacticEffectFn> = {
       return false;
     });
   },
-  'plan-ahead': (s, p) => {
+  'kill-zone': (s, p) => {
     // "Until the end of your next turn": taken off-turn, that is the player's coming turn.
-    s.players[p].planAhead = p === s.turn.player ? 2 : 1;
+    s.players[p].killZone = p === s.turn.player ? 2 : 1;
   },
   // Regolith's Sabotage: two actions, where the Community Edition's took one.
-  'sabotage-double': (s, p) => {
+  sabotage: (s, p) => {
     for (const o of s.players) if (o.id !== p) o.actionPenalty += 2;
   },
-  'show-of-force': (s, p) => {
-    if (mechsOnBoard(s).length) s.pending.unshift({ kind: 'showOfForce', player: p });
+  'orbital-cannon': (s, p) => {
+    if (mechsOnBoard(s).length) s.pending.unshift({ kind: 'orbitalCannon', player: p });
   },
-  'unveil-the-fleet': (s, p) => {
-    s.pending.unshift({ kind: 'unveil', player: p, rerolled: [] });
+  invasion: (s, p) => {
+    s.pending.unshift({ kind: 'invasion', player: p, rerolled: [] });
     for (const d of mechsOnBoard(s, p)) destroyMech(s, d);
   },
-  'warp-gate': (s, p) => {
+  'ice-tunnel': (s, p) => {
     s.pending.unshift({ kind: 'iceTunnel', player: p, placed: [] });
   },
-  barrier: (s, p) => {
+  barricade: (s, p) => {
     if (barrierSpaces(s).length > 0) s.pending.unshift({ kind: 'placeBarrier', player: p, placed: [] });
   },
   'kinetic-shunt': (s, p) => {
     if (canShunt(s)) s.pending.unshift({ kind: 'kineticShunt', player: p });
   },
-  expansion: (s, p) => {
+  reinforcements: (s, p) => {
     const res = reserve(s, p);
     if (!res.length) {
       log(s, `${s.players[p].name} has no reserve mechs left.`, p);
       return;
     }
-    // Placed after the roll is final (a Clever choice comes first).
-    s.pending.unshift({ kind: 'placeExpansion', player: p, die: res[0].id });
+    // Placed after the roll is final (an Engineering choice comes first).
+    s.pending.unshift({ kind: 'placeReinforcement', player: p, die: res[0].id });
     roll(s, res[0]);
   },
 };
@@ -150,8 +150,8 @@ function gainCard(s: GameState, p: PlayerId, id: string) {
     log(s, `${pl.name} takes the ${def.name} ${rulesOf(s).cards?.terms.skill ?? 'skill'}.`, p, 'cardTaken');
     s.log[s.log.length - 1].card = id;
     if (pl.skills.length > skillLimit(s, p)) s.pending.unshift({ kind: 'discardSkill', player: p, reason: 'limit' });
-    // Resolved before any discard, so a Tactic stored now is lost if Patient itself is then discarded.
-    if (ruleOf(id).storeTactics) s.pending.unshift({ kind: 'patientTactic', player: p });
+    // Resolved before any discard, so a Tactic stored now is lost if Strategic Plan itself is then discarded.
+    if (ruleOf(id).storeTactics) s.pending.unshift({ kind: 'strategicPlanTactic', player: p });
   } else {
     playTactic(s, p, id, `${pl.name} plays ${def.name}.`);
   }
@@ -167,17 +167,17 @@ function playTactic(s: GameState, p: PlayerId, id: string, message: string) {
   effect(s, p);
 }
 
-/** Gains a card just taken, or with Patient stores the Tactic instead of playing it. */
+/** Gains a card just taken, or with Strategic Plan stores the Tactic instead of playing it. */
 function takeOrStore(s: GameState, p: PlayerId, id: string, store: boolean | undefined) {
   if (!store) return gainCard(s, p, id);
   const pl = s.players[p];
   tally(s, p, 'cardsTaken');
   (pl.storedTactics ??= []).push(id);
-  log(s, `${pl.name} stores ${card(id).name} (${cardName('patient')}).`, p, 'cardTaken');
+  log(s, `${pl.name} stores ${card(id).name} (${cardName('strategic-plan')}).`, p, 'cardTaken');
   s.log[s.log.length - 1].card = id;
 }
 
-/** Moves a player's remaining picks to the Momentum turn's card phase. */
+/** Moves a player's remaining picks to the Forced March turn's card phase. */
 function carryPicks(pl: PlayerState, x: PendingOf<'takeCard'>) {
   pl.carriedPicks = (pl.carriedPicks ?? 0) + x.count;
   if (x.claim) pl.carriedClaimPicks = (pl.carriedClaimPicks ?? 0) + x.claim;
@@ -188,7 +188,7 @@ function consumeCardPick(s: GameState) {
   const head = s.pending[0];
   if (head?.kind !== 'takeCard') return;
   head.count--;
-  // A card can come from any pick, so the picks a Profiteering atomic can replace are used last.
+  // A card can come from any pick, so the picks an Arms Deal atomic can replace are used last.
   if (head.claim) head.claim = Math.min(head.claim, head.count);
   if (head.count <= 0) s.pending.shift();
 }
@@ -198,17 +198,17 @@ export const cardHandlers = {
     const head = headOf(s, 'takeCard', 'Not taking a card');
     const p = head.player;
     if (a.store && (a.deck !== 'tactic' || !anySkill(s, p, (r) => r.storeTactics)))
-      fail(`Only a Tactic can be stored, with ${cardName('patient')}`);
-    if (a.deck === 'expansion') {
-      if (a.index !== 0) fail(`The ${cardName('expansion')} pile has one face-up card`);
+      fail(`Only a Tactic can be stored, with ${cardName('strategic-plan')}`);
+    if (a.deck === 'reinforcement') {
+      if (a.index !== 0) fail(`The ${cardName('reinforcements')} pile has one face-up card`);
       const res = reserve(s, p);
-      if (s.market.expansions <= 0) fail(`No ${cardName('expansion')} cards left`);
+      if (s.market.reinforcements <= 0) fail(`No ${cardName('reinforcements')} cards left`);
       if (!res.length) fail('Your reserve is empty');
       consumeCardPick(s);
-      s.market.expansions--;
-      s.pending.unshift({ kind: 'placeExpansion', player: p, die: res[0].id });
+      s.market.reinforcements--;
+      s.pending.unshift({ kind: 'placeReinforcement', player: p, die: res[0].id });
       roll(s, res[0]);
-      log(s, `${name(s, p)} reinforces their mechs.`, p, 'expansion');
+      log(s, `${name(s, p)} reinforces their mechs.`, p, 'reinforcement');
       tally(s, p, 'cardsTaken');
       return;
     }
@@ -233,13 +233,13 @@ export const cardHandlers = {
     const id = a.takeTop ? (head.deck === 'skill' ? s.market.skillDeck : s.market.tacticDeck).shift()! : takeFromRow(s, head.deck, 2);
     takeOrStore(s, head.player, id, head.store);
   },
-  /** Profiteering: a pick earned by a Claim action (not by Take Over; RULES.md ruling 7) becomes 1 atomic. */
+  /** Arms Deal: a pick earned by a Claim action (not by Take Over; RULES.md ruling 7) becomes 1 atomic. */
   profiteer(s) {
     const head = headOf(s, 'takeCard', 'Not taking a card');
     if (!canProfiteer(s)) fail('No card for claiming to trade');
     head.claim!--;
     s.players[head.player].atomics++;
-    log(s, `${name(s, head.player)} takes an atomic instead of a card (${cardName('profiteering')}).`, head.player);
+    log(s, `${name(s, head.player)} takes an atomic instead of a card (${cardName('arms-deal')}).`, head.player);
     consumeCardPick(s);
   },
   discardSkill(s, a) {
@@ -249,7 +249,7 @@ export const cardHandlers = {
     const i = pl.skills.findIndex((x) => x.id === a.skill);
     if (i < 0) fail('You do not have that skill');
     pl.skills.splice(i, 1);
-    if (effectOf(a.skill) === 'ambitious') pl.ambitionTokens = 0;
+    if (effectOf(a.skill) === 'final-push') pl.ambitionTokens = 0;
     if (ruleOf(a.skill).storeTactics && pl.storedTactics?.length) {
       s.market.tacticDiscard.push(...pl.storedTactics);
       pl.storedTactics.length = 0;
@@ -259,8 +259,8 @@ export const cardHandlers = {
     log(s, `${pl.name} discards ${card(a.skill).name}.`, head.player, 'discard');
     if (pl.skills.length > skillLimit(s, head.player)) s.pending.unshift({ ...head, reason: 'limit' });
   },
-  placeExpansion(s, a) {
-    const head = headOf(s, 'placeExpansion', 'No expansion mech to place');
+  placeReinforcement(s, a) {
+    const head = headOf(s, 'placeReinforcement', 'No reinforcement to place');
     const d = die(s, head.die);
     if (a.to) {
       if (!dropTargets(s, head.player).some((p) => same(p, a.to!))) fail('Place it on the perimeter of one of your objectives');
@@ -273,8 +273,8 @@ export const cardHandlers = {
     s.turn.seen[d.id] = [d.value];
     s.pending.shift();
   },
-  showOfForce(s, a) {
-    const head = headOf(s, 'showOfForce', `No ${cardName('show-of-force')} to resolve`);
+  orbitalCannon(s, a) {
+    const head = headOf(s, 'orbitalCannon', `No ${cardName('orbital-cannon')} to resolve`);
     const d = die(s, a.die);
     if (d.loc.zone !== 'board') fail('Choose a mech on the map');
     s.pending.shift();
@@ -329,9 +329,9 @@ export const cardHandlers = {
     s.barriers = s.barriers!.map((x) => (x === b ? { ...b, r: a.to.r, c: a.to.c } : x));
     logTo(s, head.player, `${name(s, head.player)} pushes a barrier`, a.to);
   },
-  /** Patient: "When you take this Skill, you may take and store a Tactic." */
-  patientTactic(s, a) {
-    const head = headOf(s, 'patientTactic', 'Not storing a tactic');
+  /** Strategic Plan: "When you take this Skill, you may take and store a Tactic." */
+  strategicPlanTactic(s, a) {
+    const head = headOf(s, 'strategicPlanTactic', 'Not storing a tactic');
     if (a.index === undefined) {
       s.pending.shift();
       log(s, `${name(s, head.player)} does not store a tactic.`, head.player);
@@ -341,8 +341,8 @@ export const cardHandlers = {
     s.pending.shift();
     takeOrStore(s, head.player, id, true);
   },
-  changeOfHeart(s, a) {
-    const head = headOf(s, 'changeOfHeart', 'Not choosing a skill');
+  headhunter(s, a) {
+    const head = headOf(s, 'headhunter', 'Not choosing a skill');
     const i = s.market.skillDeck.indexOf(a.skill);
     if (i < 0) fail('That skill is not in the deck');
     s.market.skillDeck.splice(i, 1);
@@ -350,8 +350,8 @@ export const cardHandlers = {
     s.pending.shift();
     gainCard(s, head.player, a.skill);
   },
-  unveilReroll(s, a) {
-    const head = headOf(s, 'unveil', 'Not dropping');
+  invasionReroll(s, a) {
+    const head = headOf(s, 'invasion', 'Not dropping');
     const d = die(s, a.die);
     if (d.owner !== head.player || d.loc.zone !== 'salvageYard') fail('Choose one of your mechs');
     if (head.rerolled.includes(d.id)) fail('Already re-rolled');
@@ -360,19 +360,19 @@ export const cardHandlers = {
     roll(s, d);
     note(s, `${name(s, head.player)} re-rolls their ${was}: ${mechName(s, d)}.`, head.player);
   },
-  unveilDrop(s, a) {
-    const head = headOf(s, 'unveil', 'Not dropping');
+  invasionDrop(s, a) {
+    const head = headOf(s, 'invasion', 'Not dropping');
     const d = die(s, a.die);
     if (d.owner !== head.player || d.loc.zone !== 'salvageYard') fail('Choose a mech in your salvage yard');
     if (!dropTargets(s, head.player).some((p) => same(p, a.to))) fail('Not a drop space');
     d.loc = boardLoc(a.to);
     logTo(s, head.player, `${name(s, head.player)} drops ${aMech(s, d)}`, a.to);
   },
-  unveilDone(s) {
-    headOf(s, 'unveil', 'Not dropping');
+  invasionDone(s) {
+    headOf(s, 'invasion', 'Not dropping');
     s.pending.shift();
   },
-  /** Patient: ends the action phase by playing one stored Tactic; unused actions are forfeited (RULES.md ruling 4). */
+  /** Strategic Plan: ends the action phase by playing one stored Tactic; unused actions are forfeited (RULES.md ruling 4). */
   playStoredTactic(s, a) {
     const t = requireActionPhase(s, true);
     const p = t.player;

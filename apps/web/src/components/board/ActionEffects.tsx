@@ -20,7 +20,7 @@ function effectsOf(before: GameState, game: GameState): Effect[] {
   const step = lastLogId(game);
   const out: Effect[] = [];
   // A card's own effect (CardEffects) stands in for these on a mech or objective it marks: one placed by
-  // Expansion or Unveil, one Nomadic relocates, a relocated cube.
+  // Reinforcements or Invasion, one Nomadic relocates, a relocated cube.
   const replaced = new Set(cardEffectsOf(before, game).flatMap((e) => e.replaces ?? []));
   const was = new Map(before.dice.map((d) => [d.id, d]));
   for (const d of game.dice) {

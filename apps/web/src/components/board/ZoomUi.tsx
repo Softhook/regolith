@@ -110,7 +110,7 @@ export function useFollowMoves(game: GameState, ctl: Controller, spots: MechSpot
     const { at: drawn } = drawing(game.board);
     const shot = shotOf(before.game, game);
     if (!moved && shot && !ctl.mine(shot.attacker.player)) moved = drawn(shot.at);
-    // Another player's card striking the map (Show of Force's target, a relocated cube): its card beams there.
+    // Another player's card striking the map (Orbital Cannon's target, a relocated cube): its card beams there.
     const card = moved ? undefined : castOf(before.game, game);
     const target = card?.player !== undefined && !ctl.mine(card.player) ? cardEffectsOf(before.game, game)[0]?.at : undefined;
     if (target) moved = drawn(target);

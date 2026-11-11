@@ -27,7 +27,7 @@ import {
   type MechReach,
 } from '@regolith/engine';
 import { skillValue } from './cardValues';
-import { storedTacticsValue } from './patient';
+import { storedTacticsValue } from './strategicPlan';
 
 /**
  * Position evaluation for levels 2 and up, in "cube points": one cube is worth CUBE.
@@ -181,7 +181,7 @@ function playerValue(ctx: Ctx, p: PlayerId): number {
     v += CARD * 0.7 * Math.min(1, (pl.research - 1) / Math.max(1, at - 1));
     if (s.turn.player === p && s.turn.phase === 'actions') v += s.turn.claims * CARD;
     // Cards already earned but taken later: an Take Over cube on another player's turn, or picks
-    // carried into a Momentum turn.
+    // carried into a Forced March turn.
     if (s.turn.phase === 'actions') v += (s.turn.offTurnCubes ?? []).filter((x) => x === p).length * CARD;
     v += (pl.carriedPicks ?? 0) * CARD;
   }

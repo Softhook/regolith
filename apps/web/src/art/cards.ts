@@ -29,7 +29,7 @@ export const DECKS: Deck[] = MODES.flatMap((m): Deck[] => {
   return [
     { id: 'skill', name: c.terms.skillDeck, cards: faces('skill', c.skills) },
     { id: 'tactic', name: c.terms.tacticDeck, cards: faces('tactic', c.tactics) },
-    { id: 'expansion', name: c.expansion.name, cards: faces('expansion', [c.expansion]) },
+    { id: 'reinforcement', name: c.reinforcement.name, cards: faces('reinforcement', [c.reinforcement]) },
   ];
 });
 

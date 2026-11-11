@@ -55,7 +55,7 @@ function bruteForce(s: GameState, withCarry: boolean): Action[] {
   const cells = spaces(s.board);
   const mine = s.dice.filter((d) => d.owner === me);
   const onBoard = s.dice.filter((d) => d.loc.zone === 'board');
-  const out: Action[] = [{ type: 'endTurn' }, { type: 'research' }, { type: 'composed' }, { type: 'ambitious' }];
+  const out: Action[] = [{ type: 'endTurn' }, { type: 'research' }, { type: 'standDown' }, { type: 'finalPush' }];
   for (const p of s.board.objectives) {
     out.push({ type: 'claim', objective: p.id });
     for (const pl of s.players) if (pl.id !== me) out.push({ type: 'claim', objective: p.id, replace: pl.id });
@@ -66,15 +66,15 @@ function bruteForce(s: GameState, withCarry: boolean): Action[] {
       { type: 'refit', die: d.id },
       { type: 'change', die: d.id, value: 3 },
       { type: 'change', die: d.id, value: 5 },
-      { type: 'flexible', die: d.id, delta: 1 },
-      { type: 'flexible', die: d.id, delta: -1 },
-      { type: 'resourceful', die: d.id },
+      { type: 'fieldRefit', die: d.id, delta: 1 },
+      { type: 'fieldRefit', die: d.id, delta: -1 },
+      { type: 'recycle', die: d.id },
     );
     for (const to of cells)
       out.push(
         { type: 'move', die: d.id, to },
         { type: 'drop', die: d.id, to },
-        { type: 'tactical', die: d.id, to },
+        { type: 'advanceSkill', die: d.id, to },
         { type: 'ability', die: d.id, to },
       );
     for (const o of onBoard) {
@@ -91,19 +91,19 @@ function bruteForce(s: GameState, withCarry: boolean): Action[] {
             from,
           })),
           { type: 'freeAttack', die: d.id, target: o.id },
-          { type: 'tactical', die: d.id, target: o.id },
+          { type: 'advanceSkill', die: d.id, target: o.id },
         );
     }
     const at = d.loc;
     if (withCarry && d.value === 2 && at.zone === 'board') {
-      // Only spaces within reach can be destinations or drops (range 2, +1 for Agile, +1 to drop).
+      // Only spaces within reach can be destinations or drops (range 2, +1 for Tune Up, +1 to drop).
       const near = cells.filter((c) => distance(c, at) <= 4);
       for (const p of mine) {
         if (p.id === d.id || p.loc.zone !== 'board') continue;
         for (const to of near)
           for (const setDown of adjacent(s.board, to)) {
             out.push({ type: 'carry', die: d.id, passenger: p.id, to, setDown });
-            out.push({ type: 'tactical', die: d.id, passenger: p.id, to, setDown });
+            out.push({ type: 'advanceSkill', die: d.id, passenger: p.id, to, setDown });
           }
       }
     }

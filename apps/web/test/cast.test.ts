@@ -17,39 +17,39 @@ function taking(card: string, skills: string[] = []): GameState {
 
 describe('castOf', () => {
   it('is the Tactic played in the step', () => {
-    const s = taking('r-aggression');
+    const s = taking('r-power-grab');
     const after = apply(s, { type: 'takeCard', deck: 'tactic', index: 0 });
-    expect(castOf(s, after)?.card).toBe('r-aggression');
+    expect(castOf(s, after)?.card).toBe('r-power-grab');
   });
 
   it('is the Tactic whose target the step chooses, before a skill its blow sets off', () => {
-    const s = apply(taking('r-show-of-force', ['r-plundering']), { type: 'takeCard', deck: 'tactic', index: 0 });
+    const s = apply(taking('r-orbital-cannon', ['r-exploit']), { type: 'takeCard', deck: 'tactic', index: 0 });
     const me = s.turn.player;
-    const after = apply(s, { type: 'showOfForce', die: `p${1 - me}d0` });
-    // Plundering fired too, on an entry of its own.
-    expect(after.log.some((e) => e.card === 'r-plundering' && e.gains)).toBe(true);
-    expect(castOf(s, after)?.card).toBe('r-show-of-force');
+    const after = apply(s, { type: 'orbitalCannon', die: `p${1 - me}d0` });
+    // Exploit fired too, on an entry of its own.
+    expect(after.log.some((e) => e.card === 'r-exploit' && e.gains)).toBe(true);
+    expect(castOf(s, after)?.card).toBe('r-orbital-cannon');
   });
 
-  it('is nothing for a card taken, or for placing a CE Expansion mech after an earlier Tactic', () => {
+  it('is nothing for a card taken, or for placing a CE Reinforcements mech after an earlier Tactic', () => {
     const s = quickStart(2, 42);
     s.pending.unshift({ kind: 'takeCard', player: s.turn.player, count: 1 });
-    s.market.skillRow[0] = 'r-agile';
+    s.market.skillRow[0] = 'r-tune-up';
     const after = apply(s, { type: 'takeCard', deck: 'skill', index: 0 });
     expect(castOf(s, after)).toBeUndefined();
 
-    // Play a Tactic first, then take an Expansion from the CE pile and place its mech.
-    let g = taking('r-aggression');
+    // Play a Tactic first, then take a Reinforcements card from the pile and place its mech.
+    let g = taking('r-power-grab');
     g.pending[0] = { kind: 'takeCard', player: g.turn.player, count: 2 };
     g = apply(g, { type: 'takeCard', deck: 'tactic', index: 0 });
-    g = apply(g, { type: 'takeCard', deck: 'expansion', index: 0 });
-    const placed = apply(g, { type: 'placeExpansion', to: null });
+    g = apply(g, { type: 'takeCard', deck: 'reinforcement', index: 0 });
+    const placed = apply(g, { type: 'placeReinforcement', to: null });
     expect(castOf(g, placed)).toBeUndefined();
   });
 
-  it('still counts a Tactic as landing while Clever or Calculating is resolved first', () => {
-    const s = apply(taking('r-unveil-the-fleet', ['r-calculating']), { type: 'takeCard', deck: 'tactic', index: 0 });
-    expect(s.pending[0]?.kind).toBe('clever');
+  it('still counts a Tactic as landing while Engineering or Remodel is resolved first', () => {
+    const s = apply(taking('r-invasion', ['r-remodel']), { type: 'takeCard', deck: 'tactic', index: 0 });
+    expect(s.pending[0]?.kind).toBe('engineering');
     expect(landing(s)).toBe(true);
   });
 });
@@ -74,9 +74,9 @@ describe('repeatsLastTurn', () => {
     expect(repeatsLastTurn(log, back)).toBe(false);
   });
 
-  it('is always news for a bonus that is not a turn’s start (Plundering)', () => {
-    const plunder = bonus(0, 'r-plundering');
-    const log = [heading(0), bonus(0, 'r-plundering'), heading(1), heading(0), other(0), plunder];
+  it('is always news for a bonus that is not a turn’s start (Exploit)', () => {
+    const plunder = bonus(0, 'r-exploit');
+    const log = [heading(0), bonus(0, 'r-exploit'), heading(1), heading(0), other(0), plunder];
     expect(repeatsLastTurn(log, plunder)).toBe(false);
   });
 });

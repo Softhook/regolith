@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { cellOf, drawing, movePath, same, type Cell, type Die, type GameState } from '@regolith/engine';
-import { BEAM_ARRIVES, BLINK, boomAt, EXPANSION } from '../beats';
+import { BEAM_ARRIVES, BLINK, boomAt, REINFORCEMENT } from '../beats';
 import { cardEffectsOf } from './cardEffects';
 import { mechSpots, touching } from './mechSpots';
 import { isPlayStep } from './steps';
@@ -57,9 +57,9 @@ export function flightOf(before: GameState, game: GameState, id: string): Waypoi
 export function stagingOf(before: GameState, game: GameState): Staging {
   const out: Staging = { late: new Map(), struck: [], paths: new Map() };
   for (const e of cardEffectsOf(before, game)) {
-    // When the card's effect brings the mech or cube (beats.ts): Expansion's lance lands, Nomadic's rings open,
+    // When the card's effect brings the mech or cube (beats.ts): Reinforcements's lance lands, Nomadic's rings open,
     // a relocated cube's spark arrives.
-    if (e.kind === 'expansion' && e.replaces) out.late.set(e.replaces, EXPANSION.strike);
+    if (e.kind === 'reinforcement' && e.replaces) out.late.set(e.replaces, REINFORCEMENT.strike);
     else if (e.kind === 'blink' && e.replaces) out.late.set(e.replaces, BLINK.open);
     else if (e.kind === 'beam' && e.replaces?.startsWith('objective:'))
       out.cube = { objective: Number(e.replaces.slice('objective:'.length)), ms: BEAM_ARRIVES };

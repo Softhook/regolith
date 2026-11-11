@@ -6,7 +6,7 @@ import { outdoors, path, stroke, glove, hexOnGround, dropping } from './props';
 import type { SpScene } from '../scenes';
 
 export const TACTIC_SCENES: Record<string, SpScene> = {
-  'r-aggression': {
+  'r-power-grab': {
     world: 'mars',
     caption: 'a two-ink recruitment poster: raised fists and a Chameleon standing on the red ground',
     draw: (s) => {
@@ -21,7 +21,7 @@ export const TACTIC_SCENES: Record<string, SpScene> = {
       );
     },
   },
-  'r-black-market': {
+  'r-contraband': {
     world: 'mars',
     caption: 'two atomic rockets in an open crate, warning stencils on them',
     draw: (s) => {
@@ -68,7 +68,7 @@ export const TACTIC_SCENES: Record<string, SpScene> = {
       );
     },
   },
-  'r-change-of-heart': {
+  'r-headhunter': {
     world: 'phobos',
     caption: 'a gloved hand pulling one personnel file from an archive drawer of them, stamped ACQUIRED in oxide',
     draw: (s) => {
@@ -127,7 +127,7 @@ export const TACTIC_SCENES: Record<string, SpScene> = {
       );
     },
   },
-  'r-momentum': {
+  'r-forced-march': {
     world: 'deimos',
     caption: 'mechs advancing at dawn, long shadows ahead of them',
     draw: (s) => {
@@ -153,7 +153,7 @@ export const TACTIC_SCENES: Record<string, SpScene> = {
       );
     },
   },
-  'r-plan-ahead': {
+  'r-kill-zone': {
     world: 'deimos',
     caption: 'a huge Behemoth caught in a marked kill zone, crossfire coming in from both sides',
     draw: (s) =>
@@ -208,7 +208,7 @@ export const TACTIC_SCENES: Record<string, SpScene> = {
       );
     },
   },
-  'r-show-of-force': {
+  'r-orbital-cannon': {
     world: 'mars',
     caption: 'an enemy mech hit from above by an amber column of light',
     draw: (s) =>
@@ -219,7 +219,7 @@ export const TACTIC_SCENES: Record<string, SpScene> = {
       mech(s, 'chameleon', 40, 37, 0.1, { yaw: -24, lean: 12 }, { plate: INKS.oxide }) +
       flash(40, 22, 6, 12),
   },
-  'r-unveil-the-fleet': {
+  'r-invasion': {
     world: 'deimos',
     caption: 'mechs coming down on their boosters all over the map',
     draw: (s) =>
@@ -232,7 +232,7 @@ export const TACTIC_SCENES: Record<string, SpScene> = {
       mech(s, 'behemoth', 54, 39, 0.05) +
       rings(20, 38, 3, 3, 3, s.key, 0.35, 180, 360),
   },
-  'r-warp-gate': {
+  'r-ice-tunnel': {
     world: 'phobos',
     caption: 'a cut-away of the ground: an ice tunnel joining two hexes underneath',
     draw: (s) => {
@@ -299,7 +299,7 @@ export const TACTIC_SCENES: Record<string, SpScene> = {
       rings(59, 38, 3, 2, 2.5, INKS.dust, 0.5, 0, 360) +
       mech(s, 'chameleon', 59, 38, 0.09, { yaw: 30, lean: 24, legs: { plus: [20, 10], minus: [-25, 20] } }, { plate: INKS.oxide }),
   },
-  'r-expansion': {
+  'r-reinforcements': {
     world: 'mars',
     caption: "a new Chameleon walking out of a workshop's doors",
     draw: (s) =>

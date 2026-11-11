@@ -121,8 +121,8 @@ function gainTargets(game: GameState, e: LogEntry): Target[] {
 /**
  * What the step from `before` to `game` marks: the spaces of its map effects (CardEffects) and new Ice
  * Tunnels, and the spots of its panel effects, less what skills firing by themselves in it gave (they cast
- * for themselves). With none, the card's player's row (Momentum's extra turn), unless the card is yet to
- * land (Show of Force before its target is chosen) or has just finished landing (unveilDone).
+ * for themselves). With none, the card's player's row (Forced March's extra turn), unless the card is yet to
+ * land (Orbital Cannon before its target is chosen) or has just finished landing (invasionDone).
  */
 function stepTargets(before: GameState, game: GameState, player: number): Target[] {
   const last = lastLogId(before);
@@ -135,14 +135,14 @@ function stepTargets(before: GameState, game: GameState, player: number): Target
     if (e.id > last && e.gains)
       for (const [k, n] of Object.entries(e.gains)) claimed.set(`${e.player}:${k}`, (claimed.get(`${e.player}:${k}`) ?? 0) + (n ?? 0));
   for (const e of panelEffectsOf(before, game)) {
-    // Another player's research changing when the turn moves on is their start-of-turn gain (Brilliant, Alien Artefact), not the card's.
+    // Another player's research changing when the turn moves on is their start-of-turn gain (Science Survey, Alien Artefact), not the card's.
     if (e.spot === 'research' && e.player !== player) continue;
-    // A gain the bonuses fully account for isn't the card's (Plundering's research after Show of Force).
+    // A gain the bonuses fully account for isn't the card's (Exploit's research after Orbital Cannon).
     if ('from' in e && e.to > e.from && e.to - e.from <= (claimed.get(`${e.player}:${e.spot}`) ?? 0)) continue;
     out.push(panelTarget(e.player, e.spot === 'skills' ? undefined : e.spot));
   }
   // Sabotage played at the end of a turn: the next player's penalty is already taken from their new turn's actions.
-  if (game.turn.number !== before.turn.number && game.turn.player !== player && cardsUsed(before, game).has('sabotage-double')) {
+  if (game.turn.number !== before.turn.number && game.turn.player !== player && cardsUsed(before, game).has('sabotage')) {
     out.push(actionsTarget(game, game.turn.player));
   }
   if (!out.length && !landing(before) && !landing(game)) out.push(panelTarget(player));
@@ -209,7 +209,7 @@ function CastBeam({ beam }: { beam: Beam }) {
  * as the effect there plays. A card casts:
  * - in a step that is its doing (cast.ts) while it is up: a Tactic's target chosen;
  * - as it comes up, for a step it was played or used in, if it comes up at once (not queued behind another);
- * - as it comes up, for a skill firing by itself (Plundering…), at what its log entry says it gave.
+ * - as it comes up, for a skill firing by itself (Exploit…), at what its log entry says it gave.
  * `shown`: the entry of the card on screen; `art`: its box. Returns the beams (portalled), a key that changes
  * at each cast (for the flash), and whether the card has cast at the map (and so fades back, see CSS).
  */

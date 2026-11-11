@@ -23,7 +23,7 @@ import {
 } from '@regolith/engine';
 import { shuffleUnseen } from './hidden';
 import { barrierShuntRank, candidates } from './candidates';
-import { storedTactics } from './patient';
+import { storedTactics } from './strategicPlan';
 
 /**
  * Level 1 (Cadet): greedy one-ply search. Every legal action is simulated (dice outcomes are
@@ -36,7 +36,7 @@ import { storedTactics } from './patient';
  * next turn) are what the higher levels in search.ts fix.
  */
 
-const RANDOM_ACTIONS = new Set<Action['type']>(['attack', 'ability', 'freeAttack', 'refit', 'resourceful', 'takeCard', 'peekChoice']);
+const RANDOM_ACTIONS = new Set<Action['type']>(['attack', 'ability', 'freeAttack', 'refit', 'recycle', 'takeCard', 'peekChoice']);
 
 export interface GreedyOptions {
   /** Samples per random action. Higher is stronger and slower. */
@@ -122,12 +122,12 @@ function best(state: GameState, me: PlayerId, candidates: Action[], opts: Greedy
 function tieBreak(s: GameState, a: Action): number {
   if (a.type === 'endTurn') return -0.5;
   // Free abilities must actually improve the position, not just shuffle mechs around.
-  if (a.type === 'swap' || a.type === 'change' || a.type === 'flexible') return -2;
+  if (a.type === 'swap' || a.type === 'change' || a.type === 'fieldRefit') return -2;
   // Regolith's Barrier is there for good: only where it clearly helps.
   if (a.type === 'ability' && mechOf(s, die(s, a.die).value).ability?.name === 'Barrier') return -8;
   if (a.type === 'advance' && a.move) return 0.2;
-  if (a.type === 'ruthless' && a.skill) return 0.5;
-  if (a.type === 'prideful' && a.take) return 0.5;
+  if (a.type === 'signalJammer' && a.skill) return 0.5;
+  if (a.type === 'stolenFlag' && a.take) return 0.5;
   return 0;
 }
 
@@ -158,14 +158,14 @@ function playOutDecisions(state: GameState, me: PlayerId): GameState {
 
 /** The follow-up option `quickPolicy` prefers for each kind of decision; otherwise the first legal one. */
 const PREFERRED: { [K in Pending['kind']]?: (a: Action, s: GameState, me: PlayerId) => boolean } = {
-  showOfForce: (a, s, me) => a.type === 'showOfForce' && die(s, a.die).owner !== me,
+  orbitalCannon: (a, s, me) => a.type === 'orbitalCannon' && die(s, a.die).owner !== me,
   kineticShunt: (a, s, me) => (a.type === 'kineticShunt' && die(s, a.die).owner !== me) || barrierShuntRank(s, a, me) > 0,
-  takeCard: (a) => a.type === 'takeCard' && a.deck === 'expansion',
-  patientTactic: (a) => a.type === 'patientTactic' && a.index !== undefined,
-  unveil: (a) => a.type === 'unveilDrop',
-  placeExpansion: (a) => a.type === 'placeExpansion' && !!a.to,
-  ruthless: (a) => a.type === 'ruthless' && !!a.skill,
-  prideful: (a) => a.type === 'prideful' && a.take,
+  takeCard: (a) => a.type === 'takeCard' && a.deck === 'reinforcement',
+  strategicPlanTactic: (a) => a.type === 'strategicPlanTactic' && a.index !== undefined,
+  invasion: (a) => a.type === 'invasionDrop',
+  placeReinforcement: (a) => a.type === 'placeReinforcement' && !!a.to,
+  signalJammer: (a) => a.type === 'signalJammer' && !!a.skill,
+  stolenFlag: (a) => a.type === 'stolenFlag' && a.take,
 };
 
 function quickPolicy(s: GameState, me: PlayerId): Action | null {
@@ -185,7 +185,7 @@ function quickPolicy(s: GameState, me: PlayerId): Action | null {
 // Evaluation
 
 const SKILL_VALUE = 60;
-/** A Tactic stored with Patient: worth keeping when playing it now would gain less. */
+/** A Tactic stored with Strategic Plan: worth keeping when playing it now would gain less. */
 const STORED_TACTIC_VALUE = 30;
 
 function score(s: GameState, me: PlayerId): number {

@@ -24,7 +24,7 @@ import { defaultSeat } from './seats';
  * one human (Commander) and AI opponents. `play` is a mode's id or name; `map` defaults to the
  * basic map for the player count; `seed` makes the dice the same every time. Reloading starts the
  * game again. Like any game on this device, it replaces the saved game.
- * `scene=combat|combatFull|combatDestroy|combatRepel|combatShot|combatShotMiss|advance|changeOfHeart|takeCard|over` opens on that popup instead, `scene=turn` on your first turn,
+ * `scene=combat|combatFull|combatDestroy|combatRepel|combatShot|combatShotMiss|advance|headhunter|takeCard|over` opens on that popup instead, `scene=turn` on your first turn,
  * `scene=win` one claim from winning (to see the victory show as it happens), `scene=lose` with an AI
  * opponent one claim from winning on its turn (to hear the lament), and
  * `scene=attackFrom` with a mech that can attack from spaces with different outcomes (see `scene`).
@@ -90,7 +90,7 @@ const COMBAT_RIGS: Record<string, (battle: CombatPending, game: GameState) => vo
  * Plays every seat's first choice through setup and on to the human's (player 0's) first turn, then
  * opens a popup: `combat` (the human's mech attacks and may answer, e.g. with an atomic), `combatFull` (the same at its
  * tallest: both sides roll two dice and the losing human is offered an atomic), `combatDestroy` and `combatRepel` (the two results, once the dice are in), `combatShot` and `combatShotMiss` (a Sniper's shot hitting and missing), `advance` (it has won and
- * chooses whether to advance), `changeOfHeart` (needs a mode with cards), `takeCard` (a card to pick from the market, likewise) or
+ * chooses whether to advance), `headhunter` (needs a mode with cards), `takeCard` (a card to pick from the market, likewise) or
  * `over` (the human has won). `win` leaves the human one cube to place, with mechs on the perimeter of an objective they can claim;
  * `lose` stops at the next player's (an AI's) first turn instead, and leaves them so.
  * `turn`, or a scene that can't be set up, stops at that turn.
@@ -111,8 +111,8 @@ function scene(game: GameState, name: string): GameState {
   }
   s = structuredClone(s);
   if (name === 'over') return { ...s, phase: 'over', winner: 0 };
-  if (name === 'changeOfHeart') {
-    if (s.market.skillDeck.length) s.pending.unshift({ kind: 'changeOfHeart', player: 0 });
+  if (name === 'headhunter') {
+    if (s.market.skillDeck.length) s.pending.unshift({ kind: 'headhunter', player: 0 });
     return s;
   }
   if (name === 'takeCard') {

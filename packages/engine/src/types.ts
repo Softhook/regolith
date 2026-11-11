@@ -58,7 +58,7 @@ export interface OwnedSkill {
   id: string;
   /** Skills taken during your turn only take effect from the next player's turn. */
   active: boolean;
-  /** Ruthless: disabled until the start of this player's next turn. */
+  /** Signal Jammer: disabled until the start of this player's next turn. */
   disabledUntil?: PlayerId;
 }
 
@@ -85,15 +85,15 @@ export interface PlayerState extends PlayerConfig {
   ambitionTokens: number;
   /** Actions lost on the next turn (Sabotage). */
   actionPenalty: number;
-  /** Plan Ahead: counts down at the end of each of the owner's turns while > 0. */
-  planAhead: number;
-  /** Momentum: bonus turns queued (number of actions each). */
+  /** Kill Zone: counts down at the end of each of the owner's turns while > 0. */
+  killZone: number;
+  /** Forced March: bonus turns queued (number of actions each). */
   bonusTurns: number[];
-  /** Patient: stored Tactic cards waiting to be played at the end of a turn. */
+  /** Strategic Plan: stored Tactic cards waiting to be played at the end of a turn. */
   storedTactics?: string[];
-  /** Card picks still owed when Momentum interrupted the card phase; taken in the bonus turn's. */
+  /** Card picks still owed when Forced March interrupted the card phase; taken in the bonus turn's. */
   carriedPicks?: number;
-  /** How many of the carried picks were earned by Claim actions (Profiteering). */
+  /** How many of the carried picks were earned by Claim actions (Arms Deal). */
   carriedClaimPicks?: number;
   /** Turns in a row this player ended without spending an action (the AI uses it to avoid stalemates). */
   idleTurns?: number;
@@ -111,7 +111,7 @@ export interface PlayerStats {
   mechsLost: number;
   /** Objectives claimed (or seized through Take Over). */
   objectivesTaken: number;
-  /** Cards gained: taken from the market (Skills, Tactics, Expansions) or drawn by a card (Change of Heart). */
+  /** Cards gained: taken from the market (Skills, Tactics, Reinforcements) or drawn by a card (Headhunter). */
   cardsTaken: number;
 }
 
@@ -124,7 +124,7 @@ export interface Market {
   tacticDeck: string[];
   tacticRow: string[];
   tacticDiscard: string[];
-  expansions: number;
+  reinforcements: number;
 }
 
 export interface TurnState {
@@ -138,7 +138,7 @@ export interface TurnState {
   /** Values each die has shown this turn (for Refit). */
   seen: Record<string, number[]>;
   claims: number;
-  /** Claim actions taken this turn; unlike `claims`, Take Over cubes don't count (Profiteering). */
+  /** Claim actions taken this turn; unlike `claims`, Take Over cubes don't count (Arms Deal). */
   claimed?: number;
   attacked: boolean;
   /** Players who have already destroyed an enemy mech this turn ("first time each turn" triggers). */
@@ -148,21 +148,21 @@ export interface TurnState {
   bonus: boolean;
   /**
    * Who plays the next regular turn, when this turn is a bonus turn that interrupted the turn
-   * order (Momentum taken on someone else's turn).
+   * order (Forced March taken on someone else's turn).
    */
   resume?: PlayerId;
   /** Other players who placed a cube through Take Over during this turn (one entry per cube). */
   offTurnCubes?: PlayerId[];
-  /** CE Curious: whether the additional Move or Research action was used this turn. */
-  curiousUsed?: boolean;
-  /** Patient: whether a stored Tactic was played this turn. */
+  /** CE Prospectors: whether the additional Move or Research action was used this turn. */
+  prospectorsUsed?: boolean;
+  /** Strategic Plan: whether a stored Tactic was played this turn. */
   storedTacticPlayed?: boolean;
   /** Whether an action was spent this turn (free abilities don't count). */
   acted?: boolean;
 }
 
-/** Effects limited to once per turn. 'cunning' is the second use of a mech ability. */
-export type OncePerTurn = 'composed' | 'ambitious' | 'flexible' | 'resourceful' | 'tactical' | 'cunning';
+/** Effects limited to once per turn. 'boost' is the second use of a mech ability. */
+export type OncePerTurn = 'stand-down' | 'final-push' | 'field-refit' | 'recycle' | 'advance' | 'boost';
 
 /** The two sides of a battle. */
 export type CombatRole = 'attacker' | 'defender';
@@ -195,34 +195,34 @@ export type Pending =
   /** Setup: place your starting mechs, one at a time, in perimeter positions of your starting objective. */
   | { kind: 'placeMechs'; player: PlayerId; objective: number }
   | CombatPending
-  /** Dangerous: before the dice are rolled, the defender may destroy both mechs. */
-  | { kind: 'dangerous'; player: PlayerId; attacker: string; defender: string; from: Cell; ranged?: true }
+  /** Unstable Reactor: before the dice are rolled, the defender may destroy both mechs. */
+  | { kind: 'unstableReactor'; player: PlayerId; attacker: string; defender: string; from: Cell; ranged?: true }
   /**
-   * The player chooses the number of a mech that was just rolled: Clever, one of `options` (the refitted
-   * number ± 1); Calculating, any number for a mech going to the salvageYard.
+   * The player chooses the number of a mech that was just rolled: Engineering, one of `options` (the refitted
+   * number ± 1); Remodel, any number for a mech going to the salvageYard.
    */
-  | { kind: 'clever'; player: PlayerId; die: string; options?: number[]; source?: 'calculating' | 'clever' }
+  | { kind: 'engineering'; player: PlayerId; die: string; options?: number[]; source?: 'remodel' | 'engineering' }
   | { kind: 'advance'; player: PlayerId; die: string; to: Cell }
   | { kind: 'infamy'; player: PlayerId }
-  /** `claim`: how many of the picks were earned by Claim actions (Profiteering may take an atomic instead). */
+  /** `claim`: how many of the picks were earned by Claim actions (Arms Deal may take an atomic instead). */
   | { kind: 'takeCard'; player: PlayerId; count: number; claim?: number }
   | { kind: 'peek'; player: PlayerId; deck: DeckKind; top: string; store?: boolean }
-  /** `cannotDiscard`: a card that must be kept (Prideful, just taken). */
+  /** `cannotDiscard`: a card that must be kept (Stolen Flag, just taken). */
   | { kind: 'discardSkill'; player: PlayerId; reason?: 'limit'; cannotDiscard?: string }
-  | { kind: 'placeExpansion'; player: PlayerId; die: string }
-  | { kind: 'showOfForce'; player: PlayerId }
+  | { kind: 'placeReinforcement'; player: PlayerId; die: string }
+  | { kind: 'orbitalCannon'; player: PlayerId }
   | { kind: 'iceTunnel'; player: PlayerId; placed: Cell[] }
   | { kind: 'placeBarrier'; player: PlayerId; placed: Cell[] }
   | { kind: 'kineticShunt'; player: PlayerId }
-  | { kind: 'changeOfHeart'; player: PlayerId }
-  /** Prideful: take Prideful from victim who lost a mech. */
-  | { kind: 'prideful'; player: PlayerId; victim: PlayerId }
-  /** Ruthless: disable one active skill of the victim. */
-  | { kind: 'ruthless'; player: PlayerId; victim: PlayerId }
-  /** Patient, when taken: may take a face-up Tactic and store it. */
-  | { kind: 'patientTactic'; player: PlayerId }
-  /** Unveil the Fleet. */
-  | { kind: 'unveil'; player: PlayerId; rerolled: string[] };
+  | { kind: 'headhunter'; player: PlayerId }
+  /** Stolen Flag: take Stolen Flag from victim who lost a mech. */
+  | { kind: 'stolenFlag'; player: PlayerId; victim: PlayerId }
+  /** Signal Jammer: disable one active skill of the victim. */
+  | { kind: 'signalJammer'; player: PlayerId; victim: PlayerId }
+  /** Strategic Plan, when taken: may take a face-up Tactic and store it. */
+  | { kind: 'strategicPlanTactic'; player: PlayerId }
+  /** Invasion. */
+  | { kind: 'invasion'; player: PlayerId; rerolled: string[] };
 
 /** What a log entry reports, so the UI can react (sounds, toasts) without parsing its text. */
 export type LogEvent =
@@ -237,7 +237,7 @@ export type LogEvent =
   | 'mechDestroyed'
   | 'cardTaken'
   | 'cardPlayed'
-  | 'expansion'
+  | 'reinforcement'
   | 'discard'
   | 'breakthrough';
 
@@ -257,7 +257,7 @@ export interface LogEntry {
   objectives?: number[];
   /** The card an entry is about (played, taken or used), so the UI can show it. */
   card?: string;
-  /** What a skill firing by itself (Hostile, Plundering, Arrogant…) gave, so the UI can point at just that. */
+  /** What a skill firing by itself (Breakthrough, Exploit, Arrogant…) gave, so the UI can point at just that. */
   gains?: Gains;
   /** A player's turn starting: the log's headings, with everything else under them. */
   turn?: true;
@@ -326,38 +326,38 @@ export type Action =
   | { type: 'swap'; die: string; other: string }
   | { type: 'change'; die: string; value: 3 | 5 }
   // activated skills
-  | { type: 'composed' }
-  | { type: 'ambitious' }
-  | { type: 'flexible'; die: string; delta: 1 | -1 }
-  | { type: 'resourceful'; die: string }
-  /** Tactical's 1-space move (`to`) or attack (`target`); with `passenger` + `setDown` it is a Behemoth carry. */
-  | { type: 'tactical'; die: string; to?: Cell; target?: string; passenger?: string; setDown?: Cell }
+  | { type: 'standDown' }
+  | { type: 'finalPush' }
+  | { type: 'fieldRefit'; die: string; delta: 1 | -1 }
+  | { type: 'recycle'; die: string }
+  /** Advance's 1-space move (`to`) or attack (`target`); with `passenger` + `setDown` it is a Behemoth carry. */
+  | { type: 'advanceSkill'; die: string; to?: Cell; target?: string; passenger?: string; setDown?: Cell }
   // combat & decisions
   | { type: 'atomic'; by: PlayerId; side: CombatRole }
-  | { type: 'dangerous'; destroy: boolean }
-  | { type: 'clever'; value: number }
+  | { type: 'unstableReactor'; destroy: boolean }
+  | { type: 'engineering'; value: number }
   | { type: 'resolveCombat' }
   | { type: 'advance'; move: boolean }
   | { type: 'infamy'; objective: number }
-  | { type: 'takeCard'; deck: DeckKind | 'expansion'; index: number; store?: boolean }
+  | { type: 'takeCard'; deck: DeckKind | 'reinforcement'; index: number; store?: boolean }
   | { type: 'peekChoice'; takeTop: boolean }
-  /** Profiteering: take 1 atomic instead of a card earned by claiming. */
+  /** Arms Deal: take 1 atomic instead of a card earned by claiming. */
   | { type: 'profiteer' }
   | { type: 'discardSkill'; skill: string }
-  | { type: 'placeExpansion'; to: Cell | null }
-  | { type: 'showOfForce'; die: string }
+  | { type: 'placeReinforcement'; to: Cell | null }
+  | { type: 'orbitalCannon'; die: string }
   | { type: 'iceTunnel'; cell: Cell }
   | { type: 'placeBarrier'; cell: Cell }
   | { type: 'kineticShunt'; die: string; to: Cell }
   | { type: 'shuntBarrier'; from: Cell; to: Cell }
-  | { type: 'changeOfHeart'; skill: string }
-  | { type: 'prideful'; take: boolean }
-  | { type: 'ruthless'; skill?: string }
+  | { type: 'headhunter'; skill: string }
+  | { type: 'stolenFlag'; take: boolean }
+  | { type: 'signalJammer'; skill?: string }
   | { type: 'playStoredTactic'; card: string }
-  /** Patient, when taken: store the face-up Tactic at `index`, or none if left out. */
-  | { type: 'patientTactic'; index?: number }
-  | { type: 'unveilReroll'; die: string }
-  | { type: 'unveilDrop'; die: string; to: Cell }
-  | { type: 'unveilDone' };
+  /** Strategic Plan, when taken: store the face-up Tactic at `index`, or none if left out. */
+  | { type: 'strategicPlanTactic'; index?: number }
+  | { type: 'invasionReroll'; die: string }
+  | { type: 'invasionDrop'; die: string; to: Cell }
+  | { type: 'invasionDone' };
 
 export class RuleError extends Error {}

@@ -52,7 +52,7 @@ export function createGame(opts: NewGameOptions): GameState {
       skills: [],
       ambitionTokens: 0,
       actionPenalty: 0,
-      planAhead: 0,
+      killZone: 0,
       bonusTurns: [],
       storedTactics: [],
       stats: { battlesWon: 0, battlesLost: 0, mechsDestroyed: 0, mechsLost: 0, objectivesTaken: 0, cardsTaken: 0 },
@@ -65,7 +65,7 @@ export function createGame(opts: NewGameOptions): GameState {
       tacticDeck: [],
       tacticRow: [],
       tacticDiscard: [],
-      expansions: rules.cards?.expansionPile ? n + 1 : 0,
+      reinforcements: rules.cards?.reinforcementPile ? n + 1 : 0,
     },
     tunnels: ground.tunnels,
     ...(ground.wormhole.length && { wormhole: ground.wormhole }),
@@ -95,7 +95,7 @@ export function createGame(opts: NewGameOptions): GameState {
     }
   }
 
-  // 7 dice per player: STARTING_MECHS (3) starting mechs, 2 expansion mechs in reserve (2 more are trackers).
+  // 7 dice per player: STARTING_MECHS (3) starting mechs, 2 mechs in reserve (2 more are trackers).
   for (const p of state.players) {
     for (let i = 0; i < 5; i++) {
       const d: Die = {
@@ -144,7 +144,7 @@ export const setupHandlers = {
     log(s, `${name(s, head.player)} chooses a starting skill.`, head.player);
     s.pending.shift();
     // As for a skill taken later: "Get a free Tactic with this card."
-    if (ruleOf(a.skill).storeTactics) s.pending.unshift({ kind: 'patientTactic', player: head.player });
+    if (ruleOf(a.skill).storeTactics) s.pending.unshift({ kind: 'strategicPlanTactic', player: head.player });
   },
   placeStart(s, a) {
     const head = headOf(s, 'placeStart', 'Not placing a starting objective');

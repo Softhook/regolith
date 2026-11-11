@@ -6,7 +6,7 @@ const NUMBERS = {
   power: (p) => p.power,
   research: (p) => p.research,
   atomics: (p) => p.atomics,
-  planAhead: (p) => p.planAhead,
+  killZone: (p) => p.killZone,
   penalty: (p) => p.actionPenalty,
   ambition: (p) => p.ambitionTokens,
 } satisfies Record<string, (p: PlayerState) => number>;
@@ -15,7 +15,7 @@ type PanelNumber = keyof typeof NUMBERS;
 
 /**
  * A moment's mark on a player's panel (PlayerList): one of its numbers going up or down (from `from` to
- * `to`), a card chip arriving (taken, stolen by Prideful, stored by Patient) or switched off (Ruthless),
+ * `to`), a card chip arriving (taken, stolen by Stolen Flag, stored by Strategic Plan) or switched off (Signal Jammer),
  * or a skill gone (discarded, to Sabotage or the skill limit, or stolen), on the whole panel.
  */
 export type PanelEffect = { id: string; player: PlayerId } & (
@@ -40,8 +40,8 @@ export function panelEffectsOf(before: GameState, game: GameState): PanelEffect[
     for (const [spot, of] of Object.entries(NUMBERS) as [PanelNumber, (p: PlayerState) => number][]) {
       const from = of(was);
       const to = of(p);
-      // Plan Ahead counts down at each turn's end on its own: only its start is news.
-      if (to === from || (spot === 'planAhead' && from > 0)) continue;
+      // Kill Zone counts down at each turn's end on its own: only its start is news.
+      if (to === from || (spot === 'killZone' && from > 0)) continue;
       out.push({ ...fx(spot), spot, kind: to > from ? 'up' : 'down', from, to });
     }
     const had = counts(was.skills.map((s) => s.id));
