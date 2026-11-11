@@ -60,13 +60,13 @@ export function MechPanel({ game, ctl, dispatch }: { game: GameState; ctl: Contr
     }
     if (used) return null;
     switch (mech.builtIn) {
-      case 'strike':
+      case 'freeAttack':
         return (
           <button className="btn" disabled={!legal.can('freeAttack', mine)} onClick={() => ctl.select({ kind: 'freeAttack', die: d.id })}>
             Free attack
           </button>
         );
-      case 'transport':
+      case 'carry':
         return (
           <button
             className="btn"
@@ -77,7 +77,7 @@ export function MechPanel({ game, ctl, dispatch }: { game: GameState; ctl: Contr
             <Label long="Carry & move" short="Carry" />
           </button>
         );
-      case 'warp':
+      case 'swap':
         return (
           <button
             className="btn"
@@ -88,7 +88,7 @@ export function MechPanel({ game, ctl, dispatch }: { game: GameState; ctl: Contr
             <Label long="Switch places" short="Switch" />
           </button>
         );
-      case 'modify':
+      case 'change':
         return ([3, 5] as const).map((value) => (
           <button
             key={value}
@@ -158,7 +158,7 @@ export function MechPanel({ game, ctl, dispatch }: { game: GameState; ctl: Contr
           <button
             className="btn"
             onClick={() => ctl.select({ kind: 'carryPassenger', die: d.id, tactical: true })}
-            title={`${card(tacticalId).text} The ${mech.name} may transport a mech over that 1 space.`}
+            title={`${card(tacticalId).text} The ${mech.name} may carry a mech over that 1 space.`}
             aria-label={`${cardName('tactical')} carry`}
           >
             <Label long={`${cardName('tactical')} carry`} short="Carry" />

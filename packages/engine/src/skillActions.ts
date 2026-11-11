@@ -1,5 +1,5 @@
 /** Skills / Command cards used as an action of their own. What every skill does is in skillRules.ts. */
-import { transport } from './abilities';
+import { carryMech } from './abilities';
 import { same } from './board';
 import { startCombat } from './combat';
 import {
@@ -76,9 +76,9 @@ export const skillHandlers = {
     const use = () => oncePerTurn(s, 'tactical');
     if (a.passenger) {
       // Behemoth carry over the 1 space (forum consensus, BGG thread 1093051).
-      if (!hasAbility(s, d, 'transport')) fail('Only a mech with Carry & Move can transport');
+      if (!hasAbility(s, d, 'carry')) fail('Only a mech with Carry & Move can carry');
       if (!a.to || !a.setDown) fail('Invalid carry');
-      const fly = transport(s, d, a.passenger, a.to, a.setDown, 1);
+      const fly = carryMech(s, d, a.passenger, a.to, a.setDown, 1);
       use();
       markAbility(s, d);
       fly();

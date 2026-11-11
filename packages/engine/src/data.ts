@@ -91,7 +91,7 @@ export function cardKind(id: string): 'skill' | 'tactic' | 'expansion' {
  * The mech abilities the 1 to 4 keep, built into the engine: mech identity is "has ability X", not a die value,
  * so a die value could be given a different ability (RuleSet.mechs).
  */
-export type BuiltInAbility = 'strike' | 'transport' | 'warp' | 'modify';
+export type BuiltInAbility = 'freeAttack' | 'carry' | 'swap' | 'change';
 
 export interface MechDef {
   name: string;

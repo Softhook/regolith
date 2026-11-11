@@ -119,7 +119,7 @@ function gainTargets(game: GameState, e: LogEntry): Target[] {
 }
 
 /**
- * What the step from `before` to `game` marks: the spaces of its map effects (CardEffects) and new Warp
+ * What the step from `before` to `game` marks: the spaces of its map effects (CardEffects) and new Ice
  * Tunnels, and the spots of its panel effects, less what skills firing by themselves in it gave (they cast
  * for themselves). With none, the card's player's row (Momentum's extra turn), unless the card is yet to
  * land (Show of Force before its target is chosen) or has just finished landing (unveilDone).

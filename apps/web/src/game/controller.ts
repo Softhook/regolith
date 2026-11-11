@@ -36,7 +36,7 @@ export type Sel =
   | { kind: 'shuntBarrier'; from: Cell }
   // An objective that can be claimed in more than one way, waiting for the player to choose how.
   | { kind: 'claim'; objective: number }
-  // `tactical`: a 1-space transport using the Tactical skill instead of a Move action.
+  // `tactical`: a 1-space carry using the Tactical skill instead of a Move action.
   | { kind: 'carryPassenger'; die: string; tactical?: boolean }
   | { kind: 'carryDest'; die: string; passenger: string; tactical?: boolean }
   | { kind: 'carrySetDown'; die: string; passenger: string; to: Cell; tactical?: boolean };
@@ -113,7 +113,7 @@ export function useController(game: GameState, dispatch: Dispatch, mine: (p: Pla
       if (sel.kind === 'carryPassenger' && tone === 'passenger')
         return select({ kind: 'carryDest', die: sel.die, passenger: id, tactical: sel.tactical });
       if (sel.kind === 'carryDest' && id === sel.die) {
-        // Out-and-back transport: the carrier ends where it started.
+        // Out-and-back carry: the carrier ends where it started.
         const here = cellOf(getDie(game, id));
         if (here && highlights.cells.has(key(here)))
           return select({ kind: 'carrySetDown', die: sel.die, passenger: sel.passenger, to: here, tactical: sel.tactical });

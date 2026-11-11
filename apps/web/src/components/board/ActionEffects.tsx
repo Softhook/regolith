@@ -7,7 +7,7 @@ import { useStepEffects } from '../../game/useTransient';
 import { EffectBox, cubeCount } from './EffectBox';
 
 /**
- * A short effect on the map for one action: a mech warping in, flying (from `at` to `to`, `ms` into its flight: one
+ * A short effect on the map for one action: a mech dropping in, flying (from `at` to `to`, `ms` into its flight: one
  * for each space of its way), or an objective claimed.
  */
 type Effect = MapEffect & ({ kind: 'drop' | 'claim' } | { kind: 'trail'; to: Cell; ms: number });

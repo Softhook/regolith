@@ -164,17 +164,17 @@ function actionPhaseOptions(s: GameState, opts: { includeCarry?: boolean }): Act
       const tac = tacticalOptions(s, d.id);
       for (const m of tac.moves) out.push({ type: 'tactical', die: d.id, to: m.cell });
       if (canAttack(0)) for (const x of tac.attacks) out.push({ type: 'tactical', die: d.id, target: x.die.id });
-      if (hasAbility(s, d, 'transport') && opts.includeCarry && canUseAbility(s, d)) {
+      if (hasAbility(s, d, 'carry') && opts.includeCarry && canUseAbility(s, d)) {
         for (const c of carries(s, d, 1)) out.push({ type: 'tactical', die: d.id, ...c });
       }
     }
     if (canUseAbility(s, d)) {
-      if (hasAbility(s, d, 'strike') && canAttack(0))
+      if (hasAbility(s, d, 'freeAttack') && canAttack(0))
         for (const x of freeAttackTargets(s, d.id)) out.push({ type: 'freeAttack', die: d.id, target: x.id });
-      if (hasAbility(s, d, 'warp'))
+      if (hasAbility(s, d, 'swap'))
         for (const o of mechsOnBoard(s, me)) if (o.id !== d.id) out.push({ type: 'swap', die: d.id, other: o.id });
-      if (hasAbility(s, d, 'modify')) out.push({ type: 'change', die: d.id, value: 3 }, { type: 'change', die: d.id, value: 5 });
-      if (hasAbility(s, d, 'transport') && opts.includeCarry && canPayMove && canMoveDie(s, d)) {
+      if (hasAbility(s, d, 'change')) out.push({ type: 'change', die: d.id, value: 3 }, { type: 'change', die: d.id, value: 5 });
+      if (hasAbility(s, d, 'carry') && opts.includeCarry && canPayMove && canMoveDie(s, d)) {
         for (const c of carries(s, d)) out.push({ type: 'carry', die: d.id, ...c });
       }
     }

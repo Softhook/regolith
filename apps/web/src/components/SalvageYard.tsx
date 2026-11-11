@@ -29,7 +29,7 @@ function abilityText(game: GameState, value: number): string {
  * else the acting player if they play here (several players sharing a device), else the first player
  * who does; a screen that plays for nobody shows the acting player's. Their player row leaves it out.
  */
-export function turnScrapOwner(game: GameState, ctl: Controller): PlayerState {
+export function turnYardOwner(game: GameState, ctl: Controller): PlayerState {
   const dropper = game.players.find((q) => canDropFrom(game, q, ctl));
   if (dropper) return dropper;
   const head = game.pending[0];
@@ -43,7 +43,7 @@ export function SalvageYard({ game, p, ctl, dispatch }: { game: GameState; p: Pl
   if (!salvage.length) return null;
   const unveiling = unveilingOf(game, p.id, ctl);
   const canDrop = canDropFrom(game, p, ctl);
-  const clickScrap = (d: Die) => {
+  const clickSalvaged = (d: Die) => {
     ctl.select(ctl.sel.kind === 'salvage' && ctl.sel.die === d.id ? { kind: 'none' } : { kind: 'salvage', die: d.id });
   };
   return (
@@ -53,7 +53,7 @@ export function SalvageYard({ game, p, ctl, dispatch }: { game: GameState; p: Pl
         <span key={d.id} className="salvage-die-wrap">
           <Tip
             className={`salvage-die ${canDrop ? 'clickable' : ''} ${ctl.sel.kind === 'salvage' && ctl.sel.die === d.id ? 'selected' : ''}`}
-            onClick={() => canDrop && (clickScrap(d), true)}
+            onClick={() => canDrop && (clickSalvaged(d), true)}
             tip={
               <>
                 <b>

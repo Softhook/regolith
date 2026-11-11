@@ -402,7 +402,7 @@ describe('mech abilities (p.8)', () => {
     expect(t.turn.actionsLeft).toBe(2);
   });
 
-  it('Strike reaches the spaces next to it only', () => {
+  it('Free Attack reaches the spaces next to it only', () => {
     const s = scenario({ p0d0: [7, 3, 1], p1d0: [7, 5, 1] });
     expect(() => apply(s, { type: 'freeAttack', die: 'p0d0', target: 'p1d0' })).toThrow(/adjacent/);
   });
@@ -416,7 +416,7 @@ describe('mech abilities (p.8)', () => {
     expect(loc(s, 'p0d0')).toEqual(board(7, 5));
     expect(loc(s, 'p0d1')).toEqual(board(7, 6));
     expect(s.turn.actionsLeft).toBe(2);
-    // The transport was the Behemoth's move; the passenger may still move.
+    // The carry was the Behemoth's move; the passenger may still move.
     expect(() => apply(s, { type: 'move', die: 'p0d0', to: { r: 6, c: 5 } })).toThrow(/already moved/);
     s = apply(s, { type: 'move', die: 'p0d1', to: { r: 6, c: 7 } });
     expect(loc(s, 'p0d1')).toEqual(board(6, 7));

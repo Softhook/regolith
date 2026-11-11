@@ -6,7 +6,7 @@ import type { Dispatch } from '../game/useGame';
 import { useShortcut } from '../game/useShortcut';
 import { ActionHex, CategoryIcon } from './Card';
 import { Tip } from './InfoPop';
-import { SalvageYard, turnScrapOwner } from './SalvageYard';
+import { SalvageYard, turnYardOwner } from './SalvageYard';
 import { MechPanel } from './MechPanel';
 
 export function TurnPanel({ game, ctl, dispatch, undo }: { game: GameState; ctl: Controller; dispatch: Dispatch; undo?: () => void }) {
@@ -64,7 +64,7 @@ export function TurnPanel({ game, ctl, dispatch, undo }: { game: GameState; ctl:
       {hint && <p className="hint">{hint}</p>}
       {/* The mechs to drop are what you act with, so they're here rather than in the player list. */}
       <div className="turn-salvage">
-        <SalvageYard game={game} p={turnScrapOwner(game, ctl)} ctl={ctl} dispatch={dispatch} />
+        <SalvageYard game={game} p={turnYardOwner(game, ctl)} ctl={ctl} dispatch={dispatch} />
       </div>
 
       {game.phase === 'play' && ctl.mine(p.id) && !deciding && (

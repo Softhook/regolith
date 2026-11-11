@@ -682,7 +682,7 @@ svg.zones polygon {
 /* Each move's effect on the map (ActionEffects), each part over in under 500 ms from when it starts. */
 .fx { position: absolute; left: 0; top: 0; z-index: 4; pointer-events: none; }
 .fx > span { position: absolute; left: 50%; top: 50%; border-radius: 50%; }
-/* Drop: a warp-in flash, and a ring expanding from the objective. */
+/* Drop: an arrival flash, and a ring expanding from the objective. */
 .fx-drop > span:first-child {
   width: 80%; height: 80%; margin: -40% 0 0 -40%;
   background: radial-gradient(circle, #fff 0%, color-mix(in srgb, var(--pc) 80%, #fff) 30%, transparent 68%);

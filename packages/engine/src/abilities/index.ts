@@ -1,8 +1,7 @@
 /**
  * Mech abilities (rulebook p.8): once per die per turn, on your own turn, mechs on the map only.
- * They cost no action, except that Transport (2) and Manoeuvre (5) happen during a move.
- * Manoeuvre is part of the move handler (actions.ts); the other five are here, with the action of a
- * ability with hooks (MechHooks.action).
+ * They cost no action, except that the Behemoth's Carry & Move happens during a move. The 1 to 4's built-in
+ * abilities are here, with the action of an ability with hooks (MechHooks.action), such as the Sniper's Shoot.
  */
 import { key, same } from '../board';
 import { startCombat } from '../combat';
@@ -41,7 +40,7 @@ function useAbility(s: GameState, d: Die, ability: BuiltInAbility) {
  * default the carrier's movement) and sets it down at `setDown`, next to the carrier. Validates first;
  * the caller pays for it.
  */
-export function transport(s: GameState, carrier: Die, passenger: string, to: Cell, setDown: Cell, range?: number) {
+export function carryMech(s: GameState, carrier: Die, passenger: string, to: Cell, setDown: Cell, range?: number) {
   if (!carryPassengers(s, carrier.id).some((x) => x.id === passenger)) fail(`The carried mech must be next to the ${mechName(s, carrier)}`);
   const dest = carryOptions(s, carrier.id, passenger, range).get(key(to));
   if (!dest || !dest.setDowns.some((p) => same(p, setDown))) fail('Invalid carry');
@@ -58,7 +57,7 @@ export const abilityHandlers = {
     requireActionPhase(s);
     const d = ownMech(s, a.die, 'board');
     if (!freeAttackTargets(s, d.id).some((x) => x.id === a.target)) fail('Target must be adjacent');
-    useAbility(s, d, 'strike');
+    useAbility(s, d, 'freeAttack');
     startCombat(s, d, die(s, a.target), cellOf(d)!);
   },
   /** 2 Behemoth — Carry & Move: pick up a mech from a surrounding space, move, set it down in a surrounding space. */
@@ -66,9 +65,9 @@ export const abilityHandlers = {
     requireActionPhase(s);
     const d = ownMech(s, a.die, 'board');
     if (!canMoveDie(s, d)) fail('This mech already moved this turn');
-    const fly = transport(s, d, a.passenger, a.to, a.setDown);
-    spendPeaceful(s); // a Transport is a move without an attack, so Curious can pay for it
-    useAbility(s, d, 'transport');
+    const fly = carryMech(s, d, a.passenger, a.to, a.setDown);
+    spendPeaceful(s); // a Carry & Move is a move without an attack, so Curious can pay for it
+    useAbility(s, d, 'carry');
     fly();
     markMoved(s, d);
     logTo(s, d.owner, `${name(s, d.owner)}'s ${mechName(s, d)} carries their ${mechName(s, die(s, a.passenger))}`, a.to);
@@ -79,7 +78,7 @@ export const abilityHandlers = {
     const d = ownMech(s, a.die, 'board');
     const o = ownMech(s, a.other, 'board');
     if (o.id === d.id) fail('Choose another mech');
-    useAbility(s, d, 'warp');
+    useAbility(s, d, 'swap');
     [d.loc, o.loc] = [o.loc, d.loc];
     note(s, `${name(s, d.owner)}'s ${mechName(s, d)} swaps places with their ${mechName(s, o)}.`, d.owner);
   },
@@ -87,7 +86,7 @@ export const abilityHandlers = {
   change(s, a) {
     requireActionPhase(s);
     const d = ownMech(s, a.die, 'board');
-    useAbility(s, d, 'modify');
+    useAbility(s, d, 'change');
     const was = mechName(s, d);
     d.value = a.value;
     markSeen(s, d);

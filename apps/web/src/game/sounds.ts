@@ -94,7 +94,7 @@ export function soundsFor(
   // Mechs: flown, arrived, destroyed, swapped or renumbered.
   const before = new Map(prev.dice.map((d) => [d.id, d]));
   // A mech a card brings (Expansion, Nomadic) appears as its effect gets there (staging): heard landing
-  // then, rather than flying or warping in on its own.
+  // then, rather than flying or dropping in on its own.
   const late = stagingOf(prev, next).late;
   let lands: number | undefined;
   const moved: { from: Cell; to: Cell }[] = [];
@@ -106,7 +106,7 @@ export function soundsFor(
     const brought = late.get(d.id);
     if (to && brought !== undefined) lands = Math.max(lands ?? 0, brought);
     else if (from && to && !same(from, to)) moved.push({ from, to });
-    else if (!from && to) effects.add('warpIn');
+    else if (!from && to) effects.add('arrive');
     // One that left the map was destroyed (counted above) or recalled.
     else if (from && !to) continue;
     else if (d.value !== p.value && d.rolls === p.rolls) effects.add('retune');
@@ -181,6 +181,6 @@ export function playSounds(prev: GameState, next: GameState, mine: (p: PlayerId)
   const play = (s: Sound) => (timed[s] ?? sfx[s])();
   first.forEach(play);
   // A mech a card brings lands as it appears, whatever the card's own sound.
-  if (lands !== undefined) sfx.warpIn(still ? undefined : lands);
+  if (lands !== undefined) sfx.arrive(still ? undefined : lands);
   if (then.length) window.setTimeout(() => then.forEach(play), CARD_THEN);
 }

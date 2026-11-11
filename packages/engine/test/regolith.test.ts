@@ -126,7 +126,7 @@ describe('Regolith mode', () => {
     expect(regolith.mechs[5].builtIn).toBeUndefined();
     expect(regolith.mechs[6].hooks).toEqual({ ...barrierAbility.hooks, ...picket.hooks });
     expect(regolith.mechs[6].builtIn).toBeUndefined();
-    expect([1, 2, 3, 4].map((v) => regolith.mechs[v].builtIn)).toEqual(['strike', 'transport', 'warp', 'modify']);
+    expect([1, 2, 3, 4].map((v) => regolith.mechs[v].builtIn)).toEqual(['freeAttack', 'carry', 'swap', 'change']);
     expect([1, 2, 3, 4, 5, 6].map((v) => regolith.mechs[v].name)).toEqual([
       'Breacher',
       'Behemoth',

@@ -368,7 +368,7 @@ export function moveIndexes(state: GameState, mech: string | Die, at = mechsByIn
   const range = movementRange(state, d);
   const zone = stopZone(state, d.owner, at);
 
-  // Devious: normal moves only, not Transport or the Tactical step (RULES.md ruling 8).
+  // Devious: normal moves only, not Carry & Move or the Tactical step (RULES.md ruling 8).
   const through = anySkill(state, d.owner, (r) => r.moveThroughEnemies) ? d.owner : undefined;
   const g = grid(state.board);
   const tunnel = tunnels(state, g);
@@ -479,7 +479,7 @@ export function mechReach(state: GameState, d: Die, at: (Die | undefined)[]): Me
 
 /**
  * Destinations for a mech carrying `passenger`, and where the passenger may be set down.
- * `range` defaults to the carrier's movement; Tactical transports exactly 1 space.
+ * `range` defaults to the carrier's movement; Tactical carries exactly 1 space.
  */
 export function carryOptions(state: GameState, carrierId: string, passengerId: string, range?: number) {
   const carrier = die(state, carrierId);

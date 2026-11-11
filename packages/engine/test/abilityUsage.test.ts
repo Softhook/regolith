@@ -29,8 +29,8 @@ describe('ability usage by mode', () => {
     }, 120_000);
   }
 
-  // The quick games above are below level 4, so no transport is played in them: one game that plays some (about 2s).
-  it('counts Behemoth transports', () => {
+  // The quick games above are below level 4, so no carry is played in them: one game that plays some (about 2s).
+  it('counts Behemoth carries', () => {
     const behemoth = measureAbilityUsage('basic', { games: 1, level: 4 }).rows.find((r) => r.mech === 'Behemoth')!;
     expect(behemoth.used).toBeGreaterThan(0);
     expect(behemoth.usedTurns).toBeLessThanOrEqual(behemoth.offeredTurns);

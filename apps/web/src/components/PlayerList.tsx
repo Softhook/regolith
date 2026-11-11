@@ -8,7 +8,7 @@ import { CategoryIcon, AtomicIcon, categoryStyle } from './Card';
 import { CardViewer } from './CardViewer';
 import { Tip } from './InfoPop';
 import { PANEL_EFFECT_MS, panelEffectsOf, type PanelEffect } from './panelEffects';
-import { SalvageYard, turnScrapOwner } from './SalvageYard';
+import { SalvageYard, turnYardOwner } from './SalvageYard';
 
 /** The effect on one spot of a panel, if any: the latest, so a fresh one restarts it (`key`). */
 const effectAt = (fx: PanelEffect[], spot: PanelEffect['spot']) => fx.filter((e) => e.spot === spot).at(-1);
@@ -50,7 +50,7 @@ export function AiTag({ p }: { p: PlayerConfig }) {
 
 /** The players' panels. `scene` changes for a jump to another position, which shows no effects. */
 export function PlayerList({ game, ctl, dispatch, scene }: { game: GameState; ctl: Controller; dispatch: Dispatch; scene?: string }) {
-  const inTurnPanel = turnScrapOwner(game, ctl).id;
+  const inTurnPanel = turnYardOwner(game, ctl).id;
   const fx = useStepEffects(game, PANEL_EFFECT_MS, panelEffectsOf, scene);
   return (
     <section className="panel players">
@@ -61,7 +61,7 @@ export function PlayerList({ game, ctl, dispatch, scene }: { game: GameState; ct
           p={p}
           ctl={ctl}
           dispatch={dispatch}
-          showScrap={p.id !== inTurnPanel}
+          showYard={p.id !== inTurnPanel}
           fx={fx.filter((e) => e.player === p.id)}
         />
       ))}
@@ -74,14 +74,14 @@ function PlayerCard({
   p,
   ctl,
   dispatch,
-  showScrap,
+  showYard,
   fx,
 }: {
   game: GameState;
   p: PlayerState;
   ctl: Controller;
   dispatch: Dispatch;
-  showScrap: boolean;
+  showYard: boolean;
   fx: PanelEffect[];
 }) {
   const active = game.phase === 'play' && game.turn.player === p.id;
@@ -133,8 +133,8 @@ function PlayerCard({
           </Tip>
         )}
       </div>
-      {/* The turn panel shows one player's salvage yard (see turnScrapOwner); the others' are here. */}
-      {showScrap && (
+      {/* The turn panel shows one player's salvage yard (see turnYardOwner); the others' are here. */}
+      {showYard && (
         <div className="player-salvage">
           <SalvageYard game={game} p={p} ctl={ctl} dispatch={dispatch} />
         </div>

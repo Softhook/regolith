@@ -111,7 +111,7 @@ export function highlightsFor(game: GameState, sel: Sel, legal: Legal, actionPha
     if (!h.objectives.has(p.id) && claimCheck(game, game.turn.player, p.id).blocked)
       h.objectives.set(p.id, { tone: 'blocked', label: 'Blocked' });
   // A Behemoth carry, as a regular carry or as a Tactical step.
-  const transports = (die: string, tactical?: boolean) =>
+  const carries = (die: string, tactical?: boolean) =>
     tactical
       ? legal
           .of('tactical', (a) => a.die === die && !!a.passenger)
@@ -163,11 +163,11 @@ export function highlightsFor(game: GameState, sel: Sel, legal: Legal, actionPha
       }
       break;
     case 'carryPassenger':
-      for (const t of transports(sel.die, sel.tactical)) h.dice.set(t.passenger, 'passenger');
+      for (const t of carries(sel.die, sel.tactical)) h.dice.set(t.passenger, 'passenger');
       break;
     case 'carryDest':
       addCells(
-        transports(sel.die, sel.tactical)
+        carries(sel.die, sel.tactical)
           .filter((t) => t.passenger === sel.passenger)
           .map((t) => t.to),
         'move',
@@ -175,7 +175,7 @@ export function highlightsFor(game: GameState, sel: Sel, legal: Legal, actionPha
       break;
     case 'carrySetDown':
       addCells(
-        transports(sel.die, sel.tactical)
+        carries(sel.die, sel.tactical)
           .filter((t) => t.passenger === sel.passenger && same(t.to, sel.to))
           .map((t) => t.setDown),
         'setDown',

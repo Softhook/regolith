@@ -1,6 +1,6 @@
 // Tiny synthesized sound kit (no audio files). All sounds are short and quiet.
 
-import { BATTLE, BEAM_ARRIVES, boomAt, CUBE, DICE, MOST_BOOMS, MECH, SHOT, WARP } from './beats';
+import { ARRIVE, BATTLE, BEAM_ARRIVES, boomAt, CUBE, DICE, MOST_BOOMS, MECH, SHOT } from './beats';
 import { effects, envelope, filter, gain, glide, jitter, kept, noiseSource, oscillator, out } from './audio';
 import { fanfare, lament } from './gameOverSound';
 import { pick } from './random';
@@ -133,7 +133,7 @@ export const sfx = {
    * A mech arriving on the board from the salvage yard or reserve, or brought by a card: a rising shimmer, and
    * the thump of it landing `land` ms in, as it appears (beats.ts).
    */
-  warpIn: (land: number = WARP.land) => {
+  arrive: (land: number = ARRIVE.land) => {
     tone(300, 0.35, 'sine', 0.05, 0, 1300, 0.12);
     tone(450, 0.35, 'triangle', 0.025, 0.02, 1950, 0.12);
     noise(0.35, 0.05, { type: 'highpass', from: 2000, to: 7000, rise: 0.25 });

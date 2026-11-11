@@ -23,7 +23,7 @@ export const boomAt = (i: number) => Math.min(i, MOST_BOOMS - 1) * BOOM.stagger;
  * A mech arriving (from the reserve, or one a card brings), heard as a shimmer rising to its landing:
  * `land` after the sound starts, or when the card's effect brings it (game/staging).
  */
-export const WARP = { land: 330 } as const;
+export const ARRIVE = { land: 330 } as const;
 
 /** A placed cube (.cube): it falls, lands (its clack, and the claim's shockwave, .fx-claim), and squashes. */
 export const CUBE = { fall: 240, squash: 160 } as const;

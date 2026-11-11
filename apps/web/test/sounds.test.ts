@@ -32,12 +32,12 @@ describe('soundsFor', () => {
     expect(step((s) => void (die(s, 'p0d0').loc = { zone: 'board', r: 1, c: 0 })).first).toEqual(['fly']);
   });
 
-  it('hears a mech warp in from the reserve', () => {
+  it('hears a mech drop in from the reserve', () => {
     const { first, lands } = step(
       (s) => void (die(s, 'p0d1').loc = { zone: 'board', r: 2, c: 2 }),
       (s) => void (die(s, 'p0d1').loc = { zone: 'reserve' }),
     );
-    expect(first).toEqual(['warpIn']);
+    expect(first).toEqual(['arrive']);
     expect(lands).toBeUndefined();
   });
 

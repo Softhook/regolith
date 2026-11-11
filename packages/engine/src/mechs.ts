@@ -55,16 +55,16 @@ export interface MechAbility {
 const BASE_MECHS: MechTable = {
   1: {
     name: 'Breacher',
-    builtIn: 'strike',
+    builtIn: 'freeAttack',
     ability: { name: 'Free Attack', text: 'Attack an adjacent enemy without using this mech’s move.' },
   },
   2: {
     name: 'Behemoth',
-    builtIn: 'transport',
+    builtIn: 'carry',
     ability: { name: 'Carry & Move', text: 'Carry one of your nearby mechs as part of a move, then drop it next to you.' },
   },
-  3: { name: 'Tactician', builtIn: 'warp', ability: { name: 'Swap', text: 'Swap places with any of your other mechs.' } },
-  4: { name: 'Chameleon', builtIn: 'modify', ability: { name: 'Change to 3 or 5', text: 'Refit as a Tactician or a Sniper.' } },
+  3: { name: 'Tactician', builtIn: 'swap', ability: { name: 'Swap', text: 'Swap places with any of your other mechs.' } },
+  4: { name: 'Chameleon', builtIn: 'change', ability: { name: 'Change to 3 or 5', text: 'Refit as a Tactician or a Sniper.' } },
   5: { name: 'Sniper', ...shoot },
   6: { name: 'Wisp', ...barrier },
 };

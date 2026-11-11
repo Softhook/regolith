@@ -6,8 +6,8 @@
  * - a card pop-up: the first one on a device with nothing kept and nothing warmed yet, the same again, a whole deck,
  *   and the deck again after a reload (art kept in IndexedDB);
  * - a tap on a mech and on the space it moves to, until the next frame is painted;
- * - the page doing nothing: main-thread time per second with nothing selected, with a mech selected, with warp
- *   tunnels on the map (looping animations that repaint show up here), and once the victory show has burnt out.
+ * - the page doing nothing: main-thread time per second with nothing selected, with a mech selected, with Ice
+ *   Tunnels on the map (looping animations that repaint show up here), and once the victory show has burnt out.
  *
  * It runs on a dev server, for the dev-only ?play= link, so React's development build is in these times.
  *
