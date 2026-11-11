@@ -861,7 +861,7 @@ export const beacon: MechAbility = {
    | `action` (`options`, `apply`) | generic `ability` action handler | Custom active ability button & execution (Shoot, Barrier) |
 
    Barrier needed one piece of engine state no hook could hold: `GameState.barriers`, which `isEmptySpace`
-   (drops, shots, Tactical, Nomadic, start slots), the move searches (`reach`, `mechReach`), `carryOptions`,
+   (drops, shots, Advance, Nomadic, start slots), the move searches (`reach`, `mechReach`), `carryOptions`,
    Ice Tunnel placement and `checkInvariants` read.
 
 3. **Generic action pipeline.** Abilities with an `action` hook produce `{ type: 'ability', die, target?, to? }`.

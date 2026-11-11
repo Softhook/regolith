@@ -413,7 +413,7 @@ Proposal:
    "always ask me" — so async games don't stall on every battle.
 5. Players without atomics are never asked, so most combats resolve instantly.
 
-The same mechanism covers **Dangerous** (#22, defender decides before the roll) and any
+The same mechanism covers **Unstable Reactor** (#22, defender decides before the roll) and any
 future "on another player's turn" decision.
 
 ### AI seats

@@ -27,10 +27,10 @@ on the state). A mech is a `Die`; its face is its kind (1–6). A mech's own abi
 action, [`abilities/`](../packages/engine/src/abilities/)), never a power: Power is the track.
 
 The 1 to 4's built-in ability ids are named after their actions: `freeAttack`, `carry`, `swap`, `change`.
-A few ids keep their original names, because they are data rather than words: each card's `effect` (named
-after the Community card it began as, such as `warp-gate` for Ice Tunnel) and the physical tile ids (`p7-01`,
-`void`). The words test ([`words.test.ts`](../packages/engine/test/words.test.ts)) keeps the original words
-out of the game's log.
+A card's id is its name (`r-ice-tunnel`) and its `effect` the same without the `r-` (`ice-tunnel`); an action
+or decision a card brings is the name in camelCase (`iceTunnel`). The card it began as stays in its `from`
+(data/regolith.yaml). Only the physical tile ids keep their original names (`p7-01`, `void`). The words test
+([`words.test.ts`](../packages/engine/test/words.test.ts)) keeps the original words out of the game's log.
 
 ### Reading older docs
 
@@ -50,7 +50,7 @@ keep the words they were written in, and old commits name code that has since mo
 | dominance (dom) | power |
 | missile | atomic |
 | void | Alien Artefact (`artefact`; the tile id is still `void`) |
-| warp gate, gate | Ice Tunnel, tunnel (the card effect is still `warp-gate`) |
+| warp gate, gate | Ice Tunnel, tunnel |
 | home shipyard | home objective |
 | 1 Battlestation, Strike (`strike`) | 1 Breacher, Free Attack (`freeAttack`) |
 | 2 Flagship, Transport (`transport`) | 2 Behemoth, Carry & Move (`carry`) |
@@ -59,6 +59,8 @@ keep the words they were written in, and old commits name code that has since mo
 | 5 Interceptor, Manoeuvre | 5 Sniper, Shoot |
 | 6 Scout, Free Reconfigure | 6 Wisp, Barrier |
 | Prototyping (the mode) | Regolith |
+| a card's Community name as its id (`r-agile`, `curious`, `curiousUsed`) | its Regolith name (`r-tune-up`, `prospectors`, `prospectorsUsed`); `from` in data/regolith.yaml maps them |
+| Expansion (card, deck), expansion mechs | Reinforcements, reserve mechs |
 
 ## Components
 
@@ -182,44 +184,45 @@ The moment your last cube is placed, you win.
 
 Settled questions the card text or the rules above leave open. Each is cited from the code as
 *RULES.md ruling N*. Most were decided while these cards were the original ones (in Cubic's `OPEN-QUESTIONS.md` and
-`RULE-SUGGESTIONS.md`, kept in this repo's history); the card names here are Regolith's, with their `effect`.
+`RULE-SUGGESTIONS.md`, kept in this repo's history); the card names here are Regolith's,
+which are also their ids.
 
-1. **Combat roll order.** Roll (Paired Cannons, `brutal`: the lower of 2) → set (Drill Sergeant, `rational`: 3;
-   Kill Zone, `plan-ahead`: 1; both: 1) → an atomic's 1 → modifiers (Armour Piercing, `ferocious`: −1; Close
-   Protection, `strategic`: −2). A total may go to 0 or below.
+1. **Combat roll order.** Roll (Paired Cannons: the lower of 2) → set (Drill Sergeant: 3;
+   Kill Zone: 1; both: 1) → an atomic's 1 → modifiers (Armour Piercing: −1; Close
+   Protection: −2). A total may go to 0 or below.
 2. **When atomics are fired.** Once both combat dice are rolled and before the battle resolves, the attacker
    and defender, in that order and again until both pass, may each fire at their own roll, and only while
    losing. Nobody else may.
-3. **Stolen Flag** (`prideful`). A player who takes it from another discards down to their skill limit at once,
+3. **Stolen Flag.** A player who takes it from another discards down to their skill limit at once,
    but not the Stolen Flag. A stolen one works at once. Whenever it starts working (stolen, at the end of the
    turn it was taken, or back after Signal Jammer), a player with Power 4 or more gains Take Over at once.
-4. **Strategic Plan** (`patient`). Only Tactics can be stored. At the end of each turn a player may play one
+4. **Strategic Plan.** Only Tactics can be stored. At the end of each turn a player may play one
    stored Tactic, even when ending the turn with actions unused, which are lost. Its free Tactic comes with it
    however it is gained, as a starting Skill too.
 5. **Peek with an empty deck.** Taking the oldest face-up card first reshuffles the discards into a new deck,
    as for any draw, and the peek goes ahead. No peek only when the deck and its discards are both empty.
-6. **Engineering** (`clever`). After any refit, ±1, even onto a number already shown this turn. No wrap
-   between 1 and 6 (as with Field Refit, `flexible`).
-7. **Arms Deal** (`profiteering`). Only picks earned by the Claim action (going back to your own included)
+6. **Engineering.** After any refit, ±1, even onto a number already shown this turn. No wrap
+   between 1 and 6 (as with Field Refit).
+7. **Arms Deal.** Only picks earned by the Claim action (going back to your own included)
    may become an atomic, not Take Over's or Research's. A card taken first uses a pick not from a claim when there
    is one.
-8. **Sneak** (`devious`). Through enemy mechs on Move and Attack only, not on Behemoth carries or Advance's
-   (`tactical`) one-space move. A mech can't stop on an enemy's space or attack from one, and doesn't pass
+8. **Sneak.** Through enemy mechs on Move and Attack only, not on Behemoth carries or Advance's
+   one-space move. A mech can't stop on an enemy's space or attack from one, and doesn't pass
    through its own. Sneak ignores zones of control.
-9. **Signal Jammer** (`ruthless`). The disabled skill returns at the start of the jammer's next regular turn,
+9. **Signal Jammer.** The disabled skill returns at the start of the jammer's next regular turn,
    not a bonus turn (as with Sabotage). A disabled skill that changes hands works for its new owner at once.
-10. **Destroying by card** (Orbital Cannon, `show-of-force`). It counts as destroying a mech for Breakthrough
-    (`hostile`), Exploit (`plundering`), Trophy Hunters (`ravenous`) and Stolen Flag, on enemy mechs only. The
-    victim loses no Power: only combat and card text change Power.
-11. **Ice Tunnels** (`warp-gate`). The tunnel's two spaces are next to each other for moves and attacks,
-    Close Protection's support and Infiltration's (`stealthy`) "not next to a mech" (board.ts `linked`). A
+10. **Destroying by card** (Orbital Cannon). It counts as destroying a mech for Breakthrough, Exploit, Trophy
+    Hunters and Stolen Flag, on enemy mechs only. The victim loses no Power: only combat and card text change
+    Power.
+11. **Ice Tunnels.** The tunnel's two spaces are next to each other for moves and attacks,
+    Close Protection's support and Infiltration's "not next to a mech" (board.ts `linked`). A
     tunnel never links an objective, so perimeters and claims are unchanged.
-12. **Fanatics** (`righteous`). Blocks every Research gain, not resets. Stand Down (`composed`), which costs
+12. **Fanatics.** Blocks every Research gain, not resets. Stand Down, which costs
     Power, isn't offered under it, and Take Over's reset to 1 isn't a loss.
-13. **Veteran Crew** (`talented`). It counts towards the skill limit, and raises it as soon as it's held, so
+13. **Veteran Crew.** It counts towards the skill limit, and raises it as soon as it's held, so
     taking it as a fourth skill forces no discard.
 14. **Combat Power** is +1 to the winner and −1 to the loser of a combat only, unless Fanatics protects them.
-15. **A map's own Ice Tunnel and wormhole** (`warp-gate`). The Ice Tunnel is the game's one tunnel: the tactic closes a
+15. **A map's own Ice Tunnel and wormhole.** The Ice Tunnel is the game's one tunnel: the tactic closes a
     map's own and opens its pair as it would any other. A **wormhole** is a second pair, linked in just the same way
     (ruling 11) but for good: the tactic can't close it or land a tunnel mouth on it, so a map that depends on it
     (Two Arcs, whose islands meet only there) can't be cut in two. It shows violet, with a double ring. Barriers a

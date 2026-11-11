@@ -248,7 +248,7 @@ Keep the scrolling column, but pin what matters:
       form, `position: sticky; bottom: 0`. Compact: "Turn 4" beside the name, the hint at most 3
       lines (2 below 400px), the selected mech one row (ability text hidden, a tap on its name
       shows it; below 400px no die and Undo is just its icon). Your salvage yard is in the bar
-      whenever you can drop (setup placement, your action phase, Unveil). During a card pick
+      whenever you can drop (setup placement, your action phase, Invasion). During a card pick
       the bar lets go (`:has(.market.picking)`), so it can't cover the cards. The sidebar becomes
       `display: contents` so its panels join one flex column (board, market, online panel,
       players, log, turn panel). The turn panel goes **last**: pinned to the bottom of the screen
@@ -290,7 +290,7 @@ Keep the scrolling column, but pin what matters:
 - [x] **The selected mech's row is always one line** (2026-10-07): its name and every action button. In a narrow
       turn panel (container query, ≤ 540px: phone portrait and the landscape column) the die is left out (the
       mech glows on the board), buttons are tighter and long labels get short ones (*→ 3*, *Switch*, *Carry*,
-      *Tactical*, *Sacrifice*; the full text stays as `aria-label`). The name is cut short before the buttons
+      *Advance*, *Sacrifice*; the full text stays as `aria-label`). The name is cut short before the buttons
       shrink; only if they still don't fit (rare skill combinations) do they scroll sideways. `mobile:shots`
       selects each of your mechs and fails if a row wraps or its buttons scroll.
 - [x] **Zoom feel** (2026-10-07): the zoom buttons, "whole map", the edge arrows and mouse-wheel
@@ -300,7 +300,7 @@ Keep the scrolling column, but pin what matters:
 - [x] **Card picks on phones** (2026-10-07): the open market was one strip that scrolled sideways, so the
       third card of a row was off screen. Below 600px wide and in phone landscape, each deck is a row: its name
       and count on a line, then three cards sharing the width (taller rather than narrower). Community's
-      seventh card (Expansion) is below the fold of the sheet, which scrolls. Wider screens wrap a row that
+      seventh card (Reinforcements) is below the fold of the sheet, which scrolls. Wider screens wrap a row that
       doesn't fit onto a line of its own while you pick (the iPad's Community market), and keep one strip
       otherwise.
 - [x] **Whole games in emulation** (2026-10-07): `mobile:play` plays 2p Basic, 3p Classic and 4p Community
