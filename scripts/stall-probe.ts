@@ -5,7 +5,7 @@
  *
  * At the start of every turn each player is open (an objective they can still claim on the board), locked
  * (none, but an enemy mech they can reach, so combat can still earn Take Over) or sealed (neither: only
- * cards help, cards for Research to Ice Tunnel, Power Grab, Orbital Cannon or Infiltration). What a
+ * cards help, Discoveries to Ice Tunnel, Power Grab, Orbital Cannon or Infiltration). What a
  * player can reach is a flood fill over spaces, walled by barriers, objectives and the board's edge, through
  * the Ice Tunnel pair, from their mechs and the perimeters they can drop into; mechs don't wall (they move).
  * An objective is live if it has room and the open perimeter spaces they reach can make its number (Martial Law,

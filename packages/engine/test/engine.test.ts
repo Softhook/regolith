@@ -537,14 +537,14 @@ describe('Sneak: through enemy mechs, normal moves only (RULES.md ruling 8)', ()
 });
 
 describe('Arms Deal: a card for a Claim action may be 1 atomic (RULES.md ruling 7)', () => {
-  /** Ends a turn with `claimed` Claim actions and `takeOver` Take Over cubes; `researchCard` adds a pick for Research at 6. */
-  function cardPhase(opts: { claimed: number; takeOver?: number; researchCard?: boolean; skill?: boolean }): GameState {
+  /** Ends a turn with `claimed` Claim actions and `takeOver` Take Over cubes; `discovery` adds a Discovery's pick. */
+  function cardPhase(opts: { claimed: number; takeOver?: number; discovery?: boolean; skill?: boolean }): GameState {
     const s = quickStart(2, 3);
     const me = s.turn.player;
     s.players[me].skills = opts.skill === false ? [] : [{ id: 'r-arms-deal', active: true }];
     s.turn.claimed = opts.claimed;
     s.turn.claims = opts.claimed + (opts.takeOver ?? 0);
-    if (opts.researchCard) s.players[me].research = 6;
+    if (opts.discovery) s.players[me].research = 6;
     return apply(s, { type: 'endTurn' });
   }
   const offered = (s: GameState) => legalActions(s).some((a) => a.type === 'armsDeal');
@@ -563,8 +563,8 @@ describe('Arms Deal: a card for a Claim action may be 1 atomic (RULES.md ruling 
     expect(offered(cardPhase({ claimed: 1, skill: false }))).toBe(false);
   });
 
-  it('a card taken first uses the Research pick, keeping the claim pick tradeable', () => {
-    let s = cardPhase({ claimed: 1, researchCard: true });
+  it('a card taken first uses the Discovery pick, keeping the claim pick tradeable', () => {
+    let s = cardPhase({ claimed: 1, discovery: true });
     expect(s.pending[0]).toMatchObject({ kind: 'takeCard', count: 2, claim: 1 });
     s = apply(s, { type: 'takeCard', deck: 'skill', index: 0 });
     expect(s.pending[0]).toMatchObject({ kind: 'takeCard', count: 1, claim: 1 });

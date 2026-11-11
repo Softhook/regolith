@@ -65,8 +65,8 @@ export interface SkillRule {
   abilityTwice?: boolean;
   /** How many skills the player may hold. */
   skillLimit?: number;
-  /** Research that earns a card at the end of the turn (Rush Research). */
-  researchCardAt?: number;
+  /** Research that makes a Discovery (4 with Rush Research). */
+  discoveryAt?: number;
   /** Power needed for a Take Over cube (Stolen Flag). */
   takeOverAt?: number;
   /** When a mech is placed in your salvage yard, choose its number instead (Remodel). */
@@ -144,7 +144,7 @@ export const SKILL_RULES: Record<SkillEffect, SkillRule> = {
   'free-drop': { startOfTurn: () => ({ freeDrops: 1 }) },
   hacking: { claim: { tolerance: 1 } },
   exploit: { onDestroy: (c) => (c.first ? { research: 3 } : {}) },
-  'rush-research': { researchCardAt: 4 },
+  'rush-research': { discoveryAt: 4 },
   'arms-deal': { atomicForClaim: true },
   'drill-sergeant': { combat: { roll: 3 } },
   'trophy-hunters': { onDestroy: (c) => (c.first ? { power: 1 } : {}) },

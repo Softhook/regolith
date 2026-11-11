@@ -64,7 +64,7 @@ keep the words they were written in, and old commits name code that has since mo
 | a card's Community name as its id (`r-agile`, `curious`, `curiousUsed`) | its Regolith name (`r-tune-up`, `prospectors`, `prospectorsUsed`); `from` in data/regolith.yaml maps them |
 | Expansion (card, deck), expansion mechs | Reinforcements, reserve mechs |
 | infamy (`infamy`, `infamyAt`, `infamyTargets`) | Take Over (`takeOver`, `takeOverAt`, `takeOverTargets`) |
-| research breakthrough (`breakthroughAt`, the `breakthrough` log event) | a card for Research (`researchCardAt`, `researchCard`); Breakthrough is only the card |
+| research breakthrough (`breakthroughAt`, the `breakthrough` log event) | Discovery (`discoveryAt`, the `discovery` log event); Breakthrough is only the card |
 | ambition tokens (`ambitionTokens`) | Final Push tokens (`finalPushTokens`) |
 | Command, Gambit (Classic's decks) | Skill, Tactic |
 
@@ -104,7 +104,7 @@ may share a space: a mech there is on both.
 1. **Start.** Regolith: +1 Research for each of your mechs on an Alien Artefact.
 2. **Up to 3 actions**, any order, any repeats. Each mech makes at most one move, attack or shot a turn.
    Mech abilities and cards may also be used after the last action.
-3. **Cards** (Regolith): take 1 for each objective you claimed this turn (Take Over included), and 1 if your
+3. **Cards** (Regolith): take 1 for each objective you claimed this turn (Take Over included), and 1 for a **Discovery**, if your
    Research is at 6, which then resets to 1.
 
 ### Actions

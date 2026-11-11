@@ -191,7 +191,7 @@ export function playerAidSvg(o: AidOptions = {}): string {
             six: 'At 6 · Take Over',
             then: ['Place a cube on any', 'objective, reset to 1'],
           }
-        : { gain: ['+1 per Research action'], six: 'At 6 · Breakthrough', then: ['Take a card at the', 'end of turn, reset to 1'] };
+        : { gain: ['+1 per Research action'], six: 'At 6 · Discovery', then: ['Take a card at the', 'end of turn, reset to 1'] };
     let y = M + 35.4;
     for (const t of lines.gain) {
       out.push(line(cx, y, t, 2.3, colW, measure, { fill: WHITE, anchor: 'middle' }));

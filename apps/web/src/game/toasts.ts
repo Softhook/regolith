@@ -27,7 +27,7 @@ const TONES: Record<LogEvent, Toast['tone'] | undefined> = {
   cardPlayed: 'info',
   reinforcement: 'info',
   discard: 'info',
-  researchCard: 'info',
+  discovery: 'info',
 };
 
 const MAX_TOASTS = 4;

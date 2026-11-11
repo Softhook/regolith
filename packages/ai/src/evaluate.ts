@@ -2,7 +2,7 @@ import {
   tunnelPairs,
   attackChance,
   barrierAt,
-  researchCardAt,
+  discoveryAt,
   canGainResearch,
   cellOf,
   claimCheck,
@@ -45,7 +45,7 @@ const POWER = [0, 0, 60, 150, 290, 500];
 const MECH_ON_BOARD = 70;
 const MECH_IN_SALVAGE_YARD = 30;
 const ATOMIC = 40;
-/** A card still to be taken at the end of this turn (a claim, or Research at its card). */
+/** A card still to be taken at the end of this turn (a claim, or a Discovery). */
 const CARD = 120;
 
 /**
@@ -177,7 +177,7 @@ function playerValue(ctx: Ctx, p: PlayerId): number {
   let v = -pl.cubesLeft * CUBE;
   v += POWER[Math.min(pl.power, 5)];
   if (cards) {
-    const at = researchCardAt(s, p);
+    const at = discoveryAt(s, p);
     v += CARD * 0.7 * Math.min(1, (pl.research - 1) / Math.max(1, at - 1));
     if (s.turn.player === p && s.turn.phase === 'actions') v += s.turn.claims * CARD;
     // Cards already earned but taken later: an Take Over cube on another player's turn, or picks
@@ -327,8 +327,8 @@ function objectivePotential(ctx: Ctx, p: PlayerId, objective: Objective): number
       const raise = Math.max(0, need - research);
       const actions = moves + raise + 2;
       if (need > rulesOf(s).researchLimit || (raise && !canGainResearch(s, p))) return;
-      // Taking its card resets Research at the end of the turn, so Research that high has to be spent this turn.
-      if (need < researchCardAt(s, p) || actions <= 3) option(actions);
+      // A Discovery resets Research at the end of the turn, so Research that high has to be spent this turn.
+      if (need < discoveryAt(s, p) || actions <= 3) option(actions);
     };
     steer(gap, 0);
     for (const d of reachers) steer(gap - d.value, 1);

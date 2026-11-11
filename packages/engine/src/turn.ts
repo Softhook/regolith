@@ -1,7 +1,7 @@
 /** Turn structure: start of turn, the end-of-turn card phase, and passing the turn on. */
 import { checkTakeOver, emptyTurn, gainResearch, log, name, type PendingOf } from './core';
 import { cellOf, salvageYard, mechsOnBoard } from './lookups';
-import { researchCardAt, canArmsDeal, canShunt, canTakeAnyCard, takeOverTargets, startSlots } from './queries';
+import { discoveryAt, canArmsDeal, canShunt, canTakeAnyCard, takeOverTargets, startSlots } from './queries';
 import { next } from './rng';
 import { rulesOf } from './rules';
 import { activeSkills, ruleOf, stealableSkill, type TurnBonus } from './skillRules';
@@ -80,17 +80,17 @@ function queuePicks(s: GameState, player: PlayerId, count: number, claim: number
   if (count > 0) s.pending.push({ kind: 'takeCard', player, count, ...(claim && { claim }) });
 }
 
-/** Phase 2: one card per cube placed this turn, plus one for Research at 6 (4 with Rush Research). */
+/** Phase 2: one card per cube placed this turn, plus one for a Discovery (Research at 6, or 4 with Rush Research). */
 export function endTurn(s: GameState) {
   const p = s.turn.player;
   const pl = s.players[p];
   s.turn.phase = 'cards';
   if (!rulesOf(s).cards) return;
   let cards = s.turn.claims;
-  if (pl.research >= researchCardAt(s, p)) {
+  if (pl.research >= discoveryAt(s, p)) {
     pl.research = 1;
     cards++;
-    log(s, `${pl.name} turns Research into a card.`, p, 'researchCard');
+    log(s, `${pl.name} makes a Discovery.`, p, 'discovery');
   }
   queuePicks(s, p, cards, s.turn.claimed ?? 0);
   // A cube placed on someone else's turn earns its card in this card phase, after the active

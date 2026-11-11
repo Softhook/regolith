@@ -134,6 +134,7 @@ decided, not forgotten.
 | Conquer | **Claim** |
 | Dominance | **Power** |
 | Research | **Research** |
+| Breakthrough (Research at 6) | **Discovery** |
 | Scrapyard | **Salvage yard** |
 | Reconfigure | **Refit** |
 | Deploy | **Drop** |

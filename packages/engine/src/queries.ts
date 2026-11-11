@@ -56,10 +56,10 @@ export function skillLimit(state: GameState, player: PlayerId): number {
   return Math.max(3, ...state.players[player].skills.map((s) => ruleOf(s.id).skillLimit ?? 0));
 }
 
-/** Research that earns a card at the end of the turn (and resets to 1). */
-export function researchCardAt(state: GameState, player: PlayerId): number {
+/** Research that makes a Discovery: a card at the end of the turn, and Research back to 1. */
+export function discoveryAt(state: GameState, player: PlayerId): number {
   const limit = rulesOf(state).researchLimit;
-  return Math.min(limit, ...skillRules(state, player).map((r) => r.researchCardAt ?? limit));
+  return Math.min(limit, ...skillRules(state, player).map((r) => r.discoveryAt ?? limit));
 }
 
 /** Power needed for Take Over (normally 6, or 4 with Stolen Flag). */

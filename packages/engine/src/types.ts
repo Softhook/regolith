@@ -239,7 +239,7 @@ export type LogEvent =
   | 'cardPlayed'
   | 'reinforcement'
   | 'discard'
-  | 'researchCard';
+  | 'discovery';
 
 /** A skill's bonus, as actually gained (after the research and power limits). */
 export interface Gains {

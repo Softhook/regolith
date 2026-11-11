@@ -36,7 +36,7 @@ const EVENT_SOUNDS: Partial<Record<LogEvent, Sound>> = {
   cardTaken: 'card',
   reinforcement: 'launch',
   discard: 'discard',
-  researchCard: 'researchCard',
+  discovery: 'discovery',
 };
 
 /** Each Tactic effect's signature sound; a card played that the log doesn't name sounds like a card. */
@@ -128,9 +128,9 @@ export function soundsFor(
   if (next.players.some((pl, i) => pl.atomics > prev.players[i].atomics)) effects.add('atomicLoad');
   if ((next.barriers?.length ?? 0) > (prev.barriers?.length ?? 0)) effects.add('barrier');
 
-  // The tracks, unless a louder sound already says so: a card for Research, Take Over or a kill (power).
+  // The tracks, unless a louder sound already says so: a Discovery (research), Take Over or a kill (power).
   const rose = (k: 'research' | 'power') => next.players.some((pl, i) => pl[k] > prev.players[i][k]);
-  if (rose('research') && !first.has('researchCard')) effects.add('research');
+  if (rose('research') && !first.has('discovery')) effects.add('research');
   if (rose('power') && !destroyed && !first.has('takeOver')) effects.add('power');
 
   // Once-per-turn skills used this step, or a skill disabled by Signal Jammer.

@@ -407,7 +407,7 @@ const ORACLES: ((c: Step) => void)[] = [
       }
   },
 
-  // Research earns a card at the end of the turn: at 6, or 4 with Rush Research; research resets to 1.
+  // A Discovery at the end of the turn: at 6, or 4 with Rush Research; research resets to 1.
   (c) => {
     if (c.action.type !== 'endTurn' || turnChanged(c)) return;
     const p = c.before.turn.player;

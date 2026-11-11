@@ -599,7 +599,8 @@ export function Manual({ dark, drawMapsWhenNear }: { dark?: boolean; drawMapsWhe
 
           <Action name="Research" cost={1} tag={REGOLITH.name} figure={<Track at={4} next tone="res" end="card" />}>
             <p>
-              Move your Research up 1. When it reaches <b>6</b>, take a card at the end of your turn, and it drops back to 1.
+              Move your Research up 1. When it reaches <b>6</b>, you make a <b>Discovery</b>: take a card at the end of your turn, and it
+              drops back to 1.
             </p>
           </Action>
 
@@ -735,7 +736,7 @@ export function Manual({ dark, drawMapsWhenNear }: { dark?: boolean; drawMapsWhe
               <Icon name="research" size={24} />
             </span>
             <p>
-              <b>1 card if your Research is at 6.</b> It then drops back to 1.
+              <b>1 card for a Discovery:</b> your Research at 6. It then drops back to 1.
             </p>
           </div>
         </div>

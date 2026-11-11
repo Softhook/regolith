@@ -185,7 +185,7 @@ skills:
     art: { title: "Salvage drone", brief: "A small drone hovering over a wreck, scanning it in amber lines." }
   - id: r-rush-research
     name: "Rush Research"
-    subtitle: "Accelerated breakthrough"
+    subtitle: "Accelerated discovery"
     text: "Your Research resets at 4 instead of 6."
     category: research
     count: 1
