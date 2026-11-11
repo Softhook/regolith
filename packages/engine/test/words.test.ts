@@ -5,7 +5,7 @@ import { ALL_CARDS, MODES } from '../src';
 import { playAiGame } from './helpers';
 
 const ORIGINAL_WORDS =
-  /\b(ships?|planets?|orbits?|conquer\w*|deploy\w*|missiles?|scrap\w*|flagships?|destroyers?|frigates?|battlestations?|interceptors?|dominance|reconfigur\w*|warp gates?|voids?|gates?|infam\w*|ambition\w*)\b/i;
+  /\b(ships?|planets?|orbits?|conquer\w*|deploy\w*|missiles?|scrap\w*|flagships?|destroyers?|frigates?|battlestations?|interceptors?|dominance|reconfigur\w*|warp gates?|voids?|gates?|infam\w*|ambition\w*|fleets?)\b/i;
 
 /** Every message the engine's source writes to the log or refuses an action with, its `${…}` parts left out. */
 function sourceMessages(): string[] {

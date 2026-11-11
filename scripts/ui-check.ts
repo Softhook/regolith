@@ -41,7 +41,7 @@ function overClaim() {
 /** A Regolith hex position where the player to move has a free objective's sum on the perimeter, but an enemy mech in it too (contested perimeter). */
 function contested() {
   // 3 players, as the page and the other positions have.
-  let s: GameState = quickStart(3, 1, 'regolith', 'beta-hex');
+  let s: GameState = quickStart(3, 1, 'regolith', 'swift-crater');
   const me = s.turn.player;
   const objective = s.board.objectives.find((p) => !p.start && !p.cubes.length)!;
   const [a, b, c] = perimeterSpaces(s.board, objective);

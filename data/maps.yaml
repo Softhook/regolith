@@ -43,8 +43,8 @@
 #   shared  = how many of those must be shared if everyone placed all their cubes
 
 maps:
-  - id: alpha-hex
-    name: Alpha Sector
+  - id: lagado-planitia
+    name: Lagado Planitia
     players: 2
     group: hex
     world: phobos
@@ -58,8 +58,8 @@ maps:
       - "7  7"
       - ".  7*"
 
-  - id: beta-hex
-    name: Beta Sector
+  - id: swift-crater
+    name: Swift Crater
     players: 3
     group: hex
     world: deimos
@@ -72,8 +72,8 @@ maps:
       - ".  7  8"
       - ".  8*"
 
-  - id: gamma-hex
-    name: Gamma Sector
+  - id: laputa-regio
+    name: Laputa Regio
     players: 4
     group: hex
     world: phobos
@@ -90,8 +90,8 @@ maps:
   # Hex: advanced maps, each with an idea (where the starts sit, what they touch, an Alien Artefact or a gap in the middle).
   # Their seats match by a half turn (a third of a turn for 3 players), as hex maps can't be mirrored.
 
-  - id: terra-minor-hex
-    name: Terra Minor
+  - id: nili-fossae
+    name: Nili Fossae
     players: 2
     group: hex
     world: mars
@@ -104,8 +104,8 @@ maps:
       - "7* 8  8  7*"
       - ".  8  8"
 
-  - id: circular-logic-hex
-    name: Circular Logic
+  - id: hall-crater
+    name: Hall Crater
     players: 2
     group: hex
     world: phobos
@@ -118,11 +118,11 @@ maps:
       - "8  .  .  8"
       - ".  8  8  7*"
 
-  - id: the-great-plan-hex
-    name: The Great Plan
+  - id: jezero-crater
+    name: Jezero Crater
     players: 2
     group: hex
-    world: deimos
+    world: mars
     length: short
     cubes: 7
     stats: { slack: 2, shared: 2, objectives: 10 }
@@ -134,8 +134,8 @@ maps:
       - "7  8"
       - "7  7* 7"
 
-  - id: critical-density-hex
-    name: Critical Density
+  - id: kepler-dorsum
+    name: Kepler Dorsum
     players: 3
     group: hex
     world: phobos
@@ -148,8 +148,8 @@ maps:
       - "8  8  9*"
       - "9* 8"
 
-  - id: edge-of-oblivion-hex
-    name: Edge of Oblivion
+  - id: gale-crater
+    name: Gale Crater
     players: 3
     group: hex
     world: mars
@@ -164,11 +164,11 @@ maps:
       - "8  9  8  8"
       - ".  7* 7"
 
-  - id: nexus-hex
-    name: Nexus
+  - id: syrtis-major
+    name: Syrtis Major
     players: 4
     group: hex
-    world: phobos
+    world: mars
     length: long
     cubes: 6
     stats: { slack: 6, shared: 5, objectives: 12 }
@@ -180,8 +180,8 @@ maps:
       - "9* 7  8"
       - ".  .  9*"
 
-  - id: tesseract-hex
-    name: Tesseract
+  - id: voltaire-crater
+    name: Voltaire Crater
     players: 4
     group: hex
     world: deimos
@@ -203,11 +203,11 @@ maps:
   # or a third-turn (3 players), even as the objectives look scattered. Only 7s go off-centre on hex tiles:
   # anything bigger spills over the tile's edge (art OFF_CENTRE).
 
-  - id: twin-drift
-    name: Twin Drift
+  - id: chryse-planitia
+    name: Chryse Planitia
     players: 2
     group: drift
-    world: deimos
+    world: mars
     length: short
     cubes: 6
     stats: { slack: 6, shared: 2, objectives: 10 }
@@ -220,8 +220,8 @@ maps:
       - "7s  0    9"
       - ".   .    8*   7nw"
 
-  - id: circular-drift
-    name: Circular Drift
+  - id: roche-crater
+    name: Roche Crater
     players: 2
     group: drift
     world: phobos
@@ -234,11 +234,11 @@ maps:
       - "8  .  .  8"
       - ".  8  8  7n*"
 
-  - id: trinary-drift
-    name: Trinary Drift
+  - id: acidalia-planitia
+    name: Acidalia Planitia
     players: 3
     group: drift
-    world: deimos
+    world: mars
     length: medium
     cubes: 5
     stats: { slack: 4, shared: 4, objectives: 10 }
@@ -249,15 +249,15 @@ maps:
       - ".  7nw 8"
       - ".  8*"
 
-  - id: nexus-drift
-    name: Nexus Drift
+  - id: medusae-fossae
+    name: Medusae Fossae
     players: 4
     group: drift
-    world: phobos
+    world: mars
     length: long
     cubes: 6
     stats: { slack: 6, shared: 5, objectives: 12 }
-    # Two 7s lean toward the pair of 10s; the other two starts sit further out, as on Nexus.
+    # Two 7s lean toward the pair of 10s; the other two starts sit further out, as on Syrtis Major.
     layout:
       - ".  9*"
       - "8  7ne  9*"
@@ -370,7 +370,7 @@ maps:
 
   # Three layouts of opposed starts, central contests and ringed Alien Artefacts.
   # The 2-player map opens long alternate routes to a contested 9; the 3-player map trades its central
-  # 10 for an Alien Artefact and adds a balanced outer ring; the 4-player map turns Nexus's twin central
+  # 10 for an Alien Artefact and adds a balanced outer ring; the 4-player map turns Syrtis Major's twin central
   # 10s into a shared research corridor and gives every start the same 9.
 
   - id: elysium-reach
@@ -409,7 +409,7 @@ maps:
     name: Hellas Divide
     players: 4
     group: hex
-    world: phobos
+    world: mars
     length: medium
     cubes: 5
     stats: { slack: 4, shared: 4, objectives: 12 }
@@ -661,7 +661,7 @@ maps:
     length: short
     cubes: 4
     stats: { slack: 2, shared: 2, objectives: 4 }
-    # Circular Logic cut in two: each start has an arc of three objectives to itself, and only the wormhole crosses the gap. No arc has the four a player's cubes need, so one must be planted across.
+    # Hall Crater cut in two: each start has an arc of three objectives to itself, and only the wormhole crosses the gap. No arc has the four a player's cubes need, so one must be planted across.
     start:
       wormhole: ["0:2:s", "2:2:n"]
     layout:
@@ -714,7 +714,7 @@ maps:
     length: short
     cubes: 5
     stats: { slack: 0, shared: 1, objectives: 7 }
-    # Alpha Sector with two broken walls across it, each a pair of 7s with two barriers between and gaps at both ends. The walk between the starts is 10 spaces, through the chamber with the 8.
+    # Lagado Planitia with two broken walls across it, each a pair of 7s with two barriers between and gaps at both ends. The walk between the starts is 10 spaces, through the chamber with the 8.
     start:
       barriers: ["1:0:se", "1:1:nw", "3:1:nw", "3:0:se"]
     layout:

@@ -15,7 +15,7 @@ import {
 import { arrange, players, quickStart } from './helpers';
 
 /*
- * Regolith on Alpha Sector (hex), the 2-player map, in axial cells (docs/HEX.md): a space's sides are a row
+ * Regolith on Lagado Planitia (hex), the 2-player map, in axial cells (docs/HEX.md): a space's sides are a row
  * or column away, or (-1, +1) and (+1, -1). The top start objective, a 7, is at (1,5), with the spaces (0,5) and
  * (0,6) above it; the middle 8 is at (6,4), ringed by (5,4), (5,5), (6,3), (6,5), (7,3) and (7,4); row 7 runs
  * clear from (7,2) to (7,6), and the far corner is (12,2) beside (12,3).
@@ -40,7 +40,7 @@ describe('setup', () => {
     expect(quickStart(2, 42)).toEqual(quickStart(2, 42));
   });
 
-  it('chooses the player with the lowest starting fleet total', () => {
+  it('chooses the player with the lowest starting mech total', () => {
     const game = createGame({ players: players(2), seed: 7, mode: 'basic' });
     for (const d of game.dice) if (d.loc.zone === 'salvageYard') d.value = d.owner === 0 ? 6 : 1;
 
@@ -210,7 +210,7 @@ describe('modes', () => {
 });
 
 describe('void tiles (The Alien Artefact maps; BGA rules help)', () => {
-  // The Great Plan (hex): the Alien Artefacts tile is the middle one, (7,5) and the six spaces round it.
+  // Jezero Crater (hex): the Alien Artefacts tile is the middle one, (7,5) and the six spaces round it.
   const ARTEFACT: [number, number][] = [
     [6, 5],
     [6, 6],
@@ -221,7 +221,7 @@ describe('void tiles (The Alien Artefact maps; BGA rules help)', () => {
     [8, 5],
   ];
   const start = () => {
-    const s = quickStart(2, 5, 'regolith', 'the-great-plan-hex');
+    const s = quickStart(2, 5, 'regolith', 'jezero-crater');
     for (const p of s.players) p.skills = [];
     return s;
   };
@@ -265,12 +265,12 @@ describe('maps per rule set', () => {
   it('Basic and Regolith are played on the hex maps', () => {
     for (const mode of ['basic', 'regolith'] as const) {
       expect(createGame({ players: players(2), mode, mapId: 'arcadia-planitia' }).board.mapId).toBe('arcadia-planitia');
-      expect(createGame({ players: players(2), mode, mapId: 'twin-drift' }).board.mapId).toBe('twin-drift');
+      expect(createGame({ players: players(2), mode, mapId: 'chryse-planitia' }).board.mapId).toBe('chryse-planitia');
     }
   });
 
   it('rejects a map for a different player count', () => {
-    expect(() => createGame({ players: players(3), mapId: 'alpha-hex' })).toThrow(/2-player map/);
+    expect(() => createGame({ players: players(3), mapId: 'lagado-planitia' })).toThrow(/2-player map/);
   });
 });
 

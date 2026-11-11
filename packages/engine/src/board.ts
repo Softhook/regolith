@@ -449,13 +449,6 @@ export function tileCentres(board: Board): ReadonlyMap<number, Cell> {
   return out;
 }
 
-/** Whether two tiles touch along a side: the 6 tiles around a flower. Their middle spaces are then 3 apart. */
-export function tilesTouch(board: Board, a: number, b: number): boolean {
-  const centres = tileCentres(board);
-  const [p, q] = [centres.get(a), centres.get(b)];
-  return !!p && !!q && distance(p, q) === 3;
-}
-
 export function objectiveFreeSlots(objective: Objective): number {
   return objective.capacity - objective.cubes.length;
 }

@@ -3,7 +3,7 @@
  * left out (docs/regolith/PROTOTYPING.md). The 5 and 6, the movement cap, zones of control and
  * contested perimeters are pinned in regolith.test.ts.
  *
- * Scenarios run on Alpha Sector (hex), the basic map for 2 players, in axial cells (docs/HEX.md): a
+ * Scenarios run on Lagado Planitia (hex), the basic map for 2 players, in axial cells (docs/HEX.md): a
  * space's sides are a row or column away, or (-1, +1) and (+1, -1). Objectives, by id, each ringed by
  * the six spaces of its tile:
  *

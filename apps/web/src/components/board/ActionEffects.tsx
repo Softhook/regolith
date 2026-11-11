@@ -19,8 +19,8 @@ const EFFECT_MS = 500 + MECH.glide;
 function effectsOf(before: GameState, game: GameState): Effect[] {
   const step = lastLogId(game);
   const out: Effect[] = [];
-  // A card's own effect (CardEffects) stands in for these on a mech or objective it marks: one placed by
-  // Reinforcements or Invasion, one Nomadic relocates, a relocated cube.
+  // A card's own effect (CardEffects) stands in for these on a mech it marks: one placed by Reinforcements or
+  // Invasion.
   const replaced = new Set(cardEffectsOf(before, game).flatMap((e) => e.replaces ?? []));
   const was = new Map(before.dice.map((d) => [d.id, d]));
   for (const d of game.dice) {
@@ -33,7 +33,6 @@ function effectsOf(before: GameState, game: GameState): Effect[] {
     else if (!same(from, to)) out.push(...trails(before, game, d.id, from, to).map((t, i) => ({ ...fx, ...t, id: `${fx.id}:${i}` })));
   }
   for (const pl of game.board.objectives) {
-    if (replaced.has(`objective:${pl.id}`)) continue;
     const old = before.board.objectives.find((x) => x.id === pl.id)?.cubes ?? [];
     // Whose cubes there grew in number: a cube taken off shifts the rest, so their order says nothing.
     const owner = pl.cubes.find((o) => cubeCount(pl.cubes, o) > cubeCount(old, o));

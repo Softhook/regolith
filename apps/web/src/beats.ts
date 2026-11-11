@@ -40,9 +40,6 @@ export const ARC = { span: 200, fade: 300 } as const;
 /** The easing of a beam's spark riding across (.cfx-ray > i), as a CSS cubic-bezier's four numbers. */
 const RIDE_EASE = [0.5, 0, 0.3, 1] as const;
 
-/** How far along its ride the spark is when what it carries starts to land. */
-const ARRIVED = 0.8;
-
 /** The moment, as a share of the time, an ease's progress first reaches `progress`. */
 function timeAt([x1, y1, x2, y2]: readonly [number, number, number, number], progress: number) {
   const at = (t: number, a: number, b: number) => 3 * (1 - t) ** 2 * t * a + 3 * (1 - t) * t * t * b + t ** 3;
@@ -56,11 +53,8 @@ function timeAt([x1, y1, x2, y2]: readonly [number, number, number, number], pro
   return at(lo, x1, x2);
 }
 
-/** A beam (.cfx-ray): it spans the way and fades, a spark riding along it: a relocated cube carried to its new objective, or Ice Tunnels joined. */
+/** A beam (.cfx-ray): it spans the way and fades, a spark riding along it: Ice Tunnels joined. */
 const BEAM = { span: 340, fade: 510, ride: 600 } as const;
-
-/** When the beam's spark is all but there and the cube it carries starts its fall, from the ride's ease. */
-export const BEAM_ARRIVES = Math.round(BEAM.ride * timeAt(RIDE_EASE, ARRIVED));
 
 /** A die's tumble (Die3D): its hop's ease (CSS's ease-out), and the share of the hop at which it first lands back. */
 const HOP_EASE = [0, 0, 0.58, 1] as const;
@@ -76,9 +70,6 @@ export const DICE = {
   turn: 1100,
   lands: Math.round(1000 * timeAt(HOP_EASE, HOP_LANDS)),
 } as const;
-
-/** Nomadic (.cfx-blink): the mech folds away, and opens out at its new objective this long after. */
-export const BLINK = { open: 300 } as const;
 
 /** A shot (.shot-*): its flight across the map (it hits, and the battle opens, as it lands), then the impact's flash. */
 export const SHOT = { flight: 600, hit: 350 } as const;
@@ -100,7 +91,6 @@ export const CSS_BEATS = {
   reinforcement: REINFORCEMENT,
   arc: ARC,
   beam: BEAM,
-  blink: BLINK,
   shot: SHOT,
   arena: ARENA,
 };

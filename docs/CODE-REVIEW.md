@@ -50,8 +50,8 @@ The same duplication, availability written once for listing and once for applyin
 `atomic` handler accept atomics that `legalActions` never offered.
 
 **Change:** give `SkillRule` an `activated: { options(s, player): Action[]; apply(s, action) }` entry,
-like `MechHooks.action` for prototype abilities, and have `legal.ts` and the handlers read it. The
-prototype `power` action already shows the pattern: options computed once, and `apply` accepts only
+like `MechHooks.action` for the plugged-in abilities, and have `legal.ts` and the handlers read it. The
+`ability` action already shows the pattern: options computed once, and `apply` accepts only
 an offered option. Related: [queries.ts](../packages/engine/src/queries.ts) has grown to about 800
 lines of unrelated questions (movement, claim, combat, cards, skills), and splitting it by topic
 would make it easier to find one.

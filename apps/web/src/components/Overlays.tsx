@@ -113,9 +113,9 @@ export function DecisionOverlay({ game, dispatch, human }: { game: GameState; di
         : `${p.name}, keep this mech’s number or change it by 1.`;
       return (
         <Modal title={title} subtitle={subtitle} pc={p.color}>
-          <div className="fleet-roll engineering-row">
+          <div className="setup-roll engineering-row">
             {(head.options ?? [1, 2, 3, 4, 5, 6]).map((value) => (
-              <button key={value} className="fleet-die engineering-choice" onClick={() => dispatch({ type: 'engineering', value })}>
+              <button key={value} className="setup-die engineering-choice" onClick={() => dispatch({ type: 'engineering', value })}>
                 <Die3D value={value} size={54} color={p.color} sound={false} />
                 <span className="show">{mechOf(game, value).name}</span>
               </button>
@@ -255,15 +255,15 @@ function SetupRoll({ game, dispatch, player, rerolled }: { game: GameState; disp
       subtitle={`${p.name}, these three dice are your starting mechs. The lowest total plays first.`}
       pc={p.color}
     >
-      <div className="fleet-roll">
+      <div className="setup-roll">
         {dice.map((d, i) => (
-          <div key={d.id} className="fleet-die">
+          <div key={d.id} className="setup-die">
             <Die3D value={d.value} rolls={d.rolls} size={dieSize} color={p.color} tumbleOnMount delay={i * 0.12} sound={i === 0} />
             <span className={landed ? 'show' : ''}>{mechOf(game, d.value).name}</span>
           </div>
         ))}
       </div>
-      <p className={`fleet-sum ${landed ? 'show' : ''}`}>
+      <p className={`setup-sum ${landed ? 'show' : ''}`}>
         Mech total <b>{sum}</b>
       </p>
       <div className="modal-actions">

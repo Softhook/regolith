@@ -40,7 +40,7 @@ export const landing = (s: GameState) => s.pending.some((p) => LANDING.has(p.kin
 export const landingNext = (s: GameState) => landing(s) && s.log.at(-1)?.event === 'cardPlayed';
 
 /**
- * Whether `e` is a skill's start-of-turn bonus (Arrogant, Conformist) that its player also had at the start
+ * Whether `e` is a skill's start-of-turn bonus (Science Survey) that its player also had at the start
  * of their last turn: news the first time, not every turn after. Logged all the same, but not shown.
  */
 export function repeatsLastTurn(log: readonly LogEntry[], e: LogEntry): boolean {

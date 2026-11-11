@@ -2,7 +2,7 @@
  * AI levels: the positions each level must handle, and full games between levels.
  * Strength is measured separately by self-play (see docs/AI.md); these tests pin down behaviour.
  *
- * Scenarios run on Basic on Alpha Sector (hex), the basic map for 2 players, in axial cells (docs/HEX.md).
+ * Scenarios run on Basic on Lagado Planitia (hex), the basic map for 2 players, in axial cells (docs/HEX.md).
  * Objectives, by id, each ringed by the six spaces of its tile:
  *
  *    id0 (1,5) 7*   id1 (4,3) 7   id2 (3,6) 7   id3 (7,1) 7   id4 (6,4) 8

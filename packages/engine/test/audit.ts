@@ -94,7 +94,7 @@ export interface AuditResult {
 
 /** Cards whose effect an oracle below checks (the others are only exercised). */
 export const CHECKED_EFFECTS = new Set([
-  // tactics and gambits
+  // tactics
   'power-grab',
   'contraband',
   'forced-march',
@@ -144,16 +144,16 @@ function dealable(mode: GameMode): string[] {
  * bigger games use level 1.
  */
 export const AUDIT_GAMES: (AuditGame & { quick?: boolean; deep?: boolean })[] = [
-  { mode: 'regolith', mapId: 'alpha-hex', players: 2, levels: [1, 1], seed: 101, deal: 0, quick: true },
-  { mode: 'regolith', mapId: 'beta-hex', players: 3, levels: [1, 1, 1], seed: 102, deal: 6, quick: true },
-  { mode: 'regolith', mapId: 'gamma-hex', players: 4, levels: [1, 1, 1, 1], seed: 103, deal: 15, quick: true },
-  { mode: 'regolith', mapId: 'circular-logic-hex', players: 2, levels: [3, 2], seed: 104, deal: 27 },
-  { mode: 'regolith', mapId: 'terra-minor-hex', players: 2, levels: [2, 1], seed: 105, deal: 28, quick: true },
+  { mode: 'regolith', mapId: 'lagado-planitia', players: 2, levels: [1, 1], seed: 101, deal: 0, quick: true },
+  { mode: 'regolith', mapId: 'swift-crater', players: 3, levels: [1, 1, 1], seed: 102, deal: 6, quick: true },
+  { mode: 'regolith', mapId: 'laputa-regio', players: 4, levels: [1, 1, 1, 1], seed: 103, deal: 15, quick: true },
+  { mode: 'regolith', mapId: 'hall-crater', players: 2, levels: [3, 2], seed: 104, deal: 27 },
+  { mode: 'regolith', mapId: 'nili-fossae', players: 2, levels: [2, 1], seed: 105, deal: 28, quick: true },
   // Deep: level 4, other maps and other deals.
   { mode: 'regolith', mapId: 'valles-marineris', players: 2, levels: [4, 3], seed: 111, deal: 3, deep: true },
   { mode: 'regolith', mapId: 'stickney-crater', players: 3, levels: [1, 1, 1], seed: 112, deal: 12, deep: true },
   { mode: 'regolith', mapId: 'utopia-planitia', players: 4, levels: [1, 2, 1, 1], seed: 113, deal: 21, deep: true },
-  { mode: 'regolith', mapId: 'twin-drift', players: 2, levels: [2, 2], seed: 114, deal: 30, deep: true },
+  { mode: 'regolith', mapId: 'chryse-planitia', players: 2, levels: [2, 2], seed: 114, deal: 30, deep: true },
 ];
 
 export const gameName = (g: AuditGame) => `${g.mode} ${g.players}p ${g.mapId ?? 'default map'} L${g.levels.join('/')}`;

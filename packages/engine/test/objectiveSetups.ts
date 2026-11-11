@@ -34,10 +34,10 @@ export interface ObjectiveSetup {
 
 export const OBJECTIVE_SETUPS: ObjectiveSetup[] = [
   {
-    id: 'duel-alpha',
-    name: 'Alpha Sector',
+    id: 'duel-lagado',
+    name: 'Lagado Planitia',
     players: 2,
-    base: 'alpha-hex',
+    base: 'lagado-planitia',
     control: 8,
     world: 'phobos',
     layout: ['.  7*', '7  7', '7  H  7', '7  7', '.  7*'],
@@ -46,13 +46,13 @@ export const OBJECTIVE_SETUPS: ObjectiveSetup[] = [
   },
   {
     id: 'duel-thin',
-    name: 'Thin Alpha',
+    name: 'Thin Lagado',
     players: 2,
     control: 8,
     world: 'phobos',
     layout: ['.  7*', '-  7', '7  H  7', '7  -', '.  7*'],
     cubes: [3, 4],
-    note: 'Alpha Sector with two 7s turned to open ground: six one-cube objectives, so 4 cubes already force the hub.',
+    note: 'Lagado Planitia with two 7s turned to open ground: six one-cube objectives, so 4 cubes already force the hub.',
   },
   {
     id: 'duel-canyon',
@@ -99,10 +99,10 @@ export const OBJECTIVE_SETUPS: ObjectiveSetup[] = [
     note: 'The Alien Artefact at the junction becomes the hub (Mare Trigonum is this map with an 11 there, and 6 cubes).',
   },
   {
-    id: 'quad-gamma',
-    name: 'Gamma Sector',
+    id: 'quad-laputa',
+    name: 'Laputa Regio',
     players: 4,
-    base: 'gamma-hex',
+    base: 'laputa-regio',
     control: 10,
     world: 'phobos',
     layout: ['.  9*', '9  8', '8* H  8*', '8  9', '.  9*'],

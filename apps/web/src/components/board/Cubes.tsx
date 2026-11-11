@@ -1,7 +1,6 @@
 import type { CSSProperties } from 'react';
 import { type GameState } from '@regolith/engine';
 import { CUBE_PAD, REGOLITH_SHADOW, TILE, cubePadCentres, type World } from '@regolith/art';
-import type { Staging } from '../../game/staging';
 import { DIE_CORNER } from '../../theme';
 import { placement } from './geometry';
 import { numberCorner } from './layers';
@@ -39,16 +38,12 @@ export function cubeSpots(game: GameState, cell: number): CubeSpot[] {
   });
 }
 
-/** An objective's new cube may drop in late (a relocated one, see staging): its shadow and it wait as long. */
-const lateStyle = (objective: number, late: Staging['cube']) =>
-  late?.objective === objective ? ({ '--cube-late': `${late.ms}ms` } as CSSProperties) : undefined;
-
 /**
  * The shadows the cubes cast on `world`'s ground, for the layer the dice's are in (MechShadows): where the two meet it's no
  * darker. Each is the cube's rounded footprint swept down and to the right for its height (a cube, so its width), and
  * falls in with its cube, from as far away as the cube falls from (`--away`, the cube's 320%).
  */
-export function CubeShadows({ cubes, world, mm, late }: { cubes: CubeSpot[]; world: World; mm: number; late?: Staging['cube'] }) {
+export function CubeShadows({ cubes, world, mm }: { cubes: CubeSpot[]; world: World; mm: number }) {
   return (
     <svg className="board-svg">
       {cubes.map((q) => {
@@ -62,7 +57,6 @@ export function CubeShadows({ cubes, world, mm, late }: { cubes: CubeSpot[]; wor
             style={
               {
                 ...style,
-                ...lateStyle(q.objective, late),
                 filter: `blur(${REGOLITH_SHADOW.blur * mm}px)`,
                 '--away': `${3.2 * far}px`,
               } as CSSProperties
@@ -107,19 +101,7 @@ function CubeShade({ q, dice, world }: { q: CubeSpot; dice: DieSpot[]; world: Wo
  * The cubes, each drawn as a die's face without its pips (.die3d-face), so the two can't drift apart, with the shadows that land on
  * it, and the objectives' numbers, over the shadows that fall their way: a number has to stay readable, whatever stands next to it.
  */
-export function Cubes({
-  game,
-  cubes,
-  dice,
-  cell,
-  late,
-}: {
-  game: GameState;
-  cubes: CubeSpot[];
-  dice: DieSpot[];
-  cell: number;
-  late?: Staging['cube'];
-}) {
+export function Cubes({ game, cubes, dice, cell }: { game: GameState; cubes: CubeSpot[]; dice: DieSpot[]; cell: number }) {
   const { mid } = placement(game.board, cell);
   return (
     <div className="map-cubes" aria-hidden>
@@ -142,7 +124,6 @@ export function Cubes({
           className="cube"
           style={
             {
-              ...lateStyle(q.objective, late),
               left: q.x,
               top: q.y,
               width: q.size,

@@ -10,7 +10,7 @@ const def = (m: Omit<MapDef, 'stats' | 'cubes' | 'group'>): MapDef => {
   return { ...map, stats: mapStats(map) };
 };
 
-/** Alpha Sector (hex) with objectives moved toward and away from their neighbours. */
+/** Lagado Planitia (hex) with objectives moved toward and away from their neighbours. */
 export const OFFSET_HEX = def({
   id: 'offset-hex',
   name: 'Offset Hex (test)',

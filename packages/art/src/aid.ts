@@ -231,18 +231,18 @@ export function playerAidSvg(o: AidOptions = {}): string {
   // --- The mechs: six die faces, strongest to fastest, and what each can do.
   // Anchored to the bottom: the last line of the mechs' text sits on the bottom margin (less its descenders).
   const size = 17;
-  const fleetY = H - M - 0.6 - (size + 4.4 + 3.1);
+  const mechsY = H - M - 0.6 - (size + 4.4 + 3.1);
   const gap = (W - M - left - 6 * size) / 5;
   // One size for every mech's text: the largest at which every line fits its column.
   const lines = MECHS.flatMap((s) => s.text);
   const mechText = Math.max(MIN_TEXT, Math.min(2.5, ...lines.map((t) => (size + gap - 0.8) / measure(t, 1, 'bold'))));
   for (const [i, s] of MECHS.entries()) {
     const cx = left + size / 2 + i * (size + gap);
-    const d = mechDie(s.value, cx, fleetY + size / 2, size);
+    const d = mechDie(s.value, cx, mechsY + size / 2, size);
     defs.push(d.defs);
     out.push(d.body);
     s.text.forEach((t, k) =>
-      out.push(text(cx, fleetY + size + 4.4 + k * 3.1, t, mechText, { font: 'bold', fill: accent, anchor: 'middle' })),
+      out.push(text(cx, mechsY + size + 4.4 + k * 3.1, t, mechText, { font: 'bold', fill: accent, anchor: 'middle' })),
     );
   }
 

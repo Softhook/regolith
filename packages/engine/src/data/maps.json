@@ -1,7 +1,7 @@
 [
   {
-    "id": "alpha-hex",
-    "name": "Alpha Sector",
+    "id": "lagado-planitia",
+    "name": "Lagado Planitia",
     "players": 2,
     "group": "hex",
     "cubes": 5,
@@ -37,8 +37,8 @@
     ]
   },
   {
-    "id": "beta-hex",
-    "name": "Beta Sector",
+    "id": "swift-crater",
+    "name": "Swift Crater",
     "players": 3,
     "group": "hex",
     "cubes": 5,
@@ -73,8 +73,8 @@
     ]
   },
   {
-    "id": "gamma-hex",
-    "name": "Gamma Sector",
+    "id": "laputa-regio",
+    "name": "Laputa Regio",
     "players": 4,
     "group": "hex",
     "cubes": 5,
@@ -110,8 +110,8 @@
     ]
   },
   {
-    "id": "terra-minor-hex",
-    "name": "Terra Minor",
+    "id": "nili-fossae",
+    "name": "Nili Fossae",
     "players": 2,
     "group": "hex",
     "cubes": 7,
@@ -141,8 +141,8 @@
     ]
   },
   {
-    "id": "circular-logic-hex",
-    "name": "Circular Logic",
+    "id": "hall-crater",
+    "name": "Hall Crater",
     "players": 2,
     "group": "hex",
     "cubes": 6,
@@ -175,8 +175,8 @@
     ]
   },
   {
-    "id": "the-great-plan-hex",
-    "name": "The Great Plan",
+    "id": "jezero-crater",
+    "name": "Jezero Crater",
     "players": 2,
     "group": "hex",
     "cubes": 7,
@@ -185,7 +185,7 @@
       "shared": 2,
       "objectives": 10
     },
-    "world": "deimos",
+    "world": "mars",
     "length": "short",
     "layout": [
       [
@@ -214,8 +214,8 @@
     ]
   },
   {
-    "id": "critical-density-hex",
-    "name": "Critical Density",
+    "id": "kepler-dorsum",
+    "name": "Kepler Dorsum",
     "players": 3,
     "group": "hex",
     "cubes": 5,
@@ -243,8 +243,8 @@
     ]
   },
   {
-    "id": "edge-of-oblivion-hex",
-    "name": "Edge of Oblivion",
+    "id": "gale-crater",
+    "name": "Gale Crater",
     "players": 3,
     "group": "hex",
     "cubes": 7,
@@ -288,8 +288,8 @@
     ]
   },
   {
-    "id": "nexus-hex",
-    "name": "Nexus",
+    "id": "syrtis-major",
+    "name": "Syrtis Major",
     "players": 4,
     "group": "hex",
     "cubes": 6,
@@ -298,7 +298,7 @@
       "shared": 5,
       "objectives": 12
     },
-    "world": "phobos",
+    "world": "mars",
     "length": "long",
     "layout": [
       [
@@ -329,8 +329,8 @@
     ]
   },
   {
-    "id": "tesseract-hex",
-    "name": "Tesseract",
+    "id": "voltaire-crater",
+    "name": "Voltaire Crater",
     "players": 4,
     "group": "hex",
     "cubes": 6,
@@ -382,8 +382,8 @@
     ]
   },
   {
-    "id": "twin-drift",
-    "name": "Twin Drift",
+    "id": "chryse-planitia",
+    "name": "Chryse Planitia",
     "players": 2,
     "group": "drift",
     "cubes": 6,
@@ -392,7 +392,7 @@
       "shared": 2,
       "objectives": 10
     },
-    "world": "deimos",
+    "world": "mars",
     "length": "short",
     "layout": [
       [
@@ -426,8 +426,8 @@
     ]
   },
   {
-    "id": "circular-drift",
-    "name": "Circular Drift",
+    "id": "roche-crater",
+    "name": "Roche Crater",
     "players": 2,
     "group": "drift",
     "cubes": 6,
@@ -460,8 +460,8 @@
     ]
   },
   {
-    "id": "trinary-drift",
-    "name": "Trinary Drift",
+    "id": "acidalia-planitia",
+    "name": "Acidalia Planitia",
     "players": 3,
     "group": "drift",
     "cubes": 5,
@@ -470,7 +470,7 @@
       "shared": 4,
       "objectives": 10
     },
-    "world": "deimos",
+    "world": "mars",
     "length": "medium",
     "layout": [
       [
@@ -496,8 +496,8 @@
     ]
   },
   {
-    "id": "nexus-drift",
-    "name": "Nexus Drift",
+    "id": "medusae-fossae",
+    "name": "Medusae Fossae",
     "players": 4,
     "group": "drift",
     "cubes": 6,
@@ -506,7 +506,7 @@
       "shared": 5,
       "objectives": 12
     },
-    "world": "phobos",
+    "world": "mars",
     "length": "long",
     "layout": [
       [
@@ -957,7 +957,7 @@
       "shared": 4,
       "objectives": 12
     },
-    "world": "phobos",
+    "world": "mars",
     "length": "medium",
     "layout": [
       [

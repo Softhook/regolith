@@ -380,14 +380,13 @@ input, select { font: inherit; }
 .objective-num { font-family: var(--body); pointer-events: none; }
 /* A cube placed drops in from above and squashes as it lands (the shockwave is .fx-claim). Timed by beats.ts,
    as are the card effects and shots below that sounds keep time with. */
-/* It falls, then squashes as it lands: two animations, so the landing is a beat rather than a keyframe. A relocated
-   cube waits for the beam bringing it (--cube-late). Over the ground's shadows and under the mechs (Cubes). */
+/* It falls, then squashes as it lands: two animations, so the landing is a beat rather than a keyframe. Over the ground's shadows and under the mechs (Cubes). */
 .map-cubes { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
 .cube {
   position: absolute;
   animation:
-    cube-fall var(--cube-fall) cubic-bezier(.5,0,.75,0) var(--cube-late, 0s) backwards,
-    cube-squash var(--cube-squash) cubic-bezier(.5,0,.75,0) calc(var(--cube-late, 0s) + var(--cube-fall));
+    cube-fall var(--cube-fall) cubic-bezier(.5,0,.75,0) backwards,
+    cube-squash var(--cube-squash) cubic-bezier(.5,0,.75,0) var(--cube-fall);
   transform-origin: center bottom;
 }
 .cube-shade { position: absolute; inset: 0; width: 100%; height: 100%; overflow: hidden; }
@@ -403,7 +402,7 @@ input, select { font: inherit; }
 }
 /* Its shadow (on the ground) falls with it, from as far away as it falls from (CubeShadow --away), and comes in as it does. */
 .cube-shadow {
-  animation: cube-shadow var(--cube-fall) cubic-bezier(.5,0,.75,0) var(--cube-late, 0s) backwards;
+  animation: cube-shadow var(--cube-fall) cubic-bezier(.5,0,.75,0) backwards;
 }
 @keyframes cube-shadow {
   from { transform: translate(var(--away), var(--away)); opacity: 0; }
@@ -576,7 +575,7 @@ svg.zones polygon {
   /* A px on a 57 px space: the rings around a die go by its space's size, for the reason its own lines do (.die3d-face). */
   --u: calc(var(--cell) * .0175);
 }
-/* A mech a card brings (Reinforcements, Nomadic) appears as its effect gets there, without gliding there (staging). */
+/* A mech a card brings (Reinforcements) appears as its effect gets there, without gliding there (staging). */
 .mech.late { transition: none; animation: mech-late .25s var(--late) cubic-bezier(.2,.8,.3,1.3) backwards; }
 @keyframes mech-late { from { scale: .3; opacity: 0; } }
 /* A mech a card destroys, as it was, until the blow lands (it blows up then: Explosions). */
@@ -774,7 +773,7 @@ svg.zones polygon {
   animation: fx-ring .6s calc(var(--reinforcement-strike) - 120ms) cubic-bezier(.2,.7,.3,1) forwards;
 }
 .cfx-halo.late { animation-delay: var(--reinforcement-strike); border-color: var(--pc); }
-/* Ice Tunnels joined, or a relocated cube: a beam from one space to the other, a spark riding along it. */
+/* Ice Tunnels joined: a beam from one space to the other, a spark riding along it. */
 .cfx-ray {
   width: var(--len); height: 10%; margin-top: -5%; transform-origin: 0 50%; transform: rotate(var(--angle));
   border-radius: 999px;
@@ -815,7 +814,7 @@ svg.zones polygon {
 }
 @keyframes cfx-invasion { 0% { transform: scale(1.8) rotate(0); opacity: 0; } 30% { opacity: 1; } 100% { transform: scale(.7) rotate(120deg); opacity: 0; } }
 .cfx-cloak > span { animation-direction: reverse; }
-/* Recycle, or a cube relocated: rings collapse to a point as it goes. */
+/* Recycle, or an Ice Tunnel closed: rings collapse to a point as it goes. */
 .cfx-collapse {
   width: 100%; height: 100%; margin: -50% 0 0 -50%; border-radius: 50%;
   border: calc(var(--bw) * 1.5) solid var(--pc); box-shadow: 0 0 12px var(--pc), inset 0 0 8px var(--pc);
@@ -841,10 +840,6 @@ svg.zones polygon {
 .cfx-chevrons svg:last-child { animation-delay: .12s; }
 .cfx-lower .cfx-chevrons { rotate: 180deg; }
 @keyframes cfx-rise { 0% { transform: translateY(80%); opacity: 0; } 35% { opacity: 1; } 100% { transform: translateY(-90%); opacity: 0; } }
-/* Scrappy: the mech's number spins as it is re-rolled. */
-/* Nomadic: the mech opens out at its new objective (it folded away where it was: .cfx-collapse). */
-.cfx-blink .cfx-halo { border-color: var(--pc); box-shadow: 0 0 14px var(--pc), inset 0 0 8px #fff; animation-delay: var(--blink-open); }
-.cfx-blink .cfx-halo.late { border-color: #fff; animation-delay: calc(var(--blink-open) + 100ms); animation-duration: .45s; }
 /* Unstable Reactor: a crackling arc between the two mechs it destroys. */
 .cfx-arc .cfx-ray {
   height: 6%; margin-top: -3%;
@@ -1424,17 +1419,17 @@ svg.zones polygon {
 .card-pick.flip-in { animation-fill-mode: backwards; } /* Holding the last frame would block the hover lift. */
 .choice-col small { color: var(--muted); text-transform: uppercase; letter-spacing: .08em; font-size: 11px; }
 
-.fleet-roll { display: flex; justify-content: center; gap: 34px; padding: 28px 0 8px; }
-.fleet-die { display: flex; flex-direction: column; align-items: center; gap: 18px; }
-.fleet-die > span, .fleet-sum { opacity: 0; transform: translateY(4px); transition: all .3s; }
-.fleet-die > span { font-size: 12px; color: var(--muted); }
-.fleet-die > span.show, .fleet-sum.show { opacity: 1; transform: none; }
+.setup-roll { display: flex; justify-content: center; gap: 34px; padding: 28px 0 8px; }
+.setup-die { display: flex; flex-direction: column; align-items: center; gap: 18px; }
+.setup-die > span, .setup-sum { opacity: 0; transform: translateY(4px); transition: all .3s; }
+.setup-die > span { font-size: 12px; color: var(--muted); }
+.setup-die > span.show, .setup-sum.show { opacity: 1; transform: none; }
 .engineering-row { flex-wrap: wrap; gap: 10px; }
 .engineering-choice { gap: 10px; padding: 8px; border: 0; border-radius: 12px; background: none; color: inherit; font: inherit; cursor: pointer; }
 @media (hover: hover) { .engineering-choice:hover:not(:disabled) { background: rgba(255,255,255,.06); } }
 .engineering-choice:disabled { opacity: .35; cursor: not-allowed; }
-.fleet-sum { text-align: center; margin: 10px 0 0; color: var(--muted); }
-.fleet-sum b { font-weight: 800; color: var(--text); font-size: 20px; margin-left: 6px; }
+.setup-sum { text-align: center; margin: 10px 0 0; color: var(--muted); }
+.setup-sum b { font-weight: 800; color: var(--text); font-size: 20px; margin-left: 6px; }
 
 .combat-overlay { background: rgb(var(--shade) / .5); }
 .combat-card {
@@ -2128,7 +2123,7 @@ svg.zones polygon {
   /* As tall as the map at full width (--map-ratio is rows / cols), within the screen below the topbar.
      In portrait, room is kept below it for the turn panel. */
   .stage { --map-h: calc((100vw - 8px) * var(--map-ratio, 1) + 8px + var(--toast-lane)); height: min(var(--map-h), var(--below-topbar)); padding: 4px; }
-  .fleet-roll { gap: 18px; }
+  .setup-roll { gap: 18px; }
   /* Collapsed: wrap onto more lines instead of scrolling sideways, so every card name shows. */
   .market.collapsed { row-gap: 6px; column-gap: 10px; padding: 6px 8px; }
   .market.collapsed .market-toggle { align-self: stretch; min-height: 32px; margin: 0 0 0 -8px; }
@@ -2334,9 +2329,9 @@ body:has(.sheet-layout) { overflow: hidden; }
   .modal h2 { font-size: 18px; }
   .modal-sub { margin: 2px 0 8px; font-size: 13px; line-height: 1.4; }
   .modal-actions { margin-top: 8px; }
-  .fleet-roll { padding: 4px 0 0; }
-  .fleet-die { gap: 6px; }
-  .fleet-sum { margin-top: 2px; }
+  .setup-roll { padding: 4px 0 0; }
+  .setup-die { gap: 6px; }
+  .setup-sum { margin-top: 2px; }
   .card-choice:not(.wrap) > .qcard-lg { flex-basis: 150px; }
   .card-pick, .choice-col { --pick-around: 100px; }
 }

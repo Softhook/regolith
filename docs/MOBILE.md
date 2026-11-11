@@ -35,7 +35,7 @@ Chrome's address bar and Android's navigation bar, and changes as the address ba
 - **Wide-map bug found on the G55 and fixed.** Asymptote (15 cells across) made the page 504px
   wide on a 412px screen; the phone's single grid column couldn't shrink below the board
   (`1fr` → `minmax(0, 1fr)`).
-- **`mobile:shots` checks more:** a wide map, and every setup popup (fleet roll, starting
+- **`mobile:shots` checks more:** a wide map, and every setup popup (setup roll, starting
   skill) must have its buttons and cards on screen without scrolling.
 - **Setup popups fit phones** in both orientations (part of Step 3).
 - **Result:** 28 of 28 device × map checks pass (was 2 of 21 at the start of the day).
@@ -46,7 +46,7 @@ Chrome's address bar and Android's navigation bar, and changes as the address ba
   dice explain themselves on tap too. Checked in G55 emulation on Asymptote.
 - **Refactor before Step 2:** default seats in one place (`game/seats.ts`, used by the lobby and
   the dev link), `--topbar-h` instead of a repeated 52px, and a `useMediaQuery` hook so the
-  fleet-roll dice resize when the phone is turned.
+  setup-roll dice resize when the phone is turned.
 - **On the real G55:** Asymptote now fits but its cells are about 26px (mechs ≈ 15px). That is
   the expected limit of fit-to-screen; bigger needs zoom (Step 4). Tapping a mech for its info
   helps in the meantime.
@@ -110,7 +110,7 @@ Already done, mostly as side effects of other work:
 | Cards (skills, tech, decks) open a large `CardViewer` on tap, so card text works on touch | [PlayerList.tsx](../apps/web/src/components/PlayerList.tsx), [CardViewer.tsx](../apps/web/src/components/CardViewer.tsx) |
 | Mechs and highlights take the whole cell as their tap area (option G for mechs) | [Board.tsx](../apps/web/src/components/Board.tsx) |
 | Full screen on Android and on the app installed on a computer: from the opening's click to start, back after the phone drops it; a button to leave or return. Not on iPhone (no API) or iPad (Safari's misbehaves) | [fullscreen.ts](../apps/web/src/fullscreen.ts), [FullscreenButton.tsx](../apps/web/src/components/FullscreenButton.tsx) |
-| Lobby and dialogs (fleet roll etc.) fit a 320px phone, *as long as the board doesn't widen the page* (§2, point 1) | |
+| Lobby and dialogs (setup roll etc.) fit a 320px phone, *as long as the board doesn't widen the page* (§2, point 1) | |
 | Invite uses the native share sheet on touch devices | [OnlineScreen.tsx](../apps/web/src/online/OnlineScreen.tsx) |
 
 Not started: everything else in the old Phase 1 (`100vh`, safe areas, `touch-action`, hover
@@ -157,7 +157,7 @@ Steps 1–3 come first; Step 4 is the big one and can wait until they are in.
 
 ### Step 0: Test setup ✅ (2026-10-06)
 - [x] **`npm run mobile:shots`** ([scripts/mobile-shots.ts](../scripts/mobile-shots.ts)): starts
-      its own dev server, opens games on maps from small to wide on the 7 device sizes from §2, screenshots each setup popup (fleet roll,
+      its own dev server, opens games on maps from small to wide on the 7 device sizes from §2, screenshots each setup popup (setup roll,
       starting skill) and the game to `test-results/mobile/` (git-ignored), and prints the cell
       size and page size for each. It **exits with 1 when a layout is broken**: page wider than
       the screen, board bigger than its stage, or a setup popup with buttons or cards off screen
@@ -176,7 +176,7 @@ Steps 1–3 come first; Step 4 is the big one and can wait until they are in.
       that doesn't end. Screenshots of the first of each kind of decision in `test-results/mobile-play/`.
       `--device`, `--game`, `--seed`, `--random` (random taps only). Takes 5–10 minutes, so it isn't in CI.
 - [x] **Dev link straight into a game** ([devStart.ts](../apps/web/src/game/devStart.ts), dev
-      server only): `?play=classic&players=4&map=tesseract&seed=1`. `play` takes a mode's id or
+      server only): `?play=regolith&players=4&map=voltaire-crater&seed=1`. `play` takes a mode's id or
       name; `map` defaults to the basic map; `seed` repeats the same dice. One human
       (Commander) against AI. Reloading starts it again; it replaces the saved game, like any new
       game. Not in production builds.
@@ -264,7 +264,7 @@ Keep the scrolling column, but pin what matters:
       `-headhunter`, `-over`, `-rules` screenshots), opened through the dev link's `scene`.
       Setup popups: below 600px wide or 500px high, popups have less padding, two-card choices
       (starting skill, Peek, market) sit side by side and shrink, with text scaled by container
-      units; on short screens (phone landscape) the fleet roll is compact with 54px dice.
+      units; on short screens (phone landscape) the setup roll is compact with 54px dice.
       **Combat was broken on every phone:** below 980px the two sides stacked, making the battle
       ≈ 850px tall with *Resolve battle* off screen and no way to scroll to it. Now the sides stay
       side by side with 40px dice and tighter spacing; in phone landscape each side's roll and
@@ -353,7 +353,7 @@ the G55 shows gesture problems we can't fix.
 - [x] Pinch test in `mobile:shots` (2026-10-07): on every touch device, on your turn, a synthesised
       pinch (`Input.synthesizePinchGesture`), a one-finger pan and *Whole map*. Checks the spaces grow,
       the pan moves the map without moving a mech or scrolling the page, and *Whole map* fits it again.
-      Chrome only. All 30 touch device × map cases pass (iPad Alpha Sector doesn't zoom: spaces big already).
+      Chrome only. All 30 touch device × map cases pass (iPad Lagado Planitia doesn't zoom: spaces big already).
 
 **Done when:** a 4-player map is playable on the Moto G55 and an iPhone with mechs
 ≥ 44px when zoomed in, and panning never makes a move.

@@ -1,6 +1,6 @@
 // Tiny synthesized sound kit (no audio files). All sounds are short and quiet.
 
-import { ARRIVE, BATTLE, BEAM_ARRIVES, boomAt, CUBE, DICE, MOST_BOOMS, MECH, SHOT } from './beats';
+import { ARRIVE, BATTLE, boomAt, CUBE, DICE, MOST_BOOMS, MECH, SHOT } from './beats';
 import { effects, envelope, filter, gain, glide, jitter, kept, noiseSource, oscillator, out } from './audio';
 import { fanfare, lament } from './gameOverSound';
 import { pick } from './random';
@@ -100,12 +100,12 @@ function boom(delay = 0, size = 1) {
 
 /**
  * A cube dropped on an objective, heard as the board shows it (beats.ts): a falling whistle, the clack of it
- * landing, then a ringing chord as the objective is claimed. `delay`: when the drop starts, in seconds.
+ * landing, then a ringing chord as the objective is claimed.
  */
-function cubeDrop(delay = 0) {
+function cubeDrop() {
   const fall = CUBE.fall / 1000;
-  noise(fall, 0.05, { delay, type: 'bandpass', from: 2600, to: 900, q: 2, rise: fall * 0.75 });
-  const land = delay + fall;
+  noise(fall, 0.05, { type: 'bandpass', from: 2600, to: 900, q: 2, rise: fall * 0.75 });
+  const land = fall;
   tone(jitter(150), 0.2, 'sine', 0.28, land, 70, 0.003);
   noise(0.05, 0.25, { delay: land, type: 'bandpass', from: 2400, q: 3, rise: 0.002 });
   [523, 659, 784, 1047].forEach((f, i) => tone(f, 0.8, 'sine', 0.04, land + 0.03 + i * 0.035));
@@ -233,13 +233,6 @@ export const sfx = {
     [0.09, 0.17, 0.23].forEach((d, i) => tick(0.14 - i * 0.03, 1500 - i * 250, d));
     tone(392, 0.4, 'triangle', 0.045, 0.02, 196);
   },
-  /** A cube relocated: the beam carrying it (board/CardEffects), then its drop where it lands (game/staging). */
-  relocate: () => {
-    const ride = BEAM_ARRIVES / 1000;
-    tone(1400, ride, 'sine', 0.035, 0, 500, 0.05);
-    noise(ride, 0.05, { type: 'highpass', from: 6000, to: 2000, rise: 0.1 });
-    cubeDrop(ride);
-  },
   /** Research gained: a quick rising data chirp. */
   research: () => [880, 1175, 1760].forEach((f, i) => tone(f, 0.09, 'triangle', 0.035, i * 0.05)),
   /** Power gained: a low surge of power. */
@@ -346,7 +339,7 @@ export const sfx = {
   },
   /** Orbital Cannon: a klaxon while a target is chosen. */
   alarm: () => [0, 0.22, 0.44, 0.66].forEach((d, i) => tone(i % 2 ? 440 : 560, 0.2, 'square', 0.025, d)),
-  /** Invasion: a deep swell as the fleet is recalled. */
+  /** Invasion: a deep swell as the mechs are recalled. */
   invasion: () => {
     tone(55, 1.2, 'sawtooth', 0.05, 0, 110, 0.6);
     noise(1.1, 0.08, { type: 'bandpass', from: 200, to: 2500, q: 1.5, rise: 0.8 });

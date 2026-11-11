@@ -33,9 +33,9 @@ import { playAiGame, players, quickStart } from './helpers';
 // The basic maps on hex tiles; the drift maps (offset.test.ts) put their objectives off the middle.
 const HEX_MAPS = MAPS.filter((m) => m.group === 'hex');
 /** The basic maps on hex tiles (the hex group's others adapt advanced maps). */
-const BASIC_HEX = HEX_MAPS.filter((m) => ['alpha-hex', 'beta-hex', 'gamma-hex'].includes(m.id));
-const BASE = quickStart(2, 1, 'basic', 'alpha-hex');
-/** Alpha Sector (hex)'s middle objective, the 8: every other tile is next to it but the two starts. */
+const BASIC_HEX = HEX_MAPS.filter((m) => ['lagado-planitia', 'swift-crater', 'laputa-regio'].includes(m.id));
+const BASE = quickStart(2, 1, 'basic', 'lagado-planitia');
+/** Lagado Planitia (hex)'s middle objective, the 8: every other tile is next to it but the two starts. */
 const CENTRE = BASE.board.objectives.find((p) => p.number === 8)!;
 
 /** Player 0 to act with 3 fresh actions, only the listed mechs on the map, at [cell, value]. */
@@ -169,7 +169,7 @@ describe('hex maps', () => {
   });
 
   it('deals every Skill on a hex map, none of them Ingenious (claim from the corners: hex tiles have none)', () => {
-    const s = createGame({ players: players(2), seed: 1, mode: 'regolith', mapId: 'alpha-hex' });
+    const s = createGame({ players: players(2), seed: 1, mode: 'regolith', mapId: 'lagado-planitia' });
     expect(checkInvariants(s)).toEqual([]);
     const { skillDeck, skillRow } = s.market;
     const drafts = s.pending.flatMap((x) => (x.kind === 'skillDraft' ? x.options : []));

@@ -4,7 +4,7 @@ import type { Spot } from '../tile/geometry';
 import { polar, inside, toward } from './core';
 import { H, type Part, placed, merged, disc, square, box, graded, glow, lamp } from './parts';
 
-/** Ships, rovers and the small things round a base: landing pads and what stands on them, crates, beacons, an old probe. */
+/** Rockets, landers, rovers and the small things round a base: landing pads and what stands on them, crates, beacons, an old probe. */
 
 /** Four landing legs splayed out to `reach`, each on a foot, `height` high. */
 const legs = (reach: number, angles = [45, 135, 225, 315], height = H.pipe) =>
@@ -15,8 +15,8 @@ const legs = (reach: number, angles = [45, 135, 225, 315], height = H.pipe) =>
     })
     .join('');
 
-/** A ship's legs: they stand on a pad's deck, so above it. */
-const shipLegs = (reach: number) => legs(reach, undefined, 'rgb(206,120,200)');
+/** A craft's legs: they stand on a pad's deck, so above it. */
+const craftLegs = (reach: number) => legs(reach, undefined, 'rgb(206,120,200)');
 
 /** A rocket stood on its tail, seen from above: the nose high in the middle, four fins and four legs, banded. */
 const rocket = (r: Rng): Part => {
@@ -24,7 +24,7 @@ const rocket = (r: Rng): Part => {
   const fins = [0, 90, 180, 270].map((a) => `<path d="M0,0 L9,0" transform="rotate(${a})"`);
   return {
     heights:
-      shipLegs(9.5) + fins.map((f) => `${f} stroke="rgb(218,160,200)" stroke-width="1.8"/>`).join('') + disc(0, 0, 5.4, 'url(#rg-nose)'),
+      craftLegs(9.5) + fins.map((f) => `${f} stroke="rgb(218,160,200)" stroke-width="1.8"/>`).join('') + disc(0, 0, 5.4, 'url(#rg-nose)'),
     tint: fins.map((f) => `${f} stroke="${band}" stroke-width="2.2"/>`).join('') + disc(0, 0, 5.6, '#f2f2ee'),
     paint:
       `<circle r="3.9" fill="none" stroke="${band}" stroke-width="0.9" opacity="0.85"/>` +
@@ -54,7 +54,7 @@ const spaceplane = (): Part => {
 const lander = (): Part => {
   const hex = [0, 60, 120, 180, 240, 300].map((a) => `${n(polar(a, 5).x)},${n(polar(a, 5).y)}`).join(' ');
   return {
-    heights: shipLegs(9) + `<polygon points="${hex}" fill="rgb(225,90,190)"/>` + disc(1.5, -1, 1.8, 'rgb(244,150,215)'),
+    heights: craftLegs(9) + `<polygon points="${hex}" fill="rgb(225,90,190)"/>` + disc(1.5, -1, 1.8, 'rgb(244,150,215)'),
     tint: `<polygon points="${hex}" fill="#d9a531" stroke="#d9a531" stroke-width="0.6"/>` + disc(1.5, -1, 2, '#e9ecee'),
     paint:
       `<polygon points="${hex}" fill="none" stroke="#5b3a08" stroke-width="0.4" opacity="0.6"/>` +
@@ -63,23 +63,23 @@ const lander = (): Part => {
   };
 };
 
-/** A landing pad ringed in amber, scorched where engines fired on it, mostly with a ship standing on it. */
+/** A landing pad ringed in amber, scorched where engines fired on it, mostly with a rocket or lander standing on it. */
 export function landingPad(r: Rng, light: string): Part {
   const lamps = [0, 90, 180, 270].map((a) => toward(a, 0.19));
-  const ship = r.chance(0.4) ? r.pick([rocket, rocket, spaceplane, lander])(r) : undefined;
+  const craft = r.chance(0.4) ? r.pick([rocket, rocket, spaceplane, lander])(r) : undefined;
   return {
     extent: 15,
     ...merged([
       {
         grade: graded(0, 0, 20),
         heights: disc(0, 0, 15, H.apron) + disc(0, 0, 14, 'url(#rg-scorch)'),
-        // Its ring in the tint, not the paint, so a ship standing on it covers it.
+        // Its ring in the tint, not the paint, so a craft standing on it covers it.
         tint: disc(0, 0, 15, '#8d969c') + '<circle r="11" fill="none" stroke="#F2B233" stroke-width="1.2" stroke-dasharray="4 2.6"/>',
         paint:
-          (ship ? '' : '<path d="M-4,-4 V4 M4,-4 V4 M-4,0 H4" stroke="#F2B233" stroke-width="1.3" opacity="0.85"/>') +
+          (craft ? '' : '<path d="M-4,-4 V4 M4,-4 V4 M-4,0 H4" stroke="#F2B233" stroke-width="1.3" opacity="0.85"/>') +
           lamps.map((l) => lamp(l.x, l.y, light)).join(''),
       },
-      ...(ship ? [placed(0, 0, ship, r.range(0, 360))] : []),
+      ...(craft ? [placed(0, 0, craft, r.range(0, 360))] : []),
     ]),
   };
 }

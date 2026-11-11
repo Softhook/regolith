@@ -180,7 +180,7 @@ describe('legal actions agree with the engine', () => {
       ? ([
           [2, 'arcadia-planitia'],
           [3, 'stickney-crater'],
-          [2, 'twin-drift'],
+          [2, 'chryse-planitia'],
           [2, 'offset-hex'],
         ] as const)
       : ([[2, 'offset-hex']] as const))

@@ -19,7 +19,7 @@ function myTurn(s: GameState): GameState {
 
 describe('highlightsFor', () => {
   it('marks an objective blocked when its perimeter makes the sum but an enemy mech is in it (contested perimeter), and says why', () => {
-    const base = quickStart(2, 1, 'regolith', 'alpha-hex');
+    const base = quickStart(2, 1, 'regolith', 'lagado-planitia');
     const objective = base.board.objectives.find((q) => !q.start && !q.cubes.length)!;
     const [a, b, c] = perimeterSpaces(base.board, objective);
     const sum = { p0d0: [a.r, a.c, 6], p0d1: [b.r, b.c, objective.number - 6] } as Record<string, [number, number, number]>;
@@ -78,7 +78,7 @@ describe('highlightsFor', () => {
   });
 
   it('highlights candidate mechs and allows switching during Kinetic Shunt', () => {
-    const base = quickStart(2, 1, 'regolith', 'alpha-hex');
+    const base = quickStart(2, 1, 'regolith', 'lagado-planitia');
     const s = arrange(base, { p0d0: [4, 4, 3], p1d0: [4, 5, 2] });
     s.pending.unshift({ kind: 'kineticShunt', player: 0 });
 

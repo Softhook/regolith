@@ -78,7 +78,7 @@ export interface PlayerState extends PlayerConfig {
   cubesLeft: number;
   /**
    * Home objective (Regolith): the objective this player may always drop to. Their starting objective; when
-   * their last cube there leaves, it goes with the cube (Relocation) or to another of their objectives.
+   * their last cube there leaves, it moves to another of their objectives.
    */
   home?: number;
   skills: OwnedSkill[];
@@ -257,7 +257,7 @@ export interface LogEntry {
   objectives?: number[];
   /** The card an entry is about (played, taken or used), so the UI can show it. */
   card?: string;
-  /** What a skill firing by itself (Breakthrough, Exploit, Arrogant…) gave, so the UI can point at just that. */
+  /** What a skill firing by itself (Breakthrough, Exploit, Science Survey…) gave, so the UI can point at just that. */
   gains?: Gains;
   /** A player's turn starting: the log's headings, with everything else under them. */
   turn?: true;

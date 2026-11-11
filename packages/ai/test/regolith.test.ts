@@ -7,13 +7,13 @@ import { playTurn } from './helpers';
 
 describe.each([2, 3, 4, 5] as AiLevel[])('contested perimeter (Regolith), level %i', (level) => {
   /**
-   * On Alpha Sector (hex): player 0's 6 and a mech of the rest make a free objective's number in its
+   * On Lagado Planitia (hex): player 0's 6 and a mech of the rest make a free objective's number in its
    * perimeter, but player 1's 6 sits in it too. Player 0's 2 waits next to it outside the perimeter; on a
    * hex the perimeter's spaces touch, so the perimeter mechs may attack it too. Clearing it opens the
    * claim in the same turn.
    */
   function siege(): { s: GameState; objective: number } {
-    const base = quickStart(2, 1, 'regolith', 'alpha-hex');
+    const base = quickStart(2, 1, 'regolith', 'lagado-planitia');
     const objective = base.board.objectives.find((q) => !q.start && !q.cubes.length)!;
     const perimeter = perimeterSpaces(base.board, objective);
     const onPerimeter = (q: { r: number; c: number }) => perimeter.some((o) => o.r === q.r && o.c === q.c);

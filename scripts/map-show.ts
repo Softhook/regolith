@@ -19,7 +19,7 @@ import { MAPS, createGame } from '../packages/engine/src';
 import { startSpace } from '../packages/engine/src/board';
 import { args } from './args';
 
-const o = args({ map: 'alpha-hex', labels: '1', spin: '', pick: '', ring: '', line: '' });
+const o = args({ map: 'lagado-planitia', labels: '1', spin: '', pick: '', ring: '', line: '' });
 const map = MAPS.find((m) => m.id === o.map);
 if (!map) throw new Error(`No map ${o.map}: ${MAPS.map((m) => m.id).join(', ')}`);
 

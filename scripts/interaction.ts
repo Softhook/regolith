@@ -3,7 +3,7 @@
  *
  *   npm run interaction -- [games=200] [levels=4,4] [setups=...] [jobs=fast cores]
  *
- * A setup is mode@map: the default compares Basic (Regolith without cards) and Regolith on Alpha Sector
+ * A setup is mode@map: the default compares Basic (Regolith without cards) and Regolith on Lagado Planitia
  * (hex). Seats alternate between games and each pair of games shares a map seed. Prints one markdown table
  * of averages, a column per setup.
  *
@@ -36,7 +36,7 @@ import { aiAction } from '../packages/engine/test/helpers';
 import { args } from './args';
 import { defaultJobs, pool } from './pool';
 
-const SETUPS = ['basic@alpha-hex', 'regolith@alpha-hex'];
+const SETUPS = ['basic@lagado-planitia', 'regolith@lagado-planitia'];
 const {
   games,
   levels: levelList,
@@ -46,7 +46,7 @@ const {
 const levels = levelList.split(',').map(Number) as AiLevel[];
 const setups = setupList.split(',');
 
-const CATS = ['attack', 'move', 'claim', 'fleet', 'card', 'atomic', 'other'] as const;
+const CATS = ['attack', 'move', 'claim', 'mechs', 'card', 'atomic', 'other'] as const;
 type Cat = (typeof CATS)[number];
 const BY_TYPE: Partial<Record<Action['type'], Cat>> = {
   move: 'move',
@@ -55,9 +55,9 @@ const BY_TYPE: Partial<Record<Action['type'], Cat>> = {
   attack: 'attack',
   freeAttack: 'attack',
   ability: 'attack',
-  drop: 'fleet',
-  refit: 'fleet',
-  change: 'fleet',
+  drop: 'mechs',
+  refit: 'mechs',
+  change: 'mechs',
   claim: 'claim',
   atomic: 'atomic',
   endTurn: 'other',
@@ -83,7 +83,7 @@ interface Game {
   byFoe: Tally;
   harm: Tally;
   gain: Tally;
-  /** Player-turns starting with the fleets at most 2 spaces apart, and the closest distance summed. */
+  /** Player-turns starting with two players' mechs at most 2 spaces apart, and the closest distance summed. */
   contact: number;
   closest: number;
   /** Player-turns starting with both players' mechs in one perimeter, and with the mover's perimeter adding up but an enemy in it. */
@@ -226,7 +226,7 @@ function report(results: Map<string, Game[]>) {
     ),
     ['Own gains from cards', (gs) => pct(sum(gs, (g) => g.gain.card) / sum(gs, (g) => total(g.gain)))],
     ['Card actions', (gs) => (sum(gs, (g) => g.cardActions) / gs.length).toFixed(1)],
-    ['Turns with fleets ≤ 2 apart', (gs) => pct(sum(gs, (g) => g.contact) / sum(gs, (g) => g.playerTurns))],
+    ['Turns with rival mechs ≤ 2 apart', (gs) => pct(sum(gs, (g) => g.contact) / sum(gs, (g) => g.playerTurns))],
     ['Closest enemy mech', (gs) => (sum(gs, (g) => g.closest) / sum(gs, (g) => g.playerTurns)).toFixed(1)],
     ['Moves ending next to an enemy', (gs) => pct(sum(gs, (g) => g.contactMoves) / sum(gs, (g) => g.moves))],
     ['Turns with a shared perimeter', (gs) => pct(sum(gs, (g) => g.sharedPerimeter) / sum(gs, (g) => g.playerTurns))],

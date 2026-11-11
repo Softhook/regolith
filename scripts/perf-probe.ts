@@ -132,7 +132,7 @@ async function main() {
   const page = await browser.newPage(DESKTOP);
   const cdp = await page.context().newCDPSession(page);
   page.on('pageerror', (e) => problem(`page error: ${e.message}`));
-  const game = { play: 'regolith', players: 4, map: 'tesseract-hex' };
+  const game = { play: 'regolith', players: 4, map: 'voltaire-crater' };
   // Slowed from the start, and with the first pop-up as soon as the market shows: nothing kept, nothing warmed.
   await cdp.send('Emulation.setCPUThrottlingRate', { rate: THROTTLE });
   console.log(`CPU ×${THROTTLE}`);

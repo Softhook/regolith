@@ -52,12 +52,6 @@ const PARTS: Record<CardEffect['kind'], ReactNode> = {
   ),
   raise: chevrons,
   lower: chevrons,
-  blink: (
-    <>
-      <span className="cfx-halo" />
-      <span className="cfx-halo late" />
-    </>
-  ),
   beam: (
     <span className="cfx-ray">
       <i />
@@ -68,7 +62,7 @@ const PARTS: Record<CardEffect['kind'], ReactNode> = {
 
 /**
  * Over the mechs and explosions. Remounted for a jump to another position (`key`), so that shows none.
- * Ids are only unique per kind (Nomadic's fold and open share the mech's), hence the kind in each `key`.
+ * Ids are only unique per kind (a mech's id may mark two effects), hence the kind in each `key`.
  */
 export function CardEffects({ game, cell }: { game: GameState; cell: number }) {
   return useStepEffects(game, CARD_EFFECT_MS, cardEffectsOf).map((e) => (

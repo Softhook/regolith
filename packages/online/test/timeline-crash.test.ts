@@ -56,7 +56,7 @@ describe('a move the engine crashes on', () => {
 
   it('is reported for an AI seat too, where a refused move is not', () => {
     vi.spyOn(console, 'error').mockImplementation(() => {});
-    /** Alice keeps her fleet; then it is the AI seat's turn to choose, and Alice's browser moves it. */
+    /** Alice keeps her mechs; then it is the AI seat's turn to choose, and Alice's browser moves it. */
     const aiToMove = () => {
       const { t, g } = game([seat('Alice'), seat('Bot', true)]);
       const keep = post('alice', { t: 'act', seat: 0, action: { type: 'setupKeep' } }, g.id);

@@ -67,6 +67,7 @@ keep the words they were written in, and old commits name code that has since mo
 | research breakthrough (`breakthroughAt`, the `breakthrough` log event) | Discovery (`discoveryAt`, the `discovery` log event); Breakthrough is only the card |
 | ambition tokens (`ambitionTokens`) | Final Push tokens (`finalPushTokens`) |
 | Command, Gambit (Classic's decks) | Skill, Tactic |
+| maps Alpha, Beta, Gamma Sector; Terra Minor, Circular Logic, The Great Plan, Critical Density, Edge of Oblivion, Nexus, Tesseract; Twin, Circular, Trinary, Nexus Drift (ids `alpha-hex`, `twin-drift`…) | Lagado Planitia, Swift Crater, Laputa Regio; Nili Fossae, Hall Crater, Jezero Crater, Kepler Dorsum, Gale Crater, Syrtis Major, Voltaire Crater; Chryse Planitia, Roche Crater, Acidalia Planitia, Medusae Fossae (ids are the names: `lagado-planitia`) |
 
 ## Components
 

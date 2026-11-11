@@ -225,7 +225,7 @@ every player.
 - **Cube rail** down the left edge, seven pads, with "Place your last cube to win" beside them; **die pads**
   for Power and Research with what moves each and what 6 does; **the turn**, each action with its cost and a
   line of rules, then combat, zones, contested perimeters, atomics and cards; **the mechs**, each on its die
-  face (`mechDie`) with its power in a short phrase.
+  face (`mechDie`) with its ability in a short phrase.
 
 ### Map setup sheets
 

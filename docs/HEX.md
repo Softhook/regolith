@@ -26,7 +26,7 @@ no gaps, and the objectives of touching tiles are 3 spaces apart.
 | 5 Sniper: Shoot along a clear straight line | 6 lines, one out of each side |
 
 **Claiming.** Six perimeter positions mean up to six of your mechs can count towards an objective's number, and
-an opponent needs more mechs to block it. With 3 to 5 mechs per player, a claim still needs most of your fleet
+an opponent needs more mechs to block it. With 3 to 5 mechs per player, a claim still needs most of your mechs
 on the perimeter.
 
 **Cards.** Most cards read the same. Ingenious ("claim from the corners") counts mechs diagonal to an objective,
@@ -44,13 +44,13 @@ Same cubes per player.
 
 | Map | Shape | Objectives | Starts |
 |---|---|---|---|
-| Alpha Sector, 2 players | A 3×3 rhombus on its point (rows 1-2-3-2-1) | eight 7s, an 8 in the middle | the two far points, 4 tiles apart |
-| Beta Sector, 3 players | A triangle of 10 tiles around a 10 | the 7s and 8s alternate around the 10 | the corners (8s), each touching one 7 and one 8 |
-| Gamma Sector, 4 players | The rhombus, with a 10 in the middle | 9s and 8s, the same after a half turn | the points (9s), touching a 9 and an 8; the sides (8s), touching a 9, an 8 and the 10 |
+| Lagado Planitia, 2 players | A 3×3 rhombus on its point (rows 1-2-3-2-1) | eight 7s, an 8 in the middle | the two far points, 4 tiles apart |
+| Swift Crater, 3 players | A triangle of 10 tiles around a 10 | the 7s and 8s alternate around the 10 | the corners (8s), each touching one 7 and one 8 |
+| Laputa Regio, 4 players | The rhombus, with a 10 in the middle | 9s and 8s, the same after a half turn | the points (9s), touching a 9 and an 8; the sides (8s), touching a 9, an 8 and the 10 |
 
-A rhombus has two sharp points and two blunt sides, so Gamma starts two players at each, with bigger home
+A rhombus has two sharp points and two blunt sides, so Laputa Regio starts two players at each, with bigger home
 objectives on the remoter points. The seats aren't alike yet: the sides also touch the 10, and each side's objective
-is 6 hexes from all three other starts, while a point's is 6 from the sides and 10 from the other point. Beta,
+is 6 hexes from all three other starts, while a point's is 6 from the sides and 10 from the other point. Swift Crater,
 a 3-player map, is the same after a third of a turn, so its seats match.
 
 No hex map can be the same in a mirror: the flowers' lattice is turned about 11° from the hexes (see
@@ -62,13 +62,13 @@ Seven further maps, each the same after a half turn (a third of a turn for 3 pla
 
 | Map | Players | The idea |
 |---|---|---|
-| Terra Minor | 2 | a band of six 8s, a start at each end |
-| Circular Logic | 2 | a ring of eight round a hole (two tiles), the starts across it |
-| The Great Plan | 2 | a void ringed by 8s and 7s, the starts out among 7s |
-| Critical Density | 3 | the starts crowded two spaces apart round the middle, 8s between |
-| Edge of Oblivion | 3 | a void ringed by 9s and 8s, the starts at the points |
-| Nexus | 4 | two 10s in the middle, 7s and 8s round them, the starts round those |
-| Tesseract | 4 | a 10 in the middle and four arms out to the starts |
+| Nili Fossae | 2 | a band of six 8s, a start at each end |
+| Hall Crater | 2 | a ring of eight round a hole (two tiles), the starts across it |
+| Jezero Crater | 2 | a void ringed by 8s and 7s, the starts out among 7s |
+| Kepler Dorsum | 3 | the starts crowded two spaces apart round the middle, 8s between |
+| Gale Crater | 3 | a void ringed by 9s and 8s, the starts at the points |
+| Syrtis Major | 4 | two 10s in the middle, 7s and 8s round them, the starts round those |
+| Voltaire Crater | 4 | the Deep Space Array (12) in the middle and four arms out to the starts |
 
 ### Open ground
 
@@ -87,7 +87,7 @@ and setup economies:
 |---|---:|---|
 | Elysium Reach | 2 | Distant, matching home sites and a contested 9, with broken lanes and alternate approaches |
 | Trinary Wells | 3 | A rotationally balanced triangle around a research void, with a balanced outer ring and tight cube economy |
-| Hellas Divide | 4 | Equal 9 starts around twin research artefacts, trading Nexus's central 10s for more open lanes |
+| Hellas Divide | 4 | Equal 9 starts around twin research artefacts, trading Syrtis Major's central 10s for more open lanes |
 | Canyon Relay | 2 | A direct, narrow race between equal homes and a central 10 |
 | Mare Trigonum | 3 | Equal 9 starts around a 10, with threefold rings of 7s and 8s |
 | Fourfold Confluence | 4 | Equal 8 starts on four arms, with 7s on the approaches and a 10 at the crossing |
@@ -140,8 +140,8 @@ one home's perimeter to another's:
 | Map | Players | Cubes | The idea | Walk between homes |
 |---|---:|---:|---|---|
 | Ice Run | 2 | 6 | Canyon Relay's lane, with an Ice Tunnel past the central 10 | 22 → 11 |
-| Two Arcs | 2 | 4 | Circular Logic cut in two: each start has three objectives to itself, and only the wormhole crosses the gap. Four cubes need a fourth objective, so one must be planted across | none → 5 |
-| Switchback | 2 | 5 | Alpha Sector with two walls, each open at one end, the east end of the north wall and the west end of the south: an S through the chamber with the 8 | 8 → 13 |
+| Two Arcs | 2 | 4 | Hall Crater cut in two: each start has three objectives to itself, and only the wormhole crosses the gap. Four cubes need a fourth objective, so one must be planted across | none → 5 |
+| Switchback | 2 | 5 | Lagado Planitia with two walls, each open at one end, the east end of the north wall and the west end of the south: an S through the chamber with the 8 | 8 → 13 |
 | Crater Rim | 2 | 5 | Olympus Mons with a rim of barriers round its summit 10 and two one-space breaches | 10 → 11 |
 | Rubble Field | 3 | 4 | Triple Junction with nine barriers in threes, walling each start from the others | 7 → 12 |
 | Moon Crater | 3 | 5 | Mare Trigonum with a rim of barriers round the central 10 and three breaches | 7 → 7 |
@@ -162,8 +162,8 @@ averages per game, against the map each one is built on:
 | Map | Rounds | Attacks | First player wins | Parent map (rounds, attacks, first player wins) |
 |---|--:|--:|--:|---|
 | Ice Run | 15.0 | 9.9 | 70% | Canyon Relay, 19.3, 5.8, 65% |
-| Two Arcs | 11.3 | 8.8 | 55% | Circular Logic, 14.7, 10.5, 70%; 6 cubes, not 4 |
-| Switchback | 10.3 | 5.8 | 68% | Alpha Sector, 9.5, 8.3, 53% |
+| Two Arcs | 11.3 | 8.8 | 55% | Hall Crater, 14.7, 10.5, 70%; 6 cubes, not 4 |
+| Switchback | 10.3 | 5.8 | 68% | Lagado Planitia, 9.5, 8.3, 53% |
 | Crater Rim | 12.1 | 3.9 | 58% | Olympus Mons, 9.9, 4.3, 58% |
 | Rubble Field | 12.3 | 13.8 | 30% (of 3) | Triple Junction, 9.6, 13.2, 43% |
 | Moon Crater | 14.8 | 18.4 | 38% (of 3) | Mare Trigonum, 18.1, 35.2, 38%; 6 cubes, not 5 |
@@ -174,7 +174,7 @@ No game was left unfinished in these. A second run of 100 games each on other se
 - **A tunnel is the strongest feature.** Ice Run halves the walk and cuts the game by a fifth while 70% more attacks
   happen, as the mouths are where players meet. Two Arcs and Ice Bridge need theirs to play at all.
 - **Barriers lengthen a game only as much as they lengthen the walk.** Rubble Field (7 → 12) runs 28% longer than
-  Triple Junction at the same cubes, with the same fighting; Switchback (8 → 13) about as long as Alpha but with
+  Triple Junction at the same cubes, with the same fighting; Switchback (8 → 13) about as long as Lagado Planitia but with
   fewer attacks, as the AI does not hold a pass. A rim (Crater Rim, Moon Crater) barely changes the walk, only
   who can reach the objective inside, and the AI plays it much as it does the open map: Moon Crater has about half
   Mare Trigonum's fighting (as well as one cube fewer).
@@ -189,10 +189,10 @@ the seat wins. No game stalled.
 
 | Map | Rounds | Attacks | Claims | Wins by seat |
 |---|--:|--:|--:|---|
-| Alpha Sector | 7.3 | 5.8 | 5.1 | 7/13 |
-| Alpha Sector (other seeds) | 7.0 | 7.8 | 5.7 | 6/14 |
-| Beta Sector | 9.4 | 23.7 | 7.3 | 9/3/8 |
-| Gamma Sector | 9.5 | 37.4 | 6.5 | 5/5/3/7 |
+| Lagado Planitia | 7.3 | 5.8 | 5.1 | 7/13 |
+| Lagado Planitia (other seeds) | 7.0 | 7.8 | 5.7 | 6/14 |
+| Swift Crater | 9.4 | 23.7 | 7.3 | 9/3/8 |
+| Laputa Regio | 9.5 | 37.4 | 6.5 | 5/5/3/7 |
 
 The three hard-objective maps, same settings, 10 November 2026 (100 games each; no unfinished games):
 
@@ -218,11 +218,11 @@ in cube points) and credits the change to the player who acted and to what they 
 - **Harm**: what the opponent's actions take off a player's value, per player-turn, and what kind of action did
   it (attacks with their battles, moves, cards: research, picks, skills and tactics).
 
-And counts of the board itself: turns starting with the two fleets at most 2 spaces apart, moves ending next to
+And counts of the board itself: turns starting with two players' mechs at most 2 spaces apart, moves ending next to
 an enemy mech, turns with both players' mechs in one objective's perimeter, and turns where a player's perimeter adds up
 to an objective's number but an enemy mech sits in it (a claim blocked).
 
-Level 4 AI (Colonel) in both seats, Alpha Sector, 200 games, 21 October 2026 (`npm run interaction -- 200 4,4`):
+Level 4 AI (Colonel) in both seats, Lagado Planitia, 200 games, 21 October 2026 (`npm run interaction -- 200 4,4`):
 
 | | Regolith, no cards | Regolith |
 |---|--:|--:|
@@ -235,7 +235,7 @@ Level 4 AI (Colonel) in both seats, Alpha Sector, 200 games, 21 October 2026 (`n
 | Harm from cards | | 16% |
 | Harm from atomics | 4% | 7% |
 | Card actions per game | | 18.3 |
-| Turns with fleets ≤ 2 apart | 61% | 51% |
+| Turns with rival mechs ≤ 2 apart | 61% | 51% |
 | Moves ending next to an enemy | 17% | 16% |
 | Turns with a shared perimeter | 40% | 34% |
 | Claims blocked per game | 1.72 | 1.00 |
@@ -301,8 +301,6 @@ The perimeter is still the spaces next to the objective, so the rules read the s
 - **Neighbours.** Two objectives may be next to each other; neither's space is on the other's perimeter.
 - **Starts.** Each starting objective needs room for the 3 starting mechs in perimeter spaces no other start
   shares; `buildBoard` refuses a map otherwise.
-- **Tactician** (Nomadic) reaches the objectives of the tiles touching the tile of any objective whose perimeter the mech is on,
-  found by the tiles' middle spaces (`tilesTouch`), however far the objectives themselves are.
 
 [`offset.test.ts`](../packages/engine/test/offset.test.ts) pins these on two test maps, and the legal-move
 cross-check plays games on them.
@@ -322,20 +320,20 @@ their objectives sit off-centre and their perimeter spaces cross tile boundaries
 
 | Map | Layout | What the offsets do |
 |---|---|---|
-| Twin Drift, 12 tiles | `7se 8* . .` / `9 0 7n` / `. 8 8 .` / `7s 0 9` / `. . 8* 7nw` | Each start shares 2 perimeter hexes with the 7 beside it, and the 9s share 2 more. Two 7s drift to the edge (3 perimeter hexes); two Alien Artefacts sit between. |
-| Circular Drift | `. 7s* 8 8` / `8 . . 8` / `. 8 8 7n*` | Opposed 7 starts lean into the ring's two-tile hole and pull their perimeters across the ring. |
-| Trinary Drift | `8* 7n 8 8*` / `8 10 7se` / `. 7sw 8` / `. 8*` | Three 7s drift around a 10; each is a third-turn from the next, so the seats match. |
-| Nexus Drift | `. 9*` / `8 7ne 9*` / `8 10 10 8` / `9* 7sw 8` / `. . 9*` | Two 7s lean toward the twin 10s; their opposite directions preserve the half-turn balance. |
+| Chryse Planitia, 12 tiles | `7se 8* . .` / `9 0 7n` / `. 8 8 .` / `7s 0 9` / `. . 8* 7nw` | Each start shares 2 perimeter hexes with the 7 beside it, and the 9s share 2 more. Two 7s drift to the edge (3 perimeter hexes); two Alien Artefacts sit between. |
+| Roche Crater | `. 7s* 8 8` / `8 . . 8` / `. 8 8 7n*` | Opposed 7 starts lean into the ring's two-tile hole and pull their perimeters across the ring. |
+| Acidalia Planitia | `8* 7n 8 8*` / `8 10 7se` / `. 7sw 8` / `. 8*` | Three 7s drift around a 10; each is a third-turn from the next, so the seats match. |
+| Medusae Fossae | `. 9*` / `8 7ne 9*` / `8 10 10 8` / `9* 7sw 8` / `. . 9*` | Two 7s lean toward the twin 10s; their opposite directions preserve the half-turn balance. |
 
 Only 7s go off the middle of a tile (`OFF_CENTRE` in [`tile/geometry.ts`](../packages/art/src/tile/geometry.ts)).
 An off-centre objective sits on its tile's edge space, half a space from the edge: a 9 or 10 is wider than that
 (0.6 and 0.72 spaces from its middle to its rim), and an 8 fills an outer hex right to its sides.
 [`mapLayers.test.ts`](../apps/web/test/mapLayers.test.ts) holds every map to this.
 
-Twin Drift against Alpha Sector, 100 games each with level 2 AI (Sergeant) in both seats and the same seeds,
-20 October 2026, averages per game: Alpha Sector 10.1 rounds, 12.3 attacks, 6.2 claims, seats 62/38; Twin
-Drift 13.9, 21.5, 8.0, seats 45/55. The seat splits are within chance at 100 games, and an earlier run with other
-seeds gave Alpha Sector 43/57. With 7 cubes (on the first layouts, which had the 10s and 9s off-centre) the
+Chryse Planitia against Lagado Planitia, 100 games each with level 2 AI (Sergeant) in both seats and the same seeds,
+20 October 2026, averages per game: Lagado Planitia 10.1 rounds, 12.3 attacks, 6.2 claims, seats 62/38; Chryse
+Planitia 13.9, 21.5, 8.0, seats 45/55. The seat splits are within chance at 100 games, and an earlier run with other
+seeds gave Lagado Planitia 43/57. With 7 cubes (on the first layouts, which had the 10s and 9s off-centre) the
 games ran about 20 rounds, and one stalled: each player's last free cube location was on the other's home
 objective, and neither AI went for it.
 

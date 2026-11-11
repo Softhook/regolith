@@ -30,7 +30,7 @@ import { keyOf, unofferedAnswers } from './decisions';
 import { arrange, quickStart, seededRandom } from './helpers';
 
 /*
- * Regolith on Alpha Sector (hex), in axial cells (docs/HEX.md): row 7 runs clear from (7,2) to (7,6), and the
+ * Regolith on Lagado Planitia (hex), in axial cells (docs/HEX.md): row 7 runs clear from (7,2) to (7,6), and the
  * middle 8 at (6,4) is ringed by (5,4), (5,5), (6,3), (6,5), (7,3) and (7,4). Cards go by their effect (the
  * Community card each started as).
  */
@@ -46,7 +46,7 @@ function cardCase(ids: string[], name: string, fn: () => void) {
 
 /**
  * apply(), after checking that the engine accepts no answer to an open decision that legalActions()
- * doesn't offer: scenarios reach decisions (Relocation, Headhunter, Science Survey, Signal Jammer…) that
+ * doesn't offer: scenarios reach decisions (Headhunter, Science Survey, Signal Jammer…) that
  * the AI games of consistency.test.ts rarely do.
  */
 function apply(s: GameState, a: Action): GameState {

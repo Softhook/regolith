@@ -75,7 +75,7 @@ describe('objective setups (scripts/objective-probe.ts)', () => {
   });
 
   it('a forced 16 is played to the end with no broken state', () => {
-    // Thin Alpha at 4 cubes: six one-cube objectives for eight cubes, so the table needs the hub (though a
+    // Thin Lagado at 4 cubes: six one-cube objectives for eight cubes, so the table needs the hub (though a
     // winner who takes three of the 7s needs it no more).
     const setup = OBJECTIVE_SETUPS.find((s) => s.id === 'duel-thin')!;
     const random = mulberry32(5);

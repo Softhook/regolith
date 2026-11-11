@@ -80,7 +80,7 @@ export function PlayedCard({
     }
     const fresh = game.log.filter((e) => e.id > seen.current);
     seen.current = last;
-    // A start-of-turn bonus is news only the first turn it comes (Arrogant, every turn its player leads).
+    // A start-of-turn bonus is news only the first turn it comes (Science Survey, every turn).
     const played = fresh.filter((e) => e.card && e.player !== undefined && !mine(e.player) && !repeatsLastTurn(game.log, e));
     if (played.length) setQueue((q) => [...q, ...played]);
   }, [game, mine, jumps]);

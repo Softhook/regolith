@@ -9,7 +9,7 @@ here is in [PROTOTYPING.md](regolith/PROTOTYPING.md).
 
 | Area | State |
 |---|---|
-| **Rules** | Settled for now ([RULES.md](RULES.md)): movement cap 3, zones of control, contested perimeters, the six mechs' powers, Take Over. Measured in AI self-play, not yet in playtests with people. |
+| **Rules** | Settled for now ([RULES.md](RULES.md)): movement cap 3, zones of control, contested perimeters, the six mechs' abilities, Take Over. Measured in AI self-play, not yet in playtests with people. |
 | **Modes** | Basic (no cards) and Regolith (the full game). |
 | **Cards** | 34 Skills, 11 Tactics and Reinforcements, every one implemented and checked against its text by the card audit. Each has a Regolith name and a screenprint scene; their text and actions are being reworked card by card ([REGOLITH.md §9](regolith/REGOLITH.md#9-order-of-work), step 5). |
 | **Maps** | 39, for 2 to 5 players, on Mars, Phobos and Deimos, in four groups: hex, open ground, drift and prepared ground ([HEX.md](HEX.md)). |

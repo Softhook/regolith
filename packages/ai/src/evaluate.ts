@@ -83,7 +83,7 @@ interface Ctx {
   exposure: number[];
   /** The mechs on the map by board cell index, and by player. */
   at: (Die | undefined)[];
-  fleets: Die[][];
+  byPlayer: Die[][];
 }
 
 /**
@@ -123,8 +123,8 @@ function nextMover(s: GameState, me: PlayerId): PlayerId {
 function context(s: GameState, mover: PlayerId): Ctx {
   const mechs = mechsOnBoard(s);
   const at = mechsByIndex(s);
-  const fleets: Die[][] = s.players.map(() => []);
-  for (const d of mechs) fleets[d.owner].push(d);
+  const byPlayer: Die[][] = s.players.map(() => []);
+  for (const d of mechs) byPlayer[d.owner].push(d);
   const reach = new Map<string, MechReach>();
   const kill = new Map<string, number>();
   const exposure = s.players.map(() => 0);
@@ -146,7 +146,7 @@ function context(s: GameState, mover: PlayerId): Ctx {
     const loss = MECH_ON_BOARD - MECH_IN_SALVAGE_YARD + powerStep(pl.power - 1) + powerGain(attacker);
     exposure[d.owner] += k * loss * (d.owner === mover ? 0.3 : 0.75);
   }
-  return { s, mover, reach, kill, exposure, at, fleets };
+  return { s, mover, reach, kill, exposure, at, byPlayer };
 }
 
 /** Value lost by dropping from `to + 1` to `to` power. */
@@ -193,7 +193,7 @@ function playerValue(ctx: Ctx, p: PlayerId): number {
     .reduce((a, b) => a + b, 0);
   v += storedTacticsValue(s, p);
   v += pl.atomics * ATOMIC;
-  v += ctx.fleets[p].length * MECH_ON_BOARD;
+  v += ctx.byPlayer[p].length * MECH_ON_BOARD;
   v += salvageYard(s, p).length * MECH_IN_SALVAGE_YARD;
   v -= ctx.exposure[p];
   return v;
@@ -228,7 +228,7 @@ function clearing(ctx: Ctx, p: PlayerId, blockers: Die[], perimeter: Die[]): { o
     let best = 0;
     let by: Die | undefined;
     let byAtomic = false;
-    for (const d of ctx.fleets[p]) {
+    for (const d of ctx.byPlayer[p]) {
       if (used.has(d.id)) continue;
       const shoots = !!hooksOf(s, d)?.threatens?.(s, d).includes(b);
       const attacks = perimeter.includes(d) ? g.ortho[index(b)].includes(index(d)) : !!ctx.reach.get(d.id)?.attacks.includes(b);
@@ -296,7 +296,7 @@ function objectivePotential(ctx: Ctx, p: PlayerId, objective: Objective): number
     .map((c) => c.r * cols + c.c)
     .filter((i) => space[i] && !ctx.at[i]);
   const reaches = (d: Die) => empty.some((i) => ctx.reach.get(d.id)?.moves[i]);
-  const outside = ctx.fleets[p].filter((d) => !onPerimeter.includes(d));
+  const outside = ctx.byPlayer[p].filter((d) => !onPerimeter.includes(d));
   const reachers = outside.filter(reaches);
 
   let best = 0;

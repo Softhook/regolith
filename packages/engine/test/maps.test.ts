@@ -126,7 +126,7 @@ describe("prepared ground (a map's `start`)", () => {
   });
 
   it("refuses a space that is a tile's objective, a tile that is not there, and an odd tunnel", () => {
-    const alpha = MAPS.find((m) => m.id === 'alpha-hex')!;
+    const alpha = MAPS.find((m) => m.id === 'lagado-planitia')!;
     expect(() => startSpace(alpha, '0:1:m')).toThrow(/objective/);
     expect(() => startSpace(alpha, '9:9:n')).toThrow(/no tile/);
     expect(() => startSpace(alpha, 'nonsense')).toThrow(/row:col:side/);

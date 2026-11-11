@@ -16,12 +16,12 @@ describe('physical tile kits', () => {
   });
 
   it('prints a 7 a map moves off the middle that way, as a tile of its own beside the same tile in the middle', () => {
-    // Twin Drift (Deimos, 2 players) moves its 7s to se, n, s and nw.
-    const twin = MAPS.find((m) => m.id === 'twin-drift')!;
-    const off = mapTiles(twin).filter((k) => k.at);
+    // Chryse Planitia (Mars, 2 players) moves its 7s to se, n, s and nw.
+    const chryse = MAPS.find((m) => m.id === 'chryse-planitia')!;
+    const off = mapTiles(chryse).filter((k) => k.at);
     expect(off.length).toBeGreaterThan(0);
     expect(off.every((k) => k.tile.number === 7)).toBe(true);
-    const kit = tileKit(['deimos'], 2);
+    const kit = tileKit(['mars'], 2);
     for (const k of off) expect(kit.some((t) => t.tile.id === k.tile.id && t.at === k.at)).toBe(true);
     // A tile is in a kit once for each spot its maps put its objective, and nowhere else.
     expect(new Set(kit.map(kitKey)).size).toBe(kit.length);

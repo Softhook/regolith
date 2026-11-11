@@ -4,7 +4,7 @@
  * replaces Manoeuvre, a 6 that fires barriers, contested perimeters, and over-claim (a perimeter of 12) when
  * REGOLITH_OVER_CLAIM is on. The first block checks the two modes, Basic and Regolith.
  *
- * Scenarios run on Alpha Sector (hex), the basic map for 2 players, in axial cells (docs/HEX.md): a space's
+ * Scenarios run on Lagado Planitia (hex), the basic map for 2 players, in axial cells (docs/HEX.md): a space's
  * sides are a row or column away, or (-1, +1) and (+1, -1). The middle 8 is at (6,4); row 7 runs clear from
  * (7,2) to (7,6), with the 7 at (7,1) to its left; column 5 runs clear from (2,5) down to (7,5); the top
  * start, a 7, is at (1,5), with (0,5) and (0,6) above it.
@@ -55,9 +55,9 @@ import { shoot as shootAbility, shootTargets } from '../src/abilities/shoot';
 import { arrange, quickStart } from './helpers';
 import { toRow } from './audit';
 
-/** Regolith on Alpha Sector (hex); `open`, on Arcadia Planitia, whose blank tiles are next to no objective. */
+/** Regolith on Lagado Planitia (hex); `open`, on Arcadia Planitia, whose blank tiles are next to no objective. */
 const BASE: Record<'regolith' | 'open', GameState> = {
-  regolith: quickStart(2, 1, 'regolith', 'alpha-hex'),
+  regolith: quickStart(2, 1, 'regolith', 'lagado-planitia'),
   open: quickStart(2, 1, 'regolith', 'arcadia-planitia'),
 };
 
@@ -79,7 +79,7 @@ function scenario(dice: Record<string, [number, number, number]>, skills: string
 const at = (s: GameState, id: string) => s.dice.find((d) => d.id === id)!;
 const farthest = (s: GameState, id: string) => Math.max(...[...moveOptions(s, id).moves.values()].map((m) => m.steps));
 const offered = (s: GameState, type: Action['type']) => legalActions(s).filter((a) => a.type === type);
-/** The mechs p0d0 may shoot now, by the legal actions (so cost and power included). */
+/** The mechs p0d0 may shoot now, by the legal actions (so their cost included). */
 const shots = (s: GameState) =>
   legalActions(s)
     .flatMap((a) => (a.type === 'ability' && a.die === 'p0d0' && a.target ? [a.target] : []))
@@ -122,7 +122,7 @@ describe('Regolith mode', () => {
     expect(regolith.mapGroups).toEqual(['hex', 'open', 'drift', 'prepared']);
     const played = MAPS.filter((m) => ['hex', 'open', 'drift', 'prepared'].includes(m.group));
     for (const m of played) expect(m.world, m.id).toBeDefined();
-    expect(played.map((m) => m.id)).toContain('twin-drift');
+    expect(played.map((m) => m.id)).toContain('chryse-planitia');
     expect(regolith.overClaim).toBe(REGOLITH_OVER_CLAIM);
     expect(regolith.mechs[5].hooks).toEqual({ ...shootAbility.hooks, ...picket.hooks });
     expect(regolith.mechs[5].builtIn).toBeUndefined();
@@ -673,7 +673,7 @@ describe('contested perimeter', () => {
   });
 
   it('on off-centre maps, an enemy on a space two perimeters share blocks both objectives', () => {
-    for (const map of ['twin-drift']) {
+    for (const map of ['chryse-planitia']) {
       const base = quickStart(2, 1, 'regolith', map);
       const shared = base.board.objectives
         .flatMap((p) => perimeterSpaces(base.board, p))
@@ -779,7 +779,7 @@ describe('dropping to a contested objective', () => {
   it('a home objective stays open while contested, so a player is never shut out', () => {
     const objective = home();
     const [a] = perimeterSpaces(BASE.regolith.board, objective);
-    // Player 0 holds only its home, its whole fleet is in the salvage yard, and an enemy sits in that perimeter.
+    // Player 0 holds only its home, all its mechs are in the salvage yard, and an enemy sits in that perimeter.
     const s = scenario({ p1d0: [a.r, a.c, 6] });
     for (const q of s.board.objectives) q.cubes = q.cubes.filter((x) => x !== 0 || q.id === objective.id);
     expect(into(s, objective)).toBe(ring(s, objective).length - 1);
@@ -1078,7 +1078,7 @@ describe('Kinetic Shunt tactic card (Regolith)', () => {
   });
 
   it('Hex board: mechs can be shunted along all 6 hexagonal directions', () => {
-    const s = quickStart(2, 42, 'regolith', 'alpha-hex');
+    const s = quickStart(2, 42, 'regolith', 'lagado-planitia');
     const hexSpaces = spaces(s.board);
     const candidate = hexSpaces.find((c) => {
       const targets = shuntTargets(s, { id: 'test', owner: 0, value: 3, loc: { zone: 'board', r: c.r, c: c.c }, rolls: 0 });

@@ -261,7 +261,7 @@ async function phone(page: Page, cdp: CDPSession) {
 async function main() {
   const server = await devServer(5192);
   const browser = await launchChrome();
-  const url = playUrl(server.base, { play: 'regolith', players: 4, map: 'tesseract-hex', scene: 'turn' });
+  const url = playUrl(server.base, { play: 'regolith', players: 4, map: 'voltaire-crater', scene: 'turn' });
   for (const [name, options] of [
     ['desktop 1400×900', DESKTOP],
     ['Moto G55', MOTO_G55],

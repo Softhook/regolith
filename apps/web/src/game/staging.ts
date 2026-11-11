@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { cellOf, drawing, movePath, same, type Cell, type Die, type GameState } from '@regolith/engine';
-import { BEAM_ARRIVES, BLINK, boomAt, REINFORCEMENT } from '../beats';
+import { boomAt, REINFORCEMENT } from '../beats';
 import { cardEffectsOf } from './cardEffects';
 import { mechSpots, touching } from './mechSpots';
 import { isPlayStep } from './steps';
@@ -9,12 +9,10 @@ import { reducedMotion } from './useMediaQuery';
 
 /** How a step's results wait on its card's effect, so the effect comes first. */
 export interface Staging {
-  /** Mechs that appear only once their card's effect gets there (ms in); Nomadic's don't glide there either. */
+  /** Mechs that appear only once their card's effect gets there (ms in), without gliding there. */
   late: Map<string, number>;
   /** Mechs a card destroyed, as they were, still shown where they were until its blow lands (ms in). */
   struck: { die: Die; r: number; c: number; ms: number }[];
-  /** The objective whose new cube drops in late (a relocated one, once the beam brings it), and when. */
-  cube?: { objective: number; ms: number };
   /** Mechs that fly the spaces they cross, not straight there: each one's way (flightOf), ending where it's shown (Board, glideAlong). */
   paths: Map<string, Waypoint[]>;
 }
@@ -57,12 +55,8 @@ export function flightOf(before: GameState, game: GameState, id: string): Waypoi
 export function stagingOf(before: GameState, game: GameState): Staging {
   const out: Staging = { late: new Map(), struck: [], paths: new Map() };
   for (const e of cardEffectsOf(before, game)) {
-    // When the card's effect brings the mech or cube (beats.ts): Reinforcements's lance lands, Nomadic's rings open,
-    // a relocated cube's spark arrives.
+    // When the card's effect brings the mech (beats.ts): Reinforcements's lance lands.
     if (e.kind === 'reinforcement' && e.replaces) out.late.set(e.replaces, REINFORCEMENT.strike);
-    else if (e.kind === 'blink' && e.replaces) out.late.set(e.replaces, BLINK.open);
-    else if (e.kind === 'beam' && e.replaces?.startsWith('objective:'))
-      out.cube = { objective: Number(e.replaces.slice('objective:'.length)), ms: BEAM_ARRIVES };
   }
   const now = mechSpots(game);
   for (const d of game.dice) {

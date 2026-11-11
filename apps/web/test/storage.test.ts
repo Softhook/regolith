@@ -118,7 +118,7 @@ describe('online games in storage', () => {
     const { event } = encodePost(
       gameKeys(game),
       generateSecretKey(),
-      { t: 'create', protocol: PROTOCOL, config: { players, mapId: 'alpha-hex', mode: 'regolith', seed: 1 }, creator: 0, open: [] },
+      { t: 'create', protocol: PROTOCOL, config: { players, mapId: 'lagado-planitia', mode: 'regolith', seed: 1 }, creator: 0, open: [] },
       null,
     );
 

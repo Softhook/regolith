@@ -592,7 +592,7 @@ export function dropTargets(state: GameState, player: PlayerId): Cell[] {
       if (isEmptySpace(state, p) && !linked(state, p).some((q) => dieAt(state, q))) targets.set(key(p), p);
     }
   }
-  // Contested drop (PROTOTYPING.md §6.8): every way of dropping (Reinforcements, Infiltration, Beacon too) stays out of
+  // Contested drop (PROTOTYPING.md §6.8): every way of dropping (Reinforcements and Infiltration too) stays out of
   // a contested perimeter, except a home objective's, so nobody is shut out.
   const home = homeObjective(state, player);
   for (const objective of state.board.objectives) {
@@ -604,7 +604,7 @@ export function dropTargets(state: GameState, player: PlayerId): Cell[] {
 }
 
 // ---------------------------------------------------------------------------
-// Cubes: claiming, Take Over, Relocation
+// Cubes: claiming, Take Over, the home objective
 
 export interface ClaimCheck {
   ok: boolean;
@@ -620,7 +620,7 @@ export interface ClaimCheck {
   research?: number;
 }
 
-/** The player's home objective (home objective): their starting objective, unless their cube there has moved (`cubeLeft`). */
+/** The player's home objective: their starting objective, unless their cube there has left (`cubeLeft`). */
 export function homeObjective(state: GameState, player: PlayerId): Objective | undefined {
   const id = state.players[player].home;
   return id === undefined ? undefined : state.board.objectives[id];

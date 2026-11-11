@@ -20,7 +20,7 @@ import { defaultSeat } from './seats';
 
 /**
  * Dev server only: a link that skips the lobby, for checking a layout on a phone and for
- * scripts/mobile-shots.ts. `?play=regolith&players=4&map=tesseract-hex&seed=7` starts that game with
+ * scripts/mobile-shots.ts. `?play=regolith&players=4&map=voltaire-crater&seed=7` starts that game with
  * one human (Commander) and AI opponents. `play` is a mode's id or name; `map` defaults to the
  * basic map for the player count; `seed` makes the dice the same every time. Reloading starts the
  * game again. Like any game on this device, it replaces the saved game.

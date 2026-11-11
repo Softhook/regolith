@@ -15,7 +15,7 @@ import { castShadow, pieceShadowLength } from './board/shadows';
  * At rest only the front face shows, so a still die is that one face, drawn flat: a cube is ten
  * composited layers, and a map of them made every frame of a zoom or pan slower. The cube is built
  * when the die starts to move (at the face it showed) and goes again once it has landed. Dice that
- * tumble on mount (the fleet, battle and lobby rolls) keep theirs: they roll again under a modal's
+ * tumble on mount (the setup, battle and lobby rolls) keep theirs: they roll again under a modal's
  * backdrop-filter, where layers made mid-roll can flash a white frame.
  *
  * On an iPhone or iPad every die keeps its cube. Safari draws a cube's new layers wrong for a frame or two
@@ -78,7 +78,7 @@ export interface Die3DProps {
   size: number;
   color: string;
   pip?: string;
-  /** Tumble when first shown (combat dice, setup fleet). */
+  /** Tumble when first shown (combat dice, the setup roll). */
   tumbleOnMount?: boolean;
   /** Changes when the die jumps to another position of the game instead of following play (looking
    * back at it): a roll since then turns it to its face, without tumbling or a sound. */

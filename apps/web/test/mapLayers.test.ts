@@ -18,11 +18,11 @@ const testMap = (layout: string[][]): MapDef => ({
 
 describe('space roles', () => {
   it('on a map with objectives in the middle: every hex is on its objective.s perimeter', () => {
-    expect(spaceRoles(board('alpha-hex')).every((s) => s.perimeters === 1)).toBe(true);
+    expect(spaceRoles(board('lagado-planitia')).every((s) => s.perimeters === 1)).toBe(true);
   });
 
   it('marks the spaces where off-centre objectives share a perimeter', () => {
-    expect(spaceRoles(board('twin-drift')).filter((s) => s.perimeters > 1)).toHaveLength(6);
+    expect(spaceRoles(board('chryse-planitia')).filter((s) => s.perimeters > 1)).toHaveLength(6);
   });
 
   it('marks a blank tile’s spaces as open ground: no perimeter, no Alien Artefact', () => {
@@ -39,12 +39,12 @@ describe('space roles', () => {
 
 describe('objective numbers', () => {
   it('go in the printed bottom right on an objective in the middle of its tile', () => {
-    const b = board('alpha-hex');
+    const b = board('lagado-planitia');
     for (const p of b.objectives) expect(numberCorner(b, p)).toEqual({ x: 1, y: 1 });
   });
 
   it("go in the objective's corner nearest its tile's middle, as the printed tile has it", () => {
-    const h = board('twin-drift');
+    const h = board('chryse-planitia');
     // 7se: up and left, towards the flower's middle.
     expect(
       numberCorner(

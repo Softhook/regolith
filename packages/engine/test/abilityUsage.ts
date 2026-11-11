@@ -6,7 +6,7 @@
 import { apply, createGame, legalActions, rulesOf, type Action, type GameMode, type GameState } from '../src';
 import { aiAction, players, seededRandom } from './helpers';
 
-/** The actions that spend a mech's once-per-turn ability (carry and strike have Advance twins we don't count). */
+/** The actions that spend a mech's once-per-turn ability (carry and freeAttack have Advance twins we don't count). */
 const ABILITY_ACTIONS = new Set<Action['type']>(['freeAttack', 'carry', 'swap', 'change', 'ability']);
 
 interface AbilityRow {

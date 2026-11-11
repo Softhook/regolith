@@ -14,7 +14,7 @@ import { MAPS, createGame, cellAt, key, linked, perimeterSpaces, spaces, type Ce
 import { startSpace } from '../packages/engine/src/board';
 import { args } from './args';
 
-const o = args({ map: 'alpha-hex', spin: '2@0:0', mode: 'barriers', count: '3', keep: '', ban: '' });
+const o = args({ map: 'lagado-planitia', spin: '2@0:0', mode: 'barriers', count: '3', keep: '', ban: '' });
 const map = MAPS.find((m) => m.id === o.map)!;
 const base: GameState = createGame({
   players: Array.from({ length: map.players }, () => ({ name: 'p', color: '#fff', ai: false })),

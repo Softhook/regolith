@@ -5,9 +5,9 @@
 import { describe, expect, it } from 'vitest';
 import { MAPS, buildBoard, type MapDef } from '../src';
 
-const alpha = MAPS.find((m) => m.id === 'alpha-hex')!;
+const alpha = MAPS.find((m) => m.id === 'lagado-planitia')!;
 
-/** Alpha Sector with its middle objective (an 8) replaced by `token`, on `world`. */
+/** Lagado Planitia with its middle objective (an 8) replaced by `token`, on `world`. */
 const withMiddle = (token: string, world: MapDef['world']): MapDef => ({
   ...alpha,
   world,

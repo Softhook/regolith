@@ -29,7 +29,7 @@ import { playAiGame, quickStart } from './helpers';
 import { OFFSET_HEX, registerOffsetMaps } from './offsetMaps';
 
 registerOffsetMaps();
-const ALPHA_HEX = MAPS.find((m) => m.id === 'alpha-hex')!;
+const ALPHA_HEX = MAPS.find((m) => m.id === 'lagado-planitia')!;
 
 const map = (layout: string[][]): MapDef => ({
   id: 'test',
@@ -193,7 +193,7 @@ describe('the drift maps', () => {
   const drift = MAPS.filter((m) => m.group === 'drift' && m !== OFFSET_HEX);
 
   it('cover every player count and both modes play them', () => {
-    expect(drift.map((m) => m.id)).toEqual(['twin-drift', 'circular-drift', 'trinary-drift', 'nexus-drift']);
+    expect(drift.map((m) => m.id)).toEqual(['chryse-planitia', 'roche-crater', 'acidalia-planitia', 'medusae-fossae']);
     expect([...new Set(drift.map((m) => m.players))].sort()).toEqual([2, 3, 4]);
     expect(
       Object.values(RULESETS)

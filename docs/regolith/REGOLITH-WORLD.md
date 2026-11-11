@@ -141,7 +141,7 @@ decided, not forgotten.
 | Missile | **Atomic** |
 | Warp Gate | **Ice Tunnel** |
 | Skill / Tactic | **Skill / Tactic** |
-| Sector (map names) | **Region**: Utopia Planitia, Hellas Basin, Shackleton |
+| Sector (map names) | **Region**: Utopia Planitia, Valles Marineris, Stickney Crater |
 
 **Power** is the track (dominance, in the original). A mech's own power is its **ability**, in the game, the rulebook and the code (`abilities/`, the `ability` action) alike.
 
@@ -150,7 +150,7 @@ decided, not forgotten.
 What a Regolith game shows today:
 
 - **The name**, in the lobby's mode menu and the game's top bar.
-- **The mech names and power texts**, everywhere a ship is named: board, sidebar, log, combat and the other
+- **The mech names and ability texts**, everywhere a mech is named: board, sidebar, log, combat and the other
   overlays. They live in the mode's mech table (`MECHS` in
   [mechs.ts](../../packages/engine/src/mechs.ts)), and the engine and web app ask the
   game's rules for a name (`mechOf`, `mechName`), so each rule set can name its own mechs.

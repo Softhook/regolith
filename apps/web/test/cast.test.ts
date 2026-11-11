@@ -57,7 +57,7 @@ describe('castOf', () => {
 describe('repeatsLastTurn', () => {
   let id = 0;
   const heading = (player: number): LogEntry => ({ id: ++id, player, text: '', turn: true });
-  const bonus = (player: number, card = 'o-arrogant'): LogEntry => ({ id: ++id, player, text: '', card, gains: { actions: 1 } });
+  const bonus = (player: number, card = 'r-science-survey'): LogEntry => ({ id: ++id, player, text: '', card, gains: { actions: 1 } });
   const other = (player: number): LogEntry => ({ id: ++id, player, text: '' });
 
   it('is news the first turn, not the turns after it repeats', () => {

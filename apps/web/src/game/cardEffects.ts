@@ -13,13 +13,12 @@ export interface MapEffect {
 /**
  * A card's mark on the map, over the plain action effects (ActionEffects): Orbital Cannon striking a mech,
  * Ice Tunnels linked and the old pair closed (the board draws the tunnels themselves), a Reinforcements mech
- * arriving, a fleet cloaked and invaded, a mech number nudged (Field Refit, Engineering), a mech salvaged
+ * arriving, mechs cloaked and invaded, a mech number nudged (Field Refit, Engineering), a mech salvaged
  * (Recycle), and the two mechs Unstable Reactor destroys. `replaces` names what the effect stands in for an action's effect on
- * (ActionEffects): a mech, or `objective:<id>` for the objective a cube was relocated to.
+ * (ActionEffects): a mech.
  */
 export type CardEffect = MapEffect & { replaces?: string } & (
-    | { kind: 'strike' | 'reinforcement' | 'cloak' | 'decloak' | 'implode' | 'raise' | 'lower' | 'blink' }
-    | { kind: 'beam' | 'arc'; to: Cell }
+    { kind: 'strike' | 'reinforcement' | 'cloak' | 'decloak' | 'implode' | 'raise' | 'lower' } | { kind: 'beam' | 'arc'; to: Cell }
   );
 
 const tunnelsKey = (g: GameState) => g.tunnels.map((c) => `${c.r},${c.c}`).join(' ');

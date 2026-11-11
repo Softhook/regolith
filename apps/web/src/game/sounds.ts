@@ -80,20 +80,18 @@ export function soundsFor(
     if (s === 'takeOver' && destroyed) then.add(s);
     else if (s) first.add(s === 'win' && lost(next, mine) ? 'lose' : s);
   }
-  // Cubes: placed, knocked off, or relocated (an objective's cubes changed with none placed or taken back). Heard as they drop.
+  // Cubes: placed or knocked off. Heard as they drop.
   const placed = next.players.some((pl, i) => pl.cubesLeft < prev.players[i].cubesLeft);
   const displaced = next.players.some((pl, i) => pl.cubesLeft > prev.players[i].cubesLeft);
   if (placed) first.add('cube');
   if (displaced) first.add('displace');
-  const cubesOf = (s: GameState) => s.board.objectives.map((p) => [...p.cubes].sort().join()).join('|');
-  if (!placed && !displaced && cubesOf(prev) !== cubesOf(next)) first.add('relocate');
 
   // With nothing to go first, the effects themselves do.
   const effects = first.size ? then : first;
 
   // Mechs: flown, arrived, destroyed, swapped or renumbered.
   const before = new Map(prev.dice.map((d) => [d.id, d]));
-  // A mech a card brings (Reinforcements, Nomadic) appears as its effect gets there (staging): heard landing
+  // A mech a card brings (Reinforcements) appears as its effect gets there (staging): heard landing
   // then, rather than flying or dropping in on its own.
   const late = stagingOf(prev, next).late;
   let lands: number | undefined;

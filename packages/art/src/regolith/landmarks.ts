@@ -490,7 +490,7 @@ function citadel(k: Kit): Drawn {
 }
 
 /**
- * 13, The Drydock: a ship being built in a dock cut into the ground, its bow plated and its stern still bare
+ * 13, The Drydock: a spacecraft being built in a dock cut into the ground, its bow plated and its stern still bare
  * ribs, a gantry crane across it on rails, welders' sparks along it. The hub is the dock's control deck beside
  * it.
  */
@@ -507,7 +507,7 @@ function drydock(k: Kit): Drawn {
   const plates = Array.from({ length: 8 }, (_, i) => 10 + i * 7.5);
   const crane = r.range(-L / 3, L / 3);
   const sparks = Array.from({ length: 4 }, () => ({ x: r.range(-L / 2 + 10, L / 3), y: r.pick([-1, 1]) * r.range(Wd / 2 - 6, Wd / 2) }));
-  const ship: Part = {
+  const vessel: Part = {
     grade: box(0, 0, L + 26, Wd + 28, 6, H.graded, ' filter="url(#rg-soft3)"') + box(0, 0, L + 16, Wd + 18, 4, 'rgb(100,180,110)'),
     heights:
       // Crane rails along the dock's sides, then the hull.
@@ -541,7 +541,7 @@ function drydock(k: Kit): Drawn {
   };
   return merged([
     ...[
-      placed(c.x, c.y, merged([ship, gantry]), turn),
+      placed(c.x, c.y, merged([vessel, gantry]), turn),
       run({ x: 0, y: -15 }, turned({ x: 0, y: -52 + Wd / 2 + 8 }, turn), 5, '#8d969c'),
     ].map(kept),
     ...k.outskirts(

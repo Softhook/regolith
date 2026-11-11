@@ -27,12 +27,12 @@ import { PHONES, arg, devServer, finish, launchChrome, playUrl } from './mobile-
 const GAMES: Record<string, { play: string; players: number; map?: string }> = {
   'basic-2p': { play: 'basic', players: 2 },
   'regolith-3p': { play: 'regolith', players: 3 },
-  'regolith-4p': { play: 'regolith', players: 4, map: 'tesseract-hex' },
+  'regolith-4p': { play: 'regolith', players: 4, map: 'voltaire-crater' },
 };
 
 /**
  * Rounds after which a game counts as not finishing (each player's turn is one turn, so a round is `players`
- * turns). Regolith's 4p games on tesseract-hex end in 12 to 32 rounds with this script's human.
+ * turns). Regolith's 4p games on voltaire-crater end in 12 to 32 rounds with this script's human.
  */
 const MAX_ROUNDS = 50;
 /** Taps of the human's on one turn before it ends the turn regardless (random targets can wander). */

@@ -166,7 +166,6 @@ export function Board({
             game={game}
             cubes={cubes}
             cell={cell}
-            late={staging.cube}
             dice={game.dice.flatMap((d) => {
               const at = spots.get(d.id);
               if (!at || staging.late.has(d.id)) return [];
@@ -330,7 +329,7 @@ function MechShadows({
   });
   return (
     <div className="mech-shadows" style={{ opacity: pieceShadowOpacity(world), clipPath: edge && `path('${edge}')` }} aria-hidden>
-      <CubeShadows cubes={cubes} world={world} mm={cell / TILE.cell} late={staging.cube} />
+      <CubeShadows cubes={cubes} world={world} mm={cell / TILE.cell} />
       {shadows}
       {struck}
     </div>

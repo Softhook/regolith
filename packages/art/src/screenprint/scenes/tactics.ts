@@ -275,7 +275,7 @@ export const TACTIC_SCENES: Record<string, SpScene> = {
         `<ellipse cx="44.2" cy="30" rx="2.5" ry="1.1" transform="rotate(-35 44.2 30)" fill="${INKS.bone}"/>` +
         `<circle cx="43" cy="32.4" r="0.4" fill="${INKS.bone}"/>` +
         stroke('M53,36.5 C55.5,36.5 56.5,35.5 56.5,34.5', INKS.amber, 0.5) +
-        // Wisp deploying the second barrier
+        // Wisp firing the second barrier
         mech(s, 'wisp', 15, 38, 0.12, { yaw: -45 }) +
         stroke('M18.4,27.1 Q32,21.5 47.5,27', INKS.amber, 0.9, ' stroke-dasharray="2.5 1.2"')
       );

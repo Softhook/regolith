@@ -5,9 +5,8 @@ import { beatVars, CSS_BEATS } from '../src/beats';
 
 const css = readFileSync(new URL('../src/styles.css', import.meta.url), 'utf8');
 const groups = Object.keys(CSS_BEATS).join('|');
-/** The custom properties of the beats' groups the CSS reads (`--cube-late` is set by the board, not a beat). */
+/** The custom properties of the beats' groups the CSS reads. */
 const read = new Set([...css.matchAll(new RegExp(`var\\((--(?:${groups})-[a-z]+)`, 'g'))].map((m) => m[1]));
-read.delete('--cube-late');
 
 describe('beats', () => {
   it('has every beat the CSS reads', () => {

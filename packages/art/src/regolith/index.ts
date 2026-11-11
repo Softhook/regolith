@@ -26,7 +26,7 @@ import { inked } from './inks';
  * shadows and warps reach in from further, so at the filter's edge they'd go wrong, as a grey line.
  *
  * The parts: core (units, the hex flower, SVG helpers), light (the lighting filters), terrain (craters,
- * ridges, dunes), parts (how a piece of a base is drawn, in layers), buildings, craft (ships, rovers and
+ * ridges, dunes), parts (how a piece of a base is drawn, in layers), buildings, craft (rockets, rovers and
  * small things), base (how a base is laid out round its objective's space) and inks (the bases' colours in
  * each world's inks).
  */
@@ -105,7 +105,7 @@ const silhouette = (heights: string) => inMm(`<g filter="url(#rg-white)">${heigh
 
 /**
  * A tile's ground on `world` over its trim and bleed (mm, the trim's top left at 0, 0), with everything on it;
- * and what stands on it alone (its buildings, ships and rovers), cut to their outlines, to print over the
+ * and what stands on it alone (its buildings, rockets and rovers), cut to their outlines, to print over the
  * spaces' wells. Its lit ground drawn by its filter, or as `image`, a bitmap of it (`regolithGroundSvg`). For
  * a tile on a world's ground (tile/index.ts `tileSvg`), in place of its sky and objective.
  */

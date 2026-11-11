@@ -53,9 +53,9 @@ the Tharsis shadow. More in [REGOLITH-WORLD.md](docs/regolith/REGOLITH-WORLD.md)
 ## How it plays
 
 Your mechs are dice. A die's face is its frame: low numbers are heavy and hard to beat, high numbers are light
-and quick, and each of the six has a power of its own.
+and quick, and each of the six has an ability of its own.
 
-| | Mech | Power |
+| | Mech | Ability |
 |:-:|---|---|
 | 1 | **Breacher** | Attacks an adjacent enemy without using its move |
 | 2 | **Behemoth** | Carries another of your mechs as it moves |
@@ -114,7 +114,7 @@ Regolith began as a digital edition of [Quantum](https://boardgamegeek.com/board
 by Eric Zimmerman, published by FunForge, 2013) and its fan-made
 [Community Edition](https://github.com/stolksdorf/quantum) (stolksdorf, WaterGoesRed and contributors). It
 grew into its own game: the hex board, the movement cap, zones of control, contested perimeters, the mechs'
-powers, the world and its look. Its deck started as the Community cards and moves further from them with each
+abilities, the world and its look. Its deck started as the Community cards and moves further from them with each
 card reworked.
 
 It also owes ideas to [Santorini](https://boardgamegeek.com/boardgame/194655/santorini) (Gord!) and
@@ -161,9 +161,9 @@ All headless.
 | `npm run ai:match -- 3 4 40 regolith` | AI rank against rank: win rates ([AI.md § Strength](docs/AI.md#strength)) |
 | `npm run audit:cards` | AI games with every card dealt, each step checked for legality and each card's effect against its text |
 | `npm run selfplay:cards` | Card win, pick and use rates over AI self-play |
-| `npm run selfplay:abilities` / `selfplay:stalls` | What each mech's power is worth; games that stall |
+| `npm run selfplay:abilities` / `selfplay:stalls` | What each mech's ability is worth; games that stall |
 | `npm run selfplay:maps -- --maps=ice-run,canyon-relay` | Map by map: game length, fighting, first-player wins; `map:show` and `map:design` lay a map's starting tunnel and barriers |
-| `npm run ability:usage` | How often the AI uses each power |
+| `npm run ability:usage` | How often the AI uses each ability |
 | `npm run test:deep` | The legal-move cross-check over many more games (minutes) |
 | `npm run hex:check` / `ground:check` | The hex board and the ground tiles in a real browser |
 | `npm run ui:check` / `replay:check` | Board choices, the crash screen, and looking back over a game, in Chrome |

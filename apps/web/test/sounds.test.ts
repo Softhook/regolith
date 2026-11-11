@@ -178,17 +178,6 @@ describe('soundsFor', () => {
     expect(first).toEqual(['cube', 'displace']);
   });
 
-  it('hears a cube relocated', () => {
-    const { first } = step(
-      (s) => {
-        s.board.objectives[0].cubes = [];
-        s.board.objectives[1].cubes.push(1);
-      },
-      (s) => void s.board.objectives[0].cubes.push(1),
-    );
-    expect(first).toEqual(['relocate']);
-  });
-
   it('hears research and power gained', () => {
     const { first } = step((s) => {
       s.players[0].research++;

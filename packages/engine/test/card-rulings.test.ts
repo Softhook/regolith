@@ -4,7 +4,7 @@ import { arrange, players, quickStart } from './helpers';
 
 /**
  * Regolith's cards, each by the Community card it started as (its `effect`): the current player's Wisp (a 6) at
- * (0,5) on Alpha Sector (hex), next to the other player's Tactician (a 3) at (0,6).
+ * (0,5) on Lagado Planitia (hex), next to the other player's Tactician (a 3) at (0,6).
  */
 function cardGame(skills: { me?: string[]; foe?: string[] } = {}): GameState {
   let s = quickStart(2, 42);

@@ -42,9 +42,9 @@ const SHORT_WINDOWS: Record<string, BrowserContextOptions> = {
 
 /** A small, a wide (open ground, 8 tiles across), a typical 4-player and the largest map. */
 const GAMES = [
-  { play: 'basic', players: 2, map: 'alpha-hex' },
+  { play: 'basic', players: 2, map: 'lagado-planitia' },
   { play: 'regolith', players: 2, map: 'valles-marineris' },
-  { play: 'regolith', players: 4, map: 'nexus-hex' },
+  { play: 'regolith', players: 4, map: 'syrtis-major' },
   { play: 'regolith', players: 4, map: 'utopia-planitia' },
 ];
 
@@ -375,7 +375,7 @@ async function main() {
           const screen = options.viewport!;
           const issues: string[] = [];
 
-          // Setup popups (fleet roll, starting skill): screenshot and check each, then take the first
+          // Setup popups (setup roll, starting skill): screenshot and check each, then take the first
           // choice. Clicks go through the page, so a popup that is partly off screen still advances.
           for (let n = 1; n <= 4; n++) {
             const modal = page.locator('.overlay .modal').first();
