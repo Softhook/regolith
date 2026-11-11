@@ -11,8 +11,6 @@ export interface CardDef {
   category: string;
   count: number;
   notes?: string;
-  /** The rules it plays by (effects.ts): the Community Edition card it started as, or its own; defaults to its id. */
-  effect?: string;
   /** Notes of where it came from: the Community card it started as, and how far it has moved (community, renamed, reworked, new). */
   from?: string;
   status?: string;
@@ -69,13 +67,14 @@ export function card(id: string): CardDef {
   return c;
 }
 
+/** The rules a card plays by (effects.ts), named after it: its id without the r- (build-data.mjs checks every id has one). */
 export function effectOf(id: string): string {
-  return card(id).effect ?? id;
+  return card(id).id.slice(2);
 }
 
 /** A card with this effect, for naming it. */
 export function cardWithEffect(effect: string): CardDef | undefined {
-  return byId.get(effect) ?? [...byId.values()].find((c) => c.effect === effect);
+  return byId.get(`r-${effect}`);
 }
 
 /** The name of the card with this effect, as printed (Arms Deal's is Arms Deal). */

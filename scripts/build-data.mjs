@@ -22,8 +22,9 @@ for (const [deck, list] of Object.entries(cards)) {
     if (!c.id.startsWith('r-')) throw new Error(`${where}: ids start with r-`);
     if (ids.has(c.id)) throw new Error(`${where} is listed twice`);
     ids.add(c.id);
-    for (const field of ['name', 'subtitle', 'text', 'category', 'count', 'status', 'effect'])
+    for (const field of ['name', 'subtitle', 'text', 'category', 'count', 'status'])
       if (c[field] === undefined) throw new Error(`${where} has no ${field}`);
+    if ('effect' in c) throw new Error(`${where}: a card's effect is its id without the r-, not a field`);
     if (!STATUSES.includes(c.status)) throw new Error(`${where} has status ${c.status}, not one of ${STATUSES.join(', ')}`);
     if ((c.status === 'new') !== (c.from === undefined)) throw new Error(`${where}: a new card has no \`from\`, and only a new card`);
   }

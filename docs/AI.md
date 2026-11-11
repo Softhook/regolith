@@ -73,7 +73,7 @@ a difference of a few percent (the script prints z; |z| > 2 is about p < 0.05).
 ## What was wrong with the original AI
 
 The original AI is kept as level 1. Self-play showed it rarely fought (about one attack per Basic
-game, with power often never leaving 1), re-rolled ships with no purpose, and in the Original
+game, with power often never leaving 1), re-rolled mechs with no purpose, and in the Original
 mode researched about 27 times a game. The causes were assumptions built into its design:
 
 1. **One action at a time.** It scored each action on its own and never planned how a turn's three

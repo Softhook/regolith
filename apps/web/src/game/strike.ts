@@ -27,11 +27,11 @@ export function destroyedOf(before: GameState, game: GameState): Die[] {
 }
 
 /**
- * How much longer a battle's stage takes for its shot (Shoot, the Sniper's ability: a missile crosses the map,
+ * How much longer a battle's stage takes for its shot (Shoot, the Sniper's ability: a round crosses the map,
  * board/Shots, and the battle opens as it lands): its flight while a ranged battle is as it opened
  * (no atomic fired yet), else 0. Its overlay opens that late (CombatOverlay), so whatever waits on
  * the battle being seen waits that much more: the AI (useAiDriver) and online playback. None under reduced motion,
- * where no missile flies (useStepEffects).
+ * where no round flies (useStepEffects).
  */
 export const shotWait = (c: CombatPending) => (c.ranged && !c.attacker.atomic && !c.defender.atomic && !reducedMotion() ? SHOT.flight : 0);
 

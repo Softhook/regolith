@@ -87,7 +87,7 @@ maps:
       - "8  9"
       - ".  9*"
 
-  # Hex: advanced maps, each with an idea (where the starts sit, what they touch, a void or a gap in the middle).
+  # Hex: advanced maps, each with an idea (where the starts sit, what they touch, an Alien Artefact or a gap in the middle).
   # Their seats match by a half turn (a third of a turn for 3 players), as hex maps can't be mirrored.
 
   - id: terra-minor-hex
@@ -277,7 +277,7 @@ maps:
     length: medium
     cubes: 6
     stats: { slack: 2, shared: 4, objectives: 8 }
-    # A hexagon of 19 tiles round a void; each start sits in a corner, on open ground beside a 7.
+    # A hexagon of 19 tiles round an Alien Artefact; each start sits in a corner, on open ground beside a 7.
     layout:
       - ".  7  -  8*"
       - "-  -  7  -"
@@ -324,7 +324,7 @@ maps:
     length: long
     cubes: 6
     stats: { slack: 4, shared: 4, objectives: 10 }
-    # A 10 on a rise of open ground; each start stands on the slope beside a void and a 7, four tiles from the others.
+    # A 10 on a rise of open ground; each start stands on the slope beside an Alien Artefact and a 7, four tiles from the others.
     layout:
       - ".  .  .  7"
       - ".  8  0  9*"
@@ -341,7 +341,7 @@ maps:
     length: long
     cubes: 6
     stats: { slack: 6, shared: 4, objectives: 14 }
-    # A void with two 10s across it, on an open plain; the four starts stand out at its edge, each touching a 7
+    # An Alien Artefact with two 10s across it, on an open plain; the four starts stand out at its edge, each touching a 7
     # and a blank, 4 tiles from two starts and 6 from the one across. The two pairs see different objectives nearby.
     layout:
       - ".  .  8*"
@@ -370,7 +370,7 @@ maps:
 
   # Three layouts of opposed starts, central contests and ringed Alien Artefacts.
   # The 2-player map opens long alternate routes to a contested 9; the 3-player map trades its central
-  # 10 for a research void and adds a balanced outer ring; the 4-player map turns Nexus's twin central
+  # 10 for an Alien Artefact and adds a balanced outer ring; the 4-player map turns Nexus's twin central
   # 10s into a shared research corridor and gives every start the same 9.
 
   - id: elysium-reach
@@ -562,7 +562,7 @@ maps:
     length: medium
     cubes: 4
     stats: { slack: 2, shared: 4, objectives: 10 }
-    # Four 8 starts at the corners of a diamond, a void between them and a pair of 9s on its long diagonal.
+    # Four 8 starts at the corners of a diamond, an Alien Artefact between them and a pair of 9s on its long diagonal.
     layout:
       - ".  .  8*"
       - ".  7  7"
@@ -732,7 +732,7 @@ maps:
     length: long
     cubes: 4
     stats: { slack: 0, shared: 6, objectives: 8 }
-    # Cydonia cut across its void into two islands of two starts each; the wormhole is the only way over, and each island has too few objectives for its players' cubes.
+    # Cydonia cut across its Alien Artefact into two islands of two starts each; the wormhole is the only way over, and each island has too few objectives for its players' cubes.
     start:
       wormhole: ["2:1:se", "2:3:nw"]
     layout:

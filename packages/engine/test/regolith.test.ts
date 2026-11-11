@@ -90,8 +90,8 @@ describe('Regolith mode', () => {
     expect(MODES.map((m) => m.id)).toEqual(['basic', 'regolith'] satisfies GameMode[]);
     const regolith = rulesOf(BASE.regolith);
     expect(regolith.name).toBe('Full Game');
-    // Its own decks: each card plays by the rules (`effect`) of the Community card it started as (`from`) under
-    // its own id and name, unless reworked or new.
+    // Its own decks: each card but the new ones started as a Community card (`from`), and plays by rules
+    // (`effect`) named after itself.
     const own = regolith.cards!;
     expect(own.skills).toBe(REGOLITH_DECKS.skills);
     expect(own.tactics).toBe(REGOLITH_DECKS.tactics);
@@ -114,7 +114,7 @@ describe('Regolith mode', () => {
       } else {
         expect(c.from, c.id).toBeDefined();
       }
-      // A card's id is its name; its effect, the id without the r-.
+      // A card's id is its name, and so is its effect (the id without the r-).
       expect(c.id).toBe(`r-${c.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`);
       expect(effectOf(c.id), c.id).toBe(c.id.slice(2));
     }
@@ -889,7 +889,7 @@ describe('Barricade tactic card (Regolith)', () => {
     expect(cardDef!.count).toBe(2);
     expect(cardDef!.category).toBe('movement');
     expect(cardDef!.status).toBe('new');
-    expect(cardDef!.effect).toBe('barricade');
+    expect(effectOf(cardDef!.id)).toBe('barricade');
     expect(cardKind('r-barricade')).toBe('tactic');
   });
 
@@ -944,7 +944,7 @@ describe('Kinetic Shunt tactic card (Regolith)', () => {
     expect(cardDef!.count).toBe(2);
     expect(cardDef!.category).toBe('movement');
     expect(cardDef!.status).toBe('new');
-    expect(cardDef!.effect).toBe('kinetic-shunt');
+    expect(effectOf(cardDef!.id)).toBe('kinetic-shunt');
     expect(cardKind('r-kinetic-shunt')).toBe('tactic');
   });
 

@@ -16,7 +16,7 @@ describe('shotWait', () => {
     expect(shotWait(shot)).toBe(SHOT.flight);
   });
 
-  it('waits for nothing under reduced motion, where no missile flies', () => {
+  it('waits for nothing under reduced motion, where no round flies', () => {
     motion(true);
     expect(shotWait(shot)).toBe(0);
   });

@@ -169,7 +169,7 @@ contested or not, then reset to 1. With nowhere to place it, Power stays at 6.
 The decks are in [`data/regolith.yaml`](../data/regolith.yaml): Skills (kept, at most 3, working from the next
 player's turn; take a fourth and discard one), Tactics (happen when taken, then discarded) and the
 Reinforcements pile (*Roll a reserve mech. Put it on the perimeter of an objective with one of your cubes, or in
-your salvage yard.*). Each card's `effect` is its rule in the engine, named after the Community card it began as.
+your salvage yard.*). Each card's `effect` is its rule in the engine, named after the card (its id without the `r-`).
 
 Cards are taken one at a time from the face-up rows. After each pick the row slides along and refills next to
 the deck, so the card farthest from it is the oldest. **Peek:** taking the oldest card in a row, you may first

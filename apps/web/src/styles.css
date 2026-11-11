@@ -857,8 +857,8 @@ svg.zones polygon {
     cfx-flicker .08s steps(2) 6;
 }
 @keyframes cfx-flicker { 50% { filter: brightness(2.2); } }
-/* Shoot (a prototype ability): the shooter stays put and fires; a muzzle flash, a missile streaking down the
-   line with its exhaust trail, and a burst where it hits (board/Shots; timed by beats.ts). */
+/* Shoot (the Sniper's ability): the shooter stays put and fires; a muzzle flash, a round streaking down the
+   line with its tracer trail, and a burst where it hits (board/Shots; timed by beats.ts). */
 .shot-flash {
   width: 70%; height: 70%; margin: -35% 0 0 -35%; border-radius: 50%;
   background: radial-gradient(circle, #fff 0%, color-mix(in srgb, var(--pc) 75%, #fff) 30%, transparent 68%);
@@ -873,7 +873,7 @@ svg.zones polygon {
   filter: blur(1px);
   animation: shot-trail var(--shot-flight) cubic-bezier(.45,0,.9,.6) forwards, shot-fade .3s var(--shot-flight) ease-out forwards;
 }
-.shot-missile {
+.shot-round {
   left: 0; width: calc(var(--cell) * .34); height: calc(var(--cell) * .11); translate: -85% -50%;
   border-radius: 30% 999px 999px 30%;
   background: linear-gradient(90deg, transparent, var(--pc) 35%, color-mix(in srgb, var(--pc) 40%, #fff) 70%, #fff);

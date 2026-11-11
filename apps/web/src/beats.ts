@@ -80,7 +80,7 @@ export const DICE = {
 /** Nomadic (.cfx-blink): the mech folds away, and opens out at its new objective this long after. */
 export const BLINK = { open: 300 } as const;
 
-/** A missile shot (.shot-*): its flight across the map (it hits, and the battle opens, as it lands), then the impact's flash. */
+/** A shot (.shot-*): its flight across the map (it hits, and the battle opens, as it lands), then the impact's flash. */
 export const SHOT = { flight: 600, hit: 350 } as const;
 
 /**

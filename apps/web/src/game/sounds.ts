@@ -122,7 +122,7 @@ export function soundsFor(
     if (s && (e.kind !== 'implode' || e.replaces)) effects.add(s);
   }
   if (destroyed) effects.add('explode');
-  // A shot: the missile's launch, flight and impact (board/Shots).
+  // A shot: the round's launch, flight and impact (board/Shots).
   if (shotOf(prev, next)) effects.add('shot');
 
   if (next.players.some((pl, i) => pl.atomics > prev.players[i].atomics)) effects.add('atomicLoad');

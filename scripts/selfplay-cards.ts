@@ -214,7 +214,7 @@ console.log(
     'Avg Turn'.padStart(10) +
     'Phase'.padStart(11) +
     'Avg Cubes'.padStart(11) +
-    'Avg Dom'.padStart(9) +
+    'Avg Pow'.padStart(9) +
     'Avg Res'.padStart(9) +
     'Leading %'.padStart(11) +
     'Behind %'.padStart(10),

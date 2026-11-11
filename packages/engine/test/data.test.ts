@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { ALL_CARDS, IMPLEMENTED_EFFECTS, RULESETS, SKILL_RULES, type CardDef } from '../src';
+import { ALL_CARDS, IMPLEMENTED_EFFECTS, RULESETS, SKILL_RULES, effectOf, type CardDef } from '../src';
 
-const effect = (c: CardDef) => c.effect ?? c.id;
+const effect = (c: CardDef) => effectOf(c.id);
 
 /** Cards left out of the decks because their effect is not written yet. Shrink this list. */
 const NOT_YET_IMPLEMENTED: string[] = [];

@@ -2,12 +2,13 @@
 #
 # Every card starts as a Community card (`from`) and moves away from it: `status` says how far.
 #   community — the copy: same name and action as the Community card
-#   renamed   — new name and words, same action (`effect` is still the Community card's)
-#   reworked  — action changed: an `effect` of its own
+#   renamed   — new name and words, same action
+#   reworked  — action changed
 #   new       — no Community ancestor (no `from`)
 # Text is in Regolith's words (REGOLITH-WORLD.md, *The words*). Ingenious is left out: hexes have no corners.
 # `art` is the brief its screenprint card is drawn from (§5); until then it shows the `from` card's picture.
 # Names and art were picked on the Regolith Card Picks page from docs/regolith/card-ideas.yaml (23 October 2026).
+# A card's effect, its rule in the engine (effects.ts), is its id without the r-: it follows the name, so it isn't listed.
 # build-data.mjs builds this into packages/engine/src/data/cards.json.
 
 skills:
@@ -19,7 +20,6 @@ skills:
     count: 1
     from: agile
     status: renamed
-    effect: tune-up
     art: { title: "Servo bay", brief: "A mechanic's wrench on the open knee joint of a Wisp; sparks printed in the amber plate." }
   - id: r-final-push
     name: "Final Push"
@@ -29,7 +29,6 @@ skills:
     count: 1
     from: ambitious
     status: renamed
-    effect: final-push
     art: { title: "Overheating", brief: "A Breacher pushed past its limit, lunging forward under amber rays." }
   - id: r-science-survey
     name: "Science Survey"
@@ -39,7 +38,6 @@ skills:
     count: 1
     from: brilliant
     status: renamed
-    effect: science-survey
     art: { title: "Deep radar", brief: "A radar station on the surface, its dish on the roof, its pulses going down through the strata." }
   - id: r-paired-cannons
     name: "Paired Cannons"
@@ -49,17 +47,15 @@ skills:
     count: 1
     from: brutal
     status: renamed
-    effect: paired-cannons
     art: { title: "Two barrels", brief: "A Breacher front on, firing both arm cannons at the viewer, two muzzle flashes." }
   - id: r-remodel
     name: "Remodel"
-    subtitle: "Controlled scrapping"
+    subtitle: "Controlled salvage"
     text: "When one of your mechs goes to the salvage yard, choose its type."
     category: mech
     count: 1
     from: calculating
     status: renamed
-    effect: remodel
     art: { title: "Salvage crane", brief: "The salvage yard crane lowering one chassis over a wreck." }
   - id: r-engineering
     name: "Engineering"
@@ -69,7 +65,6 @@ skills:
     count: 1
     from: clever
     status: renamed
-    effect: engineering
     art: { title: "Gantry", brief: "A Chameleon in a gantry with one arm off, the arm hanging from the hoist beside its open shoulder." }
   - id: r-stand-down
     name: "Stand Down"
@@ -79,7 +74,6 @@ skills:
     count: 1
     from: composed
     status: renamed
-    effect: stand-down
     art: { title: "Powered down", brief: "A Chameleon powered down in a low crouch on the left, a radar dish on the right sweeping the sky." }
   - id: r-boost
     name: "Boost"
@@ -89,7 +83,6 @@ skills:
     count: 1
     from: cunning
     status: renamed
-    effect: boost
     art: { title: "Double pulse", brief: "A mech with dotted ice-blue rings pulsing out to its left and right." }
   - id: r-prospectors
     name: "Prospectors"
@@ -99,7 +92,6 @@ skills:
     count: 1
     from: curious
     status: renamed
-    effect: prospectors
     art: { title: "Sample drill", brief: "A Wisp working a core drill on its tripod over cracked ice." }
   - id: r-unstable-reactor
     name: "Unstable Reactor"
@@ -109,7 +101,6 @@ skills:
     count: 1
     from: dangerous
     status: renamed
-    effect: unstable-reactor
     art: { title: "Strapped charge", brief: "A Breacher with charges strapped across its chest, hazard stripes behind it." }
   - id: r-sneak
     name: "Sneak"
@@ -119,7 +110,6 @@ skills:
     count: 1
     from: devious
     status: renamed
-    effect: sneak
     art: { title: "Between the legs", brief: "A small mech, printed light, ducking between an enemy mech's dark legs." }
   - id: r-armour-piercing
     name: "Armour Piercing"
@@ -129,7 +119,6 @@ skills:
     count: 1
     from: ferocious
     status: renamed
-    effect: armour-piercing
     art: { title: "Red barrel", brief: "A Chameleon firing its long gun level, the barrel red hot in halftone." }
   - id: r-field-refit
     name: "Field Refit"
@@ -139,7 +128,6 @@ skills:
     count: 1
     from: flexible
     status: renamed
-    effect: field-refit
     art: { title: "Repair arm", brief: "A repair arm on its floor mount working at a Tactician's hip joint." }
   - id: r-breakthrough
     name: "Breakthrough"
@@ -149,7 +137,6 @@ skills:
     count: 1
     from: hostile
     status: renamed
-    effect: breakthrough
     art: { title: "Striding on", brief: "A mech striding on past a smoking wreck on the ground to its left, already turning to the next target." }
   - id: r-free-drop
     name: "Free Drop"
@@ -159,7 +146,6 @@ skills:
     count: 1
     from: industrious
     status: renamed
-    effect: free-drop
     art: { title: "Two drops", brief: "Two mechs coming down side by side on amber booster flames." }
   - id: r-hacking
     name: "Hacking"
@@ -169,7 +155,6 @@ skills:
     count: 1
     from: intelligent
     status: renamed
-    effect: hacking
     art: { title: "Spliced panel", brief: "A hacker's hand terminal spliced into an objective's control panel, the 8 on its readout flickering to 7 and 9." }
   - id: r-strategic-plan
     name: "Strategic Plan"
@@ -179,7 +164,6 @@ skills:
     count: 1
     from: patient
     status: renamed
-    effect: strategic-plan
     art: { title: "Strategic map", brief: "Two robotic claws holding a creased hex battle map out in the field on Phobos, plotting mech movements against enemy positions." }
   - id: r-science
     name: "Science"
@@ -189,7 +173,6 @@ skills:
     count: 1
     from: pioneering
     status: reworked
-    effect: science
     art: { title: "Flag and number", brief: "A survey flag with the research flask on it flying over an objective." }
   - id: r-exploit
     name: "Exploit"
@@ -199,7 +182,6 @@ skills:
     count: 1
     from: plundering
     status: renamed
-    effect: exploit
     art: { title: "Salvage drone", brief: "A small drone hovering over a wreck, scanning it in amber lines." }
   - id: r-rush-research
     name: "Rush Research"
@@ -209,7 +191,6 @@ skills:
     count: 1
     from: precocious
     status: renamed
-    effect: rush-research
     art: { title: "Running crew", brief: "Two surveyors running back to camp with a sample case." }
   - id: r-stolen-flag
     name: "Stolen Flag"
@@ -219,7 +200,6 @@ skills:
     count: 1
     from: prideful
     status: renamed
-    effect: stolen-flag
     art: { title: "Flag raised", brief: "A victorious Chameleon holding up a flag over a downed mech." }
   - id: r-arms-deal
     name: "Arms Deal"
@@ -229,7 +209,6 @@ skills:
     count: 1
     from: profiteering
     status: renamed
-    effect: arms-deal
     art: { title: "Called in", brief: "A strike beacon on its tripod, the atomic it bought landing on the horizon." }
   - id: r-drill-sergeant
     name: "Drill Sergeant"
@@ -239,7 +218,6 @@ skills:
     count: 1
     from: rational
     status: renamed
-    effect: drill-sergeant
     art: { title: "Drill ground", brief: "Three Snipers lined up in step on a marked drill ground." }
   - id: r-trophy-hunters
     name: "Trophy Hunters"
@@ -249,7 +227,6 @@ skills:
     count: 1
     from: ravenous
     status: renamed
-    effect: trophy-hunters
     art: { title: "Tally", brief: "Stencilled kill marks on a mech's hull, a painter adding one more." }
   - id: r-recycle
     name: "Recycle"
@@ -259,7 +236,6 @@ skills:
     count: 1
     from: resourceful
     status: renamed
-    effect: recycle
     art: { title: "Core salvage", brief: "A stripped mech kneeling, one arm off, a crew member carrying its glowing core away." }
   - id: r-fanatics
     name: "Fanatics"
@@ -269,7 +245,6 @@ skills:
     count: 1
     from: righteous
     status: renamed
-    effect: fanatics
     art: { title: "Slogan", brief: "A wall stencilled NO RETREAT, its flag on the roof, a mech standing in front of it." }
   - id: r-signal-jammer
     name: "Signal Jammer"
@@ -279,7 +254,6 @@ skills:
     count: 1
     from: ruthless
     status: renamed
-    effect: signal-jammer
     art: { title: "Jammer pod", brief: "A jammer pod on a mech's shoulder, static rings in oxide going out all round." }
   - id: r-double-time
     name: "Double Time"
@@ -289,7 +263,6 @@ skills:
     count: 1
     from: steadfast
     status: renamed
-    effect: double-time
     art: { title: "Column", brief: "A column of mechs trudging through a dust storm, heads down." }
   - id: r-infiltration
     name: "Infiltration"
@@ -299,7 +272,6 @@ skills:
     count: 1
     from: stealthy
     status: renamed
-    effect: infiltration
     art: { title: "Lone descent", brief: "A lone Sniper coming down on its boosters into a dust storm." }
   - id: r-close-protection
     name: "Close Protection"
@@ -309,7 +281,6 @@ skills:
     count: 1
     from: strategic
     status: renamed
-    effect: close-protection
     art: { title: "Back to back", brief: "Three mechs back to back, guns out in three directions." }
   - id: r-entrenched
     name: "Entrenched"
@@ -319,7 +290,6 @@ skills:
     count: 1
     from: stubborn
     status: renamed
-    effect: entrenched
     art: { title: "Trench", brief: "A Breacher in a trench behind a barricade of boulders." }
   - id: r-advance
     name: "Advance"
@@ -329,7 +299,6 @@ skills:
     count: 1
     from: tactical
     status: renamed
-    effect: advance
     art: { title: "Lunge", brief: "A Breacher lunging forward one hex, its arm cannon level." }
   - id: r-veteran-crew
     name: "Veteran Crew"
@@ -339,7 +308,6 @@ skills:
     count: 1
     from: talented
     status: renamed
-    effect: veteran-crew
     art: { title: "Crew photo", brief: "A crew photo, five people, each printed in a different ink." }
   - id: r-martial-law
     name: "Martial Law"
@@ -349,7 +317,6 @@ skills:
     count: 1
     from: tyrannical
     status: renamed
-    effect: martial-law
     art: { title: "Loudspeaker", brief: "A loudspeaker on a mast over a habitat, sound rings in oxide." }
 
 tactics:
@@ -361,7 +328,6 @@ tactics:
     count: 2
     from: aggression
     status: renamed
-    effect: power-grab
     art: { title: "Poster", brief: "A two-ink poster of raised fists and a mech standing on the red ground, no words." }
   - id: r-contraband
     name: "Contraband"
@@ -371,7 +337,6 @@ tactics:
     count: 2
     from: black-market
     status: renamed
-    effect: contraband
     art: { title: "Contraband", brief: "Two atomic rockets in an open crate, warning stencils on them." }
   - id: r-headhunter
     name: "Headhunter"
@@ -381,7 +346,6 @@ tactics:
     count: 2
     from: change-of-heart
     status: renamed
-    effect: headhunter
     art: { title: "Files", brief: "A gloved hand pulling one personnel file from an archive drawer of them, stamped ACQUIRED in oxide." }
   - id: r-forced-march
     name: "Forced March"
@@ -391,7 +355,6 @@ tactics:
     count: 2
     from: momentum
     status: renamed
-    effect: forced-march
     art: { title: "Dawn advance", brief: "Mechs advancing at dawn, long shadows ahead of them." }
   - id: r-kill-zone
     name: "Kill Zone"
@@ -401,7 +364,6 @@ tactics:
     count: 2
     from: plan-ahead
     status: renamed
-    effect: kill-zone
     art: { title: "Crossfire", brief: "An enemy mech caught in a marked kill zone, crossfire coming in from both sides." }
   - id: r-sabotage
     name: "Sabotage"
@@ -411,7 +373,6 @@ tactics:
     count: 2
     from: sabotage
     status: reworked
-    effect: sabotage
     art: { title: "Grit", brief: "A hand pouring regolith into an open gearbox." }
   - id: r-orbital-cannon
     name: "Orbital Cannon"
@@ -421,7 +382,6 @@ tactics:
     count: 2
     from: show-of-force
     status: renamed
-    effect: orbital-cannon
     art: { title: "Impact", brief: "An enemy mech hit from above, an amber column of light." }
   - id: r-invasion
     name: "Invasion"
@@ -431,7 +391,6 @@ tactics:
     count: 2
     from: unveil-the-fleet
     status: renamed
-    effect: invasion
     art: { title: "Mechs raining", brief: "Mechs coming down on their boosters all over the map." }
   - id: r-ice-tunnel
     name: "Ice Tunnel"
@@ -441,7 +400,6 @@ tactics:
     count: 2
     from: warp-gate
     status: renamed
-    effect: ice-tunnel
     art: { title: "Cross-section", brief: "A cut-away of the ground: a tunnel joining two hexes underneath." }
   - id: r-barricade
     name: "Barricade"
@@ -450,7 +408,6 @@ tactics:
     category: movement
     count: 2
     status: new
-    effect: barricade
     art: { title: "Glass bubble", brief: "A Wisp inflating soft glass barrier bubbles across the ground." }
   - id: r-kinetic-shunt
     name: "Kinetic Shunt"
@@ -459,7 +416,6 @@ tactics:
     category: movement
     count: 2
     status: new
-    effect: kinetic-shunt
     art: { title: "Shockwave", brief: "A kinetic pulse blasting out from a mech's cannon, dust rings kicking up as the target is hurled backward." }
 
 reinforcements:
@@ -471,5 +427,4 @@ reinforcements:
     count: 6
     from: expansion
     status: renamed
-    effect: reinforcements
     art: { title: "Rollout", brief: "A new mech walking out of a dark workshop's doors." }
