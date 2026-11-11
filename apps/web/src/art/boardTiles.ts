@@ -1,5 +1,5 @@
-import { drawing, tileCentres, type Board, type Cell } from '@regolith/engine';
-import { BLANK, assignTiles, tileFlavour, tileSpec, type Spot } from '@regolith/art';
+import { tileCentres, type Board } from '@regolith/engine';
+import { BLANK, assignTiles, tileFlavour, tileSpec } from '@regolith/art';
 
 export interface TileArt {
   /** The tile's middle space, where its sky is centred. */
@@ -9,23 +9,12 @@ export interface TileArt {
   tile: number;
   /** The physical tile whose artwork (sky, and objective or Alien Artefact heart, or a blank's bare sky or ground) goes here. */
   id: string;
-  /** Where the tile's body is drawn: its objective's space, anywhere on the tile, or the middle for an Alien Artefact. */
-  body: Cell;
-  /** Where the body is as drawn, in spaces from the tile's middle (x right, y down). */
-  at: Spot;
 }
 
 /** Each tile of the map (a hex map's 7-hex flowers), with the physical tile it uses (packages/art). */
 export function tileArt(board: Board): TileArt[] {
   const { tiles, ids } = tileIds(board);
-  const objectives = new Map(board.objectives.map((p) => [board.cells[p.r][p.c].tile, p]));
-  const drawn = drawing(board).at;
-  return [...tiles].map(([index, { r, c }]) => {
-    const p = objectives.get(index);
-    const body = p ? { r: p.r, c: p.c } : { r, c };
-    const [a, b] = [drawn({ r, c }), drawn(body)];
-    return { r, c, tile: index, id: ids.get(index)!, body, at: { x: b.c - a.c, y: b.r - a.r } };
-  });
+  return [...tiles].map(([index, { r, c }]) => ({ r, c, tile: index, id: ids.get(index)! }));
 }
 
 /** The map's tiles by index (`BoardCell.tile`), and the physical tile id each one uses. */

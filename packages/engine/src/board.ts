@@ -45,42 +45,34 @@ export const CAPACITY: Record<number, number> = { 7: 1, 8: 2, 9: 3, 10: 4, 11: 2
 export const WORLD_OBJECTIVES: Readonly<Record<number, World>> = { 11: 'phobos', 12: 'deimos' };
 
 /*
- * Where a tile's objective sits, as a step from the tile's middle space: a layout token's direction
- * (data/maps.yaml), none for the middle, or one of its 6 outer hexes. North is up as the map is drawn.
+ * A tile's spaces as steps from its middle: one of its 6 outer hexes by compass direction (a map's `start`
+ * spaces, data/maps.yaml), north up as the map is drawn, or the middle.
  */
-const OFFSETS: Record<string, Cell> = Object.fromEntries(['n', 's', 'nw', 'se', 'ne', 'sw'].map((n, i) => [n, SIDES[i]]));
+const SIDE_STEPS: Record<string, Cell> = Object.fromEntries(['n', 's', 'nw', 'se', 'ne', 'sw'].map((n, i) => [n, SIDES[i]]));
 const MIDDLE: Cell = { r: 0, c: 0 };
 
-/** A layout token (data/maps.yaml), other than a gap: the objective's number (0 for void or blank), whether it's a start, and where on the tile it sits. */
+/** A layout token (data/maps.yaml), other than a gap: the objective's number (0 for void or blank) and whether it's a start. */
 export interface TileToken {
   number: number;
   start: boolean;
   /** A blank tile (`-`): open ground, no objective and, unlike a void, no research. */
   blank?: true;
-  /** The objective's compass direction from the tile's middle space; absent when it sits in the middle. */
-  dir?: string;
 }
 
-/** Reads a layout token such as `8`, `9*`, `7ne`, `8s*` or `-`; throws on anything else, east and west too (a hex has no side that way). */
+/** Reads a layout token such as `8`, `9*` or `-`; throws on anything else. */
 export function parseToken(token: string): TileToken {
   if (token === '-') return { number: 0, start: false, blank: true };
-  const m = /^(\d+)([nsew]{1,2})?(\*)?$/.exec(token);
+  const m = /^(\d+)(\*)?$/.exec(token);
   const number = Number(m?.[1]);
-  if (!m || !(number === 0 || number in CAPACITY) || (m[2] && !(m[2] in OFFSETS))) throw new Error(`Bad tile token "${token}"`);
-  if (number === 0 && (m[2] || m[3])) throw new Error(`an Alien Artefact tile has no objective to place or start on: "${token}"`);
-  return m[2] ? { number, start: !!m[3], dir: m[2] } : { number, start: !!m[3] };
+  if (!m || !(number === 0 || number in CAPACITY)) throw new Error(`Bad tile token "${token}"`);
+  if (number === 0 && m[2]) throw new Error(`an Alien Artefact tile has no objective to start on: "${token}"`);
+  return { number, start: !!m[2] };
 }
-
-/** The step from a tile's middle space to its objective. */
-const objectiveOffset = (t: TileToken): Cell => (t.dir ? OFFSETS[t.dir] : MIDDLE);
 
 /** Mechs each player places around their starting objective at setup (setup.ts). */
 export const STARTING_MECHS = 3;
 
-/**
- * Checks what an off-centre objective could break: each starting objective needs room for the starting
- * mechs, in perimeter spaces no other start shares. Perimeters that overlap are otherwise fine.
- */
+/** Checks that the objectives standing on one world only are on that world, and that nobody starts at one. */
 function checkWorldObjectives(board: Board) {
   for (const p of board.objectives) {
     const world = WORLD_OBJECTIVES[p.number];
@@ -90,6 +82,7 @@ function checkWorldObjectives(board: Board) {
   }
 }
 
+/** Checks that each starting objective has room for the starting mechs, in perimeter spaces no other start shares. */
 function checkStarts(board: Board) {
   const starts = board.objectives.filter((p) => p.start);
   for (const p of starts) {
@@ -106,7 +99,7 @@ function checkStarts(board: Board) {
 const offCells = (rows: number, cols: number): BoardCell[][] =>
   Array.from({ length: rows }, () => Array.from({ length: cols }, () => ({ kind: 'off' as const, tile: -1 })));
 
-/** Lays tile `tile` on the board: its `spaces` (an Alien Artefact's all void), and its objective, if it has one, `t.dir` from `middle`. */
+/** Lays tile `tile` on the board: its `spaces` (an Alien Artefact's all void), and its objective, if it has one, on its `middle`. */
 function layTile(cells: BoardCell[][], objectives: Objective[], t: TileToken, tile: number, spaces: Cell[], middle: Cell) {
   for (const p of spaces) {
     const cell: BoardCell = { kind: 'space', tile };
@@ -114,8 +107,7 @@ function layTile(cells: BoardCell[][], objectives: Objective[], t: TileToken, ti
     cells[p.r][p.c] = cell;
   }
   if (t.number === 0) return;
-  const d = objectiveOffset(t);
-  const [r, c] = [middle.r + d.r, middle.c + d.c];
+  const { r, c } = middle;
   const id = objectives.length;
   objectives.push({ id, number: t.number, capacity: CAPACITY[t.number], cubes: [], start: t.start, r, c });
   cells[r][c] = { kind: 'objective', tile, objective: id };
@@ -186,10 +178,9 @@ export function startSpace(map: MapDef, spec: string): Cell {
   const tileCols = Math.max(...map.layout.map((r) => r.length));
   const t = tiles.find((x) => x.tile === Number(m[1]) * tileCols + Number(m[2]));
   if (!t) throw new Error(`${where} names no tile`);
-  const d = m[3] === 'm' ? MIDDLE : OFFSETS[m[3]];
+  const d = m[3] === 'm' ? MIDDLE : SIDE_STEPS[m[3]];
   const at = { r: t.r - r0 + d.r, c: t.c - c0 + d.c };
-  const objective = parseToken(t.token);
-  if (objective.number > 0 && m[3] === (objective.dir ?? 'm')) throw new Error(`${where} is the tile's objective`);
+  if (m[3] === 'm' && parseToken(t.token).number > 0) throw new Error(`${where} is the tile's objective`);
   return at;
 }
 
@@ -409,18 +400,14 @@ const isSpace = (board: Board, p: Cell) => cellAt(board, p)?.kind === 'space';
 
 const PERIMETERS = new WeakMap<BoardCell[][], (readonly Cell[])[]>();
 
-/**
- * An objective's perimeter positions: the spaces next to it. An off-centre objective's perimeter reaches onto
- * neighbouring tiles, or loses the spaces off the map's edge; perimeters may overlap, so a space can perimeter
- * several objectives, and an objective next to another doesn't perimeter it. Cached by `cells`, like grid().
- */
+/** An objective's perimeter positions: the spaces next to it, its tile's six outer hexes. Cached by `cells`, like grid(). */
 export function perimeterSpaces(board: Board, objective: Objective): readonly Cell[] {
   let perimeters = PERIMETERS.get(board.cells);
   if (!perimeters) PERIMETERS.set(board.cells, (perimeters = []));
   return (perimeters[objective.id] ??= Object.freeze(adjacent(board, objective).filter((q) => isSpace(board, q))));
 }
 
-/** The objectives whose perimeter a space is on: none, one, or several where perimeters overlap. */
+/** The objectives whose perimeter a space is on: none or one, as each tile's outer hexes are its own objective's. */
 export function objectivesAround(board: Board, p: Cell): Objective[] {
   return board.objectives.filter((objective) => perimeterSpaces(board, objective).some((q) => same(q, p)));
 }
@@ -434,7 +421,7 @@ const CENTRES = new WeakMap<BoardCell[][], ReadonlyMap<number, Cell>>();
 
 /**
  * Each tile's middle space, by tile index (`BoardCell.tile`): the one space whose neighbours all lie on
- * its own tile. The objective's, unless it sits off-centre. Cached by `cells`, like grid().
+ * its own tile, where its objective sits. Cached by `cells`, like grid().
  */
 export function tileCentres(board: Board): ReadonlyMap<number, Cell> {
   let out = CENTRES.get(board.cells);

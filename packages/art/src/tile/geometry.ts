@@ -2,17 +2,10 @@ import { CUBE_PAD, NUMBER_TEXT, OBJECTIVE_CAPACITY, TILE } from '../tokens';
 import { n, type Box } from '../svg';
 
 /**
- * Where things are on a tile, in trim millimetres: its spaces (a 7-hex flower), where an objective may sit and
+ * Where things are on a tile, in trim millimetres: its spaces (a 7-hex flower), its objective in the middle and
  * where its number and cube pads go round it, and the tile's shape and die-cut line. Shared by every world's
  * ground (index.ts puts a tile together).
  */
-
-/**
- * The objectives a map may put off the middle of a tile: an off-centre objective sits on an outer hex, half a
- * space from the tile's edge. A 9 or 10 is wider than that (0.6 and 0.72 spaces to its rim) and an 8 fills
- * an outer hex to its sides, so only 7s go there.
- */
-export const OFF_CENTRE: readonly number[] = [7];
 
 /** A point on a tile in spaces from its middle, x right and y down. */
 export interface Spot {
@@ -21,9 +14,8 @@ export interface Spot {
 }
 
 /**
- * A tile's spaces by the compass direction a map's layout token gives them (engine `parseToken`), `''`
- * for the middle, in spaces as drawn: north is up, and the outer hexes are flat-topped hexes one space
- * tall around the middle one.
+ * A tile's spaces by compass direction, `''` for the middle, in spaces as drawn: north is up, and the outer
+ * hexes are flat-topped hexes one space tall around the middle one.
  */
 export const TILE_SPOTS: Readonly<Record<string, Spot>> = {
   '': { x: 0, y: 0 },
@@ -34,44 +26,11 @@ export const TILE_SPOTS: Readonly<Record<string, Spot>> = {
   ),
 };
 
-/** A corner of an objective: right or left of it, below or above it. */
-export interface Corner {
-  x: 1 | -1;
-  y: 1 | -1;
-}
-
-/** The corners a number may go in, the printed bottom right first. */
-const CORNERS: readonly Corner[] = [
-  { x: 1, y: 1 },
-  { x: -1, y: 1 },
-  { x: 1, y: -1 },
-  { x: -1, y: -1 },
-];
-
 /**
  * Where the spaces meet at an objective's bottom right, in spaces from its middle: the vertex three hexes share
  * (its own, the one below and the one below right). Clear of dice, so the number goes there.
  */
 const MEET: Spot = { x: 0.5 / Math.sqrt(3), y: 0.5 };
-
-/**
- * Which corner of an objective its number goes in, from where the objective sits on its tile: the one nearest
- * the tile's middle, so the number is always on the objective's own tile, clear of the tile's edge and of
- * anything on the next tile. An objective in the middle (and wherever two corners are as near) keeps the
- * printed bottom right.
- */
-export function numberCorner(at: Spot): Corner {
-  const m = MEET;
-  const far = (k: Corner) => Math.hypot(at.x + k.x * m.x, at.y + k.y * m.y);
-  return CORNERS.reduce((best, k) => (far(k) < far(best) - 1e-9 ? k : best));
-}
-
-/** Where a tile's objective sits (`TileOptions.objectiveAt`), in spaces from its middle. */
-export function objectiveSpot(at = ''): Spot {
-  const spot = TILE_SPOTS[at];
-  if (!spot) throw new Error(`A tile's objective can't sit "${at}"`);
-  return spot;
-}
 
 /** The corners of a flat-topped hex `size` tall centred on (cx, cy) (mm), from the right going clockwise. */
 export const hexCorners = (cx: number, cy: number, size: number) =>

@@ -1,7 +1,7 @@
 import { TILE } from '../tokens';
 import { document, join, n, type Box, type Fragment } from '../svg';
 import { groundArt, regolithGroundSvg, regolithMaskSvg, regolithSvg } from '../regolith';
-import { BLED, HEX_TILE_CUT, dieLine, flowerPath, objectiveSpot, type Spot } from './geometry';
+import { BLED, HEX_TILE_CUT, dieLine, flowerPath } from './geometry';
 import type { World } from './look';
 import { markings } from './markings';
 import type { TileSpec } from './set';
@@ -34,8 +34,6 @@ export interface TileOptions {
   fontCss?: string;
   /** The world whose ground the tile is on: Mars when absent. */
   world?: World;
-  /** Where the objective sits, as a map's layout token says it (`TILE_SPOTS`): the middle when absent. */
-  objectiveAt?: string;
   /**
    * A bitmap of its lit ground (a data URL of `tileGroundSvg`, drawn at `REGOLITH_GROUND_PX`) in place of its
    * lighting filter: print draws it so, as its light falls into contour lines at a print's resolution
@@ -73,13 +71,12 @@ export interface TileLayer {
 
 /** A tile's layers, bottom first (`TILE_LAYERS`): those it has, so markings only when asked for. */
 export function tileLayers(spec: TileSpec, o: TileOptions = {}): TileLayer[] {
-  const at = objectiveSpot(o.objectiveAt);
-  const ground = groundArt(spec, at, o.world ?? 'mars', o.ground);
+  const ground = groundArt(spec, o.world ?? 'mars', o.ground);
   const art: Record<TileLayerName, () => Fragment | undefined> = {
     ground: () => ground,
-    spaces: () => (o.markings ? markings(spec, 'spaces', at) : undefined),
+    spaces: () => (o.markings ? markings(spec, 'spaces') : undefined),
     standing: () => (o.markings ? ground.standing : undefined),
-    objective: () => (o.markings === true ? markings(spec, 'objective', at) : undefined),
+    objective: () => (o.markings === true ? markings(spec, 'objective') : undefined),
   };
   return TILE_LAYERS.flatMap((name) => {
     const f = art[name]();
@@ -114,23 +111,23 @@ export function tileSvg(spec: TileSpec, o: TileOptions = {}): string {
 
 /**
  * A tile's ground alone over its `RASTER_AREA`, as the map draws it to an image and keeps it, with its building
- * `at` the objective's space (spaces from the middle). What's standing on it isn't drawn again but cut out of the
- * ground's image (`standingMaskSvg`).
+ * on the objective's space. What's standing on it isn't drawn again but cut out of the ground's image
+ * (`standingMaskSvg`).
  */
-export function rasterLayerSvg(spec: TileSpec, world: World, at: Spot = { x: 0, y: 0 }): string {
-  return regolithSvg(spec, world, at);
+export function rasterLayerSvg(spec: TileSpec, world: World): string {
+  return regolithSvg(spec, world);
 }
 
 /**
- * What stands on a tile's ground (`rasterLayerSvg`, its building `at` the objective's space), as a mask over the
+ * What stands on a tile's ground (`rasterLayerSvg`), as a mask over the
  * same area: white where it stands, clear elsewhere. Cheap to draw, with no lighting, so the map cuts what
  * stands out of the ground's image with it, to lay over the spaces' outlines, and the two match to the pixel.
  */
-export const standingMaskSvg = (spec: TileSpec, at: Spot = { x: 0, y: 0 }): string => regolithMaskSvg(spec, at);
+export const standingMaskSvg = (spec: TileSpec): string => regolithMaskSvg(spec);
 
 /** The tile's lit ground alone, to draw as a bitmap at `REGOLITH_GROUND_PX` and pass back to `tileSvg` as its `ground`. */
-export function tileGroundSvg(spec: TileSpec, o: Pick<TileOptions, 'world' | 'objectiveAt'>): string {
-  return regolithGroundSvg(spec, o.world ?? 'mars', objectiveSpot(o.objectiveAt));
+export function tileGroundSvg(spec: TileSpec, o: Pick<TileOptions, 'world'>): string {
+  return regolithGroundSvg(spec, o.world ?? 'mars');
 }
 
 /**
@@ -139,11 +136,7 @@ export function tileGroundSvg(spec: TileSpec, o: Pick<TileOptions, 'world' | 'ob
  * over them as vectors (its buildings stand over the spaces' outlines, so those are in the bitmap), and the
  * die-cut line on a layer of its own. Each sits in its own named group, which Illustrator opens as layers.
  */
-export function editableTileSvg(
-  spec: TileSpec,
-  artPng: string,
-  o: Pick<TileOptions, 'bleed' | 'markings' | 'world' | 'objectiveAt'> = {},
-): string {
+export function editableTileSvg(spec: TileSpec, artPng: string, o: Pick<TileOptions, 'bleed' | 'markings' | 'world'> = {}): string {
   const b = o.bleed ? TILE.bleed : 0;
   const w = TILE.size + 2 * b;
   const area: Box = { x: -b, y: -b, w, h: w };

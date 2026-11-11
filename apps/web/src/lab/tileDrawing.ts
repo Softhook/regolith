@@ -2,7 +2,7 @@ import { REGOLITH_GROUND_PX, tileGroundSvg, tileSvg, type TileOptions, type Tile
 import { blobToDataUrl, rasterise } from '../files';
 
 /** How a tile is shown and printed: its world, and where its objective sits (art `TileOptions`). */
-export type TileView = Pick<TileOptions, 'world' | 'objectiveAt'>;
+export type TileView = Pick<TileOptions, 'world'>;
 
 /**
  * A tile as an SVG document to print (art `tileSvg`): its ground's light drawn first at the size it's made for
@@ -32,7 +32,7 @@ const KEEP_GROUNDS = 32;
 export const groundDrawn = (t: TileSpec, o: TileView) => !!grounds.get(groundKey(t, o))?.drawn;
 
 /** What a tile's ground is drawn from: the tile (its seed) and its world and objective's spot. */
-const groundKey = (t: TileSpec, o: TileView) => JSON.stringify([t, o.world, o.objectiveAt ?? '']);
+const groundKey = (t: TileSpec, o: TileView) => JSON.stringify([t, o.world]);
 
 /** A tile's lit ground on its world (art `tileGroundSvg`), drawn at the size its light is made for, once. */
 export function litGround(t: TileSpec, o: TileView): Promise<string> {
@@ -55,7 +55,7 @@ export function litGround(t: TileSpec, o: TileView): Promise<string> {
 const thumbnails = new Map<string, Promise<string>>();
 /** A tile's latest thumbnail on each world and objective spot, to show while its next is drawn (a reroll, markings on or off). */
 const latestThumbnails = new Map<string, string>();
-const latestKey = (t: TileSpec, o: TileView) => `${t.id}:${o.world}:${o.objectiveAt ?? ''}`;
+const latestKey = (t: TileSpec, o: TileView) => `${t.id}:${o.world}`;
 
 /**
  * A tile as it prints, drawn small (`px` across) for a thumbnail: its own ground drawn once at full size

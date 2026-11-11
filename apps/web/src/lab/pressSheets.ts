@@ -15,13 +15,12 @@ async function fontsFor(load: () => Promise<string>): Promise<string> {
 }
 
 /**
- * A tile as a printable face, named for its objective, where its objective sits when that's not the middle, and
- * its world: `habitat-01-phobos`, `habitat-01-ne-mars`, `alien-artefact-02-mars` (an Alien Artefact has no spot).
+ * A tile as a printable face, named for its objective and its world: `habitat-01-phobos`, `alien-artefact-02-mars`.
  */
 export const printableTile = (t: TileSpec, fontCss: string, markings = true, view: TileView = {}): Printable => {
   const id = objectiveId(t);
   return {
-    name: (view.objectiveAt && t.number > 0 ? `${id}-${view.objectiveAt}` : id) + `-${view.world ?? 'mars'}`,
+    name: `${id}-${view.world ?? 'mars'}`,
     svg: (bleed) => tileSvg(t, { ...view, markings, bleed, fontCss }),
     print: (bleed) => printedTileSvg(t, { ...view, markings, bleed, fontCss }),
   };
@@ -89,8 +88,7 @@ export const tileSheets = ({ world, back, players }: TileKit): PressSheets => {
   const kit = tileKit(back ? [world, back] : [world], players);
   const worlds = back ? `${WORLD_NAMES[world]} / ${WORLD_NAMES[back]}` : WORLD_NAMES[world];
   const maps = players === undefined ? 'every map' : `the ${players}-player maps`;
-  const side = (k: KitTile, on: World, fontCss: string) =>
-    printableTile(tileSide(k.tile, on), fontCss, true, { world: on, objectiveAt: k.at });
+  const side = (k: KitTile, on: World, fontCss: string) => printableTile(tileSide(k.tile, on), fontCss, true, { world: on });
   return {
     name: `tiles-${world}${back ? `-${back}` : ''}${players === undefined ? '' : `-${players}p`}`,
     label: `${worlds} tiles${players === undefined ? '' : ` · ${players} players`}`,

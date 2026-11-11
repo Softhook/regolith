@@ -28,7 +28,7 @@ Regolith started as the Community Edition of Quantum and has moved away from it.
 | Status | Rule |
 |---|---|
 | **Current** | **Cards** (Skills, Tactics, research), from Regolith's own decks. Basic is Regolith with `cards: null` ([rulesets.ts](../../packages/engine/src/rulesets.ts)). |
-| **Current** | Plays **hex** maps only, including the **off-centre objective** ones (Twin Drift). Community's **Ingenious** ("conquer from the corners") is not in the decks, as hex tiles have no corners (ruling 2026-10-20, [HEX.md](../HEX.md) *Cards*). |
+| **Current** | Plays **hex** maps only, every objective in the middle of its tile (off-centre objectives went 2026-11-11). Community's **Ingenious** ("conquer from the corners") is not in the decks, as hex tiles have no corners (ruling 2026-10-20, [HEX.md](../HEX.md) *Cards*). |
 | **Current** | A mech's die value contributes at most **3** movement; skill bonuses apply after that cap. |
 | **Current** | **Zones of control:** every mech pickets the 6 spaces sharing a side (not diagonals) as a mode rule, not an ability. Diagonals were dropped (2026-10-12) because most mechs can't attack diagonally from where they stop. An enemy mech that moves into one must stop there (it may still attack from there; one that starts its move there may leave). Friendly mechs are never stopped, and a player with the **Sneak** skill ignores zones (ruling 2026-10-12; the card text is unchanged). |
 | **Current** | The **5 Sniper** replaces Community's diagonal Manoeuvre with **Shoot**: spend one action to attack the first enemy in a clear straight line (one out of each of its space's 6 sides) without advancing. Shooting is that mech's action for the turn. |
@@ -79,7 +79,7 @@ through `rulesOf(state)` ([rules.ts](../../packages/engine/src/rules.ts)) and ne
 |---|---|---|
 | `cards` (Skills, Tactics, Expansion; starting skill draft, peek, expansion pile) | none | Regolith's decks |
 | `actionsPerTurn`, `researchLimit` | 3, 6 | 3, 6 |
-| `mapGroups` | hex, open, drift | hex, open, drift |
+| `mapGroups` | hex, open, prepared | hex, open, prepared |
 | `ships` | the mech table with Shoot, Barrier and zone of control | same |
 | `overConquest` (§6.10) | off | off |
 
@@ -440,8 +440,7 @@ In the interaction measure ([HEX.md](../HEX.md) *Interaction*, Colonel against C
 Regolith blocks about one conquest a game (1.00), and about 40% of the harm players do each other comes from moves rather than attacks: zones of control, orbits taken and conquests blocked.
 
 **Rule.** A planet cannot be conquered while any opponent's ship occupies one of its orbital
-positions: the 6 spaces around it, and on the off-centre
-maps whatever its orbit has (fewer at the map's edge; a space two orbits share blocks both planets). To place a cube you must first clear
+positions: the 6 spaces around it. To place a cube you must first clear
 orbit, which in practice means destroying every opposing ship there, since nothing forces a ship to
 move. Friendly ships never block. The check is made only when conquering: a cube already on the
 planet is never lost to ships arriving later.
@@ -555,8 +554,7 @@ Same games, with the home shipyard (*off* = no contested deploy; re-blocks at ho
   orbit would still shut its owner out, but takes 6 ships; it never happened.)
 - **The loop stays only at homes:** 60–85% of re-blocks are gone, and homes become capitals that are hard
   to take a share of. Games land between the two settings.
-- **Still to watch:** whether people turtle their home on purpose to deny its spare cube spaces, and
-  the off-centre maps, not run with the shipyard yet.
+- **Still to watch:** whether people turtle their home on purpose to deny its spare cube spaces.
 
 **Other ways out**, if the shipyard turns out wrong (not built):
 1. **Landing clause:** a player with no ships on the board may deploy into any empty space that is in no
@@ -730,7 +728,7 @@ the time and the other must go back to their own.
 - [x] Measure interaction across modes and maps (`npm run interaction`, 2026-10-21)
 - [x] Contested deploy: no deploying into a contested orbit (2026-10-21)
 - [x] Home shipyard, so contested deploy can't lock a player out (2026-10-21)
-- [ ] Playtest home turtling with people; run the shipyard on the off-centre maps
+- [ ] Playtest home turtling with people
 - [ ] Playtest contested orbit with people: the AI hardly garrisons, so stalls may be under-measured
 - [ ] Give the AI a garrison term for its own planets, then re-measure §6.8
 - [ ] Run the interaction measure on Gamma Sector and with 3–4 players
@@ -763,11 +761,9 @@ The 4's Modify is still active; the 6's Free Reconfigure became Barrier (2026-10
   left. A ship that starts in a zone may leave it; friendly ships are never stopped; a Warp Gate exit
   in a zone stops the ship there. Devious ignores zones and may pass through enemy ships.
 - **Contested deploy**: no deploying into a contested orbit by any route, including Expansion and
-  Stealthy; a space two orbits share is closed if either orbit is contested. Your home planet's orbit is
+  Stealthy. Your home planet's orbit is
   always open to you (home shipyard).
-- **Contested orbit**: only opponents' ships in the orbital positions block; Take Over ignores it; an
-  on off-centre maps a space two orbits share blocks both
-  planets (§6.8).
+- **Contested orbit**: only opponents' ships in the orbital positions block; Take Over ignores it (§6.8).
 - **Over-conquest** (off) is optional alongside an ordinary conquest when an opponent cube is present. It
   requires an orbit sum of exactly 12 and returns the replaced cube to its owner's reserve.
 

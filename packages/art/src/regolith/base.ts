@@ -1,7 +1,7 @@
 import type { Rng } from '../rng';
 import { n } from '../svg';
 import { OUTER } from './inks';
-import { cubePadCentres, numberCorner, type Spot } from '../tile/geometry';
+import { cubePadCentres, type Spot } from '../tile/geometry';
 import { OBJECTIVE_CAPACITY } from '../tokens';
 import { SPACE, SCALE, SIZE, inside, polar, toward } from './core';
 import { H, type Part, placed, type Drawn, merged, disc, box, glow, pipe, run } from './parts';
@@ -27,19 +27,16 @@ import { CORES } from './cores';
 
 /** How a base is laid out round its objective's space: its hub, outbuildings out along the ways to the next hexes, and small things round them. */
 
+/** Which way the objective's number lies from its middle, in degrees: its bottom right, where three hexes meet. */
+const NUMBER_CORNER = (Math.atan2(0.5, 0.5 / Math.sqrt(3)) * 180) / Math.PI;
+
 /**
  * The ways a base may spread from its objective's space, best first in a random order: towards the neighbouring
- * hexes (flat-topped, so they meet it at 30° + k·60°) that are on the tile, and not past the number's corner.
+ * hexes (flat-topped, so they meet it at 30° + k·60°), not past the number's corner.
  */
-function exits(r: Rng, at: Spot, numbered: boolean): number[] {
-  const k = numberCorner(at);
-  const corner = (Math.atan2(k.y * 0.5, (k.x * 0.5) / Math.sqrt(3)) * 180) / Math.PI;
+function exits(r: Rng, numbered: boolean): number[] {
   return [-90, -30, 30, 90, 150, 210]
-    .filter((a) => {
-      const { x, y } = toward(a, 1);
-      const off = Math.abs(((((a - corner) % 360) + 540) % 360) - 180);
-      return Math.hypot(at.x + x / SPACE, at.y + y / SPACE) < 1.01 && (!numbered || off > 50);
-    })
+    .filter((a) => !numbered || Math.abs(((((a - NUMBER_CORNER) % 360) + 540) % 360) - 180) > 50)
     .map((a) => ({ a, k: r.next() }))
     .sort((p, q) => p.k - q.k)
     .map((p) => p.a);
@@ -238,14 +235,13 @@ const SPREAD = [1, 1, 2, 2, 2, 3, 3, 3, 4];
  * middle, keeping its colours and what's round it: the Habitat's great dome, a warren of domes or a greenhouse
  * ring; the Refinery's plain deck, distillation columns or storage spheres; the Ice Mine's frost and tower, an
  * open pit it bridges or a boring machine; the Reactor's octagon, a containment building or a fusion ring.
- * Centred on the objective's space, in board units. `at` is where the objective sits on its tile (in spaces from
- * the middle).
+ * Centred on the objective's space, the tile's middle, in board units.
  */
-export function base(number: number, at: Spot, r: Rng, design?: string): Drawn | undefined {
+export function base(number: number, r: Rng, design?: string): Drawn | undefined {
   const pads = cubePadCentres(OBJECTIVE_CAPACITY[number] ?? 0, 0, 0).map((p) => ({ x: p.x / SCALE, y: p.y / SCALE }));
-  const ways = exits(r, at, number > 0);
+  const ways = exits(r, number > 0);
   const count = r.pick(SPREAD);
-  const centre = { x: SIZE / 2 + at.x * SPACE, y: SIZE / 2 + at.y * SPACE };
+  const centre = { x: SIZE / 2, y: SIZE / 2 };
   const taken: Taken[] = [];
   const links: [Spot, Spot][] = [];
   const outskirtsOf = (hubReach: number, pool: Annex[], blocked: number[] = []) => {

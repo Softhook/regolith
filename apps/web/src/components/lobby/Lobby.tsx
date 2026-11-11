@@ -10,7 +10,7 @@ import { PLAYER_COLORS } from '../../theme';
 import { COARSE } from '../../game/useMediaQuery';
 import { LobbyBackdrop } from './Backdrop';
 import { HomeScreenHint } from './HomeScreenHint';
-import { LearnHint } from './LearnHint';
+import { LearnHint, useLearnHint } from './LearnHint';
 import { VersionLine } from './VersionLine';
 import { WhereIcon } from './WhereIcon';
 import { YourGames } from './YourGames';
@@ -106,6 +106,7 @@ export function Lobby({
 
   // The end of the demo: Basic, against the easiest AI, on the first two-player map.
   const [demo, setDemo] = useState(false);
+  const learnHint = useLearnHint();
   const practice = () => {
     setDemo(false);
     ask({
@@ -135,7 +136,7 @@ export function Lobby({
         <FullscreenButton />
       </div>
       <HomeScreenHint />
-      <LearnHint onOpen={() => setDemo(true)} />
+      {learnHint.shown && <LearnHint onOpen={() => setDemo(true)} onDismiss={learnHint.dismiss} />}
 
       <YourGames saved={saved} onResume={() => saved && onResume(saved)} onDiscard={discard} />
 
@@ -211,15 +212,21 @@ export function Lobby({
           <Tutorial onClose={() => setDemo(false)} onPlay={practice} />
         </Suspense>
       )}
-      <button className="btn lobby-demo" onClick={() => setDemo(true)}>
-        <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor" aria-hidden="true">
-          <path d="M2 1l9 5-9 5z" />
-        </svg>
-        Tutorial
-      </button>
       <nav className="lobby-links">
-        <button onClick={onRules}>How to play</button>
-        <a href="#lab/cards">Art Lab: cards &amp; tiles</a>
+        {!learnHint.shown && (
+          <button className="btn" onClick={() => setDemo(true)}>
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor" aria-hidden="true">
+              <path d="M2 1l9 5-9 5z" />
+            </svg>
+            Tutorial
+          </button>
+        )}
+        <button className="btn" onClick={onRules}>
+          How to play
+        </button>
+        <a className="btn" href="#lab/cards">
+          Print &amp; Play
+        </a>
       </nav>
       <VersionLine />
     </div>

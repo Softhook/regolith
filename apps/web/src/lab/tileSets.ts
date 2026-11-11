@@ -8,40 +8,34 @@ const mapsOn = (worlds: readonly World[], players?: number) =>
 /** The player counts the maps on these worlds are made for, for the Tiles page's kit choice. */
 export const tileSetPlayers = (worlds: readonly World[]) => [...new Set(mapsOn(worlds).map((map) => map.players))].sort((a, b) => a - b);
 
-/**
- * One physical tile of a kit: the tile (art `TILE_SET`) and where its objective sits, as a map's layout token says
- * (`se`), `''` for the middle. A map that moves a 7 off the middle lays a tile printed that way, so a kit
- * can hold the same tile twice: `p7-01` in the middle for one map, `p7-01` at `se` for another.
- */
+/** One physical tile of a kit: the tile (art `TILE_SET`). */
 export interface KitTile {
   tile: TileSpec;
-  at: string;
 }
 
-/** A kit tile's key, unique in its kit: `p7-01`, `p7-01-se`. */
-export const kitKey = (k: KitTile) => k.tile.id + (k.at ? `-${k.at}` : '');
+/** A kit tile's key, unique in its kit: `p7-01`. */
+export const kitKey = (k: KitTile) => k.tile.id;
 
-/** The tiles a map lays, as the board assigns them (art `assignTiles`), each with where its objective sits. */
+/** The tiles a map lays, as the board assigns them (art `assignTiles`). */
 export function mapTiles(map: MapDef): KitTile[] {
   const tokens = map.layout
     .flat()
     .filter((token) => token !== '.')
     .map((token) => parseToken(token));
   const ids = assignTiles(tokens.map((t, index) => ({ index, number: t.blank ? BLANK : t.number })));
-  return tokens.map((t, index) => ({ tile: TILE_SET.find((s) => s.id === ids.get(index))!, at: t.dir ?? '' }));
+  return tokens.map((_, index) => ({ tile: TILE_SET.find((s) => s.id === ids.get(index))! }));
 }
 
 /**
- * The tiles a kit needs: every tile any of its maps lays, where that map puts its objective, so each map is laid
- * with the tiles the screen shows (art `assignTiles`). Without a player count, every map on its worlds. A
- * two-sided kit has a world on each side, so it takes its maps from both. Empty when no map fits. In set
- * order, a tile in the middle before the same tile off it.
+ * The tiles a kit needs: every tile any of its maps lays, so each map is laid with the tiles the screen shows
+ * (art `assignTiles`). Without a player count, every map on its worlds. A two-sided kit has a world on each
+ * side, so it takes its maps from both. Empty when no map fits. In set order.
  */
 export function tileKit(worlds: readonly World[], players?: number): KitTile[] {
   const kit = new Map<string, KitTile>();
   for (const map of mapsOn(worlds, players)) for (const k of mapTiles(map)) kit.set(kitKey(k), k);
   const order = (k: KitTile) => TILE_SET.indexOf(k.tile);
-  return [...kit.values()].sort((a, b) => order(a) - order(b) || a.at.localeCompare(b.at));
+  return [...kit.values()].sort((a, b) => order(a) - order(b));
 }
 
 /**

@@ -92,11 +92,7 @@ it shows that ground.
   export (`editableTileSvg`) puts the filtered layers in a 600 dpi bitmap and the rest over it as vectors; the
   map ([`MapTiles.tsx`](../apps/web/src/components/board/MapTiles.tsx)) stacks the same layers, each raster
   layer drawn alone (`rasterLayerSvg`, over its `RASTER_AREA`; what stands is cut out of the ground's image
-  with `standingMaskSvg`). The map's spaces and numbers come from the board, not the tile, since a perimeter
-  can reach onto the next tile.
-- **Off the middle.** An objective may sit on any hex of its tile (docs/HEX.md, *Off-centre objectives*); the
-  Art Lab shows the set with each objective on any spot (`objectiveAt`). Only the 7s go off the middle on
-  today's maps (`OFF_CENTRE`); a larger building would spill over the tile's edge.
+  with `standingMaskSvg`). The map's spaces and numbers come from the board, not the tile.
 - **Where tiles meet.** Each tile's ground is laid by its own noise, so its broad patches (Mars's basalt, the
   brightness's mottle) would stop dead at the cut. They fade out over the last 0.6 of a space in (`rimFade`),
   so every tile's rim is the same plain ground and any two tiles meet without a seam of colour.
@@ -126,7 +122,7 @@ Designed for **19 mm dice**. All numbers live in tokens so they can change after
 | Bleed | 3 mm past the cut | |
 | Cube | **assumed ≤ 10 mm** (measure ours) | Standard wooden cubes are 8 or 10 mm |
 | Cube pad | 11 mm square well, 1.5 mm apart, clustered on the objective | 10 mm cube + tolerance; capacity 7→1 … 10→4 |
-| Number | Inter ExtraBold, white with a dark outline, where three hexes meet beside the objective (`numberPlacement`, `numberCorner`) | Never covered by cubes or dice |
+| Number | Inter ExtraBold, white with a dark outline, where three hexes meet beside the objective (`numberPlacement`) | Never covered by cubes or dice |
 
 **Start markers.** Starting objectives (`7*` in a layout) use separate start tokens, placed in setup, so no
 tile needs a start version. The map setup sheets show which.

@@ -3,7 +3,6 @@ import { type GameState } from '@regolith/engine';
 import { CUBE_PAD, REGOLITH_SHADOW, TILE, cubePadCentres, type World } from '@regolith/art';
 import { DIE_CORNER } from '../../theme';
 import { placement } from './geometry';
-import { numberCorner } from './layers';
 import { ObjectiveMark } from './ObjectiveMarkings';
 import { castShadow, pieceShadowLength, pieceShadowOpacity, shadowOnCube } from './shadows';
 
@@ -107,15 +106,7 @@ export function Cubes({ game, cubes, dice, cell }: { game: GameState; cubes: Cub
     <div className="map-cubes" aria-hidden>
       <svg className="board-svg">
         {game.board.objectives.map((p) => (
-          <ObjectiveMark
-            key={p.id}
-            cx={mid(p).x}
-            cy={mid(p).y}
-            mm={cell / TILE.cell}
-            n={p.number}
-            corner={numberCorner(game.board, p)}
-            className="objective-num"
-          />
+          <ObjectiveMark key={p.id} cx={mid(p).x} cy={mid(p).y} mm={cell / TILE.cell} n={p.number} className="objective-num" />
         ))}
       </svg>
       {cubes.map((q) => (

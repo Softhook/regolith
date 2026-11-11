@@ -81,8 +81,8 @@ Learn it in the app's animated tutorial, or read the full rules under *How to pl
 
 - **Two modes.** **Basic** is the game without cards, for learning. **Regolith** is the full game, with a deck
   of 34 Skills (kept, and always working) and 11 Tactics (played once), plus Reinforcements.
-- **39 maps for 2 to 5 players** on Mars, Phobos and Deimos: compact sectors, open ground, maps where objectives
-  drift off their tiles, and prepared ground with ice tunnels, wormholes and barriers already laid.
+- **39 maps for 2 to 5 players** on Mars, Phobos and Deimos: compact sectors, open ground, and prepared
+  ground with ice tunnels, wormholes and barriers already laid.
 - **AI opponents at five ranks**, Cadet to General, chosen per seat. They play only legal moves, never see the
   dice to come, and think in the background so the board never freezes.
 - **Online with friends, no account and no server.** Send an invite link; play live, or one move at a time over

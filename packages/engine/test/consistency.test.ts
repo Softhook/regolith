@@ -37,9 +37,6 @@ import {
 } from '../src';
 import { bruteForceDecision, keyOf } from './decisions';
 import { playAiGame, quickStart } from './helpers';
-import { registerOffsetMaps } from './offsetMaps';
-
-registerOffsetMaps();
 
 const DEEP = !!process.env.DEEP;
 
@@ -174,16 +171,15 @@ describe('legal actions agree with the engine', () => {
         ]
       : [[3, 22]])
       it(`${mode}, ${players} players, seed ${seed}`, () => playChecked(mode, players, seed), DEEP ? 600_000 : 60_000);
-  // The open-ground and off-centre maps: blank tiles, and perimeters that overlap, cross tiles and lose spaces at the edge.
+  // Other maps: open ground's blank tiles among the objectives, and a short map.
   for (const { id: mode } of MODES)
     for (const [players, mapId] of DEEP
       ? ([
           [2, 'arcadia-planitia'],
           [3, 'stickney-crater'],
           [2, 'chryse-planitia'],
-          [2, 'offset-hex'],
         ] as const)
-      : ([[2, 'offset-hex']] as const))
+      : ([[2, 'chryse-planitia']] as const))
       it(`${mode} on ${mapId}, seed 22`, () => playChecked(mode, players, 22, mapId), DEEP ? 600_000 : 60_000);
 });
 

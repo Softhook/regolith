@@ -145,7 +145,7 @@ or barriers (`start:` in the YAML, group `prepared`): `npm run map:show -- <id>`
 |---|---|
 | [`basic.test.ts`](../packages/engine/test/basic.test.ts) | Every rule Basic inherits from the 2013 FunForge rulebook, one scenario each, citing its page |
 | [`regolith.test.ts`](../packages/engine/test/regolith.test.ts) | Regolith's own rules: the movement cap, zones of control, Shoot, Barrier, contested perimeters |
-| [`hex.test.ts`](../packages/engine/test/hex.test.ts), [`offset.test.ts`](../packages/engine/test/offset.test.ts) | Hex geometry; objectives off the middle of their tiles |
+| [`hex.test.ts`](../packages/engine/test/hex.test.ts) | Hex geometry and tile tokens |
 | [`engine.test.ts`](../packages/engine/test/engine.test.ts) | Card effects, modes, atomics, undo |
 | [`card-audit.test.ts`](../packages/engine/test/card-audit.test.ts) | The card audit ([`audit.ts`](../packages/engine/test/audit.ts)) on its quick games: AI games with skills dealt so every card is held, checking at every step legality, soundness of card decisions, invariants, and each card's effect against its text. `npm run audit:cards` plays the whole matrix (`-- --deep`: level 4 and more maps) and prints each anomaly with the game log, plus card coverage |
 | [`card-scenarios.test.ts`](../packages/engine/test/card-scenarios.test.ts) | A scenario per card (every mode), driven through its real trigger; fails if a card has none. At every decision a scenario reaches, the engine accepts no answer `legalActions` doesn't offer ([`decisions.ts`](../packages/engine/test/decisions.ts)), which covers decisions the AI games rarely reach |

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { OFF_CENTRE, TILE_SPOTS, WORLD_NAMES, dataUrl, editableTileSvg, tileSvg, type TileSpec, type World } from '@regolith/art';
+import { WORLD_NAMES, dataUrl, editableTileSvg, tileSvg, type TileSpec, type World } from '@regolith/art';
 import { blobToDataUrl, download } from '../files';
 import { svgToPng } from '../print/exports';
 import { PIECES, fileName, pieceSize } from '../print/pieces';
@@ -39,8 +39,6 @@ export function TileLab() {
   // Only the player counts these worlds have maps for; a count they haven't falls back to every map.
   const playerCounts = useMemo(() => tileSetPlayers(worlds), [worlds]);
   const players = playerChoice !== 'all' && playerCounts.includes(playerChoice) ? playerChoice : undefined;
-  // Where the objectives sit: null for where the kit's maps put each, else a layout token's direction for all (`7ne`), '' the middle.
-  const [objectiveAt, setObjectiveAt] = useState<string | null>(null);
   // The side shown: its world.
   const shown = flipped && back ? back : world;
   const kit: TileKit = { world, back, players };
@@ -51,8 +49,8 @@ export function TileLab() {
     () => tileKit(worlds, players).map((k) => ({ ...k, tile: { ...k.tile, ...overrides[k.tile.id] } })),
     [overrides, players, worlds],
   );
-  /** How a kit tile is shown on a world: where its maps put its objective, unless the page moves them all. */
-  const viewOf = useCallback((k: KitTile, on: World): TileView => ({ world: on, objectiveAt: objectiveAt ?? k.at }), [objectiveAt]);
+  /** How a kit tile is shown on a world. */
+  const viewOf = useCallback((_: KitTile, on: World): TileView => ({ world: on }), []);
   // Drawn live where there's no thumbnail as it prints yet (below), till its ground is drawn.
   const thumbs = useMemo(
     () =>
@@ -106,7 +104,7 @@ export function TileLab() {
   const ready = groundDrawn(face, view);
   const { svg, live } = useMemo(() => {
     const printed = printedTileSvgNow(face, detailOptions);
-    const key = `${face.id}@${view.objectiveAt ?? ''}`;
+    const key = face.id;
     if (printed) latest.current = { key, world: shown, svg: printed };
     else if (latest.current?.key === key && latest.current.world === shown) return { svg: latest.current.svg, live: false };
     return { svg: printed ?? tileSvg(face, detailOptions), live: !printed };
@@ -117,7 +115,7 @@ export function TileLab() {
   const detail = (live && latestThumbnail(face, view)) || drawnDetail;
   const set = (o: Override) => setOverrides((all) => ({ ...all, [spec.id]: { ...all[spec.id], ...o } }));
 
-  // Prints the set as shown: seeds being explored, the markings setting, the objective spots, and each side's world.
+  // Prints the set as shown: seeds being explored, the markings setting, and each side's world.
   const printable = (k: KitTile, side: World) => printableTile(tileSide(k.tile, side), fonts ?? '', markings, viewOf(k, side));
   const piece = PIECES.tile;
   const cmyk = tileSheets(kit);
@@ -206,17 +204,6 @@ export function TileLab() {
                 ))}
               </select>
             </label>
-            <label title="Where each objective sits on its tile: where the kit's maps put it, or one spot for all, as a map's layout token says (7ne)">
-              Objective
-              <select value={objectiveAt ?? '*'} onChange={(e) => setObjectiveAt(e.target.value === '*' ? null : e.target.value)}>
-                <option value="*">as the maps lay it</option>
-                {Object.keys(TILE_SPOTS).map((d) => (
-                  <option key={d} value={d}>
-                    {d || 'middle'}
-                  </option>
-                ))}
-              </select>
-            </label>
           </div>
           <div className="lab-controls">
             <label>
@@ -233,11 +220,6 @@ export function TileLab() {
             )}
           </div>
           <p className="lab-note">A tile is cut along its flower: the exports carry the cut line (cut.svg, a CutContour spot colour).</p>
-          {view.objectiveAt && face.number > 0 && !OFF_CENTRE.includes(face.number) && (
-            <p className="lab-warn">
-              A map puts only {OFF_CENTRE.map((k) => `${k}s`).join(' and ')} off the middle of a tile: this one spills over its edge.
-            </p>
-          )}
           <p className="lab-note">Changes here are for exploring; to keep one, copy its settings:</p>
           <pre className="lab-spec">{JSON.stringify(spec)}</pre>
           <PrintPanel
@@ -258,13 +240,8 @@ export function TileLab() {
             cmyk={cmyk}
             fonts={fonts}
             cmykDiffers={
-              [
-                Object.keys(overrides).length > 0 && 'seeds changed here',
-                !markings && 'print markings off',
-                objectiveAt !== null && 'objectives moved from where the maps put them',
-              ]
-                .filter(Boolean)
-                .join(', ') || undefined
+              [Object.keys(overrides).length > 0 && 'seeds changed here', !markings && 'print markings off'].filter(Boolean).join(', ') ||
+              undefined
             }
             extra={(run, busy) => (
               <button

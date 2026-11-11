@@ -10,8 +10,8 @@ no gaps, and the objectives of touching tiles are 3 spaces apart.
 
 - An objective has 6 perimeter positions, where mechs claim from: every space of its tile.
 - A tile touches up to 6 others.
-- Every space of an objective's tile is in its perimeter, and each space is on one objective's perimeter only while the objectives sit
-  in the middle of their tiles (see *Off-centre objectives*). Only an Alien Artefact's or a blank's spaces are on no perimeter.
+- Every space of an objective's tile is in its perimeter, and each space is on one objective's perimeter only. Only an Alien
+  Artefact's or a blank's spaces are on no perimeter.
 
 ## How the rules read
 
@@ -202,6 +202,12 @@ The three hard-objective maps, same settings, 10 November 2026 (100 games each; 
 | Array of Three | 9.7 | 14.3 | 7.4 | 2.8 | 38% | 30% |
 | Driver's Crown | 15.9 | 32.7 | 6.1 | 5.4 | 24% | 18% |
 
+Four more were drift maps, with 7s off the middle of their tiles, till off-centre objectives went (11 November
+2026); every objective now sits in the middle of its tile, theirs too. Chryse Planitia (2) has two Alien Artefacts
+between its starts, each beside a 7 and a 9; Roche Crater (2) is a ring of 8s round a gap, its 7 starts at opposite
+ends; Acidalia Planitia (3) has three 7s round a 10; Medusae Fossae (4) a pair of 10s with a 7 either side and four
+9 starts round them. Measured again centred (level 2, 20 games each), each keeps its length.
+
 Citadel Crossing's games run 8 to 88 rounds, with long stretches where nobody places a cube: in a line of single
 tiles the Citadel's one cube is easy to hold and hard to take. In Driver's Crown the two middle seats win 58% between them,
 though the four starts are mirror images: turn order, or how the AI plays it, not the ground.
@@ -280,62 +286,9 @@ snugly; labels keep clear of it. The spaces are marked by their hex edges alone,
   and turned as the game draws them, and its turning backdrop draws them as the game does.
 - **Tests.** [`hex.test.ts`](../packages/engine/test/hex.test.ts) pins each rule above, and the legal-move
   cross-check in [`consistency.test.ts`](../packages/engine/test/consistency.test.ts) plays hex games (all of
-  them with `DEEP=1`). `npm run hex:check` plays a first move in Chrome on the hex and drift maps, tapping where
+  them with `DEEP=1`). `npm run hex:check` plays a first move in Chrome on every map, tapping where
   the space is drawn (near a hex's top right side, where the next hex's box reaches over), and checks the map
-  draws a well for each space, cross-hatched where the engine has perimeters overlap.
-
-## Off-centre objectives
-
-The engine can place a tile's objective off its middle, on one of the six spaces around it: a layout token takes a
-compass direction, `7ne` or `8s*` ([`data/maps.yaml`](../data/maps.yaml)). The **Off-centre objectives** group in
-the lobby has maps for two, three and four players (see *Drift maps*).
-
-- Its perimeter on its own tile is 3 hexes, the middle among them; on other tiles 3 hexes more: 2 of one tile, 1 of
-  another. 3 spaces of its tile are in no perimeter.
-
-The perimeter is still the spaces next to the objective, so the rules read the same:
-
-- **Edges.** Facing the map's edge or a gap, an objective loses those perimeter spaces: 3 left, or 2 in a corner of the map.
-- **Overlaps.** Two objectives' perimeters may share a space. A mech there counts towards claiming both.
-  Moving or dropping there names both objectives.
-- **Neighbours.** Two objectives may be next to each other; neither's space is on the other's perimeter.
-- **Starts.** Each starting objective needs room for the 3 starting mechs in perimeter spaces no other start
-  shares; `buildBoard` refuses a map otherwise.
-
-[`offset.test.ts`](../packages/engine/test/offset.test.ts) pins these on two test maps, and the legal-move
-cross-check plays games on them.
-
-**Drawing.** The map is drawn in layers ([GRAPHICS.md](GRAPHICS.md), *Tiles*), so an off-centre objective needs
-nothing of its own: its body is placed on its space and cut off at its tile's edge, the spaces are drawn over
-it, and their marks come from the board, not the tile. A perimeter reaching onto the next tile is hatched there, a
-space in two perimeters is cross-hatched, and an Alien Artefact space in a perimeter keeps its flask too. The number goes in the
-objective's corner nearest its tile's middle, as its printed tile has it, so it never meets the map's edge or a
-neighbour: at the vertex three hexes share. The Art Lab shows and exports every tile die-cut along its flower
-([GRAPHICS.md](GRAPHICS.md) §3), and with its objective on any space.
-
-### Drift maps
-
-The maps keep their seats balanced by a half-turn for 2 or 4 players, or a third-turn for 3 players, while
-their objectives sit off-centre and their perimeter spaces cross tile boundaries.
-
-| Map | Layout | What the offsets do |
-|---|---|---|
-| Chryse Planitia, 12 tiles | `7se 8* . .` / `9 0 7n` / `. 8 8 .` / `7s 0 9` / `. . 8* 7nw` | Each start shares 2 perimeter hexes with the 7 beside it, and the 9s share 2 more. Two 7s drift to the edge (3 perimeter hexes); two Alien Artefacts sit between. |
-| Roche Crater | `. 7s* 8 8` / `8 . . 8` / `. 8 8 7n*` | Opposed 7 starts lean into the ring's two-tile hole and pull their perimeters across the ring. |
-| Acidalia Planitia | `8* 7n 8 8*` / `8 10 7se` / `. 7sw 8` / `. 8*` | Three 7s drift around a 10; each is a third-turn from the next, so the seats match. |
-| Medusae Fossae | `. 9*` / `8 7ne 9*` / `8 10 10 8` / `9* 7sw 8` / `. . 9*` | Two 7s lean toward the twin 10s; their opposite directions preserve the half-turn balance. |
-
-Only 7s go off the middle of a tile (`OFF_CENTRE` in [`tile/geometry.ts`](../packages/art/src/tile/geometry.ts)).
-An off-centre objective sits on its tile's edge space, half a space from the edge: a 9 or 10 is wider than that
-(0.6 and 0.72 spaces from its middle to its rim), and an 8 fills an outer hex right to its sides.
-[`mapLayers.test.ts`](../apps/web/test/mapLayers.test.ts) holds every map to this.
-
-Chryse Planitia against Lagado Planitia, 100 games each with level 2 AI (Sergeant) in both seats and the same seeds,
-20 October 2026, averages per game: Lagado Planitia 10.1 rounds, 12.3 attacks, 6.2 claims, seats 62/38; Chryse
-Planitia 13.9, 21.5, 8.0, seats 45/55. The seat splits are within chance at 100 games, and an earlier run with other
-seeds gave Lagado Planitia 43/57. With 7 cubes (on the first layouts, which had the 10s and 9s off-centre) the
-games ran about 20 rounds, and one stalled: each player's last free cube location was on the other's home
-objective, and neither AI went for it.
+  draws a well for each space.
 
 ## Not yet
 
@@ -345,9 +298,4 @@ objective, and neither AI went for it.
   maps with a lane for every seat, and a Moon Crater-like map built round the Ice Tunnel tactic.
 - Turning a tall map on its side to fit a wide screen.
 - Packing tiles closer on a sheet: they print in a 2 × 2 grid, though flowers nest.
-- Off-centre objectives in the lobby's small map previews (they show each tile's number only).
-- The AI scores each objective on its own, so a mech in a shared perimeter counts towards both, and it doesn't see that
-  moving it off one objective's perimeter leaves the other's too.
-- A ruling on an Alien Artefact space in an objective's perimeter, before a map puts one there: a mech there would gain Research
-  and count towards the claim, which no rule says it should or shouldn't.
 

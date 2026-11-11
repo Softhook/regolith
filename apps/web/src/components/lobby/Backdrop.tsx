@@ -24,7 +24,7 @@ const PHONE_CELL = 100;
 const SPEED = 16;
 const PHONE_SPEED = 11;
 /** The blank tiles (art `TILE_SET`), and how many of the tiles laid are the chosen map's instead. */
-const BLANKS: TileRef[] = Array.from({ length: 10 }, (_, i) => ({ id: `blank-${String(i + 1).padStart(2, '0')}`, at: { x: 0, y: 0 } }));
+const BLANKS: TileRef[] = Array.from({ length: 10 }, (_, i) => ({ id: `blank-${String(i + 1).padStart(2, '0')}` }));
 const MAP_SHARE = 1 / 12;
 /**
  * A flower's six neighbours are a step of the lattice away, ±(1, 0), ±(0, 1) or ±(1, −1) (below), so (i − j) mod 3

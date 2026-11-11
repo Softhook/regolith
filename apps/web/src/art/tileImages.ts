@@ -10,7 +10,6 @@ import {
   standingMaskSvg,
   tileSpec,
   type RasterLayer,
-  type Spot,
   type World,
 } from '@regolith/art';
 import { COARSE } from '../game/useMediaQuery';
@@ -43,14 +42,12 @@ const pixels = (layer: RasterLayer) => Math.round((SIZE * RASTER_AREA[layer].w) 
 const grounds = new Map<string, Promise<Record<RasterLayer, string>>>();
 const decoded = new Map<string, Promise<string>>();
 
-/** A tile to draw: its physical id, and where its objective sits, in spaces from its middle (the ground's building stands there). */
+/** A tile to draw: its physical id. */
 export interface TileRef {
   id: string;
-  at?: Spot;
 }
 
-const nameOf = ({ id, at }: TileRef, world: World, layer: RasterLayer) =>
-  `${id}:${layer}:${world}` + (at ? `@${at.x.toFixed(3)},${at.y.toFixed(3)}` : '');
+const nameOf = ({ id }: TileRef, world: World, layer: RasterLayer) => `${id}:${layer}:${world}`;
 
 /**
  * A ground tile's `ground` and `standing` images: the ground drawn once, and cut down by its cheap mask
@@ -60,8 +57,8 @@ function groundImages(tile: TileRef, world: World): Promise<Record<RasterLayer, 
   const name = nameOf(tile, world, 'ground');
   let pair = grounds.get(name);
   if (!pair) {
-    const svg = rasterLayerSvg(tileSpec(tile.id), world, tile.at);
-    const mask = standingMaskSvg(tileSpec(tile.id), tile.at);
+    const svg = rasterLayerSvg(tileSpec(tile.id), world);
+    const mask = standingMaskSvg(tileSpec(tile.id));
     const size = pixels('ground');
     const key = `${hash(svg + mask)}:${size}:jpeg:2`;
     const ids = [name, nameOf(tile, world, 'standing')];
@@ -101,8 +98,7 @@ export function decodedTileImage(tile: TileRef, world: World, layer: RasterLayer
 }
 
 /**
- * Prepares the chosen map's tiles in the background while the player is in the lobby. Each tile carries its
- * building where that map puts its objective, so they can't be drawn ahead of the map, and drawing them all as the
+ * Prepares the chosen map's tiles in the background while the player is in the lobby, as drawing them all as the
  * game opens would stall its opening roll. The lobby's ground has first call: its tiles are asked for as it's
  * laid, before this starts, and tiles are drawn in turn. One at a time, so it stops when the map changes.
  */

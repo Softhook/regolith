@@ -22,7 +22,7 @@ const hrefOf = (id: LabPageId) => (id === 'tiles' ? '#lab' : `#lab/${id}`);
 export function LabHeader({ page }: { page: LabPageId }) {
   return (
     <header className="lab-head">
-      <h1>Art Lab</h1>
+      <h1>Print &amp; Play</h1>
       <nav className="lab-tabs">
         {LAB_PAGES.map((p) => (
           <a key={p.id} href={hrefOf(p.id)} className={p.id === page ? 'on' : ''}>

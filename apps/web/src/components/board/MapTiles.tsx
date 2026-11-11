@@ -11,8 +11,7 @@ const line = (list: number[][]) => `M${list.map(([x, y]) => `${x.toFixed(2)} ${y
 
 /**
  * The spaces' outlines on the map, in millimetres, with a faint flask on an Alien Artefact's (mechs there gain Research), and
- * a group per space for the board's tests and checks to find. Worked out from the board, so a perimeter reaching onto
- * another tile is marked there too. The outlines (`edges`) are apart, to fade with the map's seams.
+ * a group per space for the board's tests and checks to find. The outlines (`edges`) are apart, to fade with the map's seams.
  */
 function wells(board: Board): { edges: string; wells: string } {
   const { mid } = placement(board, TILE.cell);
@@ -20,7 +19,7 @@ function wells(board: Board): { edges: string; wells: string } {
   let edges = '';
   for (const { p, perimeters, artefact: isArtefact } of spaceRoles(board)) {
     const { x, y } = mid(p);
-    const role = perimeters > 1 ? 'shared' : perimeters ? 'perimeter' : 'space';
+    const role = perimeters ? 'perimeter' : 'space';
     out += `<g class="well" data-r="${p.r}" data-c="${p.c}" data-role="${role}${isArtefact ? ' artefact' : ''}">`;
     edges += hexEdge(x, y);
     if (isArtefact) out += artefactFlask(x, y);

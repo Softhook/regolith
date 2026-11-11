@@ -20,6 +20,7 @@ import {
   grid,
   mapStats,
   moveOptions,
+  parseToken,
   perimeterSpaces,
   same,
   startingGround,
@@ -30,7 +31,7 @@ import {
 } from '../src';
 import { playAiGame, players, quickStart } from './helpers';
 
-// The basic maps on hex tiles; the drift maps (offset.test.ts) put their objectives off the middle.
+// The basic maps on hex tiles.
 const HEX_MAPS = MAPS.filter((m) => m.group === 'hex');
 /** The basic maps on hex tiles (the hex group's others adapt advanced maps). */
 const BASIC_HEX = HEX_MAPS.filter((m) => ['lagado-planitia', 'swift-crater', 'laputa-regio'].includes(m.id));
@@ -53,6 +54,14 @@ function scenario(dice: Record<string, [Cell, number]>): GameState {
 }
 
 describe('hex maps', () => {
+  it('read a tile token: a number and a start, a blank, and nothing else', () => {
+    expect(parseToken('8')).toEqual({ number: 8, start: false });
+    expect(parseToken('9*')).toEqual({ number: 9, start: true });
+    expect(parseToken('0')).toEqual({ number: 0, start: false });
+    expect(parseToken('-')).toEqual({ number: 0, start: false, blank: true });
+    for (const t of ['x', '6', '7ne', '8s*', '8*n', '0*', '-*', '--', '']) expect(() => parseToken(t), t).toThrow();
+  });
+
   it('are the basic maps for 2, 3 and 4 players, in Regolith', () => {
     expect(BASIC_HEX.map((m) => m.players)).toEqual([2, 3, 4]);
     expect(RULESETS.regolith.mapGroups).toContain('hex');
@@ -60,7 +69,7 @@ describe('hex maps', () => {
   });
 
   it('are built of 7-hex tiles: each objective with its 6 perimeter spaces, the objectives of touching tiles 3 apart', () => {
-    for (const m of MAPS.filter((x) => x.group !== 'drift')) {
+    for (const m of MAPS) {
       const b = buildBoard(m);
       for (const p of b.objectives) {
         expect(perimeterSpaces(b, p)).toHaveLength(6);

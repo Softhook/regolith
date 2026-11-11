@@ -1,7 +1,7 @@
 import { estimateWidth } from './card';
 import { GROUND, HAIR, MUTED, PAD, WHITE, text } from './aid';
 import { INKS } from './screenprint/inks';
-import { HEX_TILE_CUT, MID, hexTileShape, type Spot } from './tile/geometry';
+import { HEX_TILE_CUT, MID, hexTileShape } from './tile/geometry';
 import { WORLD_NAMES, type World } from './tile/look';
 import { BLANK } from './tile/set';
 import { document, n } from './svg';
@@ -30,8 +30,6 @@ export interface MapSheetTile {
   y: number;
   /** An objective's number (7–10), 0 for an Alien Artefact (the engine's Alien Artefact), or BLANK. */
   number: number;
-  /** Where the objective sits, in spaces from the tile's middle (x right, y down). */
-  at: Spot;
   /** A starting objective. */
   start: boolean;
 }
@@ -122,7 +120,7 @@ export function mapSheetSvg(o: MapSheetOptions): string {
       return `M${n(a[0])},${n(a[1])}L${n(c[0])},${n(c[1])}`;
     }).join('');
     out.push(`<path d="${edge}" fill="none" stroke="${MUTED}" stroke-width=".5" stroke-linecap="round"/>`);
-    if (t.number > 0) out.push(objective(ox + (t.x + t.at.x) * cell, oy + (t.y + t.at.y) * cell, cell * 0.4, t));
+    if (t.number > 0) out.push(objective(ox + t.x * cell, oy + t.y * cell, cell * 0.4, t));
   }
 
   // What the map starts with: the tunnel's mouths joined by a dashed line, then the barriers.

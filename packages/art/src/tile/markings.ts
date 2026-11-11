@@ -1,7 +1,7 @@
 import { CUBE_PAD, FONTS, HEX_EDGE, OBJECTIVE_CAPACITY, OBJECTIVE_FAMILY, TILE, WELL, type WellStyle } from '../tokens';
 import { icon } from '../icons';
 import { hex, n, type Fragment } from '../svg';
-import { MID, TILE_SPOTS, cubePadCentres, hexCorners, numberCorner, numberGlyph, numberPlacement, type Spot } from './geometry';
+import { MID, TILE_SPOTS, cubePadCentres, hexCorners, numberGlyph, numberPlacement, type Spot } from './geometry';
 import type { TileSpec } from './set';
 
 /**
@@ -62,33 +62,32 @@ export function well(cx: number, cy: number, size: number, rx: number, style: We
 
 /**
  * Print markings, the spaces' or the objective's (`part`): each space's outline; or wells for the cubes on the
- * objective with its number in the corner `numberCorner` picks. The objective sits at `at` (spaces from the middle).
+ * objective in the tile's middle, with its number at its bottom right.
  * Plain SVG only (hex colours, no `paint-order` or `dominant-baseline`), so they import into Illustrator as
  * editable vectors.
  */
-export function markings(spec: TileSpec, part: 'spaces' | 'objective', at: Spot): Fragment {
+export function markings(spec: TileSpec, part: 'spaces' | 'objective'): Fragment {
   const mm = (p: Spot) => ({ x: MID + p.x * TILE.cell, y: MID + p.y * TILE.cell });
   const hasObjective = spec.number > 0;
   let body = '';
   let edges = '';
   for (const spot of part === 'spaces' ? Object.values(TILE_SPOTS) : []) {
-    if (hasObjective && Math.hypot(spot.x - at.x, spot.y - at.y) < 1e-6) continue;
+    if (hasObjective && spot.x === 0 && spot.y === 0) continue;
     const { x, y } = mm(spot);
     edges += hexEdge(x, y);
     // Mechs on the Alien Artefact gain Research: a faint flask on each space.
     if (spec.number === 0) body += artefactFlask(x, y);
   }
   if (hasObjective && part === 'objective') {
-    const p = mm(at);
+    const p = mm({ x: 0, y: 0 });
     for (const q of cubePadCentres(OBJECTIVE_CAPACITY[spec.number], p.x, p.y))
       body += well(q.x, q.y, CUBE_PAD.size, CUBE_PAD.corner, WELL.cube);
     const num = numberPlacement(spec.number);
-    const k = numberCorner(at);
     const hue = OBJECTIVE_FAMILY[spec.number].hue;
     // White with a dark outline reads on any objective surface and on the space around it. The outline
     // is a second copy underneath; a 9's bar (`numberGlyph`) is painted like the digit.
-    const cx = p.x + k.x * num.x;
-    const { baseline, bar } = numberGlyph(spec.number, cx, p.y + k.y * num.y, num.size);
+    const cx = p.x + num.x;
+    const { baseline, bar } = numberGlyph(spec.number, cx, p.y + num.y, num.size);
     const text = (paint: string) =>
       `<text x="${n(cx)}" y="${n(baseline)}" ${paint} font-family="${FONTS.body}" font-weight="800" font-size="${n(num.size)}" letter-spacing="${n(-0.03 * num.size)}" text-anchor="middle">${spec.number}</text>` +
       (bar ? `<rect x="${n(bar.x)}" y="${n(bar.y)}" width="${n(bar.w)}" height="${n(bar.h)}" rx="${n(bar.rx)}" ${paint}/>` : '');

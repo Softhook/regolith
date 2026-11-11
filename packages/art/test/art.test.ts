@@ -8,7 +8,6 @@ import {
   TILE,
   assignTiles,
   editableTileSvg,
-  numberCorner,
   numberPlacement,
   cubePadCentres,
   OBJECTIVE_CAPACITY,
@@ -146,19 +145,13 @@ describe('objective number', () => {
       }
     }
   });
-
-  it('goes in the corner nearest the middle', () => {
-    expect(numberCorner({ x: 0, y: 0 })).toEqual({ x: 1, y: 1 });
-    expect(numberCorner(TILE_SPOTS.sw)).toEqual({ x: 1, y: -1 });
-    expect(numberCorner(TILE_SPOTS.n)).toEqual({ x: 1, y: 1 });
-  });
 });
 
 describe('tile shape', () => {
   const seven = TILE_SET.find((t) => t.number === 7)!;
   const outlines = (svg: string) => (svg.match(/<polygon /g) ?? []).length;
 
-  it('names the same objective spots as the engine reads from a layout token', () => {
+  it('has seven spaces, the six outer ones a space from its middle', () => {
     expect(Object.keys(TILE_SPOTS).sort()).toEqual(['', 'n', 'ne', 'nw', 's', 'se', 'sw']);
     for (const [dir, p] of Object.entries(TILE_SPOTS)) expect(Math.hypot(p.x, p.y)).toBeCloseTo(dir ? 1 : 0);
   });
@@ -167,7 +160,6 @@ describe('tile shape', () => {
     const svg = tileSvg(seven, { markings: true, rounded: true });
     expect(outlines(svg)).toBe(6);
     expect(svg).toContain(`${seven.id}-flower`);
-    expect(outlines(tileSvg(seven, { markings: true, objectiveAt: 'n' }))).toBe(6);
   });
 
   it('is knocked out past its flower: at the cut, or past it by the bleed', () => {

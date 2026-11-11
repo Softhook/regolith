@@ -1,9 +1,9 @@
 import { rng } from '../rng';
 import { blur, document, n, region, type Fragment } from '../svg';
-import { BLED, type Spot } from '../tile/geometry';
+import { BLED } from '../tile/geometry';
 import type { World } from '../tile/look';
 import type { TileSpec } from '../tile/set';
-import { SPACE, SCALE, SIZE, LIT, DRAWN } from './core';
+import { SCALE, SIZE, LIT, DRAWN } from './core';
 import { ground, built, cast, dust, SHADOW } from './light';
 export { GROUND_BASE } from './light';
 import { GRADIENTS, CRATERS, BURIED, RIDGE, DUNES, terrain, weathering } from './terrain';
@@ -39,12 +39,12 @@ interface Scene {
   standing?: { heights: string; drawn: string };
 }
 
-/** A tile's scene on `world`, its base standing `at` its objective's space. */
-function scene(spec: TileSpec, at: Spot, world: World): Scene {
+/** A tile's scene on `world`, its base standing on its objective's space, the tile's middle. */
+function scene(spec: TileSpec, world: World): Scene {
   const mars = world === 'mars';
   const r = rng(spec.seed).fork('regolith');
-  const site = base(spec.number, at, r.fork('base'), spec.design);
-  const [bx, by] = [SIZE / 2 + at.x * SPACE, SIZE / 2 + at.y * SPACE];
+  const site = base(spec.number, r.fork('base'), spec.design);
+  const [bx, by] = [SIZE / 2, SIZE / 2];
   // A drawing's clip paths, drawn once with the defs, as what stands is drawn more than once (`groundArt`).
   const CLIP = /<clipPath[\s\S]*?<\/clipPath>/g;
   const clips = [...new Set(site?.paint.match(CLIP) ?? [])];
@@ -109,8 +109,8 @@ const silhouette = (heights: string) => inMm(`<g filter="url(#rg-white)">${heigh
  * spaces' wells. Its lit ground drawn by its filter, or as `image`, a bitmap of it (`regolithGroundSvg`). For
  * a tile on a world's ground (tile/index.ts `tileSvg`), in place of its sky and objective.
  */
-export function groundArt(spec: TileSpec, at: Spot, world: World, image?: string): Fragment & { standing?: Fragment } {
-  const s = scene(spec, at, world);
+export function groundArt(spec: TileSpec, world: World, image?: string): Fragment & { standing?: Fragment } {
+  const s = scene(spec, world);
   const { defs, standing } = s;
   return {
     defs,
@@ -126,23 +126,22 @@ export function groundArt(spec: TileSpec, at: Spot, world: World, image?: string
 
 /**
  * A hex tile's ground on `world`, in place of its sky and objective, trim 96 × 96 mm and its 3 mm bleed (so a map's
- * clip a touch past the hexes still lands on ground): the objective's building stands `at` its space (in
- * spaces from the tile's middle, x right and y down). No markings: the game draws the cubes and the
+ * clip a touch past the hexes still lands on ground): the objective's building stands on its space, the
+ * tile's middle. No markings: the game draws the cubes and the
  * number over its bays, and the spaces' wells under what stands (`regolithMaskSvg`).
  */
-export function regolithSvg(spec: TileSpec, world: World, at: Spot = { x: 0, y: 0 }): string {
-  const { defs, lit, standing } = scene(spec, at, world);
+export function regolithSvg(spec: TileSpec, world: World): string {
+  const { defs, lit, standing } = scene(spec, world);
   return document({ defs, body: inMm(lit + (standing?.drawn ?? '')) }, BLED, true);
 }
 
 /**
- * A hex tile's lit ground on `world` alone, over the same area as `regolithSvg`, its building `at` its objective's
- * space: nothing standing on it, as that's drawn over it. For print, drawn at `REGOLITH_GROUND_PX` and passed
+ * A hex tile's lit ground on `world` alone, over the same area as `regolithSvg`: nothing standing on it, as that's drawn over it. For print, drawn at `REGOLITH_GROUND_PX` and passed
  * back as the tile's `ground` (tile/index.ts `tileGroundSvg`), so the light is as on screen, not in contour
  * lines (`LIT`), while what stands is drawn at the print's own resolution.
  */
-export function regolithGroundSvg(spec: TileSpec, world: World, at: Spot = { x: 0, y: 0 }): string {
-  const { defs, lit } = scene(spec, at, world);
+export function regolithGroundSvg(spec: TileSpec, world: World): string {
+  const { defs, lit } = scene(spec, world);
   return document({ defs, body: inMm(lit) }, BLED, true);
 }
 
@@ -151,9 +150,9 @@ export function regolithGroundSvg(spec: TileSpec, world: World, at: Spot = { x: 
  * clear elsewhere. Cheap to draw (no lighting), so the game cuts what stands out of the drawn ground with
  * it, to lay over the spaces' wells, rather than drawing it again.
  */
-export function regolithMaskSvg(spec: TileSpec, at: Spot = { x: 0, y: 0 }): string {
+export function regolithMaskSvg(spec: TileSpec): string {
   // What stands is the same on every world, so any will do.
-  const { standing } = scene(spec, at, 'mars');
+  const { standing } = scene(spec, 'mars');
   // Only the defs its shapes use: their gradients, and a blur.
   const defs = WHITE + BUILDING_GRADIENTS + blur('rg-soft1', 1);
   return document(standing ? { defs, body: silhouette(standing.heights) } : { defs: '', body: '' }, BLED, true);

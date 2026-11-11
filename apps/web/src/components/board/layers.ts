@@ -1,10 +1,7 @@
-import { isRaster, numberCorner as tileNumberCorner, type Corner, type RasterLayer, type Spot, type TileLayerName } from '@regolith/art';
-import { cellAt, drawing, objectivesAround, spaces, tileCentres, type Board, type Cell, type Objective } from '@regolith/engine';
+import { isRaster, type RasterLayer, type TileLayerName } from '@regolith/art';
+import { cellAt, objectivesAround, spaces, type Board, type Cell } from '@regolith/engine';
 
-/*
- * What the map's live layers show (MapTiles), worked out from the board rather than from the tiles: an objective
- * may sit anywhere on its tile, its perimeter reach onto other tiles and overlap another objective's.
- */
+/* What the map's live layers show (MapTiles), worked out from the board rather than from the tiles. */
 
 /** A tile layer the map draws from the board, or live (not an image). */
 export type BoardLayer = Exclude<TileLayerName, RasterLayer>;
@@ -25,7 +22,7 @@ export function mapStack(layers: readonly TileLayerName[]): (RasterLayer[] | Boa
   return out;
 }
 
-/** A space as the map marks it: how many perimeters it is on (0, 1, or more where they overlap) and whether it's on an Alien Artefact. */
+/** A space as the map marks it: how many perimeters it is on (0 or 1) and whether it's on an Alien Artefact. */
 export interface SpaceRole {
   p: Cell;
   perimeters: number;
@@ -34,19 +31,4 @@ export interface SpaceRole {
 
 export function spaceRoles(board: Board): SpaceRole[] {
   return spaces(board).map((p) => ({ p, perimeters: objectivesAround(board, p).length, artefact: !!cellAt(board, p)?.artefact }));
-}
-
-/** Where an objective sits on its tile, in spaces from the tile's middle as drawn. */
-function spotOnTile(board: Board, objective: Objective): Spot {
-  const { at } = drawing(board);
-  const [p, m] = [at(objective), at(tileCentres(board).get(cellAt(board, objective)!.tile)!)];
-  return { x: p.c - m.c, y: p.r - m.r };
-}
-
-/**
- * Which corner of an objective its number goes in, as on its printed tile (art `numberCorner`): the one
- * nearest its tile's middle, so on its own tile, clear of the map's edge and of the next tile's objective.
- */
-export function numberCorner(board: Board, objective: Objective): Corner {
-  return tileNumberCorner(spotOnTile(board, objective));
 }

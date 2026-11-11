@@ -77,7 +77,7 @@ export function addBarrier(s: GameState, p: Cell, owner: PlayerId) {
  * named as `objective N` so the UI can show its name. `after` goes at the end, before the full stop.
  */
 export function logTo(s: GameState, player: PlayerId, text: string, to: Cell, after = '') {
-  // Every objective whose perimeter it is on, where perimeters overlap; else every one it's diagonal to.
+  // The objective whose perimeter it is on; else every one it's diagonal to.
   const ringed = objectivesAround(s.board, to);
   const objectives = ringed.length ? ringed : s.board.objectives.filter((p) => diagonals(s.board, p).some((q) => same(q, to)));
   const names = objectives.map((p) => `objective ${p.number}`).join(' and ');

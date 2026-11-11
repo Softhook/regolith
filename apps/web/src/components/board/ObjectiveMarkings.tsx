@@ -1,4 +1,4 @@
-import { CUBE_PAD, OBJECTIVE_FAMILY, WELL, cubePadCentres, numberGlyph, numberPlacement, well, type Corner } from '@regolith/art';
+import { CUBE_PAD, OBJECTIVE_FAMILY, WELL, cubePadCentres, numberGlyph, numberPlacement, well } from '@regolith/art';
 
 /**
  * An objective's number as the tile prints it: white, outlined in a dark shade of the objective's hue, centred on (x, cy).
@@ -25,25 +25,10 @@ function ObjectiveNumber({ n, x, cy, size, className }: { n: number; x: number; 
 
 /**
  * An objective's number as placed and sized on the printed tile, centred on (cx, cy) at `mm` SVG units per printed millimetre.
- * `corner` moves it from the printed bottom right to another corner, as on a tile whose objective is off its middle (art `numberCorner`).
  */
-export function ObjectiveMark({
-  cx,
-  cy,
-  mm,
-  n,
-  className,
-  corner = { x: 1, y: 1 },
-}: {
-  cx: number;
-  cy: number;
-  mm: number;
-  n: number;
-  className?: string;
-  corner?: Corner;
-}) {
+export function ObjectiveMark({ cx, cy, mm, n, className }: { cx: number; cy: number; mm: number; n: number; className?: string }) {
   const at = numberPlacement(n);
-  return <ObjectiveNumber n={n} x={cx + corner.x * at.x * mm} cy={cy + corner.y * at.y * mm} size={at.size * mm} className={className} />;
+  return <ObjectiveNumber n={n} x={cx + at.x * mm} cy={cy + at.y * mm} size={at.size * mm} className={className} />;
 }
 
 /** The wells of an objective's cube spaces, as on the printed tile: all but the first `cubes`, which have a cube on them. Used by the board and the manual alike. */

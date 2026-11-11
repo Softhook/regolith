@@ -78,9 +78,7 @@ function MapDrawing({ sheet }: { sheet: ReturnType<typeof mapSheet> }) {
       {sheet.tiles.map((t, i) => (
         <TileShape key={i} t={t} />
       ))}
-      {sheet.tiles.map(
-        (t, i) => t.number > 0 && <Objective key={i} x={(t.x + t.at.x) * U} y={(t.y + t.at.y) * U} number={t.number} start={t.start} />,
-      )}
+      {sheet.tiles.map((t, i) => t.number > 0 && <Objective key={i} x={t.x * U} y={t.y * U} number={t.number} start={t.start} />)}
       {(['tunnel', 'wormhole'] as const).map((kind) => {
         const pair = marks.filter((m) => m.kind === kind);
         return (

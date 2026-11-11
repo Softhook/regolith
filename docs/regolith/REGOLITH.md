@@ -56,7 +56,7 @@ changing the label:
 
 Done (23 October 2026).
 
-- `REGOLITH` sets its own `mapGroups` rather than adding to Community's: `hex`, `open` and `drift`,
+- `REGOLITH` sets its own `mapGroups` rather than adding to Community's: `hex`, `open` and `prepared`,
   all hex. There are no square maps.
 - Every hex map names its world in [data/maps.yaml](../../data/maps.yaml), and
   [build-data.mjs](../../scripts/build-data.mjs) refuses one that doesn't, so a map's world is a choice, not a
@@ -64,9 +64,10 @@ Done (23 October 2026).
   Hellas Divide, Mare Trigonum, Stickney Crater and Limtoc are `phobos`; Beta Sector, The Great Plan, Tesseract
   (hex), Twin Drift, Trinary Wells, Trinary Drift and Fourfold Confluence are `deimos`; the rest are `mars`.
   (The engine still draws a test's ad-hoc hex map, which has no world, on Mars.)
-- The original seven advanced maps are in the hex group; new hex and off-centre layouts extend them for 2, 3 and
-  4 players. The open group (HEX.md *Open ground*) spreads its planets out with blank tiles; Regolith plays all
-  three groups.
+- The original seven advanced maps are in the hex group; new hex layouts extend them for 2, 3 and 4 players. The
+  open group (HEX.md *Open ground*) spreads its planets out with blank tiles; Regolith plays all three groups.
+  The drift group, with objectives off the middle of their tiles, went on 11 November 2026; its maps are hex
+  maps now, their objectives in the middle.
 - `regolith.test.ts` pins it: every Regolith map is hex and has a world.
 
 ## 3. Cards: data

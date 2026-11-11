@@ -1992,11 +1992,8 @@ svg.zones polygon {
   .lab-body, .lab-page { padding: 16px; }
 }
 
-.lobby-demo { margin: 18px auto 0; display: flex; }
-.lobby-links { display: flex; gap: 18px; justify-content: center; margin-top: 18px; font-size: 13px; }
-.lobby-links { flex-wrap: wrap; }
-.lobby-links a, .lobby-links button { color: var(--accent); text-decoration: none; background: none; border: 0; padding: 0; font: inherit; cursor: pointer; }
-@media (hover: hover) { .lobby-links a:hover, .lobby-links button:hover { text-decoration: underline; } }
+.lobby-links { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 18px; }
+.lobby-links a.btn { text-decoration: none; }
 
 /* ------------------------------------------------------------------ info popovers (InfoPop.tsx) */
 
@@ -2339,9 +2336,9 @@ body:has(.sheet-layout) { overflow: hidden; }
 /* Touch: small buttons keep their look but get a 44px hit area. */
 @media (pointer: coarse) {
   /* :where() keeps this from overriding a button's own position, e.g. the dialogs' top-right ×. */
-  :where(.icon-btn, .mini-btn, .segmented button, .topbar .btn, .zoom-controls button, .btn-icon, .brand, .skill-chip, .lobby-links a, .lobby-links button) { position: relative; }
+  :where(.icon-btn, .mini-btn, .segmented button, .topbar .btn, .zoom-controls button, .btn-icon, .brand, .skill-chip) { position: relative; }
   .icon-btn::after, .mini-btn::after, .segmented button::after, .topbar .btn::after, .zoom-controls button::after, .zoom-hint::after,
-  .btn-icon::after, .brand::after, .skill-chip::after, .lobby-links a::after, .lobby-links button::after {
+  .btn-icon::after, .brand::after, .skill-chip::after {
     content: ''; position: absolute; left: 50%; top: 50%;
     width: max(100%, 44px); height: max(100%, 44px); transform: translate(-50%, -50%);
   }

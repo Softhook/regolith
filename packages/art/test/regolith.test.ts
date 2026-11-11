@@ -1,15 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  BLED,
-  REGOLITH_GROUND_PX,
-  REGOLITH_SHADOW,
-  TILE_SPOTS,
-  rasterLayerSvg,
-  tileGroundSvg,
-  tileSpec,
-  tileSvg,
-  type World,
-} from '../src';
+import { BLED, REGOLITH_GROUND_PX, REGOLITH_SHADOW, rasterLayerSvg, tileGroundSvg, tileSpec, tileSvg, type World } from '../src';
 import { LIT, SCALE } from '../src/regolith/core';
 
 /**
@@ -20,8 +10,8 @@ import { LIT, SCALE } from '../src/regolith/core';
 
 const spec = tileSpec('p7-01');
 const IMAGE = 'data:image/png;base64,AAAA';
-/** A tile's lit ground alone, with its objective `at` a space. */
-const groundOf = (world: World, objectiveAt?: string) => tileGroundSvg(spec, { world, objectiveAt });
+/** A tile's lit ground alone. */
+const groundOf = (world: World) => tileGroundSvg(spec, { world });
 /** The ids of the filters a document draws with. */
 const filters = (svg: string) => new Set([...svg.matchAll(/filter="url\(#([\w-]+)\)"/g)].map((m) => m[1]));
 
@@ -42,12 +32,11 @@ describe('regolith ground in print', () => {
     for (const standing of ['rg-built', 'rg-cast', 'rg-dust']) expect(used.has(standing)).toBe(false);
   });
 
-  it.each(Object.keys(TILE_SPOTS))("is the tile's own ground, levelled round its objective's space (%s)", (at) => {
-    const ground = groundOf('mars', at);
+  it("is the tile's own ground", () => {
+    const ground = groundOf('mars');
     // Up to the end of the lit ground, the tile's ground starts the same: what stands on it follows.
     const lit = ground.slice(0, ground.lastIndexOf('</g></g>'));
-    expect(rasterLayerSvg(spec, 'mars', TILE_SPOTS[at]).startsWith(lit)).toBe(true);
-    if (at) expect(ground).not.toBe(groundOf('mars'));
+    expect(rasterLayerSvg(spec, 'mars').startsWith(lit)).toBe(true);
   });
 
   it.each(['phobos', 'deimos', 'mars'] as const)('goes in a tile as a bitmap, over its trim and bleed, under what stands (%s)', (world) => {

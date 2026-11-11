@@ -385,7 +385,7 @@
     "id": "chryse-planitia",
     "name": "Chryse Planitia",
     "players": 2,
-    "group": "drift",
+    "group": "hex",
     "cubes": 6,
     "stats": {
       "slack": 6,
@@ -396,7 +396,7 @@
     "length": "short",
     "layout": [
       [
-        "7se",
+        "7",
         "8*",
         ".",
         "."
@@ -404,7 +404,7 @@
       [
         "9",
         "0",
-        "7n"
+        "7"
       ],
       [
         ".",
@@ -413,7 +413,7 @@
         "."
       ],
       [
-        "7s",
+        "7",
         "0",
         "9"
       ],
@@ -421,7 +421,7 @@
         ".",
         ".",
         "8*",
-        "7nw"
+        "7"
       ]
     ]
   },
@@ -429,7 +429,7 @@
     "id": "roche-crater",
     "name": "Roche Crater",
     "players": 2,
-    "group": "drift",
+    "group": "hex",
     "cubes": 6,
     "stats": {
       "slack": 2,
@@ -441,7 +441,7 @@
     "layout": [
       [
         ".",
-        "7s*",
+        "7*",
         "8",
         "8"
       ],
@@ -455,7 +455,7 @@
         ".",
         "8",
         "8",
-        "7n*"
+        "7*"
       ]
     ]
   },
@@ -463,7 +463,7 @@
     "id": "acidalia-planitia",
     "name": "Acidalia Planitia",
     "players": 3,
-    "group": "drift",
+    "group": "hex",
     "cubes": 5,
     "stats": {
       "slack": 4,
@@ -475,18 +475,18 @@
     "layout": [
       [
         "8*",
-        "7ne",
+        "7",
         "8",
         "8*"
       ],
       [
         "8",
         "10",
-        "7s"
+        "7"
       ],
       [
         ".",
-        "7nw",
+        "7",
         "8"
       ],
       [
@@ -499,7 +499,7 @@
     "id": "medusae-fossae",
     "name": "Medusae Fossae",
     "players": 4,
-    "group": "drift",
+    "group": "hex",
     "cubes": 6,
     "stats": {
       "slack": 6,
@@ -515,7 +515,7 @@
       ],
       [
         "8",
-        "7ne",
+        "7",
         "9*"
       ],
       [
@@ -526,7 +526,7 @@
       ],
       [
         "9*",
-        "7sw",
+        "7",
         "8"
       ],
       [

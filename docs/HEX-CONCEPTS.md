@@ -271,8 +271,7 @@ worth a lot.
   current hex Alpha Sector 63.
 - **Chokepoints.** Gaps in the map, and debris placed at the start, make passes worth holding. Hexes have
   few natural chokepoints, so the map has to make them.
-- **Tiles that turn.** A flower tile with debris or an off-centre planet on it can be laid in 6 turns, so a few
-  tiles give many boards ([HEX.md](HEX.md), *Off-centre planets*).
+- **Tiles that turn.** A flower tile with debris on it can be laid in 6 turns, so a few tiles give many boards.
 
 ## 9. Terrain
 

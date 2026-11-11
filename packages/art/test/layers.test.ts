@@ -57,10 +57,6 @@ describe('raster layers alone, for the map', () => {
     expect(viewBox(rasterLayerSvg(seven, 'phobos'))).toBe(box(RASTER_AREA.ground));
     expect(viewBox(standingMaskSvg(seven))).toBe(box(RASTER_AREA.standing));
   });
-
-  it('have the ground built where the objective sits', () => {
-    expect(rasterLayerSvg(seven, 'phobos', { x: 0, y: -1 })).not.toBe(rasterLayerSvg(seven, 'phobos'));
-  });
 });
 
 describe('a blank tile', () => {

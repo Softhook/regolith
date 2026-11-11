@@ -23,7 +23,7 @@ export const REGOLITH_OVER_CLAIM = false;
 
 /**
  * Regolith (docs/regolith/REGOLITH.md): atomics, a starting skill drafted from its own decks (REGOLITH_DECKS) and
- * a card market with peeking. It plays the hex maps only, the hex, open-ground and off-centre (drift) ones, on
+ * a card market with peeking. It plays the hex maps only, the hex, open-ground and prepared ones, on
  * Phobos's, Deimos's and Mars's ground.
  */
 const REGOLITH: RuleSet = {
@@ -42,7 +42,7 @@ const REGOLITH: RuleSet = {
     reinforcementPile: true,
     terms: { skill: 'skill', skills: 'skills', skillDeck: 'Skills', tacticDeck: 'Tactics' },
   },
-  mapGroups: ['hex', 'open', 'drift', 'prepared'],
+  mapGroups: ['hex', 'open', 'prepared'],
   mechs: MECHS,
   overClaim: REGOLITH_OVER_CLAIM,
 };

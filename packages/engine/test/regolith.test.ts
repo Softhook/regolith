@@ -119,8 +119,8 @@ describe('Regolith mode', () => {
       expect(effectOf(c.id), c.id).toBe(c.id.slice(2));
     }
     expect(reinforcementCard(BASE.regolith)).toBe(own.reinforcement);
-    expect(regolith.mapGroups).toEqual(['hex', 'open', 'drift', 'prepared']);
-    const played = MAPS.filter((m) => ['hex', 'open', 'drift', 'prepared'].includes(m.group));
+    expect(regolith.mapGroups).toEqual(['hex', 'open', 'prepared']);
+    const played = MAPS.filter((m) => ['hex', 'open', 'prepared'].includes(m.group));
     for (const m of played) expect(m.world, m.id).toBeDefined();
     expect(played.map((m) => m.id)).toContain('chryse-planitia');
     expect(regolith.overClaim).toBe(REGOLITH_OVER_CLAIM);
@@ -670,23 +670,6 @@ describe('contested perimeter', () => {
     const check = claimCheck(s, 0, objective);
     expect(check.blocked).toBeUndefined();
     expect(check.reason).toMatch(/needs .*enemy mechs on the perimeter block it too \(3\)/);
-  });
-
-  it('on off-centre maps, an enemy on a space two perimeters share blocks both objectives', () => {
-    for (const map of ['chryse-planitia']) {
-      const base = quickStart(2, 1, 'regolith', map);
-      const shared = base.board.objectives
-        .flatMap((p) => perimeterSpaces(base.board, p))
-        .find((c) => objectivesAround(base.board, c).length > 1)!;
-      const objectives = objectivesAround(base.board, shared);
-      expect(objectives.length, map).toBe(2);
-      for (const objective of objectives) {
-        const [a, b] = perimeterSpaces(base.board, objective).filter((c) => c.r !== shared.r || c.c !== shared.c);
-        const s = arrange(base, { p0d0: [a.r, a.c, 6], p0d1: [b.r, b.c, objective.number - 6], p1d0: [shared.r, shared.c, 2] });
-        s.board.objectives[objective.id].cubes = [];
-        expect(claimCheck(s, 0, objective.id).blocked, `${map}, objective ${objective.number}`).toBe(true);
-      }
-    }
   });
 
   it('blocks over-claim too, when that is on', () => {
