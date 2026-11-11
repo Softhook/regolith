@@ -55,7 +55,7 @@ export const BoardArt = memo(function BoardArt({ game, cell }: { game: GameState
           </g>
         ))}
 
-        {/* Barriers (a power): soft glass bubbles on the planet's surface (BarrierBubble). */}
+        {/* Barriers (an ability): soft glass bubbles on the planet's surface (BarrierBubble). */}
         {(game.barriers ?? []).map((b) => (
           <BarrierBubble key={`b${b.r},${b.c}`} r={b.r} c={b.c} x={mid(b).x} y={mid(b).y} cell={cell} mm={mm} cast world={world} />
         ))}

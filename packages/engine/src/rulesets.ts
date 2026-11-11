@@ -1,6 +1,6 @@
 /**
  * The rule sets, by mode: Regolith (docs/regolith/PROTOTYPING.md, REGOLITH.md), and Basic, Regolith without its
- * cards. Kept apart from rules.ts because building them needs the mechs' powers (ships.ts), which use the whole
+ * cards. Kept apart from rules.ts because building them needs the mechs' abilities (ships.ts), which use the whole
  * engine: engine modules ask rulesOf (rules.ts), which imports none of this, so the engine loads the same
  * whichever of its modules is imported first.
  */
@@ -48,7 +48,7 @@ const REGOLITH: RuleSet = {
 };
 
 /**
- * Basic: Regolith without cards, for learning. The same mechs, powers, missiles, zones of control, contested
+ * Basic: Regolith without cards, for learning. The same mechs, abilities, missiles, zones of control, contested
  * orbits and maps, with no research, market or starting skill, so what a player learns carries over unchanged.
  */
 const BASIC: RuleSet = {

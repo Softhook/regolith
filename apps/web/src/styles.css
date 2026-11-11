@@ -435,7 +435,7 @@ input, select { font: inherit; }
   animation: hl-in .25s ease-out both;
 }
 @media (hover: hover) { .hl:hover span { transform: scale(1.5); opacity: 1; } }
-.hl-deploy span, .hl-drop span {
+.hl-deploy span, .hl-setDown span {
   width: 70%; height: 70%;
   border-radius: 22%;
   background: color-mix(in srgb, var(--mark) 8%, transparent);

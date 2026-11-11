@@ -73,7 +73,7 @@ export function hintFor(game: GameState, sel: Sel): string {
       return 'Choose another of your mechs to switch places with.';
     case 'freeAttack':
       return 'Choose an adjacent enemy to attack for free.';
-    case 'power': {
+    case 'ability': {
       const { ability } = shipOf(game, die(game, sel.die).value);
       return ability.hint ?? `${ability.name}: ${ability.text}`;
     }
@@ -85,8 +85,8 @@ export function hintFor(game: GameState, sel: Sel): string {
       return sel.tactical
         ? `${cardName('tactical')}: choose the space the ${carrier(game, sel.die)} moves to.`
         : `Choose where the ${carrier(game, sel.die)} flies (its own space means out and back).`;
-    case 'carryDrop':
-      return 'Choose where to drop the passenger.';
+    case 'carrySetDown':
+      return 'Choose where to set the passenger down.';
   }
   // Contested orbit: say why a planet whose orbit makes the sum can't be conquered.
   const blocked = game.board.planets.filter((p) => conquerCheck(game, game.turn.player, p.id).blocked).map((p) => `objective ${p.number}`);

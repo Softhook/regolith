@@ -12,7 +12,7 @@
  *   effects.ts    the implemented Skill and Tactic effects, as types
  *   skillRules.ts what every skill does, as hooks the rules read
  *   skillActions.ts skills used as an action of their own
- *   ships.ts      the mechs, and ShipHooks: how the powers in powers/ (one file each) plug in
+ *   ships.ts      the mechs, and ShipHooks: how the abilities in abilities/ (one file each) plug in
  *   rulesets.ts   the rule sets: Regolith, and Basic, Regolith without its cards
  *   turn.ts       start / end of turn, and auto-resolving decisions after each action
  *   legal.ts      legal action enumeration (AI, UI hints)

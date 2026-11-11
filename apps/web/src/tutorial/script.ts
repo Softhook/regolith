@@ -95,7 +95,7 @@ function settle(before: GameState, after: GameState, action: Action): number {
     case 'conquer':
     case 'infamy':
       return 2600;
-    case 'power':
+    case 'ability':
       return 1800;
     default:
       return 1500;

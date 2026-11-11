@@ -49,7 +49,7 @@ describe.each([2, 3, 4, 5] as AiLevel[])('contested orbit (Regolith), level %i',
     const { s, planet } = siege();
     const { s: after, actions } = playTurn(s, level);
     // A normal attack, the 1's free one, or a shot.
-    expect(actions.some((a) => (a.type === 'attack' || a.type === 'freeAttack' || a.type === 'power') && a.target === 'p1d0')).toBe(true);
+    expect(actions.some((a) => (a.type === 'attack' || a.type === 'freeAttack' || a.type === 'ability') && a.target === 'p1d0')).toBe(true);
     // Having cleared it, it conquers in the same turn.
     if (after.dice.find((d) => d.id === 'p1d0')!.loc.zone !== 'board') expect(after.board.planets[planet].cubes).toContain(0);
   });

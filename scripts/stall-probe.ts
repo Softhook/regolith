@@ -239,7 +239,7 @@ function play({ variant, players, game }: Task): GameResult {
     const added = (s.barriers?.length ?? 0) - before.barriers;
     if (added > 0) {
       r.barriers += added;
-      if (action.type !== 'power') r.barriersByCard += added;
+      if (action.type !== 'ability') r.barriersByCard += added;
       if (cap < Infinity) {
         // The cap: each owner's oldest barriers go first.
         const kept = [...s.barriers!].reverse().filter((b, i, all) => all.slice(0, i).filter((x) => x.owner === b.owner).length < cap);

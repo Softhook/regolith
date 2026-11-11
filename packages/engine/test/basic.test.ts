@@ -409,9 +409,9 @@ describe('ship abilities (p.8)', () => {
 
   it('2 Behemoth — Transport: carry a ship from a surrounding space, move 1–2, drop it in a surrounding space', () => {
     const base = scenario({ p0d0: [7, 3, 2], p0d1: [7, 2, 5] });
-    const carry = (to: Cell, drop: Cell): Action => ({ type: 'carry', die: 'p0d0', passenger: 'p0d1', to, drop });
+    const carry = (to: Cell, setDown: Cell): Action => ({ type: 'carry', die: 'p0d0', passenger: 'p0d1', to, setDown });
     expect(() => apply(base, carry({ r: 7, c: 6 }, { r: 7, c: 5 }))).toThrow(/Invalid carry/); // 3 spaces
-    expect(() => apply(base, carry({ r: 7, c: 5 }, { r: 9, c: 5 }))).toThrow(/Invalid carry/); // too far to drop
+    expect(() => apply(base, carry({ r: 7, c: 5 }, { r: 9, c: 5 }))).toThrow(/Invalid carry/); // too far to set down
     let s = apply(base, carry({ r: 7, c: 5 }, { r: 7, c: 6 }));
     expect(loc(s, 'p0d0')).toEqual(board(7, 5));
     expect(loc(s, 'p0d1')).toEqual(board(7, 6));
@@ -424,7 +424,7 @@ describe('ship abilities (p.8)', () => {
 
   it('2 Behemoth — Transport may fly out and back, ending where it started (designer, BGG thread 1074052)', () => {
     const s = scenario({ p0d0: [7, 3, 2], p0d1: [7, 2, 5] });
-    const back = apply(s, { type: 'carry', die: 'p0d0', passenger: 'p0d1', to: { r: 7, c: 3 }, drop: { r: 8, c: 3 } });
+    const back = apply(s, { type: 'carry', die: 'p0d0', passenger: 'p0d1', to: { r: 7, c: 3 }, setDown: { r: 8, c: 3 } });
     expect(loc(back, 'p0d0')).toEqual(board(7, 3));
     expect(loc(back, 'p0d1')).toEqual(board(8, 3));
     expect(back.turn.actionsLeft).toBe(2);
@@ -450,7 +450,7 @@ describe('ship abilities (p.8)', () => {
     expect(at(five, 'p0d0').value).toBe(5);
     expect(five.turn.actionsLeft).toBe(3);
     expect(Math.max(...[...moveOptions(five, 'p0d0').moves.values()].map((m) => m.steps))).toBe(3);
-    expect(legalActions(five)).toContainEqual({ type: 'power', die: 'p0d0', target: 'p1d0' });
+    expect(legalActions(five)).toContainEqual({ type: 'ability', die: 'p0d0', target: 'p1d0' });
   });
 });
 

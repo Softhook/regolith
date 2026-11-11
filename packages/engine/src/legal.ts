@@ -28,7 +28,7 @@ import {
   tacticalOptions,
   usedThisTurn,
 } from './queries';
-import { hasPower, hooksOf, rulesOf } from './rules';
+import { hasAbility, hooksOf, rulesOf } from './rules';
 import { anySkill, hasSkill } from './skillRules';
 import type { Action, Die, GameState, Pending } from './types';
 
@@ -118,11 +118,11 @@ const DECISION_CANDIDATES: { [K in Pending['kind']]: (s: GameState, head: Pendin
   },
 };
 
-/** Every Flagship transport by `d`: passenger, destination and drop. `range` 1 is Tactical's step. */
+/** Every Flagship transport by `d`: passenger, destination and where it is set down. `range` 1 is Tactical's step. */
 function carries(s: GameState, d: Die, range?: number) {
   return carryPassengers(s, d.id).flatMap((p) =>
     [...carryOptions(s, d.id, p.id, range).values()].flatMap((dest) =>
-      dest.drops.map((drop) => ({ passenger: p.id, to: dest.cell, drop })),
+      dest.setDowns.map((setDown) => ({ passenger: p.id, to: dest.cell, setDown })),
     ),
   );
 }
@@ -158,23 +158,23 @@ function actionPhaseOptions(s: GameState, opts: { includeCarry?: boolean }): Act
     }
     for (const { cell } of barrierBreaks(s, d)) out.push({ type: 'breakBarrier', die: d.id, cell });
     const action = hooksOf(s, d)?.action;
-    if (action) for (const c of action.options(s, d)) out.push({ type: 'power', die: d.id, ...c });
+    if (action) for (const c of action.options(s, d)) out.push({ type: 'ability', die: d.id, ...c });
     if (actions > 0 && canReconfigure(s, d)) out.push({ type: 'reconfigure', die: d.id });
     if (hasSkill(s, me, 'tactical') && !usedThisTurn(s, 'tactical')) {
       const tac = tacticalOptions(s, d.id);
       for (const m of tac.moves) out.push({ type: 'tactical', die: d.id, to: m.cell });
       if (canAttack(0)) for (const x of tac.attacks) out.push({ type: 'tactical', die: d.id, target: x.die.id });
-      if (hasPower(s, d, 'transport') && opts.includeCarry && canUseAbility(s, d)) {
+      if (hasAbility(s, d, 'transport') && opts.includeCarry && canUseAbility(s, d)) {
         for (const c of carries(s, d, 1)) out.push({ type: 'tactical', die: d.id, ...c });
       }
     }
     if (canUseAbility(s, d)) {
-      if (hasPower(s, d, 'strike') && canAttack(0))
+      if (hasAbility(s, d, 'strike') && canAttack(0))
         for (const x of freeAttackTargets(s, d.id)) out.push({ type: 'freeAttack', die: d.id, target: x.id });
-      if (hasPower(s, d, 'warp'))
+      if (hasAbility(s, d, 'warp'))
         for (const o of shipsOnBoard(s, me)) if (o.id !== d.id) out.push({ type: 'swap', die: d.id, other: o.id });
-      if (hasPower(s, d, 'modify')) out.push({ type: 'change', die: d.id, value: 3 }, { type: 'change', die: d.id, value: 5 });
-      if (hasPower(s, d, 'transport') && opts.includeCarry && canPayMove && canMoveDie(s, d)) {
+      if (hasAbility(s, d, 'modify')) out.push({ type: 'change', die: d.id, value: 3 }, { type: 'change', die: d.id, value: 5 });
+      if (hasAbility(s, d, 'transport') && opts.includeCarry && canPayMove && canMoveDie(s, d)) {
         for (const c of carries(s, d)) out.push({ type: 'carry', die: d.id, ...c });
       }
     }

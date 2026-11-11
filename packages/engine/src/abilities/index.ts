@@ -2,10 +2,10 @@
  * Ship abilities (rulebook p.8): once per die per turn, on your own turn, ships on the map only.
  * They cost no action, except that Transport (2) and Manoeuvre (5) happen during a move.
  * Manoeuvre is part of the move handler (actions.ts); the other five are here, with the action of a
- * power with hooks (ShipHooks.action).
+ * ability with hooks (ShipHooks.action).
  */
-import { key, same } from './board';
-import { startCombat } from './combat';
+import { key, same } from '../board';
+import { startCombat } from '../combat';
 import {
   fail,
   note,
@@ -20,17 +20,17 @@ import {
   shipName,
   spendPeaceful,
   type Handlers,
-} from './core';
-import type { ShipPower } from './data';
-import { boardLoc, cellOf, die } from './lookups';
-import { canMoveDie, carryOptions, carryPassengers, freeAttackTargets } from './queries';
-import { hasPower, hooksOf, rulesOf, shipOf } from './rules';
-import type { Cell, Die, GameState } from './types';
+} from '../core';
+import type { BuiltInAbility } from '../data';
+import { boardLoc, cellOf, die } from '../lookups';
+import { canMoveDie, carryOptions, carryPassengers, freeAttackTargets } from '../queries';
+import { hasAbility, hooksOf, rulesOf, shipOf } from '../rules';
+import type { Cell, Die, GameState } from '../types';
 
-function useAbility(s: GameState, d: Die, power: ShipPower) {
+function useAbility(s: GameState, d: Die, ability: BuiltInAbility) {
   if (d.loc.zone !== 'board') fail('Only mechs on the map can use abilities');
-  if (!hasPower(s, d, power)) {
-    const ship = Object.values(rulesOf(s).ships).find((x) => x.power === power);
+  if (!hasAbility(s, d, ability)) {
+    const ship = Object.values(rulesOf(s).ships).find((x) => x.builtIn === ability);
     fail(ship ? `Only a ${ship.name} can do that` : 'No mech has that ability in this mode');
   }
   markAbility(s, d);
@@ -38,17 +38,17 @@ function useAbility(s: GameState, d: Die, power: ShipPower) {
 
 /**
  * Flagship Transport: picks up `passenger` from a surrounding space, flies to `to` (within `range`,
- * default the flagship's movement) and drops it at `drop`, next to the flagship. Validates first;
+ * default the flagship's movement) and sets it down at `setDown`, next to the flagship. Validates first;
  * the caller pays for it.
  */
-export function transport(s: GameState, flagship: Die, passenger: string, to: Cell, drop: Cell, range?: number) {
+export function transport(s: GameState, flagship: Die, passenger: string, to: Cell, setDown: Cell, range?: number) {
   if (!carryPassengers(s, flagship.id).some((x) => x.id === passenger)) fail('Passenger must be next to the flagship');
   const dest = carryOptions(s, flagship.id, passenger, range).get(key(to));
-  if (!dest || !dest.drops.some((p) => same(p, drop))) fail('Invalid carry');
-  if (same(to, drop)) fail('Drop the passenger next to the flagship');
+  if (!dest || !dest.setDowns.some((p) => same(p, setDown))) fail('Invalid carry');
+  if (same(to, setDown)) fail('Set the passenger down next to the flagship');
   return () => {
     flagship.loc = boardLoc(to);
-    die(s, passenger).loc = boardLoc(drop);
+    die(s, passenger).loc = boardLoc(setDown);
   };
 }
 
@@ -61,12 +61,12 @@ export const abilityHandlers = {
     useAbility(s, d, 'strike');
     startCombat(s, d, die(s, a.target), cellOf(d)!);
   },
-  /** 2 Flagship — Transport: pick up a ship from a surrounding space, move, drop it in a surrounding space. */
+  /** 2 Flagship — Transport: pick up a ship from a surrounding space, move, set it down in a surrounding space. */
   carry(s, a) {
     requireActionPhase(s);
     const d = ownShip(s, a.die, 'board');
     if (!canMoveDie(s, d)) fail('This mech already moved this turn');
-    const fly = transport(s, d, a.passenger, a.to, a.drop);
+    const fly = transport(s, d, a.passenger, a.to, a.setDown);
     spendPeaceful(s); // a Transport is a move without an attack, so Curious can pay for it
     useAbility(s, d, 'transport');
     fly();
@@ -93,18 +93,18 @@ export const abilityHandlers = {
     markSeen(s, d);
     note(s, `${name(s, d.owner)} changes their ${was} into ${aShip(s, d)}.`, d.owner);
   },
-  /** A power's action (ShipHooks.action): legal exactly when its hooks offer it. */
-  power(s, a) {
+  /** An ability's action (ShipHooks.action): legal exactly when its hooks offer it. */
+  ability(s, a) {
     requireActionPhase(s);
     const d = ownShip(s, a.die, 'board');
     const action = hooksOf(s, d)?.action;
-    if (!action) fail('This mech has no such power');
+    if (!action) fail('This mech has no such ability');
     const choice = action.options(s, d).find((c) => c.target === a.target && (c.to && a.to ? same(c.to, a.to) : c.to === a.to));
     if (!choice) fail('This mech can’t do that now');
     const logged = s.logCounter;
     const ship = shipOf(s, d.value);
     action.apply(s, d, choice);
-    // Most powers say what they did (an attack, say); one that doesn't is still logged.
+    // Most abilities say what they did (an attack, say); one that doesn't is still logged.
     if (s.logCounter === logged) note(s, `${name(s, d.owner)}'s ${ship.name} uses ${ship.ability.name}.`, d.owner);
   },
 } satisfies Partial<Handlers>;

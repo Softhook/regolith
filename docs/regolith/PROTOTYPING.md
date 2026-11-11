@@ -144,14 +144,14 @@ Capping the total instead would make Agile useless on any ship showing 3 or more
 4. **Measure balance with AI self-play.**
    - `npm run ai:match -- 3 3 100 regolith 2`: turns per game and seat win rates. Compare with `basic`.
    - `npm run selfplay:cards -- 50 regolith`: card win, pick, and use rates.
-   - `npm run power:usage -- 20 basic,regolith`: how often each ship's power is used, against
+   - `npm run ability:usage -- 20 basic,regolith`: how often each ship's power is used, against
      how often it was on offer, per die value.
    - `npm run interaction -- 200 4,4`: how much the players get in each other's way (interaction ratio,
      harm by kind of action, conquests blocked), per mode and map, with and without cards
      ([HEX.md](../HEX.md) *Interaction*).
 
 **Still worth building:** a stats script that writes one CSV row per game: mode, turns, winner seat,
-attacks, conquers, and **moves per ship value**. `power:usage` covers power uses; moves per ship value
+attacks, conquers, and **moves per ship value**. `ability:usage` covers power uses; moves per ship value
 are what would show whether 4s, 5s and 6s are fielded or reconfigured away.
 
 **Caveat:** the AI plays legally under any rule, but its scoring in `evaluate.ts` is hand-tuned for
@@ -178,7 +178,7 @@ No up-front refactor is needed. Do each step when a rule needs it. Step 2 is don
 Step 2 mattered most for ship redesign and is complete. A ship's identity was formerly hard-coded as
 `d.value === N` across [abilities.ts](../../packages/engine/src/abilities.ts), `moveOptions`, and
 [legal.ts](../../packages/engine/src/legal.ts). Now each mode has a ship table (`RuleSet.ships`): the engine
-queries `hasPower(state, d, 'warp')` or reads a prototype's hooks, and the UI reads names and ability texts
+queries `hasAbility(state, d, 'warp')` or reads a prototype's hooks, and the UI reads names and ability texts
 through `shipOf(state, value)`.
 
 ---
@@ -284,7 +284,7 @@ on game length and Flagship survival.
 - Shoot and zones of control have scenario coverage (turn limit and line of sight; pass-through, starting
   in a zone, Devious, Warp Gate exits, hexes). Before activating Beacon, add scenarios for Beacon targets
   after a Scout is destroyed.
-- Self-play metrics on moves, attacks, and power uses per ship value (`power:usage`, and the CSV script in
+- Self-play metrics on moves, attacks, and power uses per ship value (`ability:usage`, and the CSV script in
   §3). Success criterion: 4s, 5s, and 6s are fielded intentionally rather than reconfigured away.
 - Average game length compared with Community Edition: the cap plus zones of control should lengthen games
   slightly, but exceeding a 30% increase suggests adding an action or offensive counterweight. With
@@ -732,7 +732,7 @@ the time and the other must go back to their own.
 - [ ] Run the interaction measure on Gamma Sector and with 3–4 players
 - [ ] Decide the 4's power: nothing registered since Picket became every ship's rule (§5.4)
 - [ ] Decide whether to activate Beacon (6); its source file is a candidate only
-- [ ] Write per-game stats script (CSV: moves per ship value; `power:usage` covers powers)
+- [ ] Write per-game stats script (CSV: moves per ship value; `ability:usage` covers powers)
 - [ ] Prototype Kinetic ships (§6.1) as a separate branch experiment
 - [ ] Evaluate Ship Activations (§6.9) if fleet expansion needs more command capacity
 

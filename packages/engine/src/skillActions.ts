@@ -25,7 +25,7 @@ import {
 import { cardName, card } from './data';
 import { boardLoc, cellOf, die } from './lookups';
 import { canGainResearch, tacticalOptions } from './queries';
-import { hasPower } from './rules';
+import { hasAbility } from './rules';
 import { ruleOf, skillCard, type SkillRule } from './skillRules';
 import type { Action, GameState, PlayerId } from './types';
 
@@ -76,9 +76,9 @@ export const skillHandlers = {
     const use = () => oncePerTurn(s, 'tactical');
     if (a.passenger) {
       // Flagship Transport over the 1 space (forum consensus, BGG thread 1093051).
-      if (!hasPower(s, d, 'transport')) fail('Only a mech with Carry & Move can transport');
-      if (!a.to || !a.drop) fail('Invalid carry');
-      const fly = transport(s, d, a.passenger, a.to, a.drop, 1);
+      if (!hasAbility(s, d, 'transport')) fail('Only a mech with Carry & Move can transport');
+      if (!a.to || !a.setDown) fail('Invalid carry');
+      const fly = transport(s, d, a.passenger, a.to, a.setDown, 1);
       use();
       markAbility(s, d);
       fly();

@@ -183,7 +183,7 @@ export interface CombatPending {
   from: Cell;
   /** The defender's space. */
   at: Cell;
-  /** A ranged attack (a power): the attacker fired from where it stands and doesn't advance if it wins. */
+  /** A ranged attack (an ability): the attacker fired from where it stands and doesn't advance if it wins. */
   ranged?: true;
 }
 
@@ -310,8 +310,8 @@ export type Action =
   | { type: 'move'; die: string; to: Cell }
   /** `from`: the space to attack from (moveOptions launches); the nearest when left out. */
   | { type: 'attack'; die: string; target: string; from?: Cell }
-  /** A ship power's action (ShipHooks.action), aimed at a ship, a space or both. */
-  | { type: 'power'; die: string; target?: string; to?: Cell }
+  /** A ship ability's action (ShipHooks.action), aimed at a ship, a space or both. */
+  | { type: 'ability'; die: string; target?: string; to?: Cell }
   | { type: 'deploy'; die: string; to: Cell }
   /** Destroy the barrier on `cell` (RuleSet.breakBarriers, breakBarriers.ts). */
   | { type: 'breakBarrier'; die: string; cell: Cell }
@@ -321,7 +321,7 @@ export type Action =
   | { type: 'endTurn' }
   // ship abilities
   | { type: 'freeAttack'; die: string; target: string }
-  | { type: 'carry'; die: string; passenger: string; to: Cell; drop: Cell }
+  | { type: 'carry'; die: string; passenger: string; to: Cell; setDown: Cell }
   | { type: 'swap'; die: string; other: string }
   | { type: 'change'; die: string; value: 3 | 5 }
   // activated skills
@@ -329,8 +329,8 @@ export type Action =
   | { type: 'ambitious' }
   | { type: 'flexible'; die: string; delta: 1 | -1 }
   | { type: 'resourceful'; die: string }
-  /** Tactical's 1-space move (`to`) or attack (`target`); with `passenger` + `drop` it is a Flagship transport. */
-  | { type: 'tactical'; die: string; to?: Cell; target?: string; passenger?: string; drop?: Cell }
+  /** Tactical's 1-space move (`to`) or attack (`target`); with `passenger` + `setDown` it is a Flagship transport. */
+  | { type: 'tactical'; die: string; to?: Cell; target?: string; passenger?: string; setDown?: Cell }
   // combat & decisions
   | { type: 'missile'; by: PlayerId; side: CombatRole }
   | { type: 'dangerous'; destroy: boolean }

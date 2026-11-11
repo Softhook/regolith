@@ -159,7 +159,7 @@ or barriers (`start:` in the YAML, group `prepared`): `npm run map:show -- <id>`
 | [`maps.test.ts`](../packages/engine/test/maps.test.ts) | Map stats match layouts; a map's starting tunnel and barriers sit on spaces, leave each start its room, keep every objective reachable, and play out to a winner |
 | [`off-turn.test.ts`](../packages/engine/test/off-turn.test.ts) | Cards taken on someone else's turn (skills, Kill Zone, Forced March); Ice Tunnel, Headhunter and Final Push edge cases; when Science Survey asks |
 | [`words.test.ts`](../packages/engine/test/words.test.ts), [`skill-log.test.ts`](../packages/engine/test/skill-log.test.ts), [`stats.test.ts`](../packages/engine/test/stats.test.ts) | The log in Regolith's words; skills that fire by themselves named on it; the players' game stats |
-| [`powerUsage.test.ts`](../packages/engine/test/powerUsage.test.ts) | How often each mech power is offered and used (`npm run power:usage` for real numbers) |
+| [`abilityUsage.test.ts`](../packages/engine/test/abilityUsage.test.ts) | How often each mech power is offered and used (`npm run ability:usage` for real numbers) |
 
 Shared helpers (`quickStart`, `aiAction`, `playAiGame`…) are in [`test/helpers.ts`](../packages/engine/test/helpers.ts). `npm run selfplay:cards` (card win, pick and use rates over AI self-play) plays its games through the card audit too, with skills drafted rather than dealt. `npm run check` typechecks
 everything (tests included) and runs the tests.

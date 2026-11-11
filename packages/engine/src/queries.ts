@@ -126,7 +126,7 @@ export function movementRange(state: GameState, d: Die): number {
 
 /**
  * Spaces where `mover`'s ships must stop, by board cell index (`at` is shipsByIndex): around enemy
- * ships with `stopsEnemies` (a power, ShipHooks). Undefined when nothing stops them, so plain searches stay plain.
+ * ships with `stopsEnemies` (an ability, ShipHooks). Undefined when nothing stops them, so plain searches stay plain.
  * Devious ignores them: it slips past enemy ships (ruling 2026-10-12).
  */
 export function stopZone(state: GameState, mover: PlayerId, at: (Die | undefined)[]): Uint8Array | undefined {
@@ -468,7 +468,7 @@ export function shipReach(state: GameState, d: Die, at: (Die | undefined)[]): Sh
 }
 
 /**
- * Destinations for a flagship carrying `passenger`, and where the passenger may be dropped.
+ * Destinations for a flagship carrying `passenger`, and where the passenger may be set down.
  * `range` defaults to the flagship's movement; Tactical transports exactly 1 space.
  */
 export function carryOptions(state: GameState, flagshipId: string, passengerId: string, range?: number) {
@@ -476,7 +476,7 @@ export function carryOptions(state: GameState, flagshipId: string, passengerId: 
   const passenger = die(state, passengerId);
   const start = cellOf(flag);
   const pCell = cellOf(passenger);
-  const result = new Map<string, { cell: Cell; drops: Cell[] }>();
+  const result = new Map<string, { cell: Cell; setDowns: Cell[] }>();
   if (!start || !pCell) return result;
   range ??= movementRange(state, flag);
   const { cols, cells, space } = grid(state.board);
@@ -486,12 +486,12 @@ export function carryOptions(state: GameState, flagshipId: string, passengerId: 
     // BGG thread 1074052): that needs 2 movement and one free neighbouring space.
     if (steps[i] === 0 && (range < 2 || found.length < 2)) continue;
     const cell = cells[i];
-    const drops = adjacent(state.board, cell).filter((q) => {
+    const setDowns = adjacent(state.board, cell).filter((q) => {
       if (!space[q.r * cols + q.c] || barrierAt(state, q)) return false;
       const occupant = dieAt(state, q);
       return !occupant || occupant.id === flag.id || occupant.id === passenger.id;
     });
-    if (drops.length) result.set(key(cell), { cell, drops });
+    if (setDowns.length) result.set(key(cell), { cell, setDowns });
   }
   return result;
 }

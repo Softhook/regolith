@@ -209,7 +209,7 @@ function missileOdds(attacker: number, defender: number): number {
 /**
  * Contested orbit: the chance of clearing `blockers` from a planet's orbit, and the attack actions it
  * takes. Each blocker needs a ship of its own, as a ship acts once a turn. A ship in `orbit` (making
- * the sum) only counts where it attacks without leaving its space, next to the blocker or with its power
+ * the sum) only counts where it attacks without leaving its space, next to the blocker or with its ability
  * (Shoot); a missile left sets the attacker's roll to 1. A blocker none of mine can attack yet takes a
  * move first (UNREACHED_BLOCKER).
  */

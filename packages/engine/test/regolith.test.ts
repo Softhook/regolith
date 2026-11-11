@@ -49,9 +49,9 @@ import {
 import { cubeLeft } from '../src/core';
 import { beginPlay, settle } from '../src/turn';
 import { REGOLITH_DECKS, REGOLITH_OVER_CONQUEST } from '../src/rulesets';
-import { barrier as barrierPower, barrierTargets } from '../src/powers/barrier';
-import { picket } from '../src/powers/picket';
-import { shoot as shootPower, shootTargets } from '../src/powers/shoot';
+import { barrier as barrierAbility, barrierTargets } from '../src/abilities/barrier';
+import { picket } from '../src/abilities/picket';
+import { shoot as shootAbility, shootTargets } from '../src/abilities/shoot';
 import { arrange, quickStart } from './helpers';
 import { toRow } from './audit';
 
@@ -82,7 +82,7 @@ const offered = (s: GameState, type: Action['type']) => legalActions(s).filter((
 /** The ships p0d0 may shoot now, by the legal actions (so cost and power included). */
 const shots = (s: GameState) =>
   legalActions(s)
-    .flatMap((a) => (a.type === 'power' && a.die === 'p0d0' && a.target ? [a.target] : []))
+    .flatMap((a) => (a.type === 'ability' && a.die === 'p0d0' && a.target ? [a.target] : []))
     .sort();
 
 describe('Regolith mode', () => {
@@ -122,11 +122,11 @@ describe('Regolith mode', () => {
     for (const m of played) expect(m.world, m.id).toBeDefined();
     expect(played.map((m) => m.id)).toContain('twin-drift');
     expect(regolith.overConquest).toBe(REGOLITH_OVER_CONQUEST);
-    expect(regolith.ships[5].hooks).toEqual({ ...shootPower.hooks, ...picket.hooks });
-    expect(regolith.ships[5].power).toBeUndefined();
-    expect(regolith.ships[6].hooks).toEqual({ ...barrierPower.hooks, ...picket.hooks });
-    expect(regolith.ships[6].power).toBeUndefined();
-    expect([1, 2, 3, 4].map((v) => regolith.ships[v].power)).toEqual(['strike', 'transport', 'warp', 'modify']);
+    expect(regolith.ships[5].hooks).toEqual({ ...shootAbility.hooks, ...picket.hooks });
+    expect(regolith.ships[5].builtIn).toBeUndefined();
+    expect(regolith.ships[6].hooks).toEqual({ ...barrierAbility.hooks, ...picket.hooks });
+    expect(regolith.ships[6].builtIn).toBeUndefined();
+    expect([1, 2, 3, 4].map((v) => regolith.ships[v].builtIn)).toEqual(['strike', 'transport', 'warp', 'modify']);
     expect([1, 2, 3, 4, 5, 6].map((v) => regolith.ships[v].name)).toEqual([
       'Breacher',
       'Behemoth',
@@ -146,7 +146,7 @@ describe('Regolith mode', () => {
     expect(basic).toEqual(regolith);
     const s = scenario({ p0d0: [7, 2, 5], p1d0: [7, 4, 4], p1d1: [12, 2, 6] });
     s.mode = 'basic';
-    expect(offered(s, 'power')).toEqual([{ type: 'power', die: 'p0d0', target: 'p1d0' }]);
+    expect(offered(s, 'ability')).toEqual([{ type: 'ability', die: 'p0d0', target: 'p1d0' }]);
     expect(stopZone(s, 0, shipsByIndex(s))).toBeDefined();
   });
 
@@ -390,7 +390,7 @@ describe('classic 5 and 6 abilities are gone, the 4 is kept', () => {
 describe('Shoot (5 Sniper)', () => {
   /** Shoots and fixes both combat rolls (lower total wins). */
   function shoot(s: GameState, target: string, attackerRoll: number, defenderRoll: number) {
-    s = apply(s, { type: 'power', die: 'p0d0', target });
+    s = apply(s, { type: 'ability', die: 'p0d0', target });
     const c = s.pending[0];
     if (c?.kind !== 'combat') throw new Error('no combat');
     c.attacker.dice = [attackerRoll];
@@ -401,7 +401,7 @@ describe('Shoot (5 Sniper)', () => {
 
   it('attacks a ship 2 spaces away, and stays put when it wins', () => {
     const s0 = scenario({ p0d0: [7, 2, 5], p1d0: [7, 4, 3] });
-    expect(offered(s0, 'power')).toEqual([{ type: 'power', die: 'p0d0', target: 'p1d0' }]);
+    expect(offered(s0, 'ability')).toEqual([{ type: 'ability', die: 'p0d0', target: 'p1d0' }]);
     const s = shoot(s0, 'p1d0', 1, 6);
     expect(at(s, 'p1d0').loc.zone).toBe('scrapyard');
     expect(at(s, 'p0d0').loc).toEqual({ zone: 'board', r: 7, c: 2 });
@@ -412,7 +412,7 @@ describe('Shoot (5 Sniper)', () => {
   it('is the ship’s one action: no move, attack or second shot after it', () => {
     const s = shoot(scenario({ p0d0: [7, 2, 5], p1d0: [7, 4, 3], p1d1: [5, 2, 2] }), 'p1d0', 6, 1);
     expect(s.turn.actionsLeft).toBe(2);
-    expect(mine(s, 'power')).toEqual([]);
+    expect(mine(s, 'ability')).toEqual([]);
     expect(mine(s, 'move')).toEqual([]);
     expect(mine(s, 'attack')).toEqual([]);
     expect(() => apply(s, { type: 'move', die: 'p0d0', to: { r: 8, c: 2 } })).toThrow(/already moved/);
@@ -463,15 +463,15 @@ describe('Shoot (5 Sniper)', () => {
 
   it('only the 5, the Sniper, can shoot', () => {
     expect(shots(scenario({ p0d0: [7, 2, 4], p1d0: [7, 4, 3] }))).toEqual([]);
-    expect(() => apply(scenario({ p0d0: [7, 2, 4], p1d0: [7, 4, 3] }), { type: 'power', die: 'p0d0', target: 'p1d0' })).toThrow(
-      /no such power/,
+    expect(() => apply(scenario({ p0d0: [7, 2, 4], p1d0: [7, 4, 3] }), { type: 'ability', die: 'p0d0', target: 'p1d0' })).toThrow(
+      /no such ability/,
     );
   });
 });
 
 describe('Barrier (6 Wisp)', () => {
   const cells = (list: { r: number; c: number }[]) => list.map((p) => `${p.r},${p.c}`).sort();
-  const fire = (s: GameState, r: number, c: number, die = 'p0d0') => apply(s, { type: 'power', die, to: { r, c } });
+  const fire = (s: GameState, r: number, c: number, die = 'p0d0') => apply(s, { type: 'ability', die, to: { r, c } });
 
   it('lands on any clear space in a straight line out of a side, at any distance', () => {
     // From (7,2): along the row up to the enemy at (7,6), up column 2 to the map's edge, up and right to the 7
@@ -499,10 +499,10 @@ describe('Barrier (6 Wisp)', () => {
     expect(s.barriers).toEqual([{ r: 7, c: 4, owner: 0 }]);
     expect(s.turn.actionsLeft).toBe(3);
     expect(offered(s, 'move').some((a) => 'die' in a && a.die === 'p0d0')).toBe(true);
-    expect(offered(s, 'power')).toEqual([]);
+    expect(offered(s, 'ability')).toEqual([]);
     // After a move too.
     const moved = apply(scenario({ p0d0: [7, 2, 6] }), { type: 'move', die: 'p0d0', to: { r: 7, c: 3 } });
-    expect(offered(moved, 'power').length).toBeGreaterThan(0);
+    expect(offered(moved, 'ability').length).toBeGreaterThan(0);
   });
 
   it('blocks every move into or through its space', () => {
@@ -563,8 +563,8 @@ describe('Barrier (6 Wisp)', () => {
   });
 
   it('only the 6, the Wisp, fires barriers', () => {
-    expect(offered(scenario({ p0d0: [7, 2, 4] }), 'power')).toEqual([]);
-    expect(() => fire(scenario({ p0d0: [7, 2, 4] }), 7, 4)).toThrow(/no such power/);
+    expect(offered(scenario({ p0d0: [7, 2, 4] }), 'ability')).toEqual([]);
+    expect(() => fire(scenario({ p0d0: [7, 2, 4] }), 7, 4)).toThrow(/no such ability/);
   });
 });
 

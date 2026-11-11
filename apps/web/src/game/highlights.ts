@@ -14,7 +14,7 @@ import {
 import type { Sel } from './controller';
 import type { Legal } from './legal';
 
-type CellTone = 'move' | 'deploy' | 'gate' | 'drop' | 'launch' | 'barrier';
+type CellTone = 'move' | 'deploy' | 'gate' | 'setDown' | 'launch' | 'barrier';
 type DieTone = 'attack' | 'swap' | 'target' | 'passenger';
 type PlanetTone = 'conquer' | 'infamy' | 'start' | 'blocked';
 
@@ -113,7 +113,9 @@ export function highlightsFor(game: GameState, sel: Sel, legal: Legal, actionPha
   // A Flagship transport, as a regular carry or as a Tactical step.
   const transports = (die: string, tactical?: boolean) =>
     tactical
-      ? legal.of('tactical', (a) => a.die === die && !!a.passenger).map((a) => ({ passenger: a.passenger!, to: a.to!, drop: a.drop! }))
+      ? legal
+          .of('tactical', (a) => a.die === die && !!a.passenger)
+          .map((a) => ({ passenger: a.passenger!, to: a.to!, setDown: a.setDown! }))
       : legal.of('carry', (a) => a.die === die);
   switch (sel.kind) {
     case 'ship': {
@@ -154,8 +156,8 @@ export function highlightsFor(game: GameState, sel: Sel, legal: Legal, actionPha
     case 'freeAttack':
       for (const a of legal.of('freeAttack', (a) => a.die === sel.die)) h.dice.set(a.target, 'attack');
       break;
-    case 'power':
-      for (const a of legal.of('power', (a) => a.die === sel.die)) {
+    case 'ability':
+      for (const a of legal.of('ability', (a) => a.die === sel.die)) {
         if (a.target) h.dice.set(a.target, 'attack');
         else if (a.to) h.cells.set(key(a.to), { cell: a.to, tone: 'move' });
       }
@@ -171,12 +173,12 @@ export function highlightsFor(game: GameState, sel: Sel, legal: Legal, actionPha
         'move',
       );
       break;
-    case 'carryDrop':
+    case 'carrySetDown':
       addCells(
         transports(sel.die, sel.tactical)
           .filter((t) => t.passenger === sel.passenger && same(t.to, sel.to))
-          .map((t) => t.drop),
-        'drop',
+          .map((t) => t.setDown),
+        'setDown',
       );
       break;
   }

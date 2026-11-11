@@ -29,8 +29,8 @@ export type Sel =
   | { kind: 'scrap'; die: string }
   | { kind: 'swap'; die: string }
   | { kind: 'freeAttack'; die: string }
-  /** A ship power's action (ShipHooks.action). */
-  | { kind: 'power'; die: string }
+  /** A ship ability's action (ShipHooks.action). */
+  | { kind: 'ability'; die: string }
   | { kind: 'tactical'; die: string }
   | { kind: 'kineticShunt'; die: string }
   | { kind: 'shuntBarrier'; from: Cell }
@@ -39,7 +39,7 @@ export type Sel =
   // `tactical`: a 1-space transport using the Tactical skill instead of a Move action.
   | { kind: 'carryPassenger'; die: string; tactical?: boolean }
   | { kind: 'carryDest'; die: string; passenger: string; tactical?: boolean }
-  | { kind: 'carryDrop'; die: string; passenger: string; to: Cell; tactical?: boolean };
+  | { kind: 'carrySetDown'; die: string; passenger: string; to: Cell; tactical?: boolean };
 
 const NONE: Sel = { kind: 'none' };
 
@@ -95,7 +95,8 @@ export function useController(game: GameState, dispatch: Dispatch, mine: (p: Pla
       if (head) return false;
       if (sel.kind === 'swap' && tone === 'swap') return void (dispatch({ type: 'swap', die: sel.die, other: id }) && setSel(NONE));
       if (sel.kind === 'freeAttack' && tone === 'attack') return void dispatch({ type: 'freeAttack', die: sel.die, target: id });
-      if (sel.kind === 'power' && tone === 'attack') return void (dispatch({ type: 'power', die: sel.die, target: id }) && setSel(NONE));
+      if (sel.kind === 'ability' && tone === 'attack')
+        return void (dispatch({ type: 'ability', die: sel.die, target: id }) && setSel(NONE));
       if (sel.kind === 'tactical' && tone === 'attack') return void dispatch({ type: 'tactical', die: sel.die, target: id });
       if ((sel.kind === 'ship' || sel.kind === 'attackFrom') && (tone === 'attack' || tone === 'target')) {
         // One space to attack from: attack. Several: choose one, or tap the target again for the nearest.
@@ -115,7 +116,7 @@ export function useController(game: GameState, dispatch: Dispatch, mine: (p: Pla
         // Out-and-back transport: the flagship ends where it started.
         const here = cellOf(getDie(game, id));
         if (here && highlights.cells.has(key(here)))
-          return select({ kind: 'carryDrop', die: sel.die, passenger: sel.passenger, to: here, tactical: sel.tactical });
+          return select({ kind: 'carrySetDown', die: sel.die, passenger: sel.passenger, to: here, tactical: sel.tactical });
       }
       const d = getDie(game, id);
       if (actionPhase && d.owner === game.turn.player) {
@@ -166,12 +167,12 @@ export function useController(game: GameState, dispatch: Dispatch, mine: (p: Pla
           return place({ type: 'deploy', die: sel.die, to: cell });
         case 'tactical':
           return place({ type: sel.kind, die: sel.die, to: cell });
-        case 'power':
-          return place({ type: 'power', die: sel.die, to: cell });
+        case 'ability':
+          return place({ type: 'ability', die: sel.die, to: cell });
         case 'carryDest':
-          return select({ kind: 'carryDrop', die: sel.die, passenger: sel.passenger, to: cell, tactical: sel.tactical });
-        case 'carryDrop':
-          return place({ type: sel.tactical ? 'tactical' : 'carry', die: sel.die, passenger: sel.passenger, to: sel.to, drop: cell });
+          return select({ kind: 'carrySetDown', die: sel.die, passenger: sel.passenger, to: cell, tactical: sel.tactical });
+        case 'carrySetDown':
+          return place({ type: sel.tactical ? 'tactical' : 'carry', die: sel.die, passenger: sel.passenger, to: sel.to, setDown: cell });
       }
     },
     [human, highlights, head, sel, game, dispatch, select, place],
@@ -209,7 +210,7 @@ export interface AttackPreview {
 /** For each ship the selected ship may attack: how it would go, from the space it would attack from. */
 function attackPreviews(game: GameState, sel: Sel, dice: ReadonlyMap<string, string>): Map<string, AttackPreview> {
   const out = new Map<string, AttackPreview>();
-  if (sel.kind !== 'ship' && sel.kind !== 'attackFrom' && sel.kind !== 'freeAttack' && sel.kind !== 'power' && sel.kind !== 'tactical')
+  if (sel.kind !== 'ship' && sel.kind !== 'attackFrom' && sel.kind !== 'freeAttack' && sel.kind !== 'ability' && sel.kind !== 'tactical')
     return out;
   const attacker = getDie(game, sel.die);
   // A Move attack goes in from a space next to the target (the nearest, until the player chooses);

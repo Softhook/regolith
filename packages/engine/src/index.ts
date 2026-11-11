@@ -3,7 +3,7 @@ export * from './data';
 export {
   defaultMapFor,
   expansionCard,
-  hasPower,
+  hasAbility,
   hooksOf,
   modeHasHook,
   playerCounts,
@@ -15,7 +15,7 @@ export {
 } from './rules';
 export { DEFAULT_MODE, MODES, RULESETS } from './rulesets';
 export type { ActionOf } from './core';
-export type { Power, PowerChoice, ShipHooks } from './ships';
+export type { MechAbility, AbilityChoice, ShipHooks } from './ships';
 export * from './board';
 export * from './lookups';
 export * from './queries';

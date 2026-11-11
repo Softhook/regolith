@@ -7,7 +7,7 @@ import { straightLines } from '../board';
 import { addBarrier, logTo, markAbility, name, shipName } from '../core';
 import { cellOf, isEmptySpace } from '../lookups';
 import { canHoldBarrier, canUseAbility } from '../queries';
-import { type Power } from '../ships';
+import { type MechAbility } from '../ships';
 import { type Cell, type Die, type GameState } from '../types';
 
 /** The spaces a barrier can land on from where the ship stands. */
@@ -26,7 +26,7 @@ export function barrierTargets(s: GameState, d: Die): Cell[] {
   return out;
 }
 
-export const barrier: Power = {
+export const barrier: MechAbility = {
   ability: {
     name: 'Barrier',
     text: 'Once a turn, besides its move and for no action, fire a barrier onto any empty space in a straight line out of a side of its space (not diagonally), as far as the line is clear (objectives, the edge of the board, mechs and barriers block it; the void and ice tunnels do not, but it can’t land on a gate). A barrier stays for good: no mech moves, drops or shoots through its space. It may hold a perimeter space.',

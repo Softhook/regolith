@@ -1,6 +1,6 @@
 /**
  * Breaking barriers, a rule on trial (RuleSet.breakBarriers, off in every mode; scripts/stall-probe.ts and
- * power-ab.ts switch it on): a mech destroys a barrier next to it as its one action of the turn, the way it
+ * ability-ab.ts switch it on): a mech destroys a barrier next to it as its one action of the turn, the way it
  * attacks. No roll, nothing to defend it; any barrier, the player's own and the map's too.
  *
  * - `smash`: only a barrier next to where the mech stands; it doesn't move.
@@ -10,7 +10,7 @@
 import { adjacent, same, straightLines } from './board';
 import { fail, logTo, markMoved, name, ownShip, requireActionPhase, shipName, spend, type Handlers } from './core';
 import { barrierAt, boardLoc, cellOf, isEmptySpace } from './lookups';
-import { shoot } from './powers/shoot';
+import { shoot } from './abilities/shoot';
 import { canMoveDie, moveOptions } from './queries';
 import { hooksOf, rulesOf } from './rules';
 import type { Cell, Die, GameState } from './types';

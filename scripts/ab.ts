@@ -1,5 +1,5 @@
 /**
- * The A/B value tests (skill-ab.ts, power-ab.ts): the same AI level on both sides of 2-player games,
+ * The A/B value tests (skill-ab.ts, ability-ab.ts): the same AI level on both sides of 2-player games,
  * side A with something side B lacks, one variant at a time. Seats swap every game and each pair of
  * games shares a map seed, so a variant worth nothing comes out near 50%.
  *

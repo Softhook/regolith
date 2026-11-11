@@ -190,7 +190,7 @@ export function GoalAnimation() {
 }
 
 /** Each mech's ability in a line, for a screen with room for one. The manual has the rules text in full. */
-const POWER_LINE: Record<number, string> = {
+const ABILITY_LINE: Record<number, string> = {
   1: 'Attacks an adjacent enemy for free, without using its move.',
   2: 'Carries a nearby mech of yours as it moves, then sets it down beside it.',
   3: 'Swaps places with any other mech of yours.',
@@ -221,10 +221,10 @@ export function MechProfile({ v, part }: { v: number; part: 'who' | 'ability' })
           </p>
         </div>
       ) : (
-        <div className="mn-profile-power">
+        <div className="mn-profile-ability">
           <small>{SHIPS[v].name}’s ability</small>
           <span className="mn-ability">{SHIPS[v].ability.name}</span>
-          <p>{POWER_LINE[v]}</p>
+          <p>{ABILITY_LINE[v]}</p>
           <AbilityFigure v={v} />
         </div>
       )}

@@ -75,10 +75,10 @@ function bruteForce(s: GameState, withCarry: boolean): Action[] {
         { type: 'move', die: d.id, to },
         { type: 'deploy', die: d.id, to },
         { type: 'tactical', die: d.id, to },
-        { type: 'power', die: d.id, to },
+        { type: 'ability', die: d.id, to },
       );
     for (const o of onBoard) {
-      out.push({ type: 'power', die: d.id, target: o.id });
+      out.push({ type: 'ability', die: d.id, target: o.id });
       if (o.owner === me) out.push({ type: 'swap', die: d.id, other: o.id });
       else
         out.push(
@@ -101,9 +101,9 @@ function bruteForce(s: GameState, withCarry: boolean): Action[] {
       for (const p of mine) {
         if (p.id === d.id || p.loc.zone !== 'board') continue;
         for (const to of near)
-          for (const drop of adjacent(s.board, to)) {
-            out.push({ type: 'carry', die: d.id, passenger: p.id, to, drop });
-            out.push({ type: 'tactical', die: d.id, passenger: p.id, to, drop });
+          for (const setDown of adjacent(s.board, to)) {
+            out.push({ type: 'carry', die: d.id, passenger: p.id, to, setDown });
+            out.push({ type: 'tactical', die: d.id, passenger: p.id, to, setDown });
           }
       }
     }

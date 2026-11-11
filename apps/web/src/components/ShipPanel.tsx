@@ -30,8 +30,8 @@ export function ShipPanel({ game, ctl, dispatch }: { game: GameState; ctl: Contr
   const mine = (a: { die: string }) => a.die === d.id;
   const ship = shipOf(game, d.value);
   const ability = ship.ability;
-  // A power with hooks and no built-in power is never "used this turn".
-  const passive = !ship.power;
+  // An ability with hooks and no built-in one is never "used this turn".
+  const passive = !ship.builtIn;
   const cancel = () => ctl.select({ kind: 'none' });
   // The cards in the odds shown on the ships it may attack (the same for most targets).
   const factors = [
@@ -50,16 +50,16 @@ export function ShipPanel({ game, ctl, dispatch }: { game: GameState; ctl: Contr
       return (
         <button
           className="btn"
-          disabled={!legal.can('power', mine)}
-          onClick={() => ctl.select({ kind: 'power', die: d.id })}
-          title={legal.can('power', mine) ? ability.text : `${ability.name} unavailable now. ${ability.text}`}
+          disabled={!legal.can('ability', mine)}
+          onClick={() => ctl.select({ kind: 'ability', die: d.id })}
+          title={legal.can('ability', mine) ? ability.text : `${ability.name} unavailable now. ${ability.text}`}
         >
           {ability.name}
         </button>
       );
     }
     if (used) return null;
-    switch (ship.power) {
+    switch (ship.builtIn) {
       case 'strike':
         return (
           <button className="btn" disabled={!legal.can('freeAttack', mine)} onClick={() => ctl.select({ kind: 'freeAttack', die: d.id })}>

@@ -88,18 +88,18 @@ export function cardKind(id: string): 'skill' | 'tactic' | 'expansion' {
 }
 
 /**
- * The ship powers the 1 to 4 keep, built into the engine: ship identity is "has power X", not a die value,
- * so a die value could be given a different power (RuleSet.ships).
+ * The ship abilities the 1 to 4 keep, built into the engine: ship identity is "has ability X", not a die value,
+ * so a die value could be given a different ability (RuleSet.ships).
  */
-export type ShipPower = 'strike' | 'transport' | 'warp' | 'modify';
+export type BuiltInAbility = 'strike' | 'transport' | 'warp' | 'modify';
 
 export interface ShipDef {
   name: string;
-  /** A built-in power. */
-  power?: ShipPower;
-  /** A power as hooks (ships.ts). A ship with hooks and no `power` has no once-per-turn ability. */
+  /** A built-in ability. */
+  builtIn?: BuiltInAbility;
+  /** An ability as hooks (ships.ts). A ship with hooks and no `builtIn` has no once-per-turn ability. */
   hooks?: ShipHooks;
-  /** The power's name and rules text for the UI; `hint` guides a player using its action. */
+  /** The ability's name and rules text for the UI; `hint` guides a player using its action. */
   ability: { name: string; text: string; hint?: string };
 }
 
