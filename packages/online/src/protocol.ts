@@ -5,7 +5,7 @@ import type { Action, CombatPending, GameMode, GameState, PlayerConfig, PlayerId
  * Bump when a change to the posts or to how they are replayed would make old games replay
  * differently.
  */
-export const PROTOCOL = 2;
+export const PROTOCOL = 3;
 
 /** Whether `s` has the form of a game secret (codec's `newSecret`), as an invite link carries it. */
 export function isSecret(s: string): boolean {
