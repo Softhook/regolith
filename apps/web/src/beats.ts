@@ -6,35 +6,35 @@
 // one part ends. Change a beat and the animation, its sound and whatever waits on it move together. Timings
 // only the eye sees (a trail's fade, a second ring) stay in styles.css, as offsets from these where they follow one.
 
-/** A ship moving to another space (.ship): it glides there, heard as its engine's rumble. */
-export const SHIP = { glide: 600 } as const;
+/** A mech moving to another space (.mech): it glides there, heard as its engine's rumble. */
+export const MECH = { glide: 600 } as const;
 
 /**
- * A ship blowing up (Explosions), heard as a boom. Several go off one after another, this far apart, up to
+ * A mech blowing up (Explosions), heard as a boom. Several go off one after another, this far apart, up to
  * `MOST_BOOMS` (the rest with the last).
  */
 const BOOM = { stagger: 160 } as const;
 export const MOST_BOOMS = 3;
 
-/** When the `i`th of several ships blowing up together goes, in ms. */
+/** When the `i`th of several mechs blowing up together goes, in ms. */
 export const boomAt = (i: number) => Math.min(i, MOST_BOOMS - 1) * BOOM.stagger;
 
 /**
- * A ship arriving (from the reserve, or one a card brings), heard as a shimmer rising to its landing:
+ * A mech arriving (from the reserve, or one a card brings), heard as a shimmer rising to its landing:
  * `land` after the sound starts, or when the card's effect brings it (game/staging).
  */
 export const WARP = { land: 330 } as const;
 
-/** A placed cube (.cube): it falls, lands (its clack, and the conquest's shockwave, .fx-conquer), and squashes. */
+/** A placed cube (.cube): it falls, lands (its clack, and the claim's shockwave, .fx-claim), and squashes. */
 export const CUBE = { fall: 240, squash: 160 } as const;
 
-/** Show of Force (.cfx-lance): its reticle locks on, its lance strikes the ship (it blows up), then thins away. */
+/** Show of Force (.cfx-lance): its reticle locks on, its lance strikes the mech (it blows up), then thins away. */
 export const LANCE = { delay: 120, strike: 180, fade: 220 } as const;
 
-/** Expansion (.cfx-expansion): its golden lance reaches the space (the new ship appears, its rings spread), then thins away. */
+/** Expansion (.cfx-expansion): its golden lance reaches the space (the new mech appears, its rings spread), then thins away. */
 export const EXPANSION = { strike: 270, fade: 330 } as const;
 
-/** Dangerous (.cfx-arc): its arc reaches across to join the two ships (they blow up), then fades. */
+/** Dangerous (.cfx-arc): its arc reaches across to join the two mechs (they blow up), then fades. */
 export const ARC = { span: 200, fade: 300 } as const;
 
 /** The easing of a beam's spark riding across (.cfx-ray > i), as a CSS cubic-bezier's four numbers. */
@@ -56,7 +56,7 @@ function timeAt([x1, y1, x2, y2]: readonly [number, number, number, number], pro
   return at(lo, x1, x2);
 }
 
-/** A beam (.cfx-ray): it spans the way and fades, a spark riding along it: a relocated cube carried to its new planet, or Warp Gates joined. */
+/** A beam (.cfx-ray): it spans the way and fades, a spark riding along it: a relocated cube carried to its new objective, or Ice Tunnels joined. */
 const BEAM = { span: 340, fade: 510, ride: 600 } as const;
 
 /** When the beam's spark is all but there and the cube it carries starts its fall, from the ride's ease. */
@@ -77,7 +77,7 @@ export const DICE = {
   lands: Math.round(1000 * timeAt(HOP_EASE, HOP_LANDS)),
 } as const;
 
-/** Nomadic (.cfx-blink): the ship folds away, and opens out at its new planet this long after. */
+/** Nomadic (.cfx-blink): the mech folds away, and opens out at its new objective this long after. */
 export const BLINK = { open: 300 } as const;
 
 /** A missile shot (.shot-*): its flight across the map (it hits, and the battle opens, as it lands), then the impact's flash. */
@@ -94,7 +94,7 @@ export const ARENA = { hit: 180 } as const;
 
 /** The groups animations in styles.css read, by the name their custom properties take. */
 export const CSS_BEATS = {
-  ship: SHIP,
+  mech: MECH,
   cube: CUBE,
   lance: LANCE,
   expansion: EXPANSION,

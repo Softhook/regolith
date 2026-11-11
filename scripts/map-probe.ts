@@ -1,5 +1,5 @@
 /**
- * What kind of game a map makes: AI self-play per map, reporting length (rounds), how it ends (conquest or
+ * What kind of game a map makes: AI self-play per map, reporting length (rounds), how it ends (claim or
  * Take Over), how much fighting, how much the first player wins, and how often a game stalls.
  *
  *   npm run selfplay:maps -- [--games=20] [--maps=all|id,id|group:name|new] [--level=2] [--jobs=fast cores] [--seed=0]
@@ -25,7 +25,7 @@ interface Result extends Task {
   rounds: number;
   /** Seat order: 0 is the first player. */
   winnerPlace: number;
-  conquests: number;
+  claims: number;
   takeOvers: number;
   attacks: number;
   destroyed: number;
@@ -54,7 +54,7 @@ function play({ map: mapId, game }: Task): Result {
     finished: false,
     rounds: 0,
     winnerPlace: -1,
-    conquests: 0,
+    claims: 0,
     takeOvers: 0,
     attacks: 0,
     destroyed: 0,
@@ -63,7 +63,7 @@ function play({ map: mapId, game }: Task): Result {
     drought: 0,
     ms: 0,
   };
-  const cubes = (g: GameState) => g.board.planets.reduce((n, q) => n + q.cubes.length, 0);
+  const cubes = (g: GameState) => g.board.objectives.reduce((n, q) => n + q.cubes.length, 0);
   let first = -1;
   let lastCube = 0;
   for (let step = 0; s.phase !== 'over' && step < MAX_STEPS; step++) {
@@ -74,14 +74,14 @@ function play({ map: mapId, game }: Task): Result {
     if (!action) throw new Error(`no action, ${mapId} game ${game}`);
     const before = cubes(s);
     const barriers = s.barriers?.length ?? 0;
-    const lost = s.players.reduce((n, p) => n + (p.stats?.shipsLost ?? 0), 0);
+    const lost = s.players.reduce((n, p) => n + (p.stats?.mechsLost ?? 0), 0);
     s = apply(s, action);
     if (action.type === 'attack' || action.type === 'freeAttack') r.attacks++;
-    r.destroyed += s.players.reduce((n, p) => n + (p.stats?.shipsLost ?? 0), 0) - lost;
+    r.destroyed += s.players.reduce((n, p) => n + (p.stats?.mechsLost ?? 0), 0) - lost;
     r.barriers += (s.barriers?.length ?? 0) - barriers;
     if (s.phase !== 'setup' && cubes(s) > before && s.turn.number > 0) {
       if (action.type === 'infamy') r.takeOvers++;
-      else r.conquests++;
+      else r.claims++;
       r.drought = Math.max(r.drought, (s.turn.number - lastCube) / map.players);
       lastCube = s.turn.number;
     }
@@ -123,6 +123,6 @@ for (const m of wanted) {
   const rounds = done.map((r) => r.rounds);
   const place = (p: number) => `${Math.round((100 * done.filter((r) => r.winnerPlace === p).length) / Math.max(1, done.length))}%`;
   console.log(
-    `| ${m.name} | ${m.players} | ${m.cubes} | ${rs.length} | ${rs.length - done.length} | ${f(avg(rounds))} | ${rounds.length ? `${Math.min(...rounds).toFixed(0)}–${Math.max(...rounds).toFixed(0)}` : '–'} | ${f(avg(done.map((r) => r.conquests)))} | ${f(avg(done.map((r) => r.takeOvers)))} | ${f(avg(done.map((r) => r.attacks)))} | ${f(avg(done.map((r) => r.destroyed)))} | ${f(avg(rs.map((r) => r.barriers)))} | ${f(avg(rs.map((r) => r.drought)))} | ${place(0)} | ${place(m.players - 1)} | ${f(avg(rs.map((r) => r.ms)), 0)} |`,
+    `| ${m.name} | ${m.players} | ${m.cubes} | ${rs.length} | ${rs.length - done.length} | ${f(avg(rounds))} | ${rounds.length ? `${Math.min(...rounds).toFixed(0)}–${Math.max(...rounds).toFixed(0)}` : '–'} | ${f(avg(done.map((r) => r.claims)))} | ${f(avg(done.map((r) => r.takeOvers)))} | ${f(avg(done.map((r) => r.attacks)))} | ${f(avg(done.map((r) => r.destroyed)))} | ${f(avg(rs.map((r) => r.barriers)))} | ${f(avg(rs.map((r) => r.drought)))} | ${place(0)} | ${place(m.players - 1)} | ${f(avg(rs.map((r) => r.ms)), 0)} |`,
   );
 }

@@ -85,7 +85,7 @@ try {
       return new Uint8Array(await blob.arrayBuffer()).reduce((t, b) => t + String.fromCharCode(b), '');
     }
 
-    // A tile of each number, a Void among them, on each world.
+    // A tile of each number, an Alien Artefact among them, on each world.
     const tiles = [7, 8, 9, 10, 0].map((num) => TILE_SET.find((t) => t.number === num)!);
     const results = [];
     for (const world of ['phobos', 'deimos', 'mars'] as const)

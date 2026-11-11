@@ -189,7 +189,7 @@ export function hubMap(setup: ObjectiveSetup, hub: number, cap: number, cubes: n
     group: 'hex',
     world,
     cubes,
-    stats: { slack: 0, shared: null, planets: 0 },
+    stats: { slack: 0, shared: null, objectives: 0 },
     layout: hubLayout(setup, hub),
   };
   MAPS.push(map);

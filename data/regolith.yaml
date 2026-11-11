@@ -55,7 +55,7 @@ skills:
     name: "Remodel"
     subtitle: "Controlled scrapping"
     text: "When one of your mechs goes to the salvage yard, choose its type."
-    category: ship
+    category: mech
     count: 1
     from: calculating
     status: renamed
@@ -65,7 +65,7 @@ skills:
     name: "Engineering"
     subtitle: "Flexible modification"
     text: "After you Refit a mech, you may change its number by 1."
-    category: ship
+    category: mech
     count: 1
     from: clever
     status: renamed
@@ -85,7 +85,7 @@ skills:
     name: "Boost"
     subtitle: "Extra mech ability"
     text: "Once per turn, use one mech ability twice."
-    category: ship
+    category: mech
     count: 1
     from: cunning
     status: renamed
@@ -135,7 +135,7 @@ skills:
     name: "Field Refit"
     subtitle: "Adjust a mech"
     text: "Once per turn, you may change one mech up or down 1."
-    category: ship
+    category: mech
     count: 1
     from: flexible
     status: renamed
@@ -165,7 +165,7 @@ skills:
     name: "Hacking"
     subtitle: "Flexible claiming"
     text: "When Claiming, you may count the objective's number as 1 higher or lower."
-    category: conquer
+    category: claim
     count: 1
     from: intelligent
     status: renamed
@@ -185,7 +185,7 @@ skills:
     name: "Science"
     subtitle: "Claim with research"
     text: "When Claiming, you may lower your Research to add or subtract that amount from your mechs' total."
-    category: conquer
+    category: claim
     count: 1
     from: pioneering
     status: reworked
@@ -345,7 +345,7 @@ skills:
     name: "Martial Law"
     subtitle: "Claim with power"
     text: "When Claiming, you may count your Power number as an extra mech."
-    category: conquer
+    category: claim
     count: 1
     from: tyrannical
     status: renamed
@@ -427,7 +427,7 @@ tactics:
     name: "Invasion"
     subtitle: "Destroy & reroll mechs"
     text: "Destroy all your mechs. Reroll any in your salvage yard once, then Drop as many as you like."
-    category: ship
+    category: mech
     count: 2
     from: unveil-the-fleet
     status: renamed

@@ -3,9 +3,9 @@ import type { Action, GameState } from './types';
 /** Deterministic phase-1 actions a player may take back. Anything involving dice or cards is final. */
 const UNDOABLE = new Set<Action['type']>([
   'move',
-  'deploy',
+  'drop',
   'research',
-  'conquer',
+  'claim',
   'carry',
   'swap',
   'change',

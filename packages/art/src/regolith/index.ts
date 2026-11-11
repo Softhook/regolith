@@ -27,11 +27,11 @@ import { inked } from './inks';
  *
  * The parts: core (units, the hex flower, SVG helpers), light (the lighting filters), terrain (craters,
  * ridges, dunes), parts (how a piece of a base is drawn, in layers), buildings, craft (ships, rovers and
- * small things), base (how a base is laid out round its planet's space) and inks (the bases' colours in
+ * small things), base (how a base is laid out round its objective's space) and inks (the bases' colours in
  * each world's inks).
  */
 
-/** A tile's scene, in board units: the ground's defs and its lit height map, and what stands on it (if anything), drawn round the planet's space. */
+/** A tile's scene, in board units: the ground's defs and its lit height map, and what stands on it (if anything), drawn round the objective's space. */
 interface Scene {
   defs: string;
   lit: string;
@@ -39,7 +39,7 @@ interface Scene {
   standing?: { heights: string; drawn: string };
 }
 
-/** A tile's scene on `world`, its base standing `at` its planet's space. */
+/** A tile's scene on `world`, its base standing `at` its objective's space. */
 function scene(spec: TileSpec, at: Spot, world: World): Scene {
   const mars = world === 'mars';
   const r = rng(spec.seed).fork('regolith');
@@ -71,7 +71,7 @@ function scene(spec: TileSpec, at: Spot, world: World): Scene {
   const lit = `<g filter="url(#rg-ground)">${heights}</g>`;
   if (!site) return { defs, lit };
   const standing = place(site.heights);
-  // The buildings' filters are over the tile's area, so they're applied outside the move to the planet's space.
+  // The buildings' filters are over the tile's area, so they're applied outside the move to the objective's space.
   const drawn =
     `<g filter="url(#rg-cast)">${standing}</g>` +
     `<g filter="url(#rg-built)">${standing}</g>` +
@@ -107,7 +107,7 @@ const silhouette = (heights: string) => inMm(`<g filter="url(#rg-white)">${heigh
  * A tile's ground on `world` over its trim and bleed (mm, the trim's top left at 0, 0), with everything on it;
  * and what stands on it alone (its buildings, ships and rovers), cut to their outlines, to print over the
  * spaces' wells. Its lit ground drawn by its filter, or as `image`, a bitmap of it (`regolithGroundSvg`). For
- * a tile on a world's ground (tile/index.ts `tileSvg`), in place of its sky and planet.
+ * a tile on a world's ground (tile/index.ts `tileSvg`), in place of its sky and objective.
  */
 export function groundArt(spec: TileSpec, at: Spot, world: World, image?: string): Fragment & { standing?: Fragment } {
   const s = scene(spec, at, world);
@@ -125,8 +125,8 @@ export function groundArt(spec: TileSpec, at: Spot, world: World, image?: string
 }
 
 /**
- * A hex tile's ground on `world`, in place of its sky and planet, trim 96 × 96 mm and its 3 mm bleed (so a map's
- * clip a touch past the hexes still lands on ground): the planet's building stands `at` its space (in
+ * A hex tile's ground on `world`, in place of its sky and objective, trim 96 × 96 mm and its 3 mm bleed (so a map's
+ * clip a touch past the hexes still lands on ground): the objective's building stands `at` its space (in
  * spaces from the tile's middle, x right and y down). No markings: the game draws the cubes and the
  * number over its bays, and the spaces' wells under what stands (`regolithMaskSvg`).
  */
@@ -136,7 +136,7 @@ export function regolithSvg(spec: TileSpec, world: World, at: Spot = { x: 0, y: 
 }
 
 /**
- * A hex tile's lit ground on `world` alone, over the same area as `regolithSvg`, its building `at` its planet's
+ * A hex tile's lit ground on `world` alone, over the same area as `regolithSvg`, its building `at` its objective's
  * space: nothing standing on it, as that's drawn over it. For print, drawn at `REGOLITH_GROUND_PX` and passed
  * back as the tile's `ground` (tile/index.ts `tileGroundSvg`), so the light is as on screen, not in contour
  * lines (`LIT`), while what stands is drawn at the print's own resolution.

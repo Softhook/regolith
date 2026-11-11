@@ -3,7 +3,7 @@ import {
   apply,
   barrierAt,
   legalActions,
-  otherGate,
+  otherTunnel,
   buildBoard,
   cellAt,
   checkInvariants,
@@ -13,9 +13,9 @@ import {
   same,
   MAPS,
   mapStats,
-  orbitals,
+  perimeterSpaces,
   spaces,
-  STARTING_SHIPS,
+  STARTING_MECHS,
 } from '../src';
 import { startingGround, startSpace } from '../src/board';
 import { playAiGame, players, quickStart } from './helpers';
@@ -44,26 +44,26 @@ describe("prepared ground (a map's `start`)", () => {
 
       it('starts the game with its tunnel and barriers on spaces, owned by nobody', () => {
         const s = game();
-        expect(s.gates).toHaveLength(map.start?.tunnel?.length ?? 0);
+        expect(s.tunnels).toHaveLength(map.start?.tunnel?.length ?? 0);
         expect(s.wormhole ?? []).toHaveLength(map.start?.wormhole?.length ?? 0);
         expect(s.barriers ?? []).toHaveLength(map.start?.barriers?.length ?? 0);
         for (const b of s.barriers ?? []) expect(b.owner).toBeNull();
         expect(checkInvariants(s)).toEqual([]);
       });
 
-      it("leaves every start its ships' room", () => {
+      it("leaves every start its mechs' room", () => {
         const s = game();
-        for (const p of s.board.planets.filter((x) => x.start))
-          expect(orbitals(s.board, p).filter((c) => !barrierAt(s, c)).length, `objective ${p.number}`).toBeGreaterThanOrEqual(
-            STARTING_SHIPS,
+        for (const p of s.board.objectives.filter((x) => x.start))
+          expect(perimeterSpaces(s.board, p).filter((c) => !barrierAt(s, c)).length, `objective ${p.number}`).toBeGreaterThanOrEqual(
+            STARTING_MECHS,
           );
       });
 
       it('lets every start reach every objective, through the tunnel if need be', () => {
         const s = game();
-        for (const home of s.board.planets.filter((x) => x.start)) {
+        for (const home of s.board.objectives.filter((x) => x.start)) {
           const seen = new Set<string>();
-          const queue = orbitals(s.board, home).filter((c) => !barrierAt(s, c));
+          const queue = perimeterSpaces(s.board, home).filter((c) => !barrierAt(s, c));
           for (const c of queue) seen.add(key(c));
           for (let i = 0; i < queue.length; i++)
             for (const n of linked(s, queue[i])) {
@@ -71,9 +71,9 @@ describe("prepared ground (a map's `start`)", () => {
               seen.add(key(n));
               queue.push(n);
             }
-          for (const p of s.board.planets)
+          for (const p of s.board.objectives)
             expect(
-              orbitals(s.board, p).some((c) => seen.has(key(c))),
+              perimeterSpaces(s.board, p).some((c) => seen.has(key(c))),
               `objective ${p.number} from the start at ${home.id}`,
             ).toBe(true);
         }
@@ -89,27 +89,27 @@ describe("prepared ground (a map's `start`)", () => {
 
   it("lets the Ice Tunnel tactic close the map's own tunnel and open another (RULES.md ruling 15)", () => {
     const s = quickStart(2, 1, 'regolith', 'ice-run');
-    const was = s.gates.map(key);
+    const was = s.tunnels.map(key);
     expect(was).toHaveLength(2);
     const [a, b] = spaces(s.board).filter((c) => !was.includes(key(c)) && !barrierAt(s, c));
-    s.pending.unshift({ kind: 'warpGate', player: s.turn.player, placed: [] });
-    const t = apply(apply(s, { type: 'warpGate', cell: a }), { type: 'warpGate', cell: b });
-    expect(t.gates.map(key)).toEqual([key(a), key(b)]);
+    s.pending.unshift({ kind: 'iceTunnel', player: s.turn.player, placed: [] });
+    const t = apply(apply(s, { type: 'iceTunnel', cell: a }), { type: 'iceTunnel', cell: b });
+    expect(t.tunnels.map(key)).toEqual([key(a), key(b)]);
   });
 
   it("keeps a map's wormhole when the Ice Tunnel tactic opens a tunnel, and won't land on it", () => {
     const s = quickStart(2, 1, 'regolith', 'two-arcs');
     const hole = s.wormhole!.map(key);
     expect(hole).toHaveLength(2);
-    expect(s.gates).toEqual([]);
-    s.pending.unshift({ kind: 'warpGate', player: s.turn.player, placed: [] });
-    expect(legalActions(s).some((a) => a.type === 'warpGate' && hole.includes(key(a.cell)))).toBe(false);
-    expect(() => apply(s, { type: 'warpGate', cell: s.wormhole![0] })).toThrow(/wormhole/);
+    expect(s.tunnels).toEqual([]);
+    s.pending.unshift({ kind: 'iceTunnel', player: s.turn.player, placed: [] });
+    expect(legalActions(s).some((a) => a.type === 'iceTunnel' && hole.includes(key(a.cell)))).toBe(false);
+    expect(() => apply(s, { type: 'iceTunnel', cell: s.wormhole![0] })).toThrow(/wormhole/);
     const [a, b] = spaces(s.board).filter((c) => !hole.includes(key(c)) && !barrierAt(s, c));
-    const t = apply(apply(s, { type: 'warpGate', cell: a }), { type: 'warpGate', cell: b });
+    const t = apply(apply(s, { type: 'iceTunnel', cell: a }), { type: 'iceTunnel', cell: b });
     expect(t.wormhole!.map(key)).toEqual(hole);
-    expect(otherGate(t, s.wormhole![0])).toEqual(s.wormhole![1]);
-    expect(otherGate(t, a)).toEqual(b);
+    expect(otherTunnel(t, s.wormhole![0])).toEqual(s.wormhole![1]);
+    expect(otherTunnel(t, a)).toEqual(b);
     expect(checkInvariants(t)).toEqual([]);
   });
 

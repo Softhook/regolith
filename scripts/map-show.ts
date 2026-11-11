@@ -54,20 +54,20 @@ const put = (l: number, x: number, text: string) => {
   for (let i = 0; i < text.length; i++) row[x + i] = text[i];
   lines.set(l, row);
 };
-const tunnel = [...s.gates, ...(s.wormhole ?? [])].map((g) => `${g.r},${g.c}`);
+const tunnel = [...s.tunnels, ...(s.wormhole ?? [])].map((g) => `${g.r},${g.c}`);
 const wall = (s.barriers ?? []).map((b) => `${b.r},${b.c}`);
 board.cells.forEach((row, r) =>
   row.forEach((cell, c) => {
     if (cell.kind === 'off') return;
     const k = `${r},${c}`;
     let text: string;
-    if (cell.kind === 'planet') {
-      const p = board.planets[cell.planet!];
+    if (cell.kind === 'objective') {
+      const p = board.objectives[cell.objective!];
       text = `[${p.number}${p.start ? '*' : ''}]`;
     } else if (tunnel.includes(k)) text = o.labels === '1' ? `(T)${label.get(k)}` : '(T)';
     else if (wall.includes(k)) text = o.labels === '1' ? `###${label.get(k)}` : '#';
-    else if (o.labels === '1') text = `${cell.void ? '~' : ''}${label.get(k) ?? '?'}`;
-    else text = cell.void ? '~' : '.';
+    else if (o.labels === '1') text = `${cell.artefact ? '~' : ''}${label.get(k) ?? '?'}`;
+    else text = cell.artefact ? '~' : '.';
     put(2 * r + c, c * (W + 1), text);
   }),
 );

@@ -28,17 +28,17 @@ export function checkInvariants(s: GameState): string[] {
   check(!!map, `unknown map ${s.board.mapId}`);
   for (const p of s.players) {
     const name = `player ${p.id}`;
-    check(p.dominance >= 1 && p.dominance <= 6, `${name}: power ${p.dominance} outside 1–6`);
+    check(p.power >= 1 && p.power <= 6, `${name}: power ${p.power} outside 1–6`);
     check(p.research >= 1 && p.research <= researchLimit, `${name}: research ${p.research} outside 1–${researchLimit}`);
-    check(p.missiles >= 0, `${name}: ${p.missiles} atomics`);
+    check(p.atomics >= 0, `${name}: ${p.atomics} atomics`);
     check(p.actionPenalty >= 0 && p.planAhead >= 0, `${name}: negative penalty or Kill Zone`);
     check(p.ambitionTokens >= 0 && p.ambitionTokens < 3, `${name}: ${p.ambitionTokens} ambition tokens`);
-    const placed = s.board.planets.reduce((n, pl) => n + pl.cubes.filter((x) => x === p.id).length, 0);
+    const placed = s.board.objectives.reduce((n, pl) => n + pl.cubes.filter((x) => x === p.id).length, 0);
     if (map) check(placed + p.cubesLeft === map.cubes, `${name}: ${placed} cubes placed + ${p.cubesLeft} left ≠ ${map.cubes}`);
   }
 
-  // Planets
-  for (const pl of s.board.planets) {
+  // Objectives
+  for (const pl of s.board.objectives) {
     check(pl.cubes.length <= pl.capacity, `objective ${pl.number}: ${pl.cubes.length} cubes, capacity ${pl.capacity}`);
     check(pl.cubes.every(isPlayer), `objective ${pl.number}: cube of an unknown player`);
   }
@@ -63,7 +63,7 @@ export function checkInvariants(s: GameState): string[] {
     occupied.add(k);
     check(s.board.cells[b.r]?.[b.c]?.kind === 'space', `a barrier on ${k}, which is not a space`);
     check(b.owner === null || isPlayer(b.owner), `barrier on ${k}: unknown owner ${b.owner}`);
-    check(![...s.gates, ...(s.wormhole ?? [])].some((g) => key(g) === k), `a barrier on ${k}, which has an ice tunnel or wormhole`);
+    check(![...s.tunnels, ...(s.wormhole ?? [])].some((g) => key(g) === k), `a barrier on ${k}, which has an ice tunnel or wormhole`);
   }
   for (const p of s.players) {
     check(s.dice.filter((d) => d.owner === p.id).length === DICE_PER_PLAYER, `player ${p.id} does not have ${DICE_PER_PLAYER} dice`);
@@ -105,10 +105,10 @@ export function checkInvariants(s: GameState): string[] {
   // Turn
   const t = s.turn;
   check(isPlayer(t.player), `turn of unknown player ${t.player}`);
-  check(t.actionsLeft >= 0 && t.freeDeploys >= 0, 'negative action count');
-  check(s.gates.length === 0 || s.gates.length === 2, `${s.gates.length} ice tunnels`);
+  check(t.actionsLeft >= 0 && t.freeDrops >= 0, 'negative action count');
+  check(s.tunnels.length === 0 || s.tunnels.length === 2, `${s.tunnels.length} ice tunnels`);
   check(!s.wormhole || s.wormhole.length === 2, `a wormhole of ${s.wormhole?.length} spaces`);
-  check(!s.gates.some((g) => s.wormhole?.some((w) => key(w) === key(g))), 'an ice tunnel on the wormhole');
+  check(!s.tunnels.some((g) => s.wormhole?.some((w) => key(w) === key(g))), 'an ice tunnel on the wormhole');
 
   // Phase and decisions
   check((s.phase === 'over') === (s.winner !== null), `phase ${s.phase} with winner ${s.winner}`);

@@ -14,7 +14,7 @@ import {
   type World,
 } from '@regolith/art';
 import { BarrierBubble } from '../components/board/BarrierBubble';
-import { CubeWells, PlanetMark } from '../components/board/PlanetMarkings';
+import { CubeWells, ObjectiveMark } from '../components/board/ObjectiveMarkings';
 import { PIPS } from '../components/Die3D';
 import { COMBAT_DICE, DIE_CORNER, PIP, PLAYER_COLORS } from '../theme';
 
@@ -176,7 +176,7 @@ export function Tile({ id, at }: { id: string; at: At }) {
 }
 
 /** Glowing outlines on the given spaces (an objective's perimeter). */
-export function Glow({ cells, tone = 'orbit' }: { cells: readonly At[]; tone?: 'orbit' | 'zone' | 'plain' }) {
+export function Glow({ cells, tone = 'perimeter' }: { cells: readonly At[]; tone?: 'perimeter' | 'zone' | 'plain' }) {
   return (
     <g>
       {cells.map((p) => {
@@ -188,7 +188,7 @@ export function Glow({ cells, tone = 'orbit' }: { cells: readonly At[]; tone?: '
 }
 
 /** An objective's live markings, as the board draws them over the tile: its number and cube spaces. */
-export function PlanetMarks({ at, n, cubes = [] }: { at: At; n: number; cubes?: Who[] }) {
+export function ObjectiveMarks({ at, n, cubes = [] }: { at: At; n: number; cubes?: Who[] }) {
   const { x, y } = centre(at);
   return <Marks cx={x} cy={y} n={n} cubes={cubes} mm={MM} />;
 }
@@ -198,7 +198,7 @@ function Marks({ cx, cy, n, cubes, mm }: { cx: number; cy: number; n: number; cu
   const pads = cubePadCentres(n - 6, 0, 0);
   return (
     <>
-      <PlanetMark cx={cx} cy={cy} mm={mm} n={n} className="mn-planet-num" />
+      <ObjectiveMark cx={cx} cy={cy} mm={mm} n={n} className="mn-objective-num" />
       <CubeWells cx={cx} cy={cy} mm={mm} capacity={n - 6} cubes={cubes.length} />
       {cubes.map((w, i) => (
         <g key={i} className="mn-die">
@@ -213,7 +213,7 @@ function Marks({ cx, cy, n, cubes, mm }: { cx: number; cy: number; n: number; cu
  * An objective on its own: the middle space of its tile, with its building, and its number and cube spaces
  * as on the board.
  */
-export function PlanetIcon({ n, size = 34, cubes = [] }: { n: number; size?: number; cubes?: Who[] }) {
+export function ObjectiveIcon({ n, size = 34, cubes = [] }: { n: number; size?: number; cubes?: Who[] }) {
   const id = useSvgId();
   const place = numberPlacement(n);
   // Room for the number past the hex, at the vertex below right.
@@ -222,7 +222,7 @@ export function PlanetIcon({ n, size = 34, cubes = [] }: { n: number; size?: num
   const [w, h] = [HALF_WIDTH + right, S / 2 + bottom];
   return (
     <svg
-      className="mn-planet-icon"
+      className="mn-objective-icon"
       width={(size * w) / S}
       height={(size * h) / S}
       viewBox={`${-HALF_WIDTH} ${-S / 2} ${w} ${h}`}
@@ -280,7 +280,7 @@ export function DieFace({
   kind = 'you',
   ghost,
   dim,
-  shipIllustration,
+  mechIllustration,
   portrait,
 }: {
   x: number;
@@ -290,7 +290,7 @@ export function DieFace({
   kind?: DieKind;
   ghost?: boolean;
   dim?: boolean;
-  shipIllustration?: boolean;
+  mechIllustration?: boolean;
   portrait?: boolean;
 }) {
   const h = size / 2;
@@ -306,7 +306,7 @@ export function DieFace({
         ))}
       </g>
     );
-  if (shipIllustration) {
+  if (mechIllustration) {
     // Mechs are drawn as on the player aid: the mech printed on its die face.
     const face = mechDie(v, x, y, size, portrait);
     return <g className={cls} dangerouslySetInnerHTML={{ __html: face.body }} />;
@@ -323,7 +323,7 @@ export function DieFace({
 }
 
 /** A mech on a space. */
-export function Ship({ at, v, who = 'you', ghost, dim }: { at: At; v: number; who?: Who; ghost?: boolean; dim?: boolean }) {
+export function Mech({ at, v, who = 'you', ghost, dim }: { at: At; v: number; who?: Who; ghost?: boolean; dim?: boolean }) {
   const { x, y } = centre(at);
   return <DieFace x={x} y={y} v={v} kind={who} ghost={ghost} dim={dim} />;
 }
@@ -333,13 +333,13 @@ export function DieIcon({
   v,
   kind = 'you',
   size = 26,
-  shipIllustration,
+  mechIllustration,
   portrait,
 }: {
   v: number;
   kind?: DieKind;
   size?: number;
-  shipIllustration?: boolean;
+  mechIllustration?: boolean;
   portrait?: boolean;
 }) {
   const id = useSvgId();
@@ -348,7 +348,7 @@ export function DieIcon({
     <svg className="mn-die-icon" width={size} height={size} viewBox="0 0 40 40" aria-label={label} role="img">
       <DieDefs id={id} />
       <Defs.Provider value={id}>
-        <DieFace x={20} y={20} v={v} size={36} kind={kind} shipIllustration={shipIllustration} portrait={portrait} />
+        <DieFace x={20} y={20} v={v} size={36} kind={kind} mechIllustration={mechIllustration} portrait={portrait} />
       </Defs.Provider>
     </svg>
   );

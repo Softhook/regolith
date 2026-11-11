@@ -1,5 +1,5 @@
 /**
- * Whether a value has the shape of an Action, with its players, planets and cells in range for this
+ * Whether a value has the shape of an Action, with its players, objectives and cells in range for this
  * game. Actions from other browsers (online play) are untrusted, so apply() checks this first: a
  * malformed action is refused with a RuleError and never reaches a handler. A check per field of every
  * action type, typed so that a new action or field doesn't compile without one.
@@ -14,7 +14,7 @@ const str: Check = (v) => typeof v === 'string';
 const bool: Check = (v) => typeof v === 'boolean';
 const index: Check = (v) => int(v) && v >= 0;
 const player: Check = (v, s) => int(v) && v >= 0 && v < s.players.length;
-const planet: Check = (v, s) => int(v) && v >= 0 && v < s.board.planets.length;
+const objective: Check = (v, s) => int(v) && v >= 0 && v < s.board.objectives.length;
 const cell: Check = (v, s) => {
   if (typeof v !== 'object' || v === null) return false;
   const { r, c } = v as Record<string, unknown>;
@@ -34,16 +34,16 @@ export const SHAPES: { [K in Action['type']]: Shape<K> } = {
   setupKeep: {},
   setupReroll: {},
   draftSkill: { skill: str },
-  placeStart: { planet },
-  placeShip: { die: str, to: cell },
+  placeStart: { objective },
+  placeMech: { die: str, to: cell },
   move: { die: str, to: cell },
   attack: { die: str, target: str, from: opt(cell) },
   breakBarrier: { die: str, cell },
   ability: { die: str, target: opt(str), to: opt(cell) },
-  deploy: { die: str, to: cell },
-  reconfigure: { die: str },
+  drop: { die: str, to: cell },
+  refit: { die: str },
   research: {},
-  conquer: { planet, replace: opt(player) },
+  claim: { objective, replace: opt(player) },
   endTurn: {},
   freeAttack: { die: str, target: str },
   carry: { die: str, passenger: str, to: cell, setDown: cell },
@@ -54,19 +54,19 @@ export const SHAPES: { [K in Action['type']]: Shape<K> } = {
   flexible: { die: str, delta: oneOf(1, -1) },
   resourceful: { die: str },
   tactical: { die: str, to: opt(cell), target: opt(str), passenger: opt(str), setDown: opt(cell) },
-  missile: { by: player, side },
+  atomic: { by: player, side },
   dangerous: { destroy: bool },
   clever: { value: int },
   resolveCombat: {},
   advance: { move: bool },
-  infamy: { planet },
+  infamy: { objective },
   takeCard: { deck: oneOf('skill', 'tactic', 'expansion'), index, store: opt(bool) },
   peekChoice: { takeTop: bool },
   profiteer: {},
   discardSkill: { skill: str },
   placeExpansion: { to: (v, s) => v === null || cell(v, s) },
   showOfForce: { die: str },
-  warpGate: { cell },
+  iceTunnel: { cell },
   placeBarrier: { cell },
   kineticShunt: { die: str, to: cell },
   shuntBarrier: { from: cell, to: cell },
@@ -76,7 +76,7 @@ export const SHAPES: { [K in Action['type']]: Shape<K> } = {
   playStoredTactic: { card: str },
   patientTactic: { index: opt(index) },
   unveilReroll: { die: str },
-  unveilDeploy: { die: str, to: cell },
+  unveilDrop: { die: str, to: cell },
   unveilDone: {},
 };
 

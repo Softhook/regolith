@@ -1,23 +1,23 @@
-/** Combat: starting an attack, missiles, resolution, advancing, and Take Over. */
+/** Combat: starting an attack, atomics, resolution, advancing, and Take Over. */
 import {
   checkInfamy,
-  destroyedEnemyShip,
-  destroyShip,
+  destroyedEnemyMech,
+  destroyMech,
   fail,
   headOf,
   log,
   logTo,
-  loseDominance,
+  losePower,
   name,
   placeCube,
-  shipName,
+  mechName,
   tally,
   type Handlers,
   type PendingOf,
 } from './core';
 import { cardName, card } from './data';
 import { boardLoc, cellOf, die, dieAt } from './lookups';
-import { combatDice, combatOutcome, infamyTargets, missileRefusal, skillLimit } from './queries';
+import { combatDice, combatOutcome, infamyTargets, atomicRefusal, skillLimit } from './queries';
 import { d6 } from './rng';
 import { rulesOf } from './rules';
 import { anySkill, stealableSkill } from './skillRules';
@@ -25,14 +25,14 @@ import type { Cell, Die, GameState, PlayerId } from './types';
 
 /**
  * The attacker has moved `from` next to the defender, or, `ranged` (an ability), fires from there.
- * A defender with Dangerous may first destroy both ships; otherwise both combat dice are rolled now.
+ * A defender with Dangerous may first destroy both mechs; otherwise both combat dice are rolled now.
  */
 export function startCombat(s: GameState, attacker: Die, defender: Die, from: Cell, ranged = false) {
   attacker.loc = boardLoc(from);
   s.turn.attacked = true;
   log(
     s,
-    `${name(s, attacker.owner)}'s ${shipName(s, attacker)} attacks ${name(s, defender.owner)}'s ${shipName(s, defender)}.`,
+    `${name(s, attacker.owner)}'s ${mechName(s, attacker)} attacks ${name(s, defender.owner)}'s ${mechName(s, defender)}.`,
     attacker.owner,
   );
   if (anySkill(s, defender.owner, (r) => r.combat?.destroyBoth)) {
@@ -52,18 +52,18 @@ function rollCombat(s: GameState, attacker: Die, defender: Die, from: Cell, rang
   s.pending.unshift({
     kind: 'combat',
     id: ++s.combatCounter,
-    attacker: { player: attacker.owner, die: attacker.id, ship: attacker.value, dice: rollFor(attacker.owner), missile: false },
-    defender: { player: defender.owner, die: defender.id, ship: defender.value, dice: rollFor(defender.owner), missile: false },
+    attacker: { player: attacker.owner, die: attacker.id, mech: attacker.value, dice: rollFor(attacker.owner), atomic: false },
+    defender: { player: defender.owner, die: defender.id, mech: defender.value, dice: rollFor(defender.owner), atomic: false },
     from,
     at: cellOf(defender)!,
     ...(ranged && { ranged: true as const }),
   });
 }
 
-/** Effects of `winner` destroying one of `loser`'s ships in combat. */
+/** Effects of `winner` destroying one of `loser`'s mechs in combat. */
 function onDestroy(s: GameState, winner: PlayerId, loser: PlayerId) {
-  loseDominance(s, loser, 1);
-  destroyedEnemyShip(s, winner, 1, loser);
+  losePower(s, loser, 1);
+  destroyedEnemyMech(s, winner, 1, loser);
 }
 
 function resolveCombat(s: GameState, combat: PendingOf<'combat'>) {
@@ -77,14 +77,14 @@ function resolveCombat(s: GameState, combat: PendingOf<'combat'>) {
     log(s, `${name(s, A)} wins the battle (${out.attacker.total} vs ${out.defender.total}).`, A, 'battleWon');
     tally(s, A, 'battlesWon');
     tally(s, D, 'battlesLost');
-    destroyShip(s, def);
+    destroyMech(s, def);
     if (!combat.ranged) s.pending.unshift({ kind: 'advance', player: A, die: att.id, to: combat.at });
     onDestroy(s, A, D);
   } else if (out.stubborn) {
     log(s, `${name(s, D)} holds firm and destroys the attacker (${out.defender.total} vs ${out.attacker.total}).`, D, 'battleWon');
     tally(s, D, 'battlesWon');
     tally(s, A, 'battlesLost');
-    destroyShip(s, att);
+    destroyMech(s, att);
     onDestroy(s, D, A);
   } else {
     // Repelled: the attacker is already back on the space it attacked from.
@@ -95,33 +95,33 @@ function resolveCombat(s: GameState, combat: PendingOf<'combat'>) {
 }
 
 export const combatHandlers = {
-  missile(s, a) {
+  atomic(s, a) {
     const head = headOf(s, 'combat', 'No combat to target');
     // A combatant fires only on their own roll, and only while losing (RULES.md ruling 2).
-    const refusal = missileRefusal(s, head, a.by, a.side);
+    const refusal = atomicRefusal(s, head, a.by, a.side);
     if (refusal) fail(refusal);
     const pl = s.players[a.by];
     const side = head[a.side];
-    pl.missiles--;
-    side.missile = true;
-    log(s, `${pl.name} fires an atomic: ${name(s, side.player)}'s combat roll becomes 1.`, a.by, 'missile');
+    pl.atomics--;
+    side.atomic = true;
+    log(s, `${pl.name} fires an atomic: ${name(s, side.player)}'s combat roll becomes 1.`, a.by, 'atomic');
   },
-  /** Dangerous: destroy both ships (no dominance change, no "when you destroy" effects), or fight. */
+  /** Dangerous: destroy both mechs (no power change, no "when you destroy" effects), or fight. */
   dangerous(s, a) {
     const head = headOf(s, 'dangerous', `No ${cardName('dangerous')} decision`);
     s.pending.shift();
     const att = die(s, head.attacker);
     const def = die(s, head.defender);
     if (!a.destroy) return rollCombat(s, att, def, head.from, head.ranged);
-    log(s, `${name(s, head.player)} is ${cardName('dangerous')}: both mechs are destroyed.`, head.player, 'shipDestroyed');
-    // No "destroy" effects (destroyedEnemyShip), but the losses count.
+    log(s, `${name(s, head.player)} is ${cardName('dangerous')}: both mechs are destroyed.`, head.player, 'mechDestroyed');
+    // No "destroy" effects (destroyedEnemyMech), but the losses count.
     for (const d of [att, def]) {
       if (d.owner === head.player) continue;
-      tally(s, head.player, 'shipsDestroyed');
-      tally(s, d.owner, 'shipsLost');
+      tally(s, head.player, 'mechsDestroyed');
+      tally(s, d.owner, 'mechsLost');
     }
-    destroyShip(s, def);
-    destroyShip(s, att);
+    destroyMech(s, def);
+    destroyMech(s, att);
   },
   resolveCombat(s) {
     resolveCombat(s, headOf(s, 'combat', 'No combat to resolve'));
@@ -132,19 +132,23 @@ export const combatHandlers = {
     const d = die(s, head.die);
     if (a.move && !dieAt(s, head.to)) {
       d.loc = boardLoc(head.to);
-      logTo(s, head.player, `${name(s, head.player)}'s ${shipName(s, d)} advances`, head.to);
+      logTo(s, head.player, `${name(s, head.player)}'s ${mechName(s, d)} advances`, head.to);
     }
   },
   infamy(s, a) {
     const head = headOf(s, 'infamy', 'No Take Over to resolve');
-    if (!infamyTargets(s, head.player).some((p) => p.id === a.planet)) fail('Choose an objective without your cube');
+    if (!infamyTargets(s, head.player).some((p) => p.id === a.objective)) fail('Choose an objective without your cube');
     s.pending.shift();
-    s.players[head.player].dominance = 1;
-    log(s, `${name(s, head.player)} seizes objective ${s.board.planets[a.planet].number} through a Take Over.`, head.player, 'seize', [
-      a.planet,
-    ]);
-    tally(s, head.player, 'planetsTaken');
-    placeCube(s, head.player, a.planet);
+    s.players[head.player].power = 1;
+    log(
+      s,
+      `${name(s, head.player)} seizes objective ${s.board.objectives[a.objective].number} through a Take Over.`,
+      head.player,
+      'seize',
+      [a.objective],
+    );
+    tally(s, head.player, 'objectivesTaken');
+    placeCube(s, head.player, a.objective);
     if (s.phase !== 'play' || !rulesOf(s).cards) return;
     const ownTurn = head.player === s.turn.player;
     if (s.turn.phase === 'cards') {
@@ -154,7 +158,7 @@ export const combatHandlers = {
       if (ownTurn) s.pending.unshift(pick);
       else s.pending.push(pick);
     } else if (!ownTurn) {
-      // In the action phase the active player's cube counts in turn.conquests; another player's
+      // In the action phase the active player's cube counts in turn.claims; another player's
       // is remembered for this turn's card phase (see endTurn).
       (s.turn.offTurnCubes ??= []).push(head.player);
     }

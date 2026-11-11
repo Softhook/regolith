@@ -1,6 +1,6 @@
 import { useMemo, type CSSProperties } from 'react';
 import { dataUrl, fighterMuzzle, GROUND_BASE, mechFighterSvg, SKY, type FighterStance } from '@regolith/art';
-import { shipOf, type CombatOutcome, type CombatPending, type CombatRole, type GameState } from '@regolith/engine';
+import { mechOf, type CombatOutcome, type CombatPending, type CombatRole, type GameState } from '@regolith/engine';
 import { whose } from './BattleVerdict';
 
 /**
@@ -32,13 +32,13 @@ export function BattleArena({
   const ranged = !!combat.ranged;
   // Both stances of both mechs, made once a battle: the swap on the reveal mustn't wait on a redraw.
   const arts = useMemo(() => {
-    const art = (ship: number, plate: string, flip: boolean, stance: FighterStance) => ({
-      standing: dataUrl(mechFighterSvg(ship, { flip, plate, stance })),
-      struck: dataUrl(mechFighterSvg(ship, { flip, plate, stance: 'struck' })),
+    const art = (mech: number, plate: string, flip: boolean, stance: FighterStance) => ({
+      standing: dataUrl(mechFighterSvg(mech, { flip, plate, stance })),
+      struck: dataUrl(mechFighterSvg(mech, { flip, plate, stance: 'struck' })),
     });
-    return { attacker: art(a.ship, ac, false, ranged ? 'aim' : 'ready'), defender: art(d.ship, dc, true, 'ready') };
-  }, [a.ship, ac, d.ship, dc, ranged]);
-  const muzzle = useMemo(() => (ranged ? fighterMuzzle(a.ship, 'aim') : undefined), [a.ship, ranged]);
+    return { attacker: art(a.mech, ac, false, ranged ? 'aim' : 'ready'), defender: art(d.mech, dc, true, 'ready') };
+  }, [a.mech, ac, d.mech, dc, ranged]);
+  const muzzle = useMemo(() => (ranged ? fighterMuzzle(a.mech, 'aim') : undefined), [a.mech, ranged]);
   const repelled = !!winner && !destroyed;
   const bounced = repelled && !ranged;
   const missed = ranged && winner === 'defender';
@@ -51,7 +51,7 @@ export function BattleArena({
         <img
           className={`arena-mech ${destroyed && !hit ? 'won' : ''} ${hit ? 'destroyed' : ''} ${bounced && attacker ? 'repelled' : ''}`}
           src={hit ? arts[role].struck : arts[role].standing}
-          alt={`${whose(game.players[combat[role].player].name)} ${shipOf(game, combat[role].ship).name}`}
+          alt={`${whose(game.players[combat[role].player].name)} ${mechOf(game, combat[role].mech).name}`}
         />
         {hit && <span className="arena-blast" />}
         {bounced && !attacker && <span className="arena-guard" />}

@@ -1,22 +1,22 @@
 /**
- * Ability-usage measurement: plays AI games in each mode and counts how often each ship's ability is
+ * Ability-usage measurement: plays AI games in each mode and counts how often each mech's ability is
  * used against how often it was on offer. Shared by abilityUsage.test.ts and scripts/ability-usage.ts,
- * so a new dice action (a RuleSet.ships entry) shows up here without any extra wiring.
+ * so a new dice action (a RuleSet.mechs entry) shows up here without any extra wiring.
  */
 import { apply, createGame, legalActions, rulesOf, type Action, type GameMode, type GameState } from '../src';
 import { aiAction, players, seededRandom } from './helpers';
 
-/** The actions that spend a ship's once-per-turn ability (carry and strike have tactical twins we don't count). */
+/** The actions that spend a mech's once-per-turn ability (carry and strike have tactical twins we don't count). */
 const ABILITY_ACTIONS = new Set<Action['type']>(['freeAttack', 'carry', 'swap', 'change', 'ability']);
 
 interface AbilityRow {
-  /** Die value of the ship (1 to 6). */
+  /** Die value of the mech (1 to 6). */
   value: number;
-  ship: string;
+  mech: string;
   ability: string;
   /** Times the ability was used. */
   used: number;
-  /** Player-turns in which a ship of this value had a legal ability action at some point. */
+  /** Player-turns in which a mech of this value had a legal ability action at some point. */
   offeredTurns: number;
   /** Player-turns in which it was used at least once. */
   usedTurns: number;
@@ -46,10 +46,10 @@ export interface UsageOptions {
 export function measureAbilityUsage(mode: GameMode, opts: UsageOptions): ModeUsage {
   const n = opts.players ?? 2;
   const levels = Array.from({ length: n }, () => opts.level ?? 1) as never;
-  const ships = rulesOf(createGame({ players: players(n), seed: 1, mode })).ships;
-  const rows: AbilityRow[] = Object.entries(ships).map(([v, def]) => ({
+  const mechs = rulesOf(createGame({ players: players(n), seed: 1, mode })).mechs;
+  const rows: AbilityRow[] = Object.entries(mechs).map(([v, def]) => ({
     value: Number(v),
-    ship: def.name,
+    mech: def.name,
     ability: def.ability.name,
     used: 0,
     offeredTurns: 0,
@@ -94,12 +94,12 @@ export function measureAbilityUsage(mode: GameMode, opts: UsageOptions): ModeUsa
 export function formatUsage(u: ModeUsage): string {
   const lines = [`${u.mode}: ${u.finished}/${u.games} games finished, ${u.playerTurns} player-turns`];
   lines.push(
-    `  ${'ship'.padEnd(16)}${'ability'.padEnd(22)}${'used'.padStart(6)}${'/game'.padStart(8)}${'offered'.padStart(9)}${'use rate'.padStart(10)}`,
+    `  ${'mech'.padEnd(16)}${'ability'.padEnd(22)}${'used'.padStart(6)}${'/game'.padStart(8)}${'offered'.padStart(9)}${'use rate'.padStart(10)}`,
   );
   for (const r of u.rows) {
     const rate = r.hasAction ? (r.offeredTurns ? `${Math.round((100 * r.usedTurns) / r.offeredTurns)}%` : '–') : 'auto';
     lines.push(
-      `  ${`${r.value} ${r.ship}`.padEnd(16)}${r.ability.slice(0, 20).padEnd(22)}${String(r.used).padStart(6)}${(r.used / Math.max(1, u.games)).toFixed(1).padStart(8)}${String(r.offeredTurns).padStart(9)}${rate.padStart(10)}`,
+      `  ${`${r.value} ${r.mech}`.padEnd(16)}${r.ability.slice(0, 20).padEnd(22)}${String(r.used).padStart(6)}${(r.used / Math.max(1, u.games)).toFixed(1).padStart(8)}${String(r.offeredTurns).padStart(9)}${rate.padStart(10)}`,
     );
   }
   return lines.join('\n');

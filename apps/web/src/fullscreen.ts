@@ -13,7 +13,7 @@ import { APPLE_TOUCH, FROM_HOME_SCREEN } from './platform';
  * left by holding Esc instead. Not on an iPad: Safari's full screen there misbehaves, and the iPhone has none.
  */
 
-// Safari still only ships the webkit-prefixed API; Keyboard Lock is Chrome and Edge only.
+// Safari still only mechs the webkit-prefixed API; Keyboard Lock is Chrome and Edge only.
 type FsDocument = Document & { webkitFullscreenElement?: Element | null; webkitExitFullscreen?: () => Promise<void> };
 type FsElement = HTMLElement & { webkitRequestFullscreen?: () => Promise<void> };
 type KeyboardLock = { lock(codes: string[]): Promise<void>; unlock(): void };

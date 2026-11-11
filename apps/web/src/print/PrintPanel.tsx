@@ -32,7 +32,7 @@ interface Props {
    * they didn't load (offline), when exports are off so no print file falls back to system fonts.
    */
   fonts: string | null;
-  /** Why the press sheets aren't the faces as shown, when they aren't: they print the set as it ships. */
+  /** Why the press sheets aren't the faces as shown, when they aren't: they print the set as it mechs. */
   cmykDiffers?: string;
   /** More single-face exports, beside the standard one. */
   extra?: (run: Run, busy: boolean) => ReactNode;
@@ -186,7 +186,7 @@ export function PrintPanel({
       {deep && <p className="lab-note">{DEEP_NOTE}</p>}
       {cmyk !== 'files' && cmykDiffers && (
         <p className="lab-warn">
-          Not as shown: {cmykDiffers}. The CMYK file has the {piece.plural} as they ship.
+          Not as shown: {cmykDiffers}. The CMYK file has the {piece.plural} as they mech.
         </p>
       )}
       <div className="lab-controls">

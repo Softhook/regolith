@@ -1,6 +1,6 @@
 // Tiny synthesized sound kit (no audio files). All sounds are short and quiet.
 
-import { BATTLE, BEAM_ARRIVES, boomAt, CUBE, DICE, MOST_BOOMS, SHIP, SHOT, WARP } from './beats';
+import { BATTLE, BEAM_ARRIVES, boomAt, CUBE, DICE, MOST_BOOMS, MECH, SHOT, WARP } from './beats';
 import { effects, envelope, filter, gain, glide, jitter, kept, noiseSource, oscillator, out } from './audio';
 import { fanfare, lament } from './gameOverSound';
 import { pick } from './random';
@@ -99,8 +99,8 @@ function boom(delay = 0, size = 1) {
 }
 
 /**
- * A cube dropped on a planet, heard as the board shows it (beats.ts): a falling whistle, the clack of it
- * landing, then a ringing chord as the planet is claimed. `delay`: when the drop starts, in seconds.
+ * A cube dropped on an objective, heard as the board shows it (beats.ts): a falling whistle, the clack of it
+ * landing, then a ringing chord as the objective is claimed. `delay`: when the drop starts, in seconds.
  */
 function cubeDrop(delay = 0) {
   const fall = CUBE.fall / 1000;
@@ -121,16 +121,16 @@ export const sfx = {
     tone(784, 0.22, 'sine', 0.06 * level, 0, undefined, 0.01);
     tone(1175, 0.4, 'sine', 0.05 * level, 0.15, undefined, 0.01);
   },
-  /** A ship flying across the board: a deep engine rumble that swells as it passes, for as long as it glides (beats.ts). */
+  /** A mech flying across the board: a deep engine rumble that swells as it passes, for as long as it glides (beats.ts). */
   fly: () => {
     const f = jitter(1);
-    const glide = SHIP.glide / 1000;
+    const glide = MECH.glide / 1000;
     noise(glide, 0.3, { type: 'lowpass', from: 160 * f, to: 520 * f, q: 3, rise: 0.25 });
     tone(48 * f, glide, 'sine', 0.16, 0, 72 * f, 0.2);
     tone(96 * f, glide - 0.05, 'triangle', 0.05, 0.02, 140 * f, 0.2);
   },
   /**
-   * A ship arriving on the board from the scrapyard or reserve, or brought by a card: a rising shimmer, and
+   * A mech arriving on the board from the salvage yard or reserve, or brought by a card: a rising shimmer, and
    * the thump of it landing `land` ms in, as it appears (beats.ts).
    */
   warpIn: (land: number = WARP.land) => {
@@ -139,19 +139,19 @@ export const sfx = {
     noise(0.35, 0.05, { type: 'highpass', from: 2000, to: 7000, rise: 0.25 });
     tone(180, 0.12, 'sine', 0.12, land / 1000, 120);
   },
-  /** Two ships trading places: two tones crossing. */
+  /** Two mechs trading places: two tones crossing. */
   swap: () => {
     tone(500, 0.3, 'sine', 0.05, 0, 1100);
     tone(1100, 0.3, 'sine', 0.05, 0, 500);
     noise(0.3, 0.05, { type: 'bandpass', from: 900, to: 2600, q: 3, rise: 0.12 });
   },
-  /** A ship number changed without a roll: a mechanical servo. */
+  /** A mech number changed without a roll: a mechanical servo. */
   retune: () => {
     tone(220, 0.07, 'square', 0.025, 0, 330);
     tone(330, 0.09, 'square', 0.025, 0.08, 440);
     noise(0.04, 0.1, { delay: 0.17, type: 'bandpass', from: 3200, q: 2.5, rise: 0.003 });
   },
-  /** A ship destroyed, `after` ms from now. `count` > 1 stagger a few booms, as Explosions does (beats.ts). */
+  /** A mech destroyed, `after` ms from now. `count` > 1 stagger a few booms, as Explosions does (beats.ts). */
   explode: (count = 1, after = 0) => {
     for (let i = 0; i < Math.min(count, MOST_BOOMS); i++) boom((after + boomAt(i)) / 1000, i ? 0.8 : 1);
   },
@@ -218,16 +218,16 @@ export const sfx = {
     }
     boom(flight, 0.7);
   },
-  /** Missiles gained: two metal clunks of rounds racked into place. */
-  missileLoad: () => {
+  /** Atomics gained: two metal clunks of rounds racked into place. */
+  atomicLoad: () => {
     for (const d of [0, 0.14]) {
       tone(190, 0.09, 'triangle', 0.1, d, 140);
       noise(0.05, 0.12, { delay: d, type: 'bandpass', from: 3400, q: 6, rise: 0.003 });
     }
   },
-  /** A cube placed on a planet: conquered, seized, or a starting planet. */
+  /** A cube placed on an objective: claimed, seized, or a starting objective. */
   cube: () => cubeDrop(),
-  /** A cube knocked off a planet (a conquest displacing it): a clack, the cube tumbling away, a falling note. */
+  /** A cube knocked off an objective (a claim displacing it): a clack, the cube tumbling away, a falling note. */
   displace: () => {
     noise(0.05, 0.22, { type: 'bandpass', from: 1800, q: 3, rise: 0.002 });
     [0.09, 0.17, 0.23].forEach((d, i) => tick(0.14 - i * 0.03, 1500 - i * 250, d));
@@ -242,8 +242,8 @@ export const sfx = {
   },
   /** Research gained: a quick rising data chirp. */
   research: () => [880, 1175, 1760].forEach((f, i) => tone(f, 0.09, 'triangle', 0.035, i * 0.05)),
-  /** Dominance gained: a low surge of power. */
-  dominance: () => {
+  /** Power gained: a low surge of power. */
+  power: () => {
     tone(98, 0.45, 'sawtooth', 0.03, 0, 147, 0.08);
     tone(196, 0.4, 'triangle', 0.04, 0.03, 294, 0.08);
   },
@@ -263,7 +263,7 @@ export const sfx = {
     tone(660, 0.12, 'triangle', 0.05, 0, 1320);
     tone(1320, 0.18, 'sine', 0.035, 0.08, 1760);
   },
-  /** A ship scrapped by Resourceful: everything rushing inward, then a small dull pop as it's gone. */
+  /** A mech scrapped by Resourceful: everything rushing inward, then a small dull pop as it's gone. */
   implode: () => {
     tone(900, 0.28, 'sine', 0.06, 0, 90, 0.02);
     noise(0.28, 0.09, { type: 'bandpass', from: 5000, to: 300, q: 2, rise: 0.2 });
@@ -280,7 +280,7 @@ export const sfx = {
   shunt: () => {
     tone(jitter(70), 0.2, 'sine', 0.35, 0, 40, 0.003);
     noise(0.05, 0.3, { type: 'lowpass', from: 1600, rise: 0.002 });
-    noise(SHIP.glide / 1000, 0.1, { delay: 0.03, type: 'bandpass', from: 700, to: 300, q: 2, rise: 0.02 });
+    noise(MECH.glide / 1000, 0.1, { delay: 0.03, type: 'bandpass', from: 700, to: 300, q: 2, rise: 0.02 });
   },
   /** Show of Force's lance: a charging whine, then the crack as it strikes, `strike` ms in (game/strike). */
   lance: (strike = 0) => {
@@ -292,13 +292,13 @@ export const sfx = {
     noise(0.06, 0.4, { delay: at, type: 'highpass', from: 2500, rise: 0.001 });
     tone(1800, 0.22, 'sine', 0.05, at, 300, 0.002);
   },
-  /** Dangerous's arc: an electric buzz and crackle as it reaches across, joining the two ships `strike` ms in (game/strike). */
+  /** Dangerous's arc: an electric buzz and crackle as it reaches across, joining the two mechs `strike` ms in (game/strike). */
   arc: (strike = 0) => {
     const dur = strike / 1000 + 0.15;
     tone(jitter(120), dur, 'sawtooth', 0.04);
     for (let i = 0; i < 10; i++) tick(0.12, 2500 + Math.random() * 3500, (i * dur) / 10 + Math.random() * 0.01);
   },
-  /** A Warp Gate opening: a wobbling hum that swells. */
+  /** An Ice Tunnel opening: a wobbling hum that swells. */
   portal: () => {
     tone(110, 0.9, 'sine', 0.08, 0, 220, 0.3);
     tone(113, 0.9, 'sine', 0.08, 0, 226, 0.3);
@@ -313,7 +313,7 @@ export const sfx = {
       noise(0.08, 0.1, { delay: d, type: 'lowpass', from: 900, rise: 0.003 });
     }
   },
-  /** Black Market: coins changing hands (the missiles' own sound follows). */
+  /** Black Market: coins changing hands (the atomics' own sound follows). */
   coins: () => {
     for (const d of [0, 0.07, 0.16]) {
       tone(jitter(2600, 0.05), 0.15, 'sine', 0.03, d);
@@ -352,7 +352,7 @@ export const sfx = {
     noise(1.1, 0.08, { type: 'bandpass', from: 200, to: 2500, q: 1.5, rise: 0.8 });
     [220, 277, 330].forEach((f) => tone(f, 0.9, 'triangle', 0.03, 0.8));
   },
-  /** Expansion: a launch horn as a new ship is built. */
+  /** Expansion: a launch horn as a new mech is built. */
   launch: () => {
     tone(196, 0.5, 'sawtooth', 0.03, 0, 392, 0.1);
     tone(294, 0.5, 'sawtooth', 0.025, 0.05, 588, 0.1);

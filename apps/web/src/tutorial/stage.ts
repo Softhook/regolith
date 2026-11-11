@@ -12,7 +12,7 @@ const TRAINING: MapDef = {
   players: 2,
   group: 'training',
   cubes: 5,
-  stats: { slack: 0, shared: 0, planets: 3 },
+  stats: { slack: 0, shared: 0, objectives: 3 },
   world: 'mars',
   layout: [['7*', '7*'], ['8']],
 };
@@ -50,11 +50,11 @@ const turnOf = (player: number, actionsLeft: number): TurnState => ({
   number: 1,
   phase: 'actions',
   actionsLeft,
-  freeDeploys: 0,
+  freeDrops: 0,
   moved: {},
   abilityUsed: {},
   seen: {},
-  conquests: 0,
+  claims: 0,
   attacked: false,
   destroyedBy: [],
   oncePerTurn: [],
@@ -81,7 +81,7 @@ export function stage(setup: Setup, seed: number): GameState {
   s.logCounter = 0;
   s.pending = [];
   s.phase = 'play';
-  const placed = (planet: number) => s.board.planets[planet];
+  const placed = (objective: number) => s.board.objectives[objective];
   for (const [id, sides] of Object.entries({ [HOME.you]: ['you'], [HOME.foe]: ['foe'], ...setup.cubes } as Record<
     number,
     readonly Side[]
@@ -103,15 +103,15 @@ export function stage(setup: Setup, seed: number): GameState {
         d.loc = { zone: 'board', r, c };
         d.value = v;
       } else if (i - spots.length < waiting.length) {
-        d.loc = { zone: 'scrapyard' };
+        d.loc = { zone: 'salvageYard' };
         d.value = waiting[i - spots.length];
       } else d.loc = { zone: 'reserve' };
     });
   }
   for (const side of ['you', 'foe'] as const) {
     const p = s.players[index(side)];
-    p.dominance = setup.power?.[side] ?? 1;
-    p.missiles = 1;
+    p.power = setup.power?.[side] ?? 1;
+    p.atomics = 1;
   }
   if (setup.barriers?.length) s.barriers = setup.barriers.map((c) => ({ ...c, owner: null }));
   const { side, actions } = setup.turn ?? { side: 'you', actions: 3 };

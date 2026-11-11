@@ -287,7 +287,7 @@ export function fanfare() {
 }
 
 /**
- * The defeat lament: the ship's power failing, one deep drum, then muted horns falling E-flat, D, C over
+ * The defeat lament: the mech's power failing, one deep drum, then muted horns falling E-flat, D, C over
  * A-flat major, G major and C minor (♭VI–V–i), fading into a cold, distant chord.
  */
 export function lament() {

@@ -2,7 +2,7 @@ import {
   actor,
   attackOdds,
   cellOf,
-  conquerCheck,
+  claimCheck,
   die,
   dieAt,
   distance,
@@ -10,11 +10,11 @@ import {
   legalActions,
   movementRange,
   mulberry32,
-  orbitals,
-  planetFreeSlots,
+  perimeterSpaces,
+  objectiveFreeSlots,
   rulesOf,
-  shipOf,
-  shipsOnBoard,
+  mechOf,
+  mechsOnBoard,
   tryApply,
   type Action,
   type GameState,
@@ -36,7 +36,7 @@ import { storedTactics } from './patient';
  * next turn) are what the higher levels in search.ts fix.
  */
 
-const RANDOM_ACTIONS = new Set<Action['type']>(['attack', 'ability', 'freeAttack', 'reconfigure', 'resourceful', 'takeCard', 'peekChoice']);
+const RANDOM_ACTIONS = new Set<Action['type']>(['attack', 'ability', 'freeAttack', 'refit', 'resourceful', 'takeCard', 'peekChoice']);
 
 export interface GreedyOptions {
   /** Samples per random action. Higher is stronger and slower. */
@@ -71,20 +71,20 @@ function hidden(state: GameState): GameState {
 }
 
 /**
- * Should `player` fire a missile into the current combat? The combat dice are already rolled, so who
- * wins is exact; what follows (re-rolled ships, cards drawn) is played on the hidden position.
+ * Should `player` fire an atomic into the current combat? The combat dice are already rolled, so who
+ * wins is exact; what follows (re-rolled mechs, cards drawn) is played on the hidden position.
  */
-export function chooseMissile(real: GameState, player: PlayerId): Action | null {
+export function chooseAtomic(real: GameState, player: PlayerId): Action | null {
   const head = real.pending[0];
-  if (head?.kind !== 'combat' || real.players[player].missiles <= 0) return null;
+  if (head?.kind !== 'combat' || real.players[player].atomics <= 0) return null;
   const state = hidden(real);
   const options: Action[] = [
-    { type: 'missile', by: player, side: 'attacker' },
-    { type: 'missile', by: player, side: 'defender' },
+    { type: 'atomic', by: player, side: 'attacker' },
+    { type: 'atomic', by: player, side: 'defender' },
   ];
   const baseline = scoreAfter(state, player, { type: 'resolveCombat' });
   let pick: Action | null = null;
-  let top = baseline + 15; // a missile is worth keeping unless it clearly helps
+  let top = baseline + 15; // an atomic is worth keeping unless it clearly helps
   for (const a of options) {
     const s = tryApply(state, a);
     if (!s) continue;
@@ -121,10 +121,10 @@ function best(state: GameState, me: PlayerId, candidates: Action[], opts: Greedy
 /** Small preferences so equal-scoring actions resolve sensibly. */
 function tieBreak(s: GameState, a: Action): number {
   if (a.type === 'endTurn') return -0.5;
-  // Free abilities must actually improve the position, not just shuffle ships around.
+  // Free abilities must actually improve the position, not just shuffle mechs around.
   if (a.type === 'swap' || a.type === 'change' || a.type === 'flexible') return -2;
   // Regolith's Barrier is there for good: only where it clearly helps.
-  if (a.type === 'ability' && shipOf(s, die(s, a.die).value).ability?.name === 'Barrier') return -8;
+  if (a.type === 'ability' && mechOf(s, die(s, a.die).value).ability?.name === 'Barrier') return -8;
   if (a.type === 'advance' && a.move) return 0.2;
   if (a.type === 'ruthless' && a.skill) return 0.5;
   if (a.type === 'prideful' && a.take) return 0.5;
@@ -147,7 +147,7 @@ function playOutDecisions(state: GameState, me: PlayerId): GameState {
   let s = state;
   for (let i = 0; i < 12 && s.pending.length && s.phase !== 'over'; i++) {
     const head = s.pending[0];
-    if (head.kind === 'setupRoll' || head.kind === 'skillDraft' || head.kind === 'placeStart' || head.kind === 'placeShips') break;
+    if (head.kind === 'setupRoll' || head.kind === 'skillDraft' || head.kind === 'placeStart' || head.kind === 'placeMechs') break;
     const a = quickPolicy(s, me);
     const next = a && tryApply(s, a);
     if (!next) break;
@@ -162,7 +162,7 @@ const PREFERRED: { [K in Pending['kind']]?: (a: Action, s: GameState, me: Player
   kineticShunt: (a, s, me) => (a.type === 'kineticShunt' && die(s, a.die).owner !== me) || barrierShuntRank(s, a, me) > 0,
   takeCard: (a) => a.type === 'takeCard' && a.deck === 'expansion',
   patientTactic: (a) => a.type === 'patientTactic' && a.index !== undefined,
-  unveil: (a) => a.type === 'unveilDeploy',
+  unveil: (a) => a.type === 'unveilDrop',
   placeExpansion: (a) => a.type === 'placeExpansion' && !!a.to,
   ruthless: (a) => a.type === 'ruthless' && !!a.skill,
   prideful: (a) => a.type === 'prideful' && a.take,
@@ -199,44 +199,44 @@ function score(s: GameState, me: PlayerId): number {
 function playerValue(s: GameState, p: PlayerId, detailed: boolean): number {
   const pl = s.players[p];
   let v = -pl.cubesLeft * 1000;
-  v += pl.dominance * pl.dominance * 6;
+  v += pl.power * pl.power * 6;
   v += pl.research * 14;
-  v += pl.missiles * 25;
+  v += pl.atomics * 25;
   v += Math.min(pl.skills.filter((sk) => sk.active).length, 5) * SKILL_VALUE;
   v += storedTactics(s, p) * STORED_TACTIC_VALUE;
   for (const d of s.dice) {
     if (d.owner !== p) continue;
     if (d.loc.zone === 'board') v += 40;
-    else if (d.loc.zone === 'scrapyard') v += 15;
+    else if (d.loc.zone === 'salvageYard') v += 15;
   }
-  v += conquerPotential(s, p);
+  v += claimPotential(s, p);
   if (detailed) v -= danger(s, p);
   return v;
 }
 
-function conquerPotential(s: GameState, p: PlayerId): number {
+function claimPotential(s: GameState, p: PlayerId): number {
   const values: number[] = [];
-  const myShips = shipsOnBoard(s, p);
-  for (const planet of s.board.planets) {
-    const full = planetFreeSlots(planet) <= 0;
-    if (full ? !rulesOf(s).overConquest || !planet.cubes.some((x) => x !== p) : planet.cubes.includes(p)) continue;
-    const slots = orbitals(s.board, planet);
-    const inOrbit = slots.map((c) => dieAt(s, c)).filter((d) => d && d.owner === p);
-    const sum = inOrbit.reduce((a, d) => a + d!.value, 0);
+  const myMechs = mechsOnBoard(s, p);
+  for (const objective of s.board.objectives) {
+    const full = objectiveFreeSlots(objective) <= 0;
+    if (full ? !rulesOf(s).overClaim || !objective.cubes.some((x) => x !== p) : objective.cubes.includes(p)) continue;
+    const slots = perimeterSpaces(s.board, objective);
+    const onPerimeter = slots.map((c) => dieAt(s, c)).filter((d) => d && d.owner === p);
+    const sum = onPerimeter.reduce((a, d) => a + d!.value, 0);
     const empty = slots.filter((c) => isEmptySpace(s, c)).length;
-    const target = full ? 12 : planet.number;
+    const target = full ? 12 : objective.number;
     let v: number;
-    const check = conquerCheck(s, p, planet.id);
-    if (check.ok || (!full && conquerCheck(s, p, planet.id, true).ok)) v = 320;
-    // Contested orbit: the sum is made, but enemy ships in orbit have to be destroyed first.
+    const check = claimCheck(s, p, objective.id);
+    if (check.ok || (!full && claimCheck(s, p, objective.id, true).ok)) v = 320;
+    // Contested perimeter: the sum is made, but enemy mechs on the perimeter have to be destroyed first.
     else if (check.blocked) v = 100;
-    else if (sum < target && empty > 0 && target - sum <= 6) v = 40 + 30 * inOrbit.length;
-    else if (sum < target) v = 12 * inOrbit.length;
-    else v = Math.max(0, 8 * inOrbit.length - (sum - target) * 6);
-    // Ships that could reach an empty orbital slot next turn.
+    else if (sum < target && empty > 0 && target - sum <= 6) v = 40 + 30 * onPerimeter.length;
+    else if (sum < target) v = 12 * onPerimeter.length;
+    else v = Math.max(0, 8 * onPerimeter.length - (sum - target) * 6);
+    // Mechs that could reach an empty perimeter slot next turn.
     if (empty > 0) {
-      for (const d of myShips) {
-        if (inOrbit.includes(d)) continue;
+      for (const d of myMechs) {
+        if (onPerimeter.includes(d)) continue;
         const c = cellOf(d)!;
         const near = slots.some((q) => isEmptySpace(s, q) && distance(q, c) <= movementRange(s, d));
         if (near) v += 6;
@@ -248,11 +248,11 @@ function conquerPotential(s: GameState, p: PlayerId): number {
   return (values[0] ?? 0) + 0.3 * (values[1] ?? 0);
 }
 
-/** Expected loss from enemy ships that could attack ours next turn (rough reach estimate). */
+/** Expected loss from enemy mechs that could attack ours next turn (rough reach estimate). */
 function danger(s: GameState, p: PlayerId): number {
   let total = 0;
   const enemies = s.dice.filter((d) => d.loc.zone === 'board' && d.owner !== p);
-  for (const mine of shipsOnBoard(s, p)) {
+  for (const mine of mechsOnBoard(s, p)) {
     const c = cellOf(mine)!;
     let worst = 0;
     for (const e of enemies) {

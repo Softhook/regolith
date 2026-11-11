@@ -5,16 +5,16 @@ import {
   type CardDef,
   type GameMode,
   type MapDef,
-  type ShipDef,
+  type MechDef,
   type BuiltInAbility,
-  type ShipTable,
+  type MechTable,
 } from './data';
-import type { ShipHooks } from './ships';
+import type { MechHooks } from './mechs';
 import type { Die, GameState } from './types';
 
 /**
  * Everything that differs between rule sets lives here. The engine and the UI ask the rule set
- * ("does this mode have missiles?") instead of checking the mode's name, so adding a new
+ * ("does this mode have atomics?") instead of checking the mode's name, so adding a new
  * edition means adding one entry to RULESETS (rulesets.ts).
  */
 export interface RuleSet {
@@ -32,10 +32,10 @@ export interface RuleSet {
   researchLimit: number;
   /** Map groups (data/maps.yaml) this mode can be played on. */
   mapGroups: string[];
-  /** Each die value's ship: its name and ability (built in, or hooks). */
-  ships: ShipTable;
-  /** A fully occupied planet can still be conquered by an orbit summing to 12, displacing an opponent's cube (PROTOTYPING.md §6.10). */
-  overConquest?: boolean;
+  /** Each die value's mech: its name and ability (built in, or hooks). */
+  mechs: MechTable;
+  /** A fully occupied objective can still be claimed by a perimeter summing to 12, displacing an opponent's cube (PROTOTYPING.md §6.10). */
+  overClaim?: boolean;
   /** Mechs may destroy barriers, on trial in self-play (breakBarriers.ts); off in every mode. */
   breakBarriers?: BarrierBreakRule;
 }
@@ -98,31 +98,31 @@ export function rulesOf(state: GameState): RuleSet {
   return ruleSets[state.mode];
 }
 
-/** The ship a die value is in this game's rules. */
-export function shipOf(state: GameState, value: number): ShipDef {
-  return rulesOf(state).ships[value];
+/** The mech a die value is in this game's rules. */
+export function mechOf(state: GameState, value: number): MechDef {
+  return rulesOf(state).mechs[value];
 }
 
-/** Whether a ship has this ability in this game's rules. */
+/** Whether a mech has this ability in this game's rules. */
 export function hasAbility(state: GameState, d: Die, ability: BuiltInAbility): boolean {
-  return rulesOf(state).ships[d.value]?.builtIn === ability;
+  return rulesOf(state).mechs[d.value]?.builtIn === ability;
 }
 
-/** A ship's ability hooks in this game's rules (none for the 1 to 4's built-in abilities). */
-export function hooksOf(state: GameState, d: Die): ShipHooks | undefined {
-  return rulesOf(state).ships[d.value]?.hooks;
+/** A mech's ability hooks in this game's rules (none for the 1 to 4's built-in abilities). */
+export function hooksOf(state: GameState, d: Die): MechHooks | undefined {
+  return rulesOf(state).mechs[d.value]?.hooks;
 }
 
-/** The hooks each ship table's ships have, worked out once: the engine asks on every move search. */
-const HOOKS = new WeakMap<ShipTable, Set<string>>();
+/** The hooks each mech table's mechs have, worked out once: the engine asks on every move search. */
+const HOOKS = new WeakMap<MechTable, Set<string>>();
 
-/** Whether any ship in this game's rules has this hook (none in the official modes), so searches can skip it otherwise. */
-export function modeHasHook(state: GameState, hook: keyof ShipHooks): boolean {
-  const ships = rulesOf(state).ships;
-  let hooks = HOOKS.get(ships);
+/** Whether any mech in this game's rules has this hook (none in the official modes), so searches can skip it otherwise. */
+export function modeHasHook(state: GameState, hook: keyof MechHooks): boolean {
+  const mechs = rulesOf(state).mechs;
+  let hooks = HOOKS.get(mechs);
   if (!hooks) {
-    hooks = new Set(Object.values(ships).flatMap((s) => Object.keys(s.hooks ?? {}).filter((k) => s.hooks![k as keyof ShipHooks])));
-    HOOKS.set(ships, hooks);
+    hooks = new Set(Object.values(mechs).flatMap((s) => Object.keys(s.hooks ?? {}).filter((k) => s.hooks![k as keyof MechHooks])));
+    HOOKS.set(mechs, hooks);
   }
   return hooks.has(hook);
 }

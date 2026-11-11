@@ -2,7 +2,7 @@
  * What every Skill card does, in one table.
  *
  * A skill is a set of hooks: plain values or pure functions that the rules read at fixed points
- * (movement, the conquer check, combat, start of turn, destroying a ship…). A rule asks
+ * (movement, the claim check, combat, start of turn, destroying a mech…). A rule asks
  * `skillRules(state, player)` for the player's active skills and combines their hooks; it never
  * names a skill. Skills that are an action of their own say so with `activated` and have a
  * handler in skillActions.ts.
@@ -17,18 +17,18 @@ import { dieAt } from './lookups';
 import type { Action, Cell, CombatPending, CombatRole, Die, GameState, PlayerId } from './types';
 
 export interface CombatPart {
-  /** The roll (`set`: a missile or card set it, overriding the dice), the ship, or a card's modifier. */
-  kind: 'roll' | 'ship' | 'modifier';
+  /** The roll (`set`: an atomic or card set it, overriding the dice), the mech, or a card's modifier. */
+  kind: 'roll' | 'mech' | 'modifier';
   label: string;
   value: number;
   set?: boolean;
 }
 
-interface ConquerContext {
-  /** Sum of the player's ships in orbit. */
+interface ClaimContext {
+  /** Sum of the player's mechs on the perimeter. */
   sum: number;
-  ships: Die[];
-  dominance: number;
+  mechs: Die[];
+  power: number;
   research: number;
 }
 
@@ -39,12 +39,12 @@ interface CombatContext {
 }
 
 export interface TurnBonus {
-  freeDeploys?: number;
+  freeDrops?: number;
   research?: number;
 }
 
 interface DestroyContext {
-  /** The first enemy ship this player destroyed this turn. */
+  /** The first enemy mech this player destroyed this turn. */
   first: boolean;
   /** It is this player's turn, in the action phase. */
   ownActionPhase: boolean;
@@ -53,49 +53,49 @@ interface DestroyContext {
 interface DestroyBonus {
   research?: number;
   actions?: number;
-  dominance?: number;
+  power?: number;
 }
 
 export interface SkillRule {
-  /** Extra movement for every ship. */
+  /** Extra movement for every mech. */
   movement?: number;
-  /** Ships may move more than once per turn. */
+  /** Mechs may move more than once per turn. */
   moveRepeatedly?: boolean;
-  /** One ship ability may be used a second time each turn. */
+  /** One mech ability may be used a second time each turn. */
   abilityTwice?: boolean;
   /** How many skills the player may hold. */
   skillLimit?: number;
   /** Research needed for a breakthrough. */
   breakthroughAt?: number;
-  /** Dominance needed for a Take Over cube (Prideful). */
+  /** Power needed for a Take Over cube (Prideful). */
   infamyAt?: number;
-  /** When a ship is placed in your scrapyard, choose its number instead (Calculating). */
-  chooseScrapyardNumber?: boolean;
-  /** One more Move or Research once the actions are spent, on a turn without Attack or Conquer. */
+  /** When a mech is placed in your salvage yard, choose its number instead (Calculating). */
+  chooseSalvageYardNumber?: boolean;
+  /** One more Move or Research once the actions are spent, on a turn without Attack or Claim. */
   peacefulExtraAction?: boolean;
   /** Tactics may be stored when taken and one played at the end of the turn; taking the card stores one. */
   storeTactics?: boolean;
   /** On the first destroy of a turn, one of the victim's active skills is disabled. */
   disableSkillOnDestroy?: boolean;
-  /** Whoever destroys a ship of the holder may take this card, even while it is not in effect. */
+  /** Whoever destroys a mech of the holder may take this card, even while it is not in effect. */
   stolenOnDestroy?: boolean;
-  /** After reconfiguring, the player may raise or lower the ship's number by 1. */
-  adjustReconfigure?: boolean;
-  /** Normal moves may pass through enemy ships; those spaces cost no movement. */
+  /** After refitting, the player may raise or lower the mech's number by 1. */
+  adjustRefit?: boolean;
+  /** Normal moves may pass through enemy mechs; those spaces cost no movement. */
   moveThroughEnemies?: boolean;
-  /** A card pick earned by a Conquer action may be taken as 1 missile instead. */
-  missileForConquest?: boolean;
-  /** Ships may also deploy to any empty space with no ship next to it. */
-  deployIsolated?: boolean;
+  /** A card pick earned by a Claim action may be taken as 1 atomic instead. */
+  atomicForClaim?: boolean;
+  /** Mechs may also drop to any empty space with no mech next to it. */
+  dropIsolated?: boolean;
   /** The player never gains research. */
   noResearch?: boolean;
-  /** The player never loses dominance. */
-  keepDominance?: boolean;
-  conquer?: {
+  /** The player never loses power. */
+  keepPower?: boolean;
+  claim?: {
     /** The total may miss the target by this much. */
     tolerance?: number;
     /** Other totals the player may use instead of the plain sum. */
-    sums?: (ctx: ConquerContext) => number[];
+    sums?: (ctx: ClaimContext) => number[];
     /** Research above 1 may be spent to move the total up or down by that much. */
     spendResearch?: boolean;
   };
@@ -108,18 +108,18 @@ export interface SkillRule {
     modifier?: (ctx: CombatContext) => number;
     /** When defending, ties go to the player, and winning destroys the attacker. */
     stubborn?: boolean;
-    /** When defending, before the dice are rolled, the player may destroy both ships. */
+    /** When defending, before the dice are rolled, the player may destroy both mechs. */
     destroyBoth?: boolean;
   };
   /** Bonuses at the start of each of the player's turns. */
   startOfTurn?: (state: GameState, player: PlayerId) => TurnBonus;
-  /** Bonuses when the player destroys an enemy ship in combat (on top of the dominance stakes). */
+  /** Bonuses when the player destroys an enemy mech in combat (on top of the power stakes). */
   onDestroy?: (ctx: DestroyContext) => DestroyBonus;
   /** Used with an action of its own (handler in skillActions.ts). */
   activated?: Action['type'];
 }
 
-/** Whether a friendly ship (other than `self`) is next to any of `spaces`. */
+/** Whether a friendly mech (other than `self`) is next to any of `spaces`. */
 function supported(state: GameState, player: PlayerId, self: string, spaces: Cell[]): boolean {
   return spaces.some((sp) =>
     linked(state, sp).some((q) => {
@@ -135,26 +135,26 @@ export const SKILL_RULES: Record<SkillEffect, SkillRule> = {
   ambitious: { activated: 'ambitious' },
   brilliant: { startOfTurn: () => ({ research: 2 }) },
   brutal: { combat: { dice: 2 } },
-  clever: { adjustReconfigure: true },
+  clever: { adjustRefit: true },
   composed: { activated: 'composed' },
   devious: { moveThroughEnemies: true },
   ferocious: { combat: { modifier: () => -1 } },
   flexible: { activated: 'flexible' },
   hostile: { onDestroy: (c) => (c.first && c.ownActionPhase ? { actions: 1 } : {}) },
-  industrious: { startOfTurn: () => ({ freeDeploys: 1 }) },
-  intelligent: { conquer: { tolerance: 1 } },
+  industrious: { startOfTurn: () => ({ freeDrops: 1 }) },
+  intelligent: { claim: { tolerance: 1 } },
   plundering: { onDestroy: (c) => (c.first ? { research: 3 } : {}) },
   precocious: { breakthroughAt: 4 },
-  profiteering: { missileForConquest: true },
+  profiteering: { atomicForClaim: true },
   rational: { combat: { roll: 3 } },
-  ravenous: { onDestroy: (c) => (c.first ? { dominance: 1 } : {}) },
+  ravenous: { onDestroy: (c) => (c.first ? { power: 1 } : {}) },
   resourceful: { activated: 'resourceful' },
-  righteous: { noResearch: true, keepDominance: true },
+  righteous: { noResearch: true, keepPower: true },
   steadfast: { moveRepeatedly: true },
-  stealthy: { deployIsolated: true },
+  stealthy: { dropIsolated: true },
   strategic: {
     combat: {
-      // Supported by a friendly ship next to the battle (for the attacker: next to either space).
+      // Supported by a friendly mech next to the battle (for the attacker: next to either space).
       modifier: ({ state, combat, side }) => {
         const s = combat[side];
         const spaces = side === 'attacker' ? [combat.from, combat.at] : [combat.at];
@@ -164,16 +164,16 @@ export const SKILL_RULES: Record<SkillEffect, SkillRule> = {
   },
   stubborn: { combat: { stubborn: true } },
   talented: { skillLimit: 5 },
-  tyrannical: { conquer: { sums: (c) => [c.sum + c.dominance] } },
+  tyrannical: { claim: { sums: (c) => [c.sum + c.power] } },
   cunning: { abilityTwice: true },
   tactical: { activated: 'tactical' },
-  calculating: { chooseScrapyardNumber: true },
+  calculating: { chooseSalvageYardNumber: true },
   curious: { peacefulExtraAction: true },
   patient: { storeTactics: true },
   prideful: { infamyAt: 4, stolenOnDestroy: true },
   ruthless: { disableSkillOnDestroy: true },
   // Regolith's own Science, in Pioneering's place
-  science: { conquer: { spendResearch: true } },
+  science: { claim: { spendResearch: true } },
   dangerous: { combat: { destroyBoth: true } },
 };
 
@@ -202,8 +202,8 @@ interface SkillSet {
 const NO_SKILLS: SkillSet = { active: Object.freeze([]), rules: Object.freeze([]) };
 
 /**
- * Active skills by the ids of the active cards, in order: movement, combat and the conquer check
- * ask for them for every ship, and the AI asks in every position it scores. Few sets occur in a
+ * Active skills by the ids of the active cards, in order: movement, combat and the claim check
+ * ask for them for every mech, and the AI asks in every position it scores. Few sets occur in a
  * game, so the cache stays small. The lists are frozen, as every caller gets the same one.
  */
 const SKILL_SETS = new Map<string, SkillSet>();
@@ -238,7 +238,7 @@ export function anySkill(state: GameState, player: PlayerId, test: (r: SkillRule
   return state.players[player].skills.some((s) => s.active && test(ruleOf(s.id)));
 }
 
-/** The index in the player's skills of a card someone who destroys their ship may take (Prideful), active or not. */
+/** The index in the player's skills of a card someone who destroys their mech may take (Prideful), active or not. */
 export function stealableSkill(state: GameState, player: PlayerId): number {
   return state.players[player].skills.findIndex((s) => ruleOf(s.id).stolenOnDestroy);
 }

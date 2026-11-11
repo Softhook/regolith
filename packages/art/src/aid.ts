@@ -44,7 +44,7 @@ export interface AidOptions {
 // What it says
 
 /** What each mech can do, in one short two-line phrase. */
-const SHIPS: { value: number; text: [string, string] }[] = [
+const MECHS: { value: number; text: [string, string] }[] = [
   { value: 1, text: ['Free attack on', 'a mech next to it'] },
   { value: 2, text: ['Carry a mech', 'as it moves'] },
   { value: 3, text: ['Swap with any', 'of your mechs'] },
@@ -119,8 +119,8 @@ function hex(cx: number, cy: number, r: number, glow: string): string {
   );
 }
 
-/** A die pad: where the dominance or research die sits, the 24 mm of a tile's space (a 19 mm die with room round it). */
-export function diePad(cx: number, cy: number, ink: string, kind: 'dominance' | 'research'): string {
+/** A die pad: where the power or research die sits, the 24 mm of a tile's space (a 19 mm die with room round it). */
+export function diePad(cx: number, cy: number, ink: string, kind: 'power' | 'research'): string {
   const s = TILE.pad;
   return (
     `<rect x="${n(cx - s / 2)}" y="${n(cy - s / 2)}" width="${s}" height="${s}" rx="3.6" fill="${PAD}" stroke="${ink}" stroke-width=".4"/>` +
@@ -128,7 +128,7 @@ export function diePad(cx: number, cy: number, ink: string, kind: 'dominance' | 
   );
 }
 
-/** A cube pad on the rail, from its top left: the planets' cube pad in the die pads' quiet fill. */
+/** A cube pad on the rail, from its top left: the objectives' cube pad in the die pads' quiet fill. */
 export const cubePad = (x: number, y: number) =>
   `<rect x="${n(x)}" y="${n(y)}" width="${CUBE_PAD.size}" height="${CUBE_PAD.size}" rx="${CUBE_PAD.corner}" fill="${PAD}" stroke="${MUTED}" stroke-opacity=".5" stroke-width=".3"/>`;
 
@@ -163,7 +163,7 @@ export function playerAidSvg(o: AidOptions = {}): string {
   out.push(`<rect x="${full.x}" y="${full.y}" width="${full.w}" height="${full.h}" fill="${GROUND}"/>`, craters());
 
   // --- The cube rail: a pad per cube, spread over the full height, with the win condition alongside.
-  // The pads are the planets' cube pads in the die pads' quiet fill; the text runs up the rail, like a spine.
+  // The pads are the objectives' cube pads in the die pads' quiet fill; the text runs up the rail, like a spine.
   const pad = CUBE_PAD.size;
   const step = (H - 2 * M - pad) / (MAX_CUBES - 1);
   for (let i = 0; i < MAX_CUBES; i++) {
@@ -177,15 +177,15 @@ export function playerAidSvg(o: AidOptions = {}): string {
 
   // --- Power and research: label, pad, what moves the die, what 6 does.
   const colW = 26;
-  const side = (x: number, kind: 'dominance' | 'research') => {
+  const side = (x: number, kind: 'power' | 'research') => {
     const tone = TRACK_INK[kind];
     const cx = x + colW / 2;
     out.push(
-      text(cx, M + 3, kind === 'dominance' ? 'power' : kind, 2.4, { font: 'bold', fill: tone, anchor: 'middle', track: 0.16, upper: true }),
+      text(cx, M + 3, kind === 'power' ? 'power' : kind, 2.4, { font: 'bold', fill: tone, anchor: 'middle', track: 0.16, upper: true }),
     );
     out.push(diePad(cx, M + 17.5, tone, kind));
     const lines =
-      kind === 'dominance'
+      kind === 'power'
         ? {
             gain: ['+1 per enemy destroyed', '−1 per mech lost'],
             six: 'At 6 · Take Over',
@@ -201,7 +201,7 @@ export function playerAidSvg(o: AidOptions = {}): string {
     out.push(line(cx, y, lines.six, 2.4, colW, measure, { font: 'bold', fill: tone, anchor: 'middle' }));
     lines.then.forEach((t, i) => out.push(line(cx, y + 3.5 + i * 3.2, t, 2.2, colW, measure, { fill: MUTED, anchor: 'middle' })));
   };
-  side(left, 'dominance');
+  side(left, 'power');
   side(W - M - colW, 'research');
 
   // --- The turn, in the middle column.
@@ -229,20 +229,20 @@ export function playerAidSvg(o: AidOptions = {}): string {
   });
 
   // --- The mechs: six die faces, strongest to fastest, and what each can do.
-  // Anchored to the bottom: the last line of the ships' text sits on the bottom margin (less its descenders).
+  // Anchored to the bottom: the last line of the mechs' text sits on the bottom margin (less its descenders).
   const size = 17;
   const fleetY = H - M - 0.6 - (size + 4.4 + 3.1);
   const gap = (W - M - left - 6 * size) / 5;
-  // One size for every ship's text: the largest at which every line fits its column.
-  const lines = SHIPS.flatMap((s) => s.text);
-  const shipText = Math.max(MIN_TEXT, Math.min(2.5, ...lines.map((t) => (size + gap - 0.8) / measure(t, 1, 'bold'))));
-  for (const [i, s] of SHIPS.entries()) {
+  // One size for every mech's text: the largest at which every line fits its column.
+  const lines = MECHS.flatMap((s) => s.text);
+  const mechText = Math.max(MIN_TEXT, Math.min(2.5, ...lines.map((t) => (size + gap - 0.8) / measure(t, 1, 'bold'))));
+  for (const [i, s] of MECHS.entries()) {
     const cx = left + size / 2 + i * (size + gap);
     const d = mechDie(s.value, cx, fleetY + size / 2, size);
     defs.push(d.defs);
     out.push(d.body);
     s.text.forEach((t, k) =>
-      out.push(text(cx, fleetY + size + 4.4 + k * 3.1, t, shipText, { font: 'bold', fill: accent, anchor: 'middle' })),
+      out.push(text(cx, fleetY + size + 4.4 + k * 3.1, t, mechText, { font: 'bold', fill: accent, anchor: 'middle' })),
     );
   }
 

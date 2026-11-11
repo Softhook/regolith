@@ -20,8 +20,8 @@ import { tileArt } from './boardTiles';
 
 /**
  * Tile artwork as ready-drawn images: the raster layers of a tile on its world's ground (art `rasterLayerSvg`),
- * which the map draws (MapTiles): the ground, with the planet's building standing where the planet sits, and
- * what's standing, the ground's image cut down to the buildings (and ships and rovers).
+ * which the map draws (MapTiles): the ground, with the objective's building standing where the objective sits, and
+ * what's standing, the ground's image cut down to the buildings (and mechs and rovers).
  *
  * Drawing a tile's SVG (its noise filters) takes ~45 ms, so each layer of a tile is drawn once to a bitmap and kept
  * in IndexedDB (imageStore); later games and window resizes reuse it. The stored image carries a hash of the SVG,
@@ -43,7 +43,7 @@ const pixels = (layer: RasterLayer) => Math.round((SIZE * RASTER_AREA[layer].w) 
 const grounds = new Map<string, Promise<Record<RasterLayer, string>>>();
 const decoded = new Map<string, Promise<string>>();
 
-/** A tile to draw: its physical id, and where its planet sits, in spaces from its middle (the ground's building stands there). */
+/** A tile to draw: its physical id, and where its objective sits, in spaces from its middle (the ground's building stands there). */
 export interface TileRef {
   id: string;
   at?: Spot;
@@ -102,7 +102,7 @@ export function decodedTileImage(tile: TileRef, world: World, layer: RasterLayer
 
 /**
  * Prepares the chosen map's tiles in the background while the player is in the lobby. Each tile carries its
- * building where that map puts its planet, so they can't be drawn ahead of the map, and drawing them all as the
+ * building where that map puts its objective, so they can't be drawn ahead of the map, and drawing them all as the
  * game opens would stall its opening roll. The lobby's ground has first call: its tiles are asked for as it's
  * laid, before this starts, and tiles are drawn in turn. One at a time, so it stops when the map changes.
  */

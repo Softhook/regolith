@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react';
-import { cardName, shipOf, type CombatOutcome, type CombatPending, type GameState } from '@regolith/engine';
+import { cardName, mechOf, type CombatOutcome, type CombatPending, type GameState } from '@regolith/engine';
 
 /** Whose something is: the tutorial's player is called You. */
 export const whose = (name: string) => (name === 'You' ? 'Your' : `${name}’s`);
@@ -28,7 +28,7 @@ export function BattleVerdict({
             <>
               {out.stubborn ? `hold${s} firm (${cardName('stubborn')})` : `win${s}`}:{' '}
               <b>
-                {whose(game.players[lost.player].name)} {shipOf(game, lost.ship).name} will be destroyed
+                {whose(game.players[lost.player].name)} {mechOf(game, lost.mech).name} will be destroyed
               </b>
             </>
           ) : (

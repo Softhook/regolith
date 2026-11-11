@@ -7,8 +7,8 @@ import {
   isEmptySpace,
   legalActions,
   MAPS,
-  missileOffered,
-  orbitals,
+  atomicOffered,
+  perimeterSpaces,
   MODES,
   tryApply,
   type CombatPending,
@@ -25,9 +25,9 @@ import { defaultSeat } from './seats';
  * basic map for the player count; `seed` makes the dice the same every time. Reloading starts the
  * game again. Like any game on this device, it replaces the saved game.
  * `scene=combat|combatFull|combatDestroy|combatRepel|combatShot|combatShotMiss|advance|changeOfHeart|takeCard|over` opens on that popup instead, `scene=turn` on your first turn,
- * `scene=win` one conquest from winning (to see the victory show as it happens), `scene=lose` with an AI
- * opponent one conquest from winning on its turn (to hear the lament), and
- * `scene=attackFrom` with a ship that can attack from spaces with different outcomes (see `scene`).
+ * `scene=win` one claim from winning (to see the victory show as it happens), `scene=lose` with an AI
+ * opponent one claim from winning on its turn (to hear the lament), and
+ * `scene=attackFrom` with a mech that can attack from spaces with different outcomes (see `scene`).
  */
 export function devStartGame(): GameState | null {
   if (!import.meta.env.DEV) return null;
@@ -57,11 +57,11 @@ const SNIPER = 5;
 const COMBAT_RIGS: Record<string, (battle: CombatPending, game: GameState) => void> = {
   combatFull(battle, game) {
     battle.attacker.dice = [5, 6];
-    game.players[0].missiles = 2;
+    game.players[0].atomics = 2;
     // The defender's two dice, the lowest whose total an atomic would turn the battle against.
     for (const low of [1, 2, 3, 4, 5, 6]) {
       battle.defender.dice = [low, Math.min(low + 1, 6)];
-      if (missileOffered(game, battle, 0, 'attacker')) break;
+      if (atomicOffered(game, battle, 0, 'attacker')) break;
     }
   },
   combatDestroy(battle) {
@@ -74,13 +74,13 @@ const COMBAT_RIGS: Record<string, (battle: CombatPending, game: GameState) => vo
   },
   combatShot(battle) {
     battle.ranged = true;
-    battle.attacker.ship = SNIPER;
+    battle.attacker.mech = SNIPER;
     battle.attacker.dice = [1];
     battle.defender.dice = [6];
   },
   combatShotMiss(battle) {
     battle.ranged = true;
-    battle.attacker.ship = SNIPER;
+    battle.attacker.mech = SNIPER;
     battle.attacker.dice = [6];
     battle.defender.dice = [1];
   },
@@ -88,10 +88,10 @@ const COMBAT_RIGS: Record<string, (battle: CombatPending, game: GameState) => vo
 
 /**
  * Plays every seat's first choice through setup and on to the human's (player 0's) first turn, then
- * opens a popup: `combat` (the human's ship attacks and may answer, e.g. with a missile), `combatFull` (the same at its
- * tallest: both sides roll two dice and the losing human is offered a missile), `combatDestroy` and `combatRepel` (the two results, once the dice are in), `combatShot` and `combatShotMiss` (a Sniper's shot hitting and missing), `advance` (it has won and
+ * opens a popup: `combat` (the human's mech attacks and may answer, e.g. with an atomic), `combatFull` (the same at its
+ * tallest: both sides roll two dice and the losing human is offered an atomic), `combatDestroy` and `combatRepel` (the two results, once the dice are in), `combatShot` and `combatShotMiss` (a Sniper's shot hitting and missing), `advance` (it has won and
  * chooses whether to advance), `changeOfHeart` (needs a mode with cards), `takeCard` (a card to pick from the market, likewise) or
- * `over` (the human has won). `win` leaves the human one cube to place, with ships orbiting a planet they can conquer;
+ * `over` (the human has won). `win` leaves the human one cube to place, with mechs on the perimeter of an objective they can claim;
  * `lose` stops at the next player's (an AI's) first turn instead, and leaves them so.
  * `turn`, or a scene that can't be set up, stops at that turn.
  */
@@ -122,8 +122,8 @@ function scene(game: GameState, name: string): GameState {
   if (name === 'attackFrom') return attackFrom(s);
   if (name === 'win' || name === 'lose') return oneFromWinning(s, who);
   if (name !== 'combat' && name !== 'advance') return s;
-  // Two empty spaces side by side: one of the human's ships attacks one of the next player's, trying
-  // ship values until the human can answer the roll (so the battle waits, with its buttons).
+  // Two empty spaces side by side: one of the human's mechs attacks one of the next player's, trying
+  // mech values until the human can answer the roll (so the battle waits, with its buttons).
   const free = [...Array(s.board.rows * s.board.cols).keys()]
     .map((i) => ({ r: Math.floor(i / s.board.cols), c: i % s.board.cols }))
     .find(({ r, c }) => isEmptySpace(s, { r, c }) && isEmptySpace(s, { r, c: c + 1 }));
@@ -152,11 +152,11 @@ function scene(game: GameState, name: string): GameState {
   return fallback ?? s;
 }
 
-/** Player `p` with one cube left (the rest on other planets) and two ships orbiting an empty planet, numbered so they can conquer it. */
+/** Player `p` with one cube left (the rest on other objectives) and two mechs on the perimeter of an empty objective, numbered so they can claim it. */
 function oneFromWinning(s: GameState, p: PlayerId): GameState {
-  for (const planet of s.board.planets) {
-    const spots = orbitals(s.board, planet).filter((cell) => isEmptySpace(s, cell));
-    if (planet.cubes.length || spots.length < 2) continue;
+  for (const objective of s.board.objectives) {
+    const spots = perimeterSpaces(s.board, objective).filter((cell) => isEmptySpace(s, cell));
+    if (objective.cubes.length || spots.length < 2) continue;
     for (let a = 1; a <= 6; a++)
       for (let b = 1; b <= 6; b++) {
         const t = structuredClone(s);
@@ -166,28 +166,28 @@ function oneFromWinning(s: GameState, p: PlayerId): GameState {
         Object.assign(mine[1], { loc: { zone: 'board', ...spots[1] }, value: b });
         t.turn.seen[mine[0].id] = [a];
         t.turn.seen[mine[1].id] = [b];
-        // The other cubes go on other planets, so the count stays true.
-        for (const other of t.board.planets) {
-          while (other.id !== planet.id && t.players[p].cubesLeft > 1 && other.cubes.length < other.capacity) {
+        // The other cubes go on other objectives, so the count stays true.
+        for (const other of t.board.objectives) {
+          while (other.id !== objective.id && t.players[p].cubesLeft > 1 && other.cubes.length < other.capacity) {
             other.cubes.push(p);
             t.players[p].cubesLeft--;
           }
         }
         if (t.players[p].cubesLeft !== 1) return s;
-        if (legalActions(t).some((x) => x.type === 'conquer' && x.planet === planet.id)) return t;
+        if (legalActions(t).some((x) => x.type === 'claim' && x.objective === objective.id)) return t;
       }
   }
   return s;
 }
 
-/** One of the human's ships (a 3) diagonally next but one to an enemy 6 it can attack from spaces with different outcomes. */
+/** One of the human's mechs (a 3) diagonally next but one to an enemy 6 it can attack from spaces with different outcomes. */
 function attackFrom(s: GameState): GameState {
   const { rows, cols } = s.board;
   for (let r = 0; r < rows; r++)
     for (let c = 0; c < cols; c++) {
       const t = structuredClone(s);
       const [mine, theirs] = [t.dice.find((x) => x.owner === 0)!, t.dice.find((x) => x.owner === 1)!];
-      mine.loc = theirs.loc = { zone: 'scrapyard' };
+      mine.loc = theirs.loc = { zone: 'salvageYard' };
       const near = { r: r + 1, c: c - 1 };
       if (!isEmptySpace(t, { r, c }) || !isEmptySpace(t, near)) continue;
       Object.assign(mine, { loc: { zone: 'board', ...near }, value: 3 });

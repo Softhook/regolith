@@ -4,7 +4,7 @@ import { shotWait } from '../game/strike';
 
 /** How long a move by someone else stays on screen before the next one is shown. */
 export const STEP_MS = 1500;
-/** How long each stage of a battle (before a missile or re-roll changes it) stays on screen; for
+/** How long each stage of a battle (before an atomic or re-roll changes it) stays on screen; for
  * other players' battles, also how long the decided battle does. */
 export const COMBAT_MS = 3500;
 /** Further behind than this, the screen skips ahead (to the next battle's result, or the present)
@@ -92,7 +92,7 @@ function battleEnds(steps: readonly Step[], i: number): boolean {
   return !!c && i < steps.length - 1 && battleOnScreen(steps[i + 1].state)?.id !== c.id;
 }
 
-/** The battle on screen and how far it has got (each missile and re-roll changes it), if any. */
+/** The battle on screen and how far it has got (each atomic and re-roll changes it), if any. */
 export function battleStage(s: GameState): string | null {
   const c = battleOnScreen(s);
   return c ? combatStage(c) : null;

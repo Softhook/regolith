@@ -25,8 +25,8 @@ body.rb-standalone { margin: 0; padding: 24px 12px; background: #e8ebf3; }
   --mn-panel: #f1f4fb;
   --mn-panel-2: #e8ecf7;
   --mn-cube-edge: rgba(10, 15, 30, .35);
-  --mn-orbit: #fff3d1;
-  --mn-orbit-edge: #e8b03a;
+  --mn-perimeter: #fff3d1;
+  --mn-perimeter-edge: #e8b03a;
   --mn-ok: #1f9d63;
   --mn-no: #d6334b;
   color: var(--mn-ink);
@@ -43,8 +43,8 @@ body.rb-standalone { margin: 0; padding: 24px 12px; background: #e8ebf3; }
   --mn-panel: rgba(255, 255, 255, 0.035);
   --mn-panel-2: rgba(255, 255, 255, 0.06);
   --mn-cube-edge: #fff;
-  --mn-orbit: color-mix(in srgb, var(--gold) 8%, transparent);
-  --mn-orbit-edge: color-mix(in srgb, var(--gold) 70%, transparent);
+  --mn-perimeter: color-mix(in srgb, var(--gold) 8%, transparent);
+  --mn-perimeter-edge: color-mix(in srgb, var(--gold) 70%, transparent);
   --mn-ok: var(--good);
   --mn-no: var(--bad);
   font-size: 14px;
@@ -82,9 +82,9 @@ body.rb-standalone { margin: 0; padding: 24px 12px; background: #e8ebf3; }
 /* ------------------------------------------------------------------ diagram marks */
 /* Diagrams show the board itself (game tile art), so their marks take the game's colours (styles.css :root) in both themes. */
 .mn-svg { display: block; width: 100%; height: auto; margin: 0 auto; overflow: visible; }
-.mn-orbit { fill: color-mix(in srgb, var(--gold) 14%, transparent); stroke: var(--gold); stroke-width: 1.6; }
+.mn-perimeter { fill: color-mix(in srgb, var(--gold) 14%, transparent); stroke: var(--gold); stroke-width: 1.6; }
 .mn-zone { fill: color-mix(in srgb, var(--bad) 14%, transparent); stroke: var(--bad); stroke-width: 1.3; stroke-dasharray: 3 2; }
-.mn-planet-num { font-family: Inter, 'Helvetica Neue', Arial, sans-serif; }
+.mn-objective-num { font-family: Inter, 'Helvetica Neue', Arial, sans-serif; }
 .mn-ghost { filter: drop-shadow(0 0 1.5px rgba(0, 0, 0, .9)); }
 .mn-ghost rect { fill: rgba(0, 0, 0, .35); stroke: #fff; stroke-width: 1.5; stroke-dasharray: 3 3; }
 .mn-ghost circle { fill: #fff; opacity: .8; }
@@ -99,11 +99,11 @@ body.rb-standalone { margin: 0; padding: 24px 12px; background: #e8ebf3; }
 .mn-ok circle { fill: var(--good); } .mn-no circle { fill: var(--bad); }
 .mn-yard { fill: var(--panel-solid); stroke: var(--line-2); }
 .mn-note { font: 700 7.5px Inter, sans-serif; fill: var(--text); opacity: .85; dominant-baseline: middle; letter-spacing: .06em; text-transform: uppercase; }
-.mn-die-icon, .mn-cube-icon, .mn-planet-icon, .mn-icon { display: inline-block; vertical-align: middle; flex: none; }
+.mn-die-icon, .mn-cube-icon, .mn-objective-icon, .mn-icon { display: inline-block; vertical-align: middle; flex: none; }
 .mn-cube-icon rect { stroke: var(--mn-cube-edge); stroke-width: 1.5; }
 .mn-cube-icon:not(.empty) { filter: drop-shadow(0 0 2px color-mix(in srgb, var(--mn-you) 55%, transparent)); }
 .mn-cube-icon.empty rect { stroke: var(--mn-muted); stroke-dasharray: 3 2.4; }
-.mn-planet-icon { overflow: visible; }
+.mn-objective-icon { overflow: visible; }
 
 /* ------------------------------------------------------------------ goal */
 .mn-hero { text-align: center; padding: 18px 16px 14px; border-radius: 14px; background: var(--mn-panel); }
@@ -119,22 +119,22 @@ body.rb-standalone { margin: 0; padding: 24px 12px; background: #e8ebf3; }
 
 .mn-track { display: flex; align-items: center; gap: 3px; flex-wrap: wrap; }
 .mn-track > span:not(.mn-track-end) { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 6px; background: var(--mn-panel-2); font: 900 11px var(--display); color: var(--mn-muted); }
-.mn-track-dom > span.on { background: linear-gradient(90deg, var(--dom-1), var(--dom-2)); color: #fff; box-shadow: 0 0 6px color-mix(in srgb, var(--dom-2) 45%, transparent); }
+.mn-track-power > span.on { background: linear-gradient(90deg, var(--power-1), var(--power-2)); color: #fff; box-shadow: 0 0 6px color-mix(in srgb, var(--power-2) 45%, transparent); }
 .mn-track-res > span.on { background: linear-gradient(90deg, var(--res-1), var(--res-2)); color: #1e1c1a; box-shadow: 0 0 6px color-mix(in srgb, var(--res-2) 45%, transparent); }
-.mn-track-dom > span.next { box-shadow: inset 0 0 0 1.5px var(--dom-2); color: var(--dom-2); }
+.mn-track-power > span.next { box-shadow: inset 0 0 0 1.5px var(--power-2); color: var(--power-2); }
 .mn-track-res > span.next { box-shadow: inset 0 0 0 1.5px var(--res-2); color: var(--res-2); }
 .mn-track-end { display: inline-flex; align-items: center; gap: 4px; margin-left: 4px; font-size: 12.5px; font-weight: 600; color: var(--mn-soft); }
 
-/* ------------------------------------------------------------------ ships */
+/* ------------------------------------------------------------------ mechs */
 .mn-scale { margin: 14px auto; max-width: 520px; }
 .mn-scale-dice { display: grid; grid-template-columns: repeat(6, 1fr); text-align: center; margin: 6px 0; }
 .mn-scale-dice small { display: block; font-size: 11px; margin-top: 2px; }
 .mn-scale-bar { font: 700 11px Inter, sans-serif; text-transform: uppercase; letter-spacing: .08em; padding: 3px 10px; border-radius: 999px; }
 .mn-strong { background: linear-gradient(90deg, var(--mn-you), transparent 85%); color: var(--mn-ink); }
 .mn-fast { background: linear-gradient(270deg, var(--mn-you), transparent 85%); text-align: right; color: var(--mn-ink); }
-.mn-ships { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 22px; margin-top: 10px; }
-.mn-ship { display: flex; gap: 10px; align-items: flex-start; }
-.mn-ship p { margin: 2px 0 0; font-size: 13px; color: var(--mn-soft); }
+.mn-mechs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 22px; margin-top: 10px; }
+.mn-mech { display: flex; gap: 10px; align-items: flex-start; }
+.mn-mech p { margin: 2px 0 0; font-size: 13px; color: var(--mn-soft); }
 .mn-ability { margin-left: 0; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--mn-accent); margin-left: 4px; }
 
 /* ------------------------------------------------------------------ map */
@@ -162,16 +162,16 @@ body.rb-standalone { margin: 0; padding: 24px 12px; background: #e8ebf3; }
 .mn-action h3 { margin: 0; font-size: 15px; }
 .mn-action p { margin: 6px 0 0; font-size: 13.5px; }
 .mn-figure { display: flex; align-items: center; justify-content: center; min-height: 120px; padding: 6px 0; }
-.mn-figure .mn-svg, .mn-conquer .mn-svg, .mn-map .mn-svg { border-radius: 8px; }
+.mn-figure .mn-svg, .mn-claim .mn-svg, .mn-map .mn-svg { border-radius: 8px; }
 .mn-figure .mn-svg { max-height: 200px; }
 .mn-actions > .mn-wide { grid-column: 1 / -1; }
-.mn-key { border: 2px solid var(--mn-orbit-edge); background: linear-gradient(180deg, var(--mn-orbit), transparent 70%); }
+.mn-key { border: 2px solid var(--mn-perimeter-edge); background: linear-gradient(180deg, var(--mn-perimeter), transparent 70%); }
 
 .mn-cost { margin-left: auto; display: inline-flex; align-items: center; gap: 3px; font-size: 11.5px; font-weight: 600; color: var(--mn-muted); white-space: nowrap; }
 .mn-cost .action-hex { color: var(--mn-action); }
 .mn-cost span { margin-left: 4px; }
 
-.mn-conquer { display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; align-items: center; }
+.mn-claim { display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; align-items: center; }
 .mn-sum { text-align: center; }
 .mn-eq-result { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; margin-top: 6px; }
 .mn-eq-result.mn-ok { color: var(--mn-ok); }
@@ -201,8 +201,8 @@ body.rb-standalone { margin: 0; padding: 24px 12px; background: #e8ebf3; }
 .mn-outcome ul { margin: 0; padding-left: 18px; font-size: 13.5px; }
 .mn-outcome.win { border-color: var(--mn-ok); }
 .mn-box .mn-track { margin: 6px 0; }
-.mn-box .mn-missile { display: flex; align-items: center; gap: 8px; margin: 6px 0; color: var(--bad); }
-.mn-missile span { font-size: 13px; color: var(--mn-muted); }
+.mn-box .mn-atomic { display: flex; align-items: center; gap: 8px; margin: 6px 0; color: var(--bad); }
+.mn-atomic span { font-size: 13px; color: var(--mn-muted); }
 
 /* ------------------------------------------------------------------ cards */
 .mn-earn { display: flex; gap: 12px; align-items: center; padding: 12px 14px; border-radius: 12px; background: var(--mn-panel); }
@@ -234,9 +234,9 @@ body.rb-standalone { margin: 0; padding: 24px 12px; background: #e8ebf3; }
 @media (max-width: 700px) {
   .rb-page { padding: 28px 18px; }
   .mn-cover h1 { font-size: 44px; }
-  .mn-two, .mn-actions, .mn-ships, .mn-checks, .mn-cardtypes, .mn-flow { grid-template-columns: 1fr; }
+  .mn-two, .mn-actions, .mn-mechs, .mn-checks, .mn-cardtypes, .mn-flow { grid-template-columns: 1fr; }
   .mn-actions > *, .mn-actions > :nth-child(-n + 2) { grid-column: auto; }
-  .mn-conquer { grid-template-columns: 1fr 1fr; }
+  .mn-claim { grid-template-columns: 1fr 1fr; }
   .mn-sum { grid-column: 1 / -1; grid-row: 2; }
   .mn-fight { grid-template-columns: 1fr; }
   .mn-flow-arrow { transform: rotate(90deg); justify-self: center; }
@@ -258,7 +258,7 @@ body.rb-standalone { margin: 0; padding: 24px 12px; background: #e8ebf3; }
   .rb-page { max-width: none; padding: 0; box-shadow: none; background: #fff; }
   .mn { font-size: 10pt; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .mn h2, .mn h3 { break-after: avoid; }
-  .mn-action, .mn-route, .mn-box, .mn-outcome, .mn-hero, .mn-fight, .mn-two, .mn-ship, .mn-ctype, .mn tr { break-inside: avoid; }
+  .mn-action, .mn-route, .mn-box, .mn-outcome, .mn-hero, .mn-fight, .mn-two, .mn-mech, .mn-ctype, .mn tr { break-inside: avoid; }
   #mn-combat, .mn-table-wrap { break-inside: avoid; }
   .mn-cover { padding-top: 20mm; }
 }
@@ -284,8 +284,8 @@ body.rb-standalone { margin: 0; padding: 24px 12px; background: #e8ebf3; }
 .mn-goalanim-win { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; }
 .mn-goalanim-win strong {
   font: 900 34px var(--display); letter-spacing: .08em; text-transform: uppercase; color: #fff;
-  padding: 8px 22px; border-radius: 14px; background: rgb(10 14 26 / .72); border: 2px solid var(--mn-orbit-edge);
-  text-shadow: 0 0 18px var(--mn-orbit-edge); animation: mn-win .5s cubic-bezier(.2, 1.4, .4, 1);
+  padding: 8px 22px; border-radius: 14px; background: rgb(10 14 26 / .72); border: 2px solid var(--mn-perimeter-edge);
+  text-shadow: 0 0 18px var(--mn-perimeter-edge); animation: mn-win .5s cubic-bezier(.2, 1.4, .4, 1);
 }
 @keyframes mn-win { from { transform: scale(.4); opacity: 0; } }
 .mn-goalanim-tray { display: flex; flex-direction: column; gap: 8px; min-height: 164px; justify-content: center; padding: 14px 12px; border-radius: 14px; background: var(--mn-panel-2); border: 1px solid var(--mn-line); }

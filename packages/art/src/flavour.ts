@@ -1,11 +1,11 @@
 import type { Rng } from './rng';
-import type { PlanetType } from './tokens';
+import type { ObjectiveType } from './tokens';
 
 /**
- * Made-up survey data printed small beside each planet, like a label in a star atlas. Pure flavour:
+ * Made-up survey data printed small beside each objective, like a label in a star atlas. Pure flavour:
  * nothing in the game reads it. Plain ASCII apart from "·", so any font can set it.
  */
-export interface PlanetFlavour {
+export interface ObjectiveFlavour {
   /** A given name, e.g. "Thalassa Prime" (the tile prints it in capitals). */
   name: string;
   /** Catalogue number, e.g. "GJ 1132 c". */
@@ -48,7 +48,7 @@ const SUFFIX = ['', '', '', '', ' Prime', ' II', ' III', ' IV', ' VI', ' Minor',
 const CATALOGUE = ['KOI', 'GJ', 'HD', 'TOI', 'LHS', 'KIC', 'WASP', 'HIP', 'Kepler', 'TRAPPIST', 'Ross', 'Wolf'];
 
 /** Class and the measurements that suit each kind of world. Masses in Earth (ME) or Jupiter (MJ) masses. */
-function profile(type: PlanetType, number: number, r: Rng): { cls: string; data: string } {
+function profile(type: ObjectiveType, number: number, r: Rng): { cls: string; data: string } {
   const f = (min: number, max: number, digits = 2) => r.range(min, max).toFixed(digits);
   const k = (min: number, max: number) => `${Math.round(r.range(min, max))} K`;
   switch (type) {
@@ -67,7 +67,7 @@ function profile(type: PlanetType, number: number, r: Rng): { cls: string; data:
   }
 }
 
-export function planetFlavour(r: Rng, type: PlanetType, number: number): PlanetFlavour {
+export function objectiveFlavour(r: Rng, type: ObjectiveType, number: number): ObjectiveFlavour {
   const name = r.pick(START) + r.pick(MIDDLE) + r.pick(END) + r.pick(SUFFIX);
   const cat = r.pick(CATALOGUE);
   const letter = 'bcdefgh'[r.int(0, 6)];

@@ -1,8 +1,8 @@
 import { REGOLITH_GROUND_PX, tileGroundSvg, tileSvg, type TileOptions, type TileSpec } from '@regolith/art';
 import { blobToDataUrl, rasterise } from '../files';
 
-/** How a tile is shown and printed: its world, and where its planet sits (art `TileOptions`). */
-export type TileView = Pick<TileOptions, 'world' | 'planetAt'>;
+/** How a tile is shown and printed: its world, and where its objective sits (art `TileOptions`). */
+export type TileView = Pick<TileOptions, 'world' | 'objectiveAt'>;
 
 /**
  * A tile as an SVG document to print (art `tileSvg`): its ground's light drawn first at the size it's made for
@@ -31,8 +31,8 @@ const KEEP_GROUNDS = 32;
 /** Whether a tile's ground is drawn, so `printedTileSvgNow` has it. */
 export const groundDrawn = (t: TileSpec, o: TileView) => !!grounds.get(groundKey(t, o))?.drawn;
 
-/** What a tile's ground is drawn from: the tile (its seed) and its world and planet's spot. */
-const groundKey = (t: TileSpec, o: TileView) => JSON.stringify([t, o.world, o.planetAt ?? '']);
+/** What a tile's ground is drawn from: the tile (its seed) and its world and objective's spot. */
+const groundKey = (t: TileSpec, o: TileView) => JSON.stringify([t, o.world, o.objectiveAt ?? '']);
 
 /** A tile's lit ground on its world (art `tileGroundSvg`), drawn at the size its light is made for, once. */
 export function litGround(t: TileSpec, o: TileView): Promise<string> {
@@ -53,9 +53,9 @@ export function litGround(t: TileSpec, o: TileView): Promise<string> {
 
 /** Thumbnails of tiles as they print, as image URLs, by the tile and how it's shown (`thumbnail`). */
 const thumbnails = new Map<string, Promise<string>>();
-/** A tile's latest thumbnail on each world and planet spot, to show while its next is drawn (a reroll, markings on or off). */
+/** A tile's latest thumbnail on each world and objective spot, to show while its next is drawn (a reroll, markings on or off). */
 const latestThumbnails = new Map<string, string>();
-const latestKey = (t: TileSpec, o: TileView) => `${t.id}:${o.world}:${o.planetAt ?? ''}`;
+const latestKey = (t: TileSpec, o: TileView) => `${t.id}:${o.world}:${o.objectiveAt ?? ''}`;
 
 /**
  * A tile as it prints, drawn small (`px` across) for a thumbnail: its own ground drawn once at full size
@@ -74,5 +74,5 @@ export function thumbnail(t: TileSpec, o: Omit<TileOptions, 'ground'>, px: numbe
   return url;
 }
 
-/** The latest thumbnail drawn of a tile on a world, its planet where it is (`thumbnail`), if any. */
+/** The latest thumbnail drawn of a tile on a world, its objective where it is (`thumbnail`), if any. */
 export const latestThumbnail = (t: TileSpec, o: TileView) => latestThumbnails.get(latestKey(t, o));

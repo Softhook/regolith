@@ -27,11 +27,11 @@ export function Status({ game, hud, rival }: { game: GameState; hud: readonly Co
               </span>
             )}
             {hud.includes('power') && (
-              <span className="demo-stat track track-dom" title={`Power ${p.dominance} of 6`}>
+              <span className="demo-stat track track-power" title={`Power ${p.power} of 6`}>
                 <small>Power</small>
                 <span className="track-cells">
                   {[1, 2, 3, 4, 5, 6].map((n) => (
-                    <span key={n} className={n <= p.dominance ? 'on' : ''} />
+                    <span key={n} className={n <= p.power ? 'on' : ''} />
                   ))}
                 </span>
               </span>

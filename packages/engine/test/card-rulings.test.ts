@@ -16,8 +16,8 @@ function cardGame(skills: { me?: string[]; foe?: string[] } = {}): GameState {
   });
   s.players[me].skills = (skills.me ?? []).map((id) => ({ id, active: true }));
   s.players[foe].skills = (skills.foe ?? []).map((id) => ({ id, active: true }));
-  s.players[me].dominance = 3;
-  s.players[foe].dominance = 3;
+  s.players[me].power = 3;
+  s.players[foe].power = 3;
   s.players[me].research = 2;
   s.players[foe].research = 2;
   s.turn.actionsLeft = 3;
@@ -25,13 +25,13 @@ function cardGame(skills: { me?: string[]; foe?: string[] } = {}): GameState {
 }
 
 describe('Curious (Prospectors; CE Option B)', () => {
-  it('offers a peaceful move or research when actions reach 0 and neither attack nor conquer occurred', () => {
+  it('offers a peaceful move or research when actions reach 0 and neither attack nor claim occurred', () => {
     let s = cardGame({ me: ['r-curious'] });
     const me = s.turn.player;
-    // Spend 3 actions on peaceful reconfigures
-    s = apply(s, { type: 'reconfigure', die: `p${me}d0` });
-    s = apply(s, { type: 'reconfigure', die: `p${me}d0` });
-    s = apply(s, { type: 'reconfigure', die: `p${me}d0` });
+    // Spend 3 actions on peaceful refits
+    s = apply(s, { type: 'refit', die: `p${me}d0` });
+    s = apply(s, { type: 'refit', die: `p${me}d0` });
+    s = apply(s, { type: 'refit', die: `p${me}d0` });
     expect(s.turn.actionsLeft).toBe(0);
 
     // With 0 actions, Curious allows research or peaceful move
@@ -51,7 +51,7 @@ describe('Curious (Prospectors; CE Option B)', () => {
     expect(after.some((a) => a.type === 'move')).toBe(false);
     expect(after).toEqual([{ type: 'endTurn' }]);
 
-    // Engine rejects free ship abilities after Curious
+    // Engine rejects free mech abilities after Curious
     s.dice.find((d) => d.id === `p${me}d0`)!.value = 4;
     expect(() => apply(s, { type: 'change', die: `p${me}d0`, value: 3 })).toThrow('No actions allowed after using Prospectors');
   });
@@ -66,7 +66,7 @@ describe('Curious (Prospectors; CE Option B)', () => {
     if (s.pending[0]?.kind === 'advance') s = apply(s, { type: 'advance', move: false });
     // Spend remaining actions
     while (s.turn.actionsLeft > 0) {
-      s = apply(s, { type: 'reconfigure', die: `p${me}d0` });
+      s = apply(s, { type: 'refit', die: `p${me}d0` });
     }
     expect(s.turn.actionsLeft).toBe(0);
     // Because attacked is true, no curious actions offered (a free ability, such as a Chameleon's change, still is)
@@ -75,11 +75,11 @@ describe('Curious (Prospectors; CE Option B)', () => {
 });
 
 describe('Calculating', () => {
-  it('lets the player choose any number when a ship is placed in the scrapyard', () => {
+  it('lets the player choose any number when a mech is placed in the salvage yard', () => {
     let s = cardGame({ foe: ['r-calculating'] });
     const me = s.turn.player;
     const foe = 1 - me;
-    // Force attacker win in combat to destroy foe's ship
+    // Force attacker win in combat to destroy foe's mech
     s = apply(s, { type: 'attack', die: `p${me}d0`, target: `p${foe}d0` });
     // Set combat dice so attacker wins
     const combat = s.pending.find((p) => p.kind === 'combat')!;
@@ -90,21 +90,21 @@ describe('Calculating', () => {
     s = apply(s, { type: 'resolveCombat' });
     // Attacker advances
     if (s.pending[0]?.kind === 'advance') s = apply(s, { type: 'advance', move: false });
-    // Calculating triggers a clever prompt for foe on the destroyed ship with source = 'r-calculating'
+    // Calculating triggers a clever prompt for foe on the destroyed mech with source = 'r-calculating'
     expect(s.pending[0]).toMatchObject({ kind: 'clever', player: foe, die: `p${foe}d0`, source: 'calculating' });
     s = apply(s, { type: 'clever', value: 1 });
     const destroyed = s.dice.find((d) => d.id === `p${foe}d0`)!;
     expect(destroyed.value).toBe(1);
-    expect(destroyed.loc.zone).toBe('scrapyard');
+    expect(destroyed.loc.zone).toBe('salvageYard');
   });
 });
 
 describe('Prideful', () => {
-  it('triggers Take Over at dominance 4', () => {
+  it('triggers Take Over at power 4', () => {
     let s = cardGame({ me: ['r-prideful'] });
     const me = s.turn.player;
-    s.players[me].dominance = 3;
-    // Win combat to gain dominance
+    s.players[me].power = 3;
+    // Win combat to gain power
     s = apply(s, { type: 'attack', die: `p${me}d0`, target: `p${1 - me}d0` });
     const combat = s.pending.find((p) => p.kind === 'combat')!;
     if (combat && combat.kind === 'combat') {
@@ -114,12 +114,12 @@ describe('Prideful', () => {
     s = apply(s, { type: 'resolveCombat' });
     if (s.pending[0]?.kind === 'advance') s = apply(s, { type: 'advance', move: false });
 
-    // Dominance reached 4, which triggers Take Over
-    expect(s.players[me].dominance).toBe(4);
+    // Power reached 4, which triggers Take Over
+    expect(s.players[me].power).toBe(4);
     expect(s.pending.some((p) => p.kind === 'infamy')).toBe(true);
   });
 
-  it('allows the destroyer to take Prideful when destroying its owner’s ship', () => {
+  it('allows the destroyer to take Prideful when destroying its owner’s mech', () => {
     let s = cardGame({ foe: ['r-prideful'] });
     const me = s.turn.player;
     const foe = 1 - me;
@@ -143,7 +143,7 @@ describe('Prideful', () => {
   it('triggers Take Over when a Prideful taken from the market takes effect at the end of the turn', () => {
     let s = cardGame();
     const me = s.turn.player;
-    s.players[me].dominance = 5;
+    s.players[me].power = 5;
     s.market.skillRow[0] = 'r-prideful';
     s.pending = [{ kind: 'takeCard', player: me, count: 1 }];
     s = apply(s, { type: 'takeCard', deck: 'skill', index: 0 });
@@ -160,7 +160,7 @@ describe('Prideful', () => {
     const me = s.turn.player;
     const foe = 1 - me;
     s.players[foe].skills = [{ id: 'r-prideful', active: false, disabledUntil: me }];
-    s.players[foe].dominance = 4;
+    s.players[foe].power = 4;
     s = apply(s, { type: 'endTurn' });
     expect(s.pending.some((p) => p.kind === 'infamy')).toBe(false);
     s = apply(s, { type: 'endTurn' });
@@ -171,8 +171,8 @@ describe('Prideful', () => {
   it('does not trigger Take Over at the start of a turn without a lowered threshold', () => {
     let s = cardGame();
     const me = s.turn.player;
-    // Dominance 6 kept from an Take Over that had nowhere to go: no new Take Over until Dominance rises.
-    s.players[me].dominance = 6;
+    // Power 6 kept from an Take Over that had nowhere to go: no new Take Over until Power rises.
+    s.players[me].power = 6;
     s = apply(s, { type: 'endTurn' });
     s = apply(s, { type: 'endTurn' });
     expect(s.turn.player).toBe(me);
@@ -190,7 +190,7 @@ describe('Patient', () => {
     // Store tactic
     s = apply(s, { type: 'takeCard', deck: 'tactic', index: 0, store: true });
     expect(s.players[me].storedTactics).toEqual(['r-aggression']);
-    expect(s.players[me].dominance).toBe(3); // Not played yet
+    expect(s.players[me].power).toBe(3); // Not played yet
 
     // Spend actions
     s.turn.actionsLeft = 0;
@@ -199,7 +199,7 @@ describe('Patient', () => {
 
     s = apply(s, { type: 'playStoredTactic', card: 'r-aggression' });
     expect(s.players[me].storedTactics).toEqual([]);
-    expect(s.players[me].dominance).toBe(5); // Aggression gives +2 dominance
+    expect(s.players[me].power).toBe(5); // Aggression gives +2 power
     expect(s.turn.storedTacticPlayed).toBe(true);
   });
 
@@ -214,7 +214,7 @@ describe('Patient', () => {
 
     s = apply(s, { type: 'playStoredTactic', card: 'r-aggression' });
     expect(s.players[me].storedTactics).toEqual([]);
-    expect(s.players[me].dominance).toBe(5);
+    expect(s.players[me].power).toBe(5);
     expect(s.turn.actionsLeft).toBe(0);
     expect(s.turn.storedTacticPlayed).toBe(true);
     expect(legalActions(s)).toEqual([{ type: 'endTurn' }]);
@@ -290,7 +290,7 @@ describe('Patient', () => {
     expect(s.pending[0]).toMatchObject({ kind: 'setupRoll', player: 1 });
   });
 
-  it('starts deployment once the last player to draft Patient has settled the tactic, taken or not', () => {
+  it('starts drop once the last player to draft Patient has settled the tactic, taken or not', () => {
     for (const index of [0, undefined]) {
       let s = draftingPatient(1);
       s = apply(s, { type: 'draftSkill', skill: 'r-patient' });
@@ -385,11 +385,11 @@ describe('Ruthless', () => {
 });
 
 describe('Prideful edge cases', () => {
-  it('triggers Take Over when stolen by a player whose dominance is 4', () => {
+  it('triggers Take Over when stolen by a player whose power is 4', () => {
     let s = cardGame({ foe: ['r-prideful'] });
     const me = s.turn.player;
     const foe = 1 - me;
-    s.players[me].dominance = 3; // Destroying foe ship will bring it to 4
+    s.players[me].power = 3; // Destroying foe mech will bring it to 4
 
     s = apply(s, { type: 'attack', die: `p${me}d0`, target: `p${foe}d0` });
     const combat = s.pending.find((p) => p.kind === 'combat')!;
@@ -400,8 +400,8 @@ describe('Prideful edge cases', () => {
     s = apply(s, { type: 'resolveCombat' });
     if (s.pending[0]?.kind === 'advance') s = apply(s, { type: 'advance', move: false });
 
-    // At this moment dominance is 4, but threshold without prideful was 6, so no infamy yet
-    expect(s.players[me].dominance).toBe(4);
+    // At this moment power is 4, but threshold without prideful was 6, so no infamy yet
+    expect(s.players[me].power).toBe(4);
     expect(s.pending.some((p) => p.kind === 'infamy')).toBe(false);
 
     // Steal Prideful
@@ -473,7 +473,7 @@ describe('Patient edge cases', () => {
 });
 
 describe('Calculating edge cases', () => {
-  it('resolves ship numbers before unveiling in Unveil the Fleet', () => {
+  it('resolves mech numbers before unveiling in Unveil the Fleet', () => {
     let s = cardGame({ me: ['r-calculating'] });
     const me = s.turn.player;
     s.pending = [{ kind: 'takeCard', player: me, count: 1 }];
@@ -482,7 +482,7 @@ describe('Calculating edge cases', () => {
     // Take Unveil the Fleet
     s = apply(s, { type: 'takeCard', deck: 'tactic', index: 0 });
 
-    // The ship on board is destroyed, and Calculating choice should come BEFORE unveil
+    // The mech on board is destroyed, and Calculating choice should come BEFORE unveil
     expect(s.pending[0]).toMatchObject({ kind: 'clever', player: me });
     s = apply(s, { type: 'clever', value: 4 });
 
@@ -524,7 +524,7 @@ describe('attackChance', () => {
     expect(brutal).toBeCloseTo(exact((x) => Array.from({ length: 6 }, (_, k) => Math.min(x, k + 1))));
   });
 
-  it('names what changes the odds, beyond the ships and dice', () => {
+  it('names what changes the odds, beyond the mechs and dice', () => {
     const factors = (skills: { me?: string[]; foe?: string[] }) => {
       const s = cardGame(skills);
       const me = s.turn.player;

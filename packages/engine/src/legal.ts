@@ -3,7 +3,7 @@ import { same, spaces } from './board';
 import { barrierBreaks } from './breakBarriers';
 import { tryApply } from './engine';
 import type { PendingOf } from './core';
-import { barrierAt, reserve, scrapyard, shipsOnBoard } from './lookups';
+import { barrierAt, reserve, salvageYard, mechsOnBoard } from './lookups';
 import {
   actionsClosed,
   attackLaunches,
@@ -12,15 +12,15 @@ import {
   canGainResearch,
   canMoveDie,
   canPlayStoredTactic,
-  canReconfigure,
+  canRefit,
   canUseAbility,
   carryOptions,
   carryPassengers,
-  conquerCheck,
-  deployTargets,
+  claimCheck,
+  dropTargets,
   freeAttackTargets,
   infamyTargets,
-  missileOffered,
+  atomicOffered,
   moveOptions,
   shuntTargets,
   barrierShuntTargets,
@@ -39,14 +39,14 @@ import type { Action, Die, GameState, Pending } from './types';
 const DECISION_CANDIDATES: { [K in Pending['kind']]: (s: GameState, head: PendingOf<K>) => Action[] } = {
   setupRoll: (_, head) => [{ type: 'setupKeep' }, ...(head.rerolled ? [] : [{ type: 'setupReroll' } as const])],
   skillDraft: (_, head) => head.options.map((skill) => ({ type: 'draftSkill', skill })),
-  placeStart: (s) => s.board.planets.filter((p) => p.start && !p.cubes.length).map((p) => ({ type: 'placeStart', planet: p.id })),
-  placeShips: (s, head) =>
-    scrapyard(s, head.player).flatMap((d) => startSlots(s, head.planet).map((to) => ({ type: 'placeShip', die: d.id, to }) as const)),
+  placeStart: (s) => s.board.objectives.filter((p) => p.start && !p.cubes.length).map((p) => ({ type: 'placeStart', objective: p.id })),
+  placeMechs: (s, head) =>
+    salvageYard(s, head.player).flatMap((d) => startSlots(s, head.objective).map((to) => ({ type: 'placeMech', die: d.id, to }) as const)),
   combat: (s, head) => {
     const out: Action[] = [{ type: 'resolveCombat' }];
     for (const pl of s.players) {
       for (const side of ['attacker', 'defender'] as const) {
-        if (missileOffered(s, head, pl.id, side)) out.push({ type: 'missile', by: pl.id, side });
+        if (atomicOffered(s, head, pl.id, side)) out.push({ type: 'atomic', by: pl.id, side });
       }
     }
     return out;
@@ -60,7 +60,7 @@ const DECISION_CANDIDATES: { [K in Pending['kind']]: (s: GameState, head: Pendin
     { type: 'advance', move: true },
     { type: 'advance', move: false },
   ],
-  infamy: (s, head) => infamyTargets(s, head.player).map((p) => ({ type: 'infamy', planet: p.id })),
+  infamy: (s, head) => infamyTargets(s, head.player).map((p) => ({ type: 'infamy', objective: p.id })),
   takeCard: (s, head) => {
     const m = s.market;
     const out: Action[] = [];
@@ -82,16 +82,16 @@ const DECISION_CANDIDATES: { [K in Pending['kind']]: (s: GameState, head: Pendin
     s.players[head.player].skills.filter((sk) => sk.id !== head.cannotDiscard).map((sk) => ({ type: 'discardSkill', skill: sk.id })),
   placeExpansion: (s, head) => [
     { type: 'placeExpansion', to: null },
-    ...deployTargets(s, head.player).map((to) => ({ type: 'placeExpansion', to }) as const),
+    ...dropTargets(s, head.player).map((to) => ({ type: 'placeExpansion', to }) as const),
   ],
-  showOfForce: (s) => shipsOnBoard(s).map((d) => ({ type: 'showOfForce', die: d.id })),
-  warpGate: (s, head) =>
+  showOfForce: (s) => mechsOnBoard(s).map((d) => ({ type: 'showOfForce', die: d.id })),
+  iceTunnel: (s, head) =>
     spaces(s.board)
       .filter((cell) => !head.placed.some((p) => same(p, cell)) && !barrierAt(s, cell) && !s.wormhole?.some((w) => same(w, cell)))
-      .map((cell) => ({ type: 'warpGate', cell })),
+      .map((cell) => ({ type: 'iceTunnel', cell })),
   placeBarrier: (s) => barrierSpaces(s).map((cell) => ({ type: 'placeBarrier', cell })),
   kineticShunt: (s) => [
-    ...shipsOnBoard(s).flatMap((d) => shuntTargets(s, d).map((to) => ({ type: 'kineticShunt', die: d.id, to }) as const)),
+    ...mechsOnBoard(s).flatMap((d) => shuntTargets(s, d).map((to) => ({ type: 'kineticShunt', die: d.id, to }) as const)),
     ...(s.barriers ?? []).flatMap((b) =>
       barrierShuntTargets(s, b).map((to) => ({ type: 'shuntBarrier', from: { r: b.r, c: b.c }, to }) as const),
     ),
@@ -111,9 +111,9 @@ const DECISION_CANDIDATES: { [K in Pending['kind']]: (s: GameState, head: Pendin
   ],
   unveil: (s, head) => {
     const out: Action[] = [{ type: 'unveilDone' }];
-    const targets = deployTargets(s, head.player);
-    for (const d of scrapyard(s, head.player)) if (!head.rerolled.includes(d.id)) out.push({ type: 'unveilReroll', die: d.id });
-    for (const d of scrapyard(s, head.player)) for (const to of targets) out.push({ type: 'unveilDeploy', die: d.id, to });
+    const targets = dropTargets(s, head.player);
+    for (const d of salvageYard(s, head.player)) if (!head.rerolled.includes(d.id)) out.push({ type: 'unveilReroll', die: d.id });
+    for (const d of salvageYard(s, head.player)) for (const to of targets) out.push({ type: 'unveilDrop', die: d.id, to });
     return out;
   },
 };
@@ -146,7 +146,7 @@ function actionPhaseOptions(s: GameState, opts: { includeCarry?: boolean }): Act
   const canPayMove = actions > 0 || curious;
   const canAttack = (cost: number) => actions >= cost;
 
-  for (const d of shipsOnBoard(s, me)) {
+  for (const d of mechsOnBoard(s, me)) {
     if (canPayMove && canMoveDie(s, d)) {
       const moves = moveOptions(s, d.id);
       for (const m of moves.moves.values()) out.push({ type: 'move', die: d.id, to: m.cell });
@@ -159,7 +159,7 @@ function actionPhaseOptions(s: GameState, opts: { includeCarry?: boolean }): Act
     for (const { cell } of barrierBreaks(s, d)) out.push({ type: 'breakBarrier', die: d.id, cell });
     const action = hooksOf(s, d)?.action;
     if (action) for (const c of action.options(s, d)) out.push({ type: 'ability', die: d.id, ...c });
-    if (actions > 0 && canReconfigure(s, d)) out.push({ type: 'reconfigure', die: d.id });
+    if (actions > 0 && canRefit(s, d)) out.push({ type: 'refit', die: d.id });
     if (hasSkill(s, me, 'tactical') && !usedThisTurn(s, 'tactical')) {
       const tac = tacticalOptions(s, d.id);
       for (const m of tac.moves) out.push({ type: 'tactical', die: d.id, to: m.cell });
@@ -172,7 +172,7 @@ function actionPhaseOptions(s: GameState, opts: { includeCarry?: boolean }): Act
       if (hasAbility(s, d, 'strike') && canAttack(0))
         for (const x of freeAttackTargets(s, d.id)) out.push({ type: 'freeAttack', die: d.id, target: x.id });
       if (hasAbility(s, d, 'warp'))
-        for (const o of shipsOnBoard(s, me)) if (o.id !== d.id) out.push({ type: 'swap', die: d.id, other: o.id });
+        for (const o of mechsOnBoard(s, me)) if (o.id !== d.id) out.push({ type: 'swap', die: d.id, other: o.id });
       if (hasAbility(s, d, 'modify')) out.push({ type: 'change', die: d.id, value: 3 }, { type: 'change', die: d.id, value: 5 });
       if (hasAbility(s, d, 'transport') && opts.includeCarry && canPayMove && canMoveDie(s, d)) {
         for (const c of carries(s, d)) out.push({ type: 'carry', die: d.id, ...c });
@@ -186,23 +186,22 @@ function actionPhaseOptions(s: GameState, opts: { includeCarry?: boolean }): Act
       out.push({ type: 'resourceful', die: d.id });
     }
   }
-  const targets = deployTargets(s, me);
-  for (const d of scrapyard(s, me)) {
-    if (actions > 0 || t.freeDeploys > 0) for (const to of targets) out.push({ type: 'deploy', die: d.id, to });
-    if (actions > 0 && canReconfigure(s, d)) out.push({ type: 'reconfigure', die: d.id });
+  const targets = dropTargets(s, me);
+  for (const d of salvageYard(s, me)) {
+    if (actions > 0 || t.freeDrops > 0) for (const to of targets) out.push({ type: 'drop', die: d.id, to });
+    if (actions > 0 && canRefit(s, d)) out.push({ type: 'refit', die: d.id });
   }
   if (rulesOf(s).cards && (actions > 0 || curious) && pl.research < rulesOf(s).researchLimit && canGainResearch(s, me))
     out.push({ type: 'research' });
   if (actions >= 2)
-    for (const p of s.board.planets) {
-      const c = conquerCheck(s, me, p.id);
-      if (c.ok && !c.replace) out.push({ type: 'conquer', planet: p.id });
-      // Over-conquest: on a full planet it is the only way, on one with room it is a choice.
-      const o = c.replace ? c : rulesOf(s).overConquest ? conquerCheck(s, me, p.id, true) : c;
-      if (o.ok && o.replace) for (const replace of o.replace) out.push({ type: 'conquer', planet: p.id, replace });
+    for (const p of s.board.objectives) {
+      const c = claimCheck(s, me, p.id);
+      if (c.ok && !c.replace) out.push({ type: 'claim', objective: p.id });
+      // Over-claim: on a full objective it is the only way, on one with room it is a choice.
+      const o = c.replace ? c : rulesOf(s).overClaim ? claimCheck(s, me, p.id, true) : c;
+      if (o.ok && o.replace) for (const replace of o.replace) out.push({ type: 'claim', objective: p.id, replace });
     }
-  if (hasSkill(s, me, 'composed') && !usedThisTurn(s, 'composed') && pl.dominance > 1 && canGainResearch(s, me))
-    out.push({ type: 'composed' });
+  if (hasSkill(s, me, 'composed') && !usedThisTurn(s, 'composed') && pl.power > 1 && canGainResearch(s, me)) out.push({ type: 'composed' });
   if (hasSkill(s, me, 'ambitious') && !usedThisTurn(s, 'ambitious')) out.push({ type: 'ambitious' });
   return out;
 }

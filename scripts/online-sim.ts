@@ -12,7 +12,7 @@
  * one late, and two racing for the same seat (the loser is offered the join dialog again). Then
  * every browser plays random legal moves for its seats, answers its battles and dismisses them.
  *
- * Run it by hand, not before every deploy: each run posts a few hundred events to the relays.
+ * Run it by hand, not before every drop: each run posts a few hundred events to the relays.
  * Moves go through the dev-only `window.__gameOnline` hook, so the app must be a dev server.
  * Screenshots go to test-results/online-sim/.
  */
@@ -99,9 +99,9 @@ const step = (p: Page) =>
     const head = s.pending[0];
     const actor = !head ? s.turn.player : head.kind === 'combat' ? head.attacker.player : head.player;
     const mine = q.mySeats();
-    const ok = q.legal().filter((a) => mine.includes(a.type === 'missile' ? a.by : actor));
+    const ok = q.legal().filter((a) => mine.includes(a.type === 'atomic' ? a.by : actor));
     const pick = (as: Action[]) => as[Math.floor(Math.random() * as.length)];
-    const responds = (a: Action) => a.type === 'missile';
+    const responds = (a: Action) => a.type === 'atomic';
     const responses = ok.filter(responds);
     if (v.combat?.mustAnswer) {
       if (responses.length && Math.random() < 0.3) {

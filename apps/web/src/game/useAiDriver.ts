@@ -13,12 +13,12 @@ function aiDelay(s: GameState): number {
   if (!head) return s.turn.actionsLeft === 3 && !Object.keys(s.turn.moved).length ? 1100 : 850;
   if (head.kind === 'takeCard' || head.kind === 'peek' || head.kind === 'patientTactic') return 1100;
   if (head.kind === 'advance') return 700;
-  // A Tactic just played (PlayedCard) lands once it has been read: Show of Force's target, the Warp Gates…
+  // A Tactic just played (PlayedCard) lands once it has been read: Show of Force's target, the Ice Tunnels…
   if (landingNext(s)) return 1500;
   return 800;
 }
 
-/** Pause before an AI fires a missile in combat. */
+/** Pause before an AI fires an atomic in combat. */
 const COMBAT_RESPONSE_MS = 1700;
 /** Pause before a battle no human fights in resolves (a human dismisses their own battles). */
 export const COMBAT_RESOLVE_MS = 2600;
@@ -33,7 +33,7 @@ export function humanFights(game: GameState, combat: CombatPending): boolean {
 
 /**
  * Plays for the AI players: whenever it is an AI's turn or decision, asks it for an action and
- * dispatches it after a short delay. During combat, gives every AI that may respond with a missile
+ * dispatches it after a short delay. During combat, gives every AI that may respond with an atomic
  * its chance; a human fighting in the battle then resolves it (CombatOverlay), and a
  * battle between AIs resolves by itself after a pause.
  *
@@ -54,7 +54,7 @@ export function useAiDriver(game: GameState, dispatch: Dispatch, onError: (text:
 
     if (head?.kind === 'combat' && stage) {
       const shot = shotWait(head);
-      // Asked again after anything changes the battle (a missile).
+      // Asked again after anything changes the battle (an atomic).
       for (const p of game.players) {
         const k = `${stage}:${p.id}`;
         if (!p.ai || !canRespondToCombat(game, head, p.id) || asked.current.has(k)) continue;

@@ -7,7 +7,7 @@
  *
  * "Used" is the audit's "fired": each use of an activated skill or choice, each Tactic played, each
  * trigger of a triggered skill, each battle in which a combat skill changed a roll or total, and
- * each move, deploy or conquer a movement, deployment or conquer skill could have changed.
+ * each move, drop or claim a movement, drop or claim skill could have changed.
  * Win rates over a handful of games are noise: check "Taken" before reading anything into them.
  *
  * The games are played on the fast cores (pool.ts); the results are the same with any number of jobs.
@@ -37,7 +37,7 @@ interface CardStats {
   wins: number;
   losses: number;
   /** The drafting player's position at each pick. */
-  picks: { turn: number; cubesLeft: number; dominance: number; research: number; standing: 'leading' | 'tied' | 'behind' }[];
+  picks: { turn: number; cubesLeft: number; power: number; research: number; standing: 'leading' | 'tied' | 'behind' }[];
 }
 
 const stats = new Map<string, CardStats>(
@@ -88,7 +88,7 @@ function playGame(g: number): GameRecord {
             {
               turn: Math.max(1, before.turn.number),
               cubesLeft: pl.cubesLeft,
-              dominance: pl.dominance,
+              power: pl.power,
               research: pl.research,
               standing: standing(before, taken.p),
             },
@@ -233,7 +233,7 @@ for (const st of [...stats.values()].filter((x) => x.taken).sort((a, b) => avgTu
       `Turn ${turn.toFixed(1)}`.padStart(10) +
       phase.padStart(11) +
       `${average(st.picks.map((x) => x.cubesLeft)).toFixed(1)} left`.padStart(11) +
-      average(st.picks.map((x) => x.dominance))
+      average(st.picks.map((x) => x.power))
         .toFixed(1)
         .padStart(9) +
       average(st.picks.map((x) => x.research))

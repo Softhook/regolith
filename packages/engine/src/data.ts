@@ -1,5 +1,5 @@
 import mapsJson from './data/maps.json';
-import type { ShipHooks } from './ships';
+import type { MechHooks } from './mechs';
 import type { World } from './types';
 
 export interface CardDef {
@@ -28,7 +28,7 @@ export interface MapDef {
   players: number;
   group: string;
   cubes: number;
-  stats: { slack: number; shared: number | null; planets: number };
+  stats: { slack: number; shared: number | null; objectives: number };
   /** The map's world, Phobos, Deimos or Mars: every map in data/maps.yaml names one (Mars for a test's map that doesn't). */
   world?: World;
   /** How long a game on it runs, by AI self-play (data/maps.yaml); the lobby lists maps by it. Absent on a test's map. */
@@ -88,20 +88,20 @@ export function cardKind(id: string): 'skill' | 'tactic' | 'expansion' {
 }
 
 /**
- * The ship abilities the 1 to 4 keep, built into the engine: ship identity is "has ability X", not a die value,
- * so a die value could be given a different ability (RuleSet.ships).
+ * The mech abilities the 1 to 4 keep, built into the engine: mech identity is "has ability X", not a die value,
+ * so a die value could be given a different ability (RuleSet.mechs).
  */
 export type BuiltInAbility = 'strike' | 'transport' | 'warp' | 'modify';
 
-export interface ShipDef {
+export interface MechDef {
   name: string;
   /** A built-in ability. */
   builtIn?: BuiltInAbility;
-  /** An ability as hooks (ships.ts). A ship with hooks and no `builtIn` has no once-per-turn ability. */
-  hooks?: ShipHooks;
+  /** An ability as hooks (mechs.ts). A mech with hooks and no `builtIn` has no once-per-turn ability. */
+  hooks?: MechHooks;
   /** The ability's name and rules text for the UI; `hint` guides a player using its action. */
   ability: { name: string; text: string; hint?: string };
 }
 
-/** A mode's ships by die value, 1 to 6. */
-export type ShipTable = Record<number, ShipDef>;
+/** A mode's mechs by die value, 1 to 6. */
+export type MechTable = Record<number, MechDef>;

@@ -246,7 +246,7 @@ const PARTS = {
     spot: [-22.5, -7.5, 7.5, 22.5].map((x) => `<rect x="${x - 2}" y="-36" width="4" height="32"/>`).join(''),
     spotInk: INKS.oxide,
   },
-  // The Void: a sinkhole, its crystals violet.
+  // The Alien Artefact: a sinkhole, its crystals violet.
   sinkhole: {
     key: '<polygon points="-74,0 -66,-14 -54,-20 -46,-8 -42,0"/><polygon points="40,0 46,-12 58,-18 70,-6 76,0"/><ellipse cx="0" cy="6" rx="56" ry="8"/>',
     spot: '<polygon points="-30,-2 -26,-26 -20,-4"/><polygon points="-18,-2 -12,-36 -6,-3"/><polygon points="14,-2 20,-30 26,-3"/><polygon points="28,-2 31,-18 35,-2"/>',

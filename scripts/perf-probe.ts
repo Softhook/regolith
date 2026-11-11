@@ -5,9 +5,9 @@
  *
  * - a card pop-up: the first one on a device with nothing kept and nothing warmed yet, the same again, a whole deck,
  *   and the deck again after a reload (art kept in IndexedDB);
- * - a tap on a ship and on the space it moves to, until the next frame is painted;
- * - the page doing nothing: main-thread time per second with nothing selected, with a ship selected, with warp
- *   gates on the map (looping animations that repaint show up here), and once the victory show has burnt out.
+ * - a tap on a mech and on the space it moves to, until the next frame is painted;
+ * - the page doing nothing: main-thread time per second with nothing selected, with a mech selected, with warp
+ *   tunnels on the map (looping animations that repaint show up here), and once the victory show has burnt out.
  *
  * It runs on a dev server, for the dev-only ?play= link, so React's development build is in these times.
  *
@@ -56,7 +56,7 @@ async function timeCards(page: Page, cdp: CDPSession) {
   await open('deck pop-up after a reload', '.market-skill .deck', POPUP_MS.kept);
 }
 
-/** Taps each of the human's ships and then the first space it may move to, timing each tap to the next painted frame. */
+/** Taps each of the human's mechs and then the first space it may move to, timing each tap to the next painted frame. */
 async function timeTaps(page: Page) {
   const { times, moves } = await page.evaluate(async () => {
     const q = window.__game;
@@ -72,9 +72,9 @@ async function timeTaps(page: Page) {
     for (let i = 0; i < 6; i++) {
       const s = q.state();
       const die = s.dice.find((d) => d.owner === s.turn.player && d.loc.zone === 'board' && !(s.turn.moved[d.id] > 0));
-      const ship = die && document.querySelector<HTMLElement>(`.ship[data-glide="${die.id}"]`);
-      if (!ship) break;
-      await tap(ship);
+      const mech = die && document.querySelector<HTMLElement>(`.mech[data-glide="${die.id}"]`);
+      if (!mech) break;
+      await tap(mech);
       const space = document.querySelector<HTMLElement>('.hl');
       if (!space) break;
       await tap(space);
@@ -84,7 +84,7 @@ async function timeTaps(page: Page) {
     return { times, moves };
   });
   console.log(`${'taps to painted frame'.padEnd(28)} ${times.map((t) => t.toFixed(0)).join(' ')} ms (${moves} moves)`);
-  if (moves < 2) problem(`taps moved ${moves} ships, not 2 or more`);
+  if (moves < 2) problem(`taps moved ${moves} mechs, not 2 or more`);
   budget('slowest tap', Math.max(0, ...times), TAP_MS);
 }
 
@@ -99,27 +99,27 @@ async function idleCost(page: Page, cdp: CDPSession, over: string) {
   };
   await cdp.send('Performance.enable');
   await page.goto(page.url());
-  await page.waitForSelector('.ship');
+  await page.waitForSelector('.mech');
   await page.waitForTimeout(2000);
   await measure('nothing selected');
   await page.evaluate(() => {
     const s = window.__game.state();
     const d = s.dice.find((d) => d.owner === s.turn.player && d.loc.zone === 'board');
-    if (d?.loc.zone !== 'board') throw new Error('no ship of the player to move on the board');
-    document.querySelector<HTMLElement>(`.ship[data-glide="${d.id}"]`)!.click();
+    if (d?.loc.zone !== 'board') throw new Error('no mech of the player to move on the board');
+    document.querySelector<HTMLElement>(`.mech[data-glide="${d.id}"]`)!.click();
   });
-  if (!(await page.locator('.hl').count())) problem('a selected ship lit up no space');
-  await measure('a ship selected');
+  if (!(await page.locator('.hl').count())) problem('a selected mech lit up no space');
+  await measure('a mech selected');
   await page.evaluate(() => {
     const q = window.__game;
     const s = q.state();
     const spaces = s.board.cells.flatMap((row: { kind: string }[], r: number) =>
       row.flatMap((x, c) => (x.kind === 'space' ? [{ r, c }] : [])),
     );
-    q.load({ ...s, gates: [spaces[0], spaces.at(-1)!] });
+    q.load({ ...s, tunnels: [spaces[0], spaces.at(-1)!] });
   });
-  if (!(await page.locator('.gate-spin').count())) problem('no warp gates on the map');
-  await measure('with warp gates');
+  if (!(await page.locator('.tunnel-spin').count())) problem('no Ice Tunnels on the map');
+  await measure('with Ice Tunnels');
   await page.goto(over);
   await page.waitForSelector('.overlay.celebrate');
   await page.waitForTimeout(SHOW_MS);

@@ -3,9 +3,9 @@ import { lastLogId } from '../game/steps';
 
 /** The numbers a player's panel shows that a step can change: their tracks, then the chips under them. */
 const NUMBERS = {
-  dominance: (p) => p.dominance,
+  power: (p) => p.power,
   research: (p) => p.research,
-  missiles: (p) => p.missiles,
+  atomics: (p) => p.atomics,
   planAhead: (p) => p.planAhead,
   penalty: (p) => p.actionPenalty,
   ambition: (p) => p.ambitionTokens,

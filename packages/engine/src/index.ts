@@ -8,14 +8,14 @@ export {
   modeHasHook,
   playerCounts,
   rulesOf,
-  shipOf,
+  mechOf,
   type BarrierBreakRule,
   type CardRules,
   type RuleSet,
 } from './rules';
 export { DEFAULT_MODE, MODES, RULESETS } from './rulesets';
 export type { ActionOf } from './core';
-export type { MechAbility, AbilityChoice, ShipHooks } from './ships';
+export type { MechAbility, AbilityChoice, MechHooks } from './mechs';
 export * from './board';
 export * from './lookups';
 export * from './queries';

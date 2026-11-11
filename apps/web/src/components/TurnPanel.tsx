@@ -6,8 +6,8 @@ import type { Dispatch } from '../game/useGame';
 import { useShortcut } from '../game/useShortcut';
 import { ActionHex, CategoryIcon } from './Card';
 import { Tip } from './InfoPop';
-import { Scrapyard, turnScrapOwner } from './Scrapyard';
-import { ShipPanel } from './ShipPanel';
+import { SalvageYard, turnScrapOwner } from './SalvageYard';
+import { MechPanel } from './MechPanel';
 
 export function TurnPanel({ game, ctl, dispatch, undo }: { game: GameState; ctl: Controller; dispatch: Dispatch; undo?: () => void }) {
   const t = game.turn;
@@ -37,7 +37,7 @@ export function TurnPanel({ game, ctl, dispatch, undo }: { game: GameState; ctl:
             {Array.from({ length: Math.max(3, t.actionsLeft) }, (_, i) => (
               <ActionHex key={i} off={i >= t.actionsLeft} />
             ))}
-            {t.freeDeploys > 0 && (
+            {t.freeDrops > 0 && (
               <Tip as="em" tip={`Free drop (${cardName('industrious')})`}>
                 +1 drop
               </Tip>
@@ -62,9 +62,9 @@ export function TurnPanel({ game, ctl, dispatch, undo }: { game: GameState; ctl:
         </p>
       )}
       {hint && <p className="hint">{hint}</p>}
-      {/* The ships to deploy are what you act with, so they're here rather than in the player list. */}
-      <div className="turn-scrap">
-        <Scrapyard game={game} p={turnScrapOwner(game, ctl)} ctl={ctl} dispatch={dispatch} />
+      {/* The mechs to drop are what you act with, so they're here rather than in the player list. */}
+      <div className="turn-salvage">
+        <SalvageYard game={game} p={turnScrapOwner(game, ctl)} ctl={ctl} dispatch={dispatch} />
       </div>
 
       {game.phase === 'play' && ctl.mine(p.id) && !deciding && (
@@ -139,13 +139,13 @@ export function TurnPanel({ game, ctl, dispatch, undo }: { game: GameState; ctl:
         </div>
       )}
 
-      <ShipPanel game={game} ctl={ctl} dispatch={dispatch} />
+      <MechPanel game={game} ctl={ctl} dispatch={dispatch} />
     </section>
   );
 }
 
 /**
- * After winning a battle: advance into the destroyed ship's space (also a tap on that space) or hold.
+ * After winning a battle: advance into the destroyed mech's space (also a tap on that space) or hold.
  * Enter advances, unless a button has focus (then Enter presses that button).
  */
 function AdvanceChoice({ dispatch }: { dispatch: Dispatch }) {

@@ -3,23 +3,23 @@ import { transport } from './abilities';
 import { same } from './board';
 import { startCombat } from './combat';
 import {
-  destroyShip,
+  destroyMech,
   fail,
   gainResearch,
   headOf,
   log,
   note,
   logTo,
-  loseDominance,
+  losePower,
   markAbility,
   markSeen,
   name,
   oncePerTurn,
-  ownShip,
+  ownMech,
   requireActionPhase,
   requireSkill,
-  aShip,
-  shipName,
+  aMech,
+  mechName,
   type Handlers,
 } from './core';
 import { cardName, card } from './data';
@@ -33,11 +33,11 @@ export const skillHandlers = {
   composed(s) {
     const t = requireActionPhase(s);
     requireSkill(s, t.player, 'composed');
-    if (s.players[t.player].dominance <= 1) fail('No power to lose');
+    if (s.players[t.player].power <= 1) fail('No power to lose');
     // Under Righteous both halves would do nothing (RULES.md ruling 12).
     if (!canGainResearch(s, t.player)) fail('You cannot gain research');
     oncePerTurn(s, 'composed');
-    loseDominance(s, t.player, 1);
+    losePower(s, t.player, 1);
     gainResearch(s, t.player, 3);
   },
   ambitious(s) {
@@ -59,20 +59,20 @@ export const skillHandlers = {
   flexible(s, a) {
     const t = requireActionPhase(s);
     requireSkill(s, t.player, 'flexible');
-    const d = ownShip(s, a.die, 'board');
+    const d = ownMech(s, a.die, 'board');
     const v = d.value + a.delta;
     if (v < 1 || v > 6) fail('Mech numbers range from 1 to 6');
     oncePerTurn(s, 'flexible');
-    const was = shipName(s, d);
+    const was = mechName(s, d);
     d.value = v;
     markSeen(s, d);
-    note(s, `${name(s, d.owner)} adjusts their ${was} to ${aShip(s, d)} (${cardName('flexible')}).`, d.owner);
+    note(s, `${name(s, d.owner)} adjusts their ${was} to ${aMech(s, d)} (${cardName('flexible')}).`, d.owner);
   },
   tactical(s, a) {
     const t = requireActionPhase(s);
     requireSkill(s, t.player, 'tactical');
-    const d = ownShip(s, a.die, 'board');
-    // Tactical moves the ship, and leaves it its own move for the turn.
+    const d = ownMech(s, a.die, 'board');
+    // Tactical moves the mech, and leaves it its own move for the turn.
     const use = () => oncePerTurn(s, 'tactical');
     if (a.passenger) {
       // Flagship Transport over the 1 space (forum consensus, BGG thread 1093051).
@@ -85,7 +85,7 @@ export const skillHandlers = {
       logTo(
         s,
         d.owner,
-        `${name(s, d.owner)}'s ${shipName(s, d)} carries their ${shipName(s, die(s, a.passenger))} one space`,
+        `${name(s, d.owner)}'s ${mechName(s, d)} carries their ${mechName(s, die(s, a.passenger))} one space`,
         a.to,
         ` (${cardName('tactical')})`,
       );
@@ -103,7 +103,7 @@ export const skillHandlers = {
     if (!opt) fail('Move one space to an empty space');
     use();
     d.loc = boardLoc(opt.cell);
-    logTo(s, d.owner, `${name(s, d.owner)} moves their ${shipName(s, d)} one space`, opt.cell, ` (${cardName('tactical')})`);
+    logTo(s, d.owner, `${name(s, d.owner)} moves their ${mechName(s, d)} one space`, opt.cell, ` (${cardName('tactical')})`);
   },
   clever(s, a) {
     const head = headOf(s, 'clever', 'No mech number to choose');
@@ -116,17 +116,17 @@ export const skillHandlers = {
     const skill = head.source === 'calculating' ? cardName('calculating') : cardName('clever');
     note(
       s,
-      `${name(s, head.player)} makes ${d.loc.zone === 'board' ? 'it' : 'their scrapped mech'} ${aShip(s, d)} (${skill}).`,
+      `${name(s, head.player)} makes ${d.loc.zone === 'board' ? 'it' : 'their scrapped mech'} ${aMech(s, d)} (${skill}).`,
       head.player,
     );
   },
   resourceful(s, a) {
     const t = requireActionPhase(s);
     requireSkill(s, t.player, 'resourceful');
-    const d = ownShip(s, a.die, 'board');
+    const d = ownMech(s, a.die, 'board');
     oncePerTurn(s, 'resourceful');
-    note(s, `${name(s, d.owner)} scraps their ${shipName(s, d)} for an extra action (${cardName('resourceful')}).`, d.owner);
-    destroyShip(s, d);
+    note(s, `${name(s, d.owner)} scraps their ${mechName(s, d)} for an extra action (${cardName('resourceful')}).`, d.owner);
+    destroyMech(s, d);
     t.actionsLeft++;
   },
 } satisfies Partial<Handlers>;
@@ -151,14 +151,14 @@ export function skillUsed(s: GameState, a: Action): { player: PlayerId; card: st
   switch (a.type) {
     case 'clever':
       return head?.kind === 'clever'
-        ? find(head.player, (r) => (head.source === 'calculating' ? r.chooseScrapyardNumber : r.adjustReconfigure))
+        ? find(head.player, (r) => (head.source === 'calculating' ? r.chooseSalvageYardNumber : r.adjustRefit))
         : undefined;
     case 'dangerous':
       return a.destroy && head?.kind === 'dangerous' ? find(head.player, (r) => r.combat?.destroyBoth) : undefined;
     case 'ruthless':
       return a.skill && head?.kind === 'ruthless' ? find(head.player, (r) => r.disableSkillOnDestroy) : undefined;
     case 'profiteer':
-      return head?.kind === 'takeCard' ? find(head.player, (r) => r.missileForConquest) : undefined;
+      return head?.kind === 'takeCard' ? find(head.player, (r) => r.atomicForClaim) : undefined;
     default:
       // Activated skills are actions of the player's own turn.
       return find(s.turn.player, (r) => r.activated === a.type);

@@ -8,10 +8,10 @@
 import { same } from './board';
 import {
   addBarrier,
-  destroyedEnemyShip,
-  destroyShip,
+  destroyedEnemyMech,
+  destroyMech,
   fail,
-  gainDominance,
+  gainPower,
   headOf,
   log,
   note,
@@ -19,15 +19,15 @@ import {
   name,
   requireActionPhase,
   roll,
-  aShip,
-  shipName,
+  aMech,
+  mechName,
   tally,
   type Handlers,
   type PendingOf,
 } from './core';
 import { cardName, card, cardKind, effectOf } from './data';
 import type { TacticEffect } from './effects';
-import { barrierAt, boardLoc, die, reserve, shipsOnBoard } from './lookups';
+import { barrierAt, boardLoc, die, reserve, mechsOnBoard } from './lookups';
 import {
   barrierSpaces,
   canHoldBarrier,
@@ -36,7 +36,7 @@ import {
   canPlayStoredTactic,
   canProfiteer,
   canTakeCard,
-  deployTargets,
+  dropTargets,
   shuntPaths,
   skillLimit,
 } from './queries';
@@ -52,9 +52,9 @@ type TacticEffectFn = (s: GameState, p: PlayerId) => void;
 
 /** What each Tactic does when taken. Effects that need a choice push a pending decision. */
 const TACTIC_EFFECTS: Record<TacticEffect, TacticEffectFn> = {
-  aggression: (s, p) => gainDominance(s, p, 2),
+  aggression: (s, p) => gainPower(s, p, 2),
   'black-market': (s, p) => {
-    s.players[p].missiles += 2;
+    s.players[p].atomics += 2;
   },
   'change-of-heart': (s, p) => {
     // Like a draw: an empty deck is first refilled from its discards.
@@ -84,14 +84,14 @@ const TACTIC_EFFECTS: Record<TacticEffect, TacticEffectFn> = {
     for (const o of s.players) if (o.id !== p) o.actionPenalty += 2;
   },
   'show-of-force': (s, p) => {
-    if (shipsOnBoard(s).length) s.pending.unshift({ kind: 'showOfForce', player: p });
+    if (mechsOnBoard(s).length) s.pending.unshift({ kind: 'showOfForce', player: p });
   },
   'unveil-the-fleet': (s, p) => {
     s.pending.unshift({ kind: 'unveil', player: p, rerolled: [] });
-    for (const d of shipsOnBoard(s, p)) destroyShip(s, d);
+    for (const d of mechsOnBoard(s, p)) destroyMech(s, d);
   },
   'warp-gate': (s, p) => {
-    s.pending.unshift({ kind: 'warpGate', player: p, placed: [] });
+    s.pending.unshift({ kind: 'iceTunnel', player: p, placed: [] });
   },
   barrier: (s, p) => {
     if (barrierSpaces(s).length > 0) s.pending.unshift({ kind: 'placeBarrier', player: p, placed: [] });
@@ -180,7 +180,7 @@ function takeOrStore(s: GameState, p: PlayerId, id: string, store: boolean | und
 /** Moves a player's remaining picks to the Momentum turn's card phase. */
 function carryPicks(pl: PlayerState, x: PendingOf<'takeCard'>) {
   pl.carriedPicks = (pl.carriedPicks ?? 0) + x.count;
-  if (x.conquer) pl.carriedConquerPicks = (pl.carriedConquerPicks ?? 0) + x.conquer;
+  if (x.claim) pl.carriedClaimPicks = (pl.carriedClaimPicks ?? 0) + x.claim;
 }
 
 /** Counts one card taken from the current takeCard decision. */
@@ -188,8 +188,8 @@ function consumeCardPick(s: GameState) {
   const head = s.pending[0];
   if (head?.kind !== 'takeCard') return;
   head.count--;
-  // A card can come from any pick, so the picks a Profiteering missile can replace are used last.
-  if (head.conquer) head.conquer = Math.min(head.conquer, head.count);
+  // A card can come from any pick, so the picks a Profiteering atomic can replace are used last.
+  if (head.claim) head.claim = Math.min(head.claim, head.count);
   if (head.count <= 0) s.pending.shift();
 }
 
@@ -233,12 +233,12 @@ export const cardHandlers = {
     const id = a.takeTop ? (head.deck === 'skill' ? s.market.skillDeck : s.market.tacticDeck).shift()! : takeFromRow(s, head.deck, 2);
     takeOrStore(s, head.player, id, head.store);
   },
-  /** Profiteering: a pick earned by a Conquer action (not by Take Over; RULES.md ruling 7) becomes 1 missile. */
+  /** Profiteering: a pick earned by a Claim action (not by Take Over; RULES.md ruling 7) becomes 1 atomic. */
   profiteer(s) {
     const head = headOf(s, 'takeCard', 'Not taking a card');
     if (!canProfiteer(s)) fail('No card for claiming to trade');
-    head.conquer!--;
-    s.players[head.player].missiles++;
+    head.claim!--;
+    s.players[head.player].atomics++;
     log(s, `${name(s, head.player)} takes an atomic instead of a card (${cardName('profiteering')}).`, head.player);
     consumeCardPick(s);
   },
@@ -263,12 +263,12 @@ export const cardHandlers = {
     const head = headOf(s, 'placeExpansion', 'No expansion mech to place');
     const d = die(s, head.die);
     if (a.to) {
-      if (!deployTargets(s, head.player).some((p) => same(p, a.to!))) fail('Place it on the perimeter of one of your objectives');
+      if (!dropTargets(s, head.player).some((p) => same(p, a.to!))) fail('Place it on the perimeter of one of your objectives');
       d.loc = boardLoc(a.to);
-      logTo(s, head.player, `${name(s, head.player)} places their new ${shipName(s, d)}`, a.to);
+      logTo(s, head.player, `${name(s, head.player)} places their new ${mechName(s, d)}`, a.to);
     } else {
-      d.loc = { zone: 'scrapyard' };
-      note(s, `${name(s, head.player)} keeps their new ${shipName(s, d)} in the salvage yard.`, head.player);
+      d.loc = { zone: 'salvageYard' };
+      note(s, `${name(s, head.player)} keeps their new ${mechName(s, d)} in the salvage yard.`, head.player);
     }
     s.turn.seen[d.id] = [d.value];
     s.pending.shift();
@@ -278,22 +278,22 @@ export const cardHandlers = {
     const d = die(s, a.die);
     if (d.loc.zone !== 'board') fail('Choose a mech on the map');
     s.pending.shift();
-    log(s, `${name(s, head.player)} destroys ${name(s, d.owner)}'s ${shipName(s, d)}.`, head.player, 'shipDestroyed');
-    destroyShip(s, d);
-    // The victim loses no dominance: only the attack protocol or card text changes it (RULES.md ruling 10).
-    if (d.owner === head.player) gainDominance(s, head.player, 1);
-    else destroyedEnemyShip(s, head.player, 1, d.owner);
+    log(s, `${name(s, head.player)} destroys ${name(s, d.owner)}'s ${mechName(s, d)}.`, head.player, 'mechDestroyed');
+    destroyMech(s, d);
+    // The victim loses no power: only the attack protocol or card text changes it (RULES.md ruling 10).
+    if (d.owner === head.player) gainPower(s, head.player, 1);
+    else destroyedEnemyMech(s, head.player, 1, d.owner);
   },
-  warpGate(s, a) {
-    const head = headOf(s, 'warpGate', 'No Ice Tunnel to place');
+  iceTunnel(s, a) {
+    const head = headOf(s, 'iceTunnel', 'No Ice Tunnel to place');
     const cell = s.board.cells[a.cell.r]?.[a.cell.c];
-    if (!cell || cell.kind !== 'space') fail('Gates go on spaces, not objectives');
-    if (barrierAt(s, a.cell)) fail('Gates don’t go on barriers');
-    if (s.wormhole?.some((w) => same(w, a.cell))) fail('Gates don’t go on the wormhole');
+    if (!cell || cell.kind !== 'space') fail('Tunnels go on spaces, not objectives');
+    if (barrierAt(s, a.cell)) fail('Tunnels don’t go on barriers');
+    if (s.wormhole?.some((w) => same(w, a.cell))) fail('Tunnels don’t go on the wormhole');
     if (head.placed.some((p) => same(p, a.cell))) fail('Choose a different space');
     head.placed.push({ r: a.cell.r, c: a.cell.c });
     if (head.placed.length === 2) {
-      s.gates = head.placed;
+      s.tunnels = head.placed;
       s.pending.shift();
       note(s, `${name(s, head.player)} opens a pair of ice tunnels.`, head.player);
     }
@@ -317,7 +317,7 @@ export const cardHandlers = {
     if (!path) fail('Not a valid push destination');
     s.pending.shift();
     d.loc = boardLoc(a.to);
-    const targetName = head.player === d.owner ? `their ${shipName(s, d)}` : `${name(s, d.owner)}'s ${shipName(s, d)}`;
+    const targetName = head.player === d.owner ? `their ${mechName(s, d)}` : `${name(s, d.owner)}'s ${mechName(s, d)}`;
     logTo(s, head.player, `${name(s, head.player)} pushes ${targetName}${path.tunnel ? ' through an ice tunnel' : ''}`, a.to);
   },
   shuntBarrier(s, a) {
@@ -353,20 +353,20 @@ export const cardHandlers = {
   unveilReroll(s, a) {
     const head = headOf(s, 'unveil', 'Not dropping');
     const d = die(s, a.die);
-    if (d.owner !== head.player || d.loc.zone !== 'scrapyard') fail('Choose one of your mechs');
+    if (d.owner !== head.player || d.loc.zone !== 'salvageYard') fail('Choose one of your mechs');
     if (head.rerolled.includes(d.id)) fail('Already re-rolled');
     head.rerolled.push(d.id);
-    const was = shipName(s, d);
+    const was = mechName(s, d);
     roll(s, d);
-    note(s, `${name(s, head.player)} re-rolls their ${was}: ${shipName(s, d)}.`, head.player);
+    note(s, `${name(s, head.player)} re-rolls their ${was}: ${mechName(s, d)}.`, head.player);
   },
-  unveilDeploy(s, a) {
+  unveilDrop(s, a) {
     const head = headOf(s, 'unveil', 'Not dropping');
     const d = die(s, a.die);
-    if (d.owner !== head.player || d.loc.zone !== 'scrapyard') fail('Choose a mech in your salvage yard');
-    if (!deployTargets(s, head.player).some((p) => same(p, a.to))) fail('Not a drop space');
+    if (d.owner !== head.player || d.loc.zone !== 'salvageYard') fail('Choose a mech in your salvage yard');
+    if (!dropTargets(s, head.player).some((p) => same(p, a.to))) fail('Not a drop space');
     d.loc = boardLoc(a.to);
-    logTo(s, head.player, `${name(s, head.player)} drops ${aShip(s, d)}`, a.to);
+    logTo(s, head.player, `${name(s, head.player)} drops ${aMech(s, d)}`, a.to);
   },
   unveilDone(s) {
     headOf(s, 'unveil', 'Not dropping');

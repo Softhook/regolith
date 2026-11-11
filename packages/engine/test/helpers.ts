@@ -18,7 +18,7 @@ export function quickStart(n = 2, seed = 1, mode: GameMode = DEFAULT_MODE, mapId
 /** Empties the map and places dice at given cells, as [row, col, value], for focused rule tests. */
 export function arrange(s: GameState, placements: Record<string, [number, number, number]>): GameState {
   const t = structuredClone(s);
-  for (const d of t.dice) if (d.loc.zone === 'board') d.loc = { zone: 'scrapyard' };
+  for (const d of t.dice) if (d.loc.zone === 'board') d.loc = { zone: 'salvageYard' };
   for (const [id, [r, c, value]] of Object.entries(placements)) {
     const d = t.dice.find((x) => x.id === id)!;
     d.loc = { zone: 'board', r, c };
@@ -52,7 +52,7 @@ export interface AiGame {
 }
 
 /**
- * The next AI action in `s`: in a combat, any player's re-roll or missile first (as the web app does),
+ * The next AI action in `s`: in a combat, any player's re-roll or atomic first (as the web app does),
  * otherwise the acting player's choice. `levels` gives each player's AI level (default 1).
  */
 export function aiAction(s: GameState, levels: readonly AiLevel[] | undefined, random: () => number, samples?: number): Action | null {

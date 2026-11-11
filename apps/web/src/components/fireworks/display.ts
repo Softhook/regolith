@@ -4,9 +4,9 @@ import { GOLD, WHITE, type Rgb } from './sprites';
 
 // What the victory show fires (show.ts runs it): each shell's shape, and the programme timed to the fanfare.
 
-export type Shape = 'peony' | 'brocade' | 'double' | 'ring' | 'planet' | 'galaxy' | 'willow' | 'crossette' | 'supernova';
+export type Shape = 'peony' | 'brocade' | 'double' | 'ring' | 'objective' | 'galaxy' | 'willow' | 'crossette' | 'supernova';
 /** The shapes a shell picks from when none is asked for (galaxies twice as often). */
-export const RANDOM_SHAPES: Shape[] = ['peony', 'brocade', 'double', 'ring', 'planet', 'galaxy', 'galaxy', 'willow', 'crossette'];
+export const RANDOM_SHAPES: Shape[] = ['peony', 'brocade', 'double', 'ring', 'objective', 'galaxy', 'galaxy', 'willow', 'crossette'];
 
 /** How a spark flies and looks; show.ts fills in what's left out. */
 export interface SparkStyle {
@@ -115,7 +115,7 @@ export const SHAPES: Record<Shape, (kit: Kit, b: Burst, k: number) => Afterglow 
     sphere(kit, x, y, 20, 80 * k, () => alt, { gravity: 60, life: 1 });
   },
   // A glowing world with a tilted ring round it.
-  planet: (kit, { x, y, rgb, alt }, k) => {
+  objective: (kit, { x, y, rgb, alt }, k) => {
     sphere(kit, x, y, 70, 140 * k, () => rgb, { gravity: 40, drag: 2.2, life: rand(1.6, 2) });
     const ring = { gravity: 40, glitter: true, life: rand(1.6, 2) };
     sphere(kit, x, y, 100, 340 * k, (i) => (i % 2 ? GOLD : alt), ring, 0.28, rand(-0.45, 0.45));
@@ -189,7 +189,7 @@ export function programme(fire: Fire, player: Rgb): number {
   H.pickups.forEach((t, i) => fire(t, { shape: 'peony', scale: 0.6, flight: 0.65, x: 0.25 + i * 0.25, y: 0.2 }));
   fire(H.first, { shape: 'double', x: 0.3, y: 0.28, scale: 1.1 });
   fire(H.first, { shape: 'ring', x: 0.72, y: 0.22 });
-  fire(H.second, { shape: 'planet', x: 0.5, y: 0.18, scale: 1.15 });
+  fire(H.second, { shape: 'objective', x: 0.5, y: 0.18, scale: 1.15 });
   fire(H.second + 0.1, { shape: 'crossette', x: 0.15, y: 0.35 });
   fire(H.second + 0.1, { shape: 'crossette', x: 0.85, y: 0.35 });
   fire(H.rise[0], { shape: 'galaxy', x: 0.25, y: 0.25 });
@@ -197,7 +197,7 @@ export function programme(fire: Fire, player: Rgb): number {
   fire(H.final, { shape: 'supernova', x: 0.5, y: 0.26, scale: 1.4, rgb: player, flight: 1.2 });
   fire(H.final + 0.25, { shape: 'willow', x: 0.12, y: 0.3 });
   fire(H.final + 0.25, { shape: 'willow', x: 0.88, y: 0.3 });
-  [4.3, 4.7, 5.2].forEach((t) => fire(t, { shape: pick<Shape>(['brocade', 'planet', 'galaxy', 'double']) }));
+  [4.3, 4.7, 5.2].forEach((t) => fire(t, { shape: pick<Shape>(['brocade', 'objective', 'galaxy', 'double']) }));
   for (let i = 0; i < 16; i++) fire(5.9 + i * 0.15 + rand(0, 0.08), { scale: rand(0.85, 1.2) });
   fire(8.6, { shape: 'supernova', x: rand(0.35, 0.65), y: 0.24, scale: 1.3 });
   fire(8.8, { shape: 'willow', x: 0.2, y: 0.32 });

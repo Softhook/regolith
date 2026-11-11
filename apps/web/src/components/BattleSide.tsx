@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react';
-import { shipOf, type CombatOutcome, type CombatPending, type CombatRole, type GameState } from '@regolith/engine';
+import { mechOf, type CombatOutcome, type CombatPending, type CombatRole, type GameState } from '@regolith/engine';
 import { COMBAT_DICE } from '../theme';
 import { Die3D } from './Die3D';
 
@@ -39,11 +39,11 @@ export function BattleSide({
       </div>
       <div className="combat-dice">
         <div className="combat-die-col">
-          <Die3D value={s.ship} size={dieSize} color={p.color} sound={false} />
-          <span>{shipOf(game, s.ship).name}</span>
+          <Die3D value={s.mech} size={dieSize} color={p.color} sound={false} />
+          <span>{mechOf(game, s.mech).name}</span>
         </div>
         <span className="combat-plus">+</span>
-        <div className={`combat-die-col ${s.missile ? 'missiled' : ''}`}>
+        <div className={`combat-die-col ${s.atomic ? 'atomic-fired' : ''}`}>
           <Die3D
             value={total.roll}
             size={dieSize}
@@ -53,7 +53,7 @@ export function BattleSide({
             delay={role === 'attacker' ? 0 : 0.12}
             sound={sound && role === 'attacker'}
           />
-          <span>{s.missile ? 'Atomic' : role === 'attacker' ? 'Attack die' : 'Defence die'}</span>
+          <span>{s.atomic ? 'Atomic' : role === 'attacker' ? 'Attack die' : 'Defence die'}</span>
         </div>
       </div>
       {parts}

@@ -4,7 +4,7 @@ import { boomAt } from '../../beats';
 import { isPlayStep } from '../../game/steps';
 import { useTransient } from '../../game/useTransient';
 import { reducedMotion } from '../../game/useMediaQuery';
-import { shipSpots } from '../../game/shipSpots';
+import { mechSpots } from '../../game/mechSpots';
 import { destroyedOf, strikeOf } from '../../game/strike';
 
 interface Explosion {
@@ -17,16 +17,16 @@ interface Explosion {
 const EXPLOSION_MS = 1100;
 const SPARKS = 10;
 
-/** Ships knocked off the map by a battle or a card blow up where they stood. None under reduced motion. */
+/** Mechs knocked off the map by a battle or a card blow up where they stood. None under reduced motion. */
 function useExplosions(game: GameState): Explosion[] {
   const [booms, show] = useTransient<Explosion>(EXPLOSION_MS);
   const prev = useRef(game);
   useEffect(() => {
     const before = prev.current;
     prev.current = game;
-    // Only play: undo also takes ships off the map, but never adds log entries.
+    // Only play: undo also takes mechs off the map, but never adds log entries.
     if (!isPlayStep(before, game) || reducedMotion()) return;
-    const spots = shipSpots(before);
+    const spots = mechSpots(before);
     // A card's blow (Show of Force, Dangerous) lands a moment in: they blow up then. Several go one after
     // another, as heard (sounds) and as the staging keeps them till then.
     const strike = strikeOf(before);
@@ -38,7 +38,7 @@ function useExplosions(game: GameState): Explosion[] {
   return booms;
 }
 
-/** One ship blowing up: a flash, two shock waves and sparks, filling the box `style` places (a space's size). */
+/** One mech blowing up: a flash, two shock waves and sparks, filling the box `style` places (a space's size). */
 function Boom({ color, style }: { color: string; style: CSSProperties }) {
   return (
     <div className="explosion" style={{ ...style, '--pc': color } as CSSProperties} aria-hidden>

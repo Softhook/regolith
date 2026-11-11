@@ -1,4 +1,4 @@
-import type { Board, BoardCell, Cell, GameState, Planet, World } from './types';
+import type { Board, BoardCell, Cell, GameState, Objective, World } from './types';
 import type { MapDef } from './data';
 
 /*
@@ -13,7 +13,7 @@ export const SIDES: readonly Cell[] = [
   { r: -1, c: 1 },
   { r: 1, c: -1 },
 ];
-/** The six hexes two away between two neighbours, which the log counts as near a planet (core.ts `logTo`). */
+/** The six hexes two away between two neighbours, which the log counts as near an objective (core.ts `logTo`). */
 const BETWEEN: readonly Cell[] = [
   { r: -2, c: 1 },
   { r: 2, c: -1 },
@@ -27,7 +27,7 @@ const BETWEEN: readonly Cell[] = [
 const steps = (d: Cell) => (Math.abs(d.r) + Math.abs(d.c) + Math.abs(d.r + d.c)) / 2;
 
 /*
- * A hex map's tiles are 7-hex flowers: the planet and the six spaces around it. Flowers tile the plane
+ * A hex map's tiles are 7-hex flowers: the objective and the six spaces around it. Flowers tile the plane
  * on a lattice of their own, turned about 11° from the hexes; a layout row runs along TILE_ROW, and odd
  * rows sit half a tile to the right, between the tiles of the rows above and below.
  */
@@ -45,19 +45,19 @@ export const CAPACITY: Record<number, number> = { 7: 1, 8: 2, 9: 3, 10: 4, 11: 2
 export const WORLD_OBJECTIVES: Readonly<Record<number, World>> = { 11: 'phobos', 12: 'deimos' };
 
 /*
- * Where a tile's planet sits, as a step from the tile's middle space: a layout token's direction
+ * Where a tile's objective sits, as a step from the tile's middle space: a layout token's direction
  * (data/maps.yaml), none for the middle, or one of its 6 outer hexes. North is up as the map is drawn.
  */
 const OFFSETS: Record<string, Cell> = Object.fromEntries(['n', 's', 'nw', 'se', 'ne', 'sw'].map((n, i) => [n, SIDES[i]]));
 const MIDDLE: Cell = { r: 0, c: 0 };
 
-/** A layout token (data/maps.yaml), other than a gap: the planet's number (0 for void or blank), whether it's a start, and where on the tile it sits. */
+/** A layout token (data/maps.yaml), other than a gap: the objective's number (0 for void or blank), whether it's a start, and where on the tile it sits. */
 export interface TileToken {
   number: number;
   start: boolean;
-  /** A blank tile (`-`): open ground, no planet and, unlike a void, no research. */
+  /** A blank tile (`-`): open ground, no objective and, unlike a void, no research. */
   blank?: true;
-  /** The planet's compass direction from the tile's middle space; absent when it sits in the middle. */
+  /** The objective's compass direction from the tile's middle space; absent when it sits in the middle. */
   dir?: string;
 }
 
@@ -67,22 +67,22 @@ export function parseToken(token: string): TileToken {
   const m = /^(\d+)([nsew]{1,2})?(\*)?$/.exec(token);
   const number = Number(m?.[1]);
   if (!m || !(number === 0 || number in CAPACITY) || (m[2] && !(m[2] in OFFSETS))) throw new Error(`Bad tile token "${token}"`);
-  if (number === 0 && (m[2] || m[3])) throw new Error(`A void tile has no objective to place or start on: "${token}"`);
+  if (number === 0 && (m[2] || m[3])) throw new Error(`an Alien Artefact tile has no objective to place or start on: "${token}"`);
   return m[2] ? { number, start: !!m[3], dir: m[2] } : { number, start: !!m[3] };
 }
 
-/** The step from a tile's middle space to its planet. */
-const planetOffset = (t: TileToken): Cell => (t.dir ? OFFSETS[t.dir] : MIDDLE);
+/** The step from a tile's middle space to its objective. */
+const objectiveOffset = (t: TileToken): Cell => (t.dir ? OFFSETS[t.dir] : MIDDLE);
 
-/** Ships each player places around their starting planet at setup (setup.ts). */
-export const STARTING_SHIPS = 3;
+/** Mechs each player places around their starting objective at setup (setup.ts). */
+export const STARTING_MECHS = 3;
 
 /**
- * Checks what an off-centre planet could break: each starting planet needs room for the starting
- * ships, in orbital spaces no other start shares. Orbits that overlap are otherwise fine.
+ * Checks what an off-centre objective could break: each starting objective needs room for the starting
+ * mechs, in perimeter spaces no other start shares. Perimeters that overlap are otherwise fine.
  */
 function checkWorldObjectives(board: Board) {
-  for (const p of board.planets) {
+  for (const p of board.objectives) {
     const world = WORLD_OBJECTIVES[p.number];
     if (!world) continue;
     if (board.world !== world) throw new Error(`${board.mapId}: objective ${p.number} stands on ${world} only, not ${board.world}`);
@@ -91,13 +91,13 @@ function checkWorldObjectives(board: Board) {
 }
 
 function checkStarts(board: Board) {
-  const starts = board.planets.filter((p) => p.start);
+  const starts = board.objectives.filter((p) => p.start);
   for (const p of starts) {
-    const others = starts.filter((q) => q !== p).flatMap((q) => orbitals(board, q));
-    const own = orbitals(board, p).filter((x) => !others.some((y) => same(x, y)));
-    if (own.length < STARTING_SHIPS)
+    const others = starts.filter((q) => q !== p).flatMap((q) => perimeterSpaces(board, q));
+    const own = perimeterSpaces(board, p).filter((x) => !others.some((y) => same(x, y)));
+    if (own.length < STARTING_MECHS)
       throw new Error(
-        `${board.mapId}: starting objective ${p.number} has ${own.length} perimeter spaces of its own, needs ${STARTING_SHIPS}`,
+        `${board.mapId}: starting objective ${p.number} has ${own.length} perimeter spaces of its own, needs ${STARTING_MECHS}`,
       );
   }
 }
@@ -106,19 +106,19 @@ function checkStarts(board: Board) {
 const offCells = (rows: number, cols: number): BoardCell[][] =>
   Array.from({ length: rows }, () => Array.from({ length: cols }, () => ({ kind: 'off' as const, tile: -1 })));
 
-/** Lays tile `tile` on the board: its `spaces` (a Void's all void), and its planet, if it has one, `t.dir` from `middle`. */
-function layTile(cells: BoardCell[][], planets: Planet[], t: TileToken, tile: number, spaces: Cell[], middle: Cell) {
+/** Lays tile `tile` on the board: its `spaces` (an Alien Artefact's all void), and its objective, if it has one, `t.dir` from `middle`. */
+function layTile(cells: BoardCell[][], objectives: Objective[], t: TileToken, tile: number, spaces: Cell[], middle: Cell) {
   for (const p of spaces) {
     const cell: BoardCell = { kind: 'space', tile };
-    if (t.number === 0 && !t.blank) cell.void = true;
+    if (t.number === 0 && !t.blank) cell.artefact = true;
     cells[p.r][p.c] = cell;
   }
   if (t.number === 0) return;
-  const d = planetOffset(t);
+  const d = objectiveOffset(t);
   const [r, c] = [middle.r + d.r, middle.c + d.c];
-  const id = planets.length;
-  planets.push({ id, number: t.number, capacity: CAPACITY[t.number], cubes: [], start: t.start, r, c });
-  cells[r][c] = { kind: 'planet', tile, planet: id };
+  const id = objectives.length;
+  objectives.push({ id, number: t.number, capacity: CAPACITY[t.number], cubes: [], start: t.start, r, c });
+  cells[r][c] = { kind: 'objective', tile, objective: id };
 }
 
 export function buildBoard(map: MapDef): Board {
@@ -128,7 +128,7 @@ export function buildBoard(map: MapDef): Board {
   return board;
 }
 
-/** The planet of each hex tile in a layout (axial, before shifting onto the board), with its token. */
+/** The objective of each hex tile in a layout (axial, before shifting onto the board), with its token. */
 function hexTiles(map: MapDef): { r: number; c: number; token: string; tile: number }[] {
   const tileCols = Math.max(...map.layout.map((r) => r.length));
   const out: { r: number; c: number; token: string; tile: number }[] = [];
@@ -164,19 +164,19 @@ function laidOut(map: MapDef) {
 function buildHexBoard(map: MapDef): Board {
   const { tiles, r0, c0, rows, cols } = laidOut(map);
   const cells = offCells(rows, cols);
-  const planets: Planet[] = [];
+  const objectives: Objective[] = [];
   for (const t of tiles) {
     const spaces = FLOWER.map((d) => ({ r: t.r - r0 + d.r, c: t.c - c0 + d.c }));
     if (spaces.some((p) => cells[p.r][p.c].kind !== 'off')) throw new Error(`${map.id}: hex tiles overlap`);
-    layTile(cells, planets, parseToken(t.token), t.tile, spaces, spaces[0]);
+    layTile(cells, objectives, parseToken(t.token), t.tile, spaces, spaces[0]);
   }
-  return { mapId: map.id, mapName: map.name, rows, cols, cells, planets, world: map.world ?? 'mars' };
+  return { mapId: map.id, mapName: map.name, rows, cols, cells, objectives, world: map.world ?? 'mars' };
 }
 
 /**
  * The space a map's `start` lists name (data/maps.yaml): `row:col:side`, the layout's tile row and the tile's
  * place in it, then one of its spaces: a compass side from its middle (n ne se s sw nw) or `m`, the middle.
- * Throws for a tile that isn't there or a space that is its planet.
+ * Throws for a tile that isn't there or a space that is its objective.
  */
 export function startSpace(map: MapDef, spec: string): Cell {
   const m = /^(\d+):(\d+):(m|n|ne|se|s|sw|nw)$/.exec(spec);
@@ -188,22 +188,22 @@ export function startSpace(map: MapDef, spec: string): Cell {
   if (!t) throw new Error(`${where} names no tile`);
   const d = m[3] === 'm' ? MIDDLE : OFFSETS[m[3]];
   const at = { r: t.r - r0 + d.r, c: t.c - c0 + d.c };
-  const planet = parseToken(t.token);
-  if (planet.number > 0 && m[3] === (planet.dir ?? 'm')) throw new Error(`${where} is the tile's objective`);
+  const objective = parseToken(t.token);
+  if (objective.number > 0 && m[3] === (objective.dir ?? 'm')) throw new Error(`${where} is the tile's objective`);
   return at;
 }
 
 /** What a map starts with on the ground: its Ice Tunnel and wormhole (a pair of spaces each) and barriers, as spaces on the board. */
-export function startingGround(map: MapDef): { gates: Cell[]; wormhole: Cell[]; barriers: Cell[] } {
+export function startingGround(map: MapDef): { tunnels: Cell[]; wormhole: Cell[]; barriers: Cell[] } {
   const start = map.start ?? {};
-  const gates = (start.tunnel ?? []).map((x) => startSpace(map, x));
+  const tunnels = (start.tunnel ?? []).map((x) => startSpace(map, x));
   const wormhole = (start.wormhole ?? []).map((x) => startSpace(map, x));
   const barriers = (start.barriers ?? []).map((x) => startSpace(map, x));
-  if (gates.length !== 0 && gates.length !== 2) throw new Error(`${map.id}: an Ice Tunnel is a pair of spaces`);
+  if (tunnels.length !== 0 && tunnels.length !== 2) throw new Error(`${map.id}: an Ice Tunnel is a pair of spaces`);
   if (wormhole.length !== 0 && wormhole.length !== 2) throw new Error(`${map.id}: a wormhole is a pair of spaces`);
-  const all = [...gates, ...wormhole, ...barriers].map(key);
+  const all = [...tunnels, ...wormhole, ...barriers].map(key);
   if (new Set(all).size !== all.length) throw new Error(`${map.id}: two starting features on one space`);
-  return { gates, wormhole, barriers };
+  return { tunnels, wormhole, barriers };
 }
 
 /** How far a flat-topped hex's centre is from the next column's, in hex heights (√3 / 2). */
@@ -225,7 +225,7 @@ const DRAWINGS = new WeakMap<BoardCell[][], Drawing>();
  * How a board is drawn. Its flat-topped hexes are one
  * space tall (flat side to flat side), with columns HEX_COLUMN apart, each half a hex lower than the
  * one before; `at` gives the top left of the square box centred on the hex, and the drawing is wide
- * enough for the hexes' corners past their boxes at either side. Fractional positions (a ship part-way
+ * enough for the hexes' corners past their boxes at either side. Fractional positions (a mech part-way
  * into its target) work too.
  */
 export function drawing(board: Board): Drawing {
@@ -273,7 +273,7 @@ export function cellAt(board: Board, p: Cell): BoardCell | undefined {
   return board.cells[p.r]?.[p.c];
 }
 
-/** Every space (not a planet, void or off-board cell) on the board, row by row. */
+/** Every space (not an objective, void or off-board cell) on the board, row by row. */
 export function spaces(board: Board): Cell[] {
   const out: Cell[] = [];
   board.cells.forEach((row, r) => row.forEach((cell, c) => cell.kind === 'space' && out.push({ r, c })));
@@ -317,14 +317,14 @@ export function straightLines(board: Board, start: Cell): Cell[][] {
 
 /**
  * A board's cells by index (r * cols + c), with each cell's neighbours: they never change, and the
- * AI asks for them for every ship in every position it scores. Cached by `cells`, which states share
+ * AI asks for them for every mech in every position it scores. Cached by `cells`, which states share
  * (see engine.ts copyState). The lists are frozen, as every caller gets the same one.
  */
 export interface Grid {
   cols: number;
   size: number;
   cells: readonly Cell[];
-  /** Whether a ship may stand on the cell. */
+  /** Whether a mech may stand on the cell. */
   space: readonly boolean[];
   /** Neighbour indexes on the board: the cells next to each one, out of its 6 sides. */
   ortho: readonly (readonly number[])[];
@@ -374,32 +374,32 @@ export function adjacent(board: Board, p: Cell): readonly Cell[] {
   return grid(board).orthoCells[p.r * board.cols + p.c];
 }
 
-/** The neighbours of p plus its Warp Gate partner: the two gate spaces count as adjacent (RULES.md ruling 11). */
+/** The neighbours of p plus its Ice Tunnel partner: the two tunnel spaces count as adjacent (RULES.md ruling 11). */
 export function linked(state: GameState, p: Cell): Cell[] {
-  return [...adjacent(state.board, p), ...gatePartner(state, p)];
+  return [...adjacent(state.board, p), ...tunnelPartner(state, p)];
 }
 
 /** The linked pairs of spaces: the map's wormhole, then the Ice Tunnel, each when placed. */
-export function gatePairs(state: GameState): Cell[][] {
-  return [state.wormhole ?? [], state.gates].filter((p) => p.length === 2);
+export function tunnelPairs(state: GameState): Cell[][] {
+  return [state.wormhole ?? [], state.tunnels].filter((p) => p.length === 2);
 }
 
-/** Movement neighbours, Warp Gate links included. */
+/** Movement neighbours, Ice Tunnel links included. */
 export function stepNeighbours(state: GameState, p: Cell): readonly Cell[] {
   const result = adjacent(state.board, p);
-  const partner = otherGate(state, p);
+  const partner = otherTunnel(state, p);
   return partner ? [...result, partner] : result;
 }
 
-/** The other Warp Gate space, when p is one of two placed gates. */
-function gatePartner(state: GameState, p: Cell): Cell[] {
-  const partner = otherGate(state, p);
+/** The other Ice Tunnel space, when p is one of two placed tunnels. */
+function tunnelPartner(state: GameState, p: Cell): Cell[] {
+  const partner = otherTunnel(state, p);
   return partner ? [partner] : [];
 }
 
 /** The other Ice Tunnel or wormhole space, when p is one end of a pair. */
-export function otherGate(state: GameState, p: Cell): Cell | undefined {
-  for (const [a, b] of gatePairs(state))
+export function otherTunnel(state: GameState, p: Cell): Cell | undefined {
+  for (const [a, b] of tunnelPairs(state))
     if (same(p, a)) return b;
     else if (same(p, b)) return a;
   return undefined;
@@ -407,34 +407,34 @@ export function otherGate(state: GameState, p: Cell): Cell | undefined {
 
 const isSpace = (board: Board, p: Cell) => cellAt(board, p)?.kind === 'space';
 
-const ORBITS = new WeakMap<BoardCell[][], (readonly Cell[])[]>();
+const PERIMETERS = new WeakMap<BoardCell[][], (readonly Cell[])[]>();
 
 /**
- * A planet's orbital positions: the spaces next to it. An off-centre planet's orbit reaches onto
- * neighbouring tiles, or loses the spaces off the map's edge; orbits may overlap, so a space can orbit
- * several planets, and a planet next to another doesn't orbit it. Cached by `cells`, like grid().
+ * An objective's perimeter positions: the spaces next to it. An off-centre objective's perimeter reaches onto
+ * neighbouring tiles, or loses the spaces off the map's edge; perimeters may overlap, so a space can perimeter
+ * several objectives, and an objective next to another doesn't perimeter it. Cached by `cells`, like grid().
  */
-export function orbitals(board: Board, planet: Planet): readonly Cell[] {
-  let orbits = ORBITS.get(board.cells);
-  if (!orbits) ORBITS.set(board.cells, (orbits = []));
-  return (orbits[planet.id] ??= Object.freeze(adjacent(board, planet).filter((q) => isSpace(board, q))));
+export function perimeterSpaces(board: Board, objective: Objective): readonly Cell[] {
+  let perimeters = PERIMETERS.get(board.cells);
+  if (!perimeters) PERIMETERS.set(board.cells, (perimeters = []));
+  return (perimeters[objective.id] ??= Object.freeze(adjacent(board, objective).filter((q) => isSpace(board, q))));
 }
 
-/** The planets a space orbits: none, one, or several where orbits overlap. */
-export function orbitedPlanets(board: Board, p: Cell): Planet[] {
-  return board.planets.filter((planet) => orbitals(board, planet).some((q) => same(q, p)));
+/** The objectives whose perimeter a space is on: none, one, or several where perimeters overlap. */
+export function objectivesAround(board: Board, p: Cell): Objective[] {
+  return board.objectives.filter((objective) => perimeterSpaces(board, objective).some((q) => same(q, p)));
 }
 
-/** The spaces two hexes from a planet between two of its sides: near it, but not in its orbit (core.ts `logTo`). */
-export function diagonals(board: Board, planet: Planet): Cell[] {
-  return offsets(planet, BETWEEN).filter((q) => isSpace(board, q));
+/** The spaces two hexes from an objective between two of its sides: near it, but not in its perimeter (core.ts `logTo`). */
+export function diagonals(board: Board, objective: Objective): Cell[] {
+  return offsets(objective, BETWEEN).filter((q) => isSpace(board, q));
 }
 
 const CENTRES = new WeakMap<BoardCell[][], ReadonlyMap<number, Cell>>();
 
 /**
  * Each tile's middle space, by tile index (`BoardCell.tile`): the one space whose neighbours all lie on
- * its own tile. The planet's, unless it sits off-centre. Cached by `cells`, like grid().
+ * its own tile. The objective's, unless it sits off-centre. Cached by `cells`, like grid().
  */
 export function tileCentres(board: Board): ReadonlyMap<number, Cell> {
   let out = CENTRES.get(board.cells);
@@ -456,6 +456,6 @@ export function tilesTouch(board: Board, a: number, b: number): boolean {
   return !!p && !!q && distance(p, q) === 3;
 }
 
-export function planetFreeSlots(planet: Planet): number {
-  return planet.capacity - planet.cubes.length;
+export function objectiveFreeSlots(objective: Objective): number {
+  return objective.capacity - objective.cubes.length;
 }

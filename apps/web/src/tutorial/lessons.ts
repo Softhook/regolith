@@ -61,7 +61,7 @@ const map: LessonDef = {
     { picture: 'home' },
     {
       say: 'The practice map: two homes, and the **Refinery**, an 8.',
-      show: { planets: { [HOME.you]: 'Your home', [HOME.foe]: 'Rival’s home', [REFINERY]: 'Refinery: an 8' } },
+      show: { objectives: { [HOME.you]: 'Your home', [HOME.foe]: 'Rival’s home', [REFINERY]: 'Refinery: an 8' } },
     },
   ],
 };
@@ -113,9 +113,9 @@ const claim: LessonDef = {
     { picture: 'sum' },
     {
       say: 'On the board: the 3 joins the 5 to make 8, and we claim the Refinery.',
-      show: { planets: { [REFINERY]: 'Needs 8' }, look: [you(0), you(1)] },
-      play: [move(you(1), 3, 3), { type: 'conquer', planet: REFINERY }],
-      then: { planets: { [REFINERY]: 'Our cube' } },
+      show: { objectives: { [REFINERY]: 'Needs 8' }, look: [you(0), you(1)] },
+      play: [move(you(1), 3, 3), { type: 'claim', objective: REFINERY }],
+      then: { objectives: { [REFINERY]: 'Our cube' } },
     },
   ],
 };
@@ -167,8 +167,8 @@ const takeover: LessonDef = {
     },
     {
       say: '…makes **6**: **Take Over**. We place a cube on the Refinery, free.',
-      play: [resolve, advance, { type: 'infamy', planet: REFINERY }],
-      then: { planets: { [REFINERY]: 'Our cube, free' } },
+      play: [resolve, advance, { type: 'infamy', objective: REFINERY }],
+      then: { objectives: { [REFINERY]: 'Our cube, free' } },
     },
   ],
 };

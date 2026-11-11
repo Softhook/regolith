@@ -55,7 +55,7 @@ const OXIDE = ramp('#3a1206', '#a8441a', INKS.oxide, '#f8c09a');
 const COBALT = ramp('#0f1f3a', '#2b4f86', '#3e6fb0', '#bcd3f2');
 const VIOLET = ramp('#1e1238', '#5a2fb0', INKS.violet, '#e2ccff');
 
-/** The ink each objective's hub is painted in, by planet number: the Habitat's own green, then the palette's Hazard, Compact, Union and Ejecta ice. */
+/** The ink each objective's hub is painted in, by objective number: the Habitat's own green, then the palette's Hazard, Compact, Union and Ejecta ice. */
 const HUB_INK: Record<number, Ramp> = { 7: GREEN, 8: HAZARD, 9: COMPACT, 10: RED, 0: ICE, 11: OXIDE, 12: COBALT, 13: VIOLET };
 
 /** Below this saturation a colour is grey, and goes to bone. */
@@ -100,7 +100,7 @@ const SKIP = /^(f{3}|f{6}|0{3}|0{6})$/i;
 const recolour = (svg: string, paint: (c: Rgb) => Rgb) =>
   svg.replace(/#([0-9a-fA-F]{6}|[0-9a-fA-F]{3})(?![\w-])/g, (all, hex: string) => (SKIP.test(hex) ? all : rgbHex(paint(parse(hex)))));
 
-/** Every colour in `svg`, a base's drawing for planet `number` (0 for a Void tile), in the bases' inks, but for pure white and black, which masks and lights are drawn in. */
+/** Every colour in `svg`, a base's drawing for objective `number` (0 for an Alien Artefact tile), in the bases' inks, but for pure white and black, which masks and lights are drawn in. */
 export const inked = (svg: string, number: number) => {
   const open: string[] = [];
   return svg

@@ -20,8 +20,8 @@ import { LIT, SCALE } from '../src/regolith/core';
 
 const spec = tileSpec('p7-01');
 const IMAGE = 'data:image/png;base64,AAAA';
-/** A tile's lit ground alone, with its planet `at` a space. */
-const groundOf = (world: World, planetAt?: string) => tileGroundSvg(spec, { world, planetAt });
+/** A tile's lit ground alone, with its objective `at` a space. */
+const groundOf = (world: World, objectiveAt?: string) => tileGroundSvg(spec, { world, objectiveAt });
 /** The ids of the filters a document draws with. */
 const filters = (svg: string) => new Set([...svg.matchAll(/filter="url\(#([\w-]+)\)"/g)].map((m) => m[1]));
 
@@ -42,7 +42,7 @@ describe('regolith ground in print', () => {
     for (const standing of ['rg-built', 'rg-cast', 'rg-dust']) expect(used.has(standing)).toBe(false);
   });
 
-  it.each(Object.keys(TILE_SPOTS))("is the tile's own ground, levelled round its planet's space (%s)", (at) => {
+  it.each(Object.keys(TILE_SPOTS))("is the tile's own ground, levelled round its objective's space (%s)", (at) => {
     const ground = groundOf('mars', at);
     // Up to the end of the lit ground, the tile's ground starts the same: what stands on it follows.
     const lit = ground.slice(0, ground.lastIndexOf('</g></g>'));

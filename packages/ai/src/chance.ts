@@ -5,7 +5,7 @@ import { combatOutcome, copyState, die, tryApply, type Action, type CombatPendin
  *
  * Re-rolls and combat are enumerated exactly. Level 1 sampled them a few times and then took
  * the best-looking action, which favours whichever random action got lucky in the samples:
- * the reason it reconfigured so often. Other random effects (cards drawn, tactic dice) are
+ * the reason it refitted so often. Other random effects (cards drawn, tactic dice) are
  * sampled, with the same seeds for every candidate so that they are compared fairly.
  */
 
@@ -31,7 +31,7 @@ export function outcomes(s: GameState, a: Action, seeds: number[]): Outcome[] | 
   const next = tryApply(s, a);
   if (!next) return null;
   // Under Clever the rolled number is replaced by the player's choice, so the roll doesn't branch.
-  if (a.type === 'reconfigure' && next.pending[0]?.kind !== 'clever') return rerolls(s, next, a.die);
+  if (a.type === 'refit' && next.pending[0]?.kind !== 'clever') return rerolls(s, next, a.die);
   if (next.pending[0]?.kind === 'combat' && s.pending[0]?.kind !== 'combat') return battles(next, next.pending[0]);
   return [{ state: next, p: 1 }];
 }

@@ -25,7 +25,7 @@ export interface Show {
   /** A mech to select, as a tap would: the spaces it can reach, the mechs it can attack, the zones that stop it. */
   pick?: string;
   /** Objectives to mark, with a label. */
-  planets?: Record<number, string>;
+  objectives?: Record<number, string>;
   /** Mechs to point at. */
   look?: readonly string[];
   /** Which objective's perimeter a claim is about. */
@@ -92,7 +92,7 @@ function settle(before: GameState, after: GameState, action: Action): number {
   switch (action.type) {
     case 'resolveCombat':
       return before.pending[0]?.kind === 'combat' && combatOutcome(before, before.pending[0]).attackerWins ? 2200 : 1800;
-    case 'conquer':
+    case 'claim':
     case 'infamy':
       return 2600;
     case 'ability':

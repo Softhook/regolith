@@ -135,7 +135,7 @@ function JoinDialog({ replay, onJoin, onWatch }: { replay: Replay; onJoin: (seat
   );
 }
 
-/** When to wait for this player in a battle (to fire a missile or re-roll). */
+/** When to wait for this player in a battle (to fire an atomic or re-roll). */
 const ASK_LABELS: Record<AskMode, string> = {
   own: 'Ask: my battles',
   never: 'Ask: never',

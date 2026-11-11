@@ -24,17 +24,17 @@ export const CARD_IDS = ALL_CARDS.map((c) => c.id);
 const ROW_INDEXES = [0, 1, 2, 3, 4, 5, 6, 7];
 
 /**
- * Every answer worth trying to each kind of decision, legal or not: every player, side, card, planet
+ * Every answer worth trying to each kind of decision, legal or not: every player, side, card, objective
  * and cell, not just the ones DECISION_CANDIDATES lists. Typed per kind, so a new decision needs an entry.
  */
 const DECISION_BRUTE_FORCE: { [K in Pending['kind']]: (s: GameState) => Action[] } = {
   setupRoll: () => [{ type: 'setupKeep' }, { type: 'setupReroll' }],
   skillDraft: () => CARD_IDS.map((skill) => ({ type: 'draftSkill', skill })),
-  placeStart: (s) => s.board.planets.map((p) => ({ type: 'placeStart', planet: p.id })),
-  placeShips: (s) => s.dice.flatMap((d) => allCells(s).map((to) => ({ type: 'placeShip', die: d.id, to }) as const)),
+  placeStart: (s) => s.board.objectives.map((p) => ({ type: 'placeStart', objective: p.id })),
+  placeMechs: (s) => s.dice.flatMap((d) => allCells(s).map((to) => ({ type: 'placeMech', die: d.id, to }) as const)),
   combat: (s) => [
     { type: 'resolveCombat' },
-    ...s.players.flatMap((p) => (['attacker', 'defender'] as const).map((side) => ({ type: 'missile', by: p.id, side }) as const)),
+    ...s.players.flatMap((p) => (['attacker', 'defender'] as const).map((side) => ({ type: 'atomic', by: p.id, side }) as const)),
   ],
   dangerous: () => [
     { type: 'dangerous', destroy: true },
@@ -45,7 +45,7 @@ const DECISION_BRUTE_FORCE: { [K in Pending['kind']]: (s: GameState) => Action[]
     { type: 'advance', move: true },
     { type: 'advance', move: false },
   ],
-  infamy: (s) => s.board.planets.map((p) => ({ type: 'infamy', planet: p.id })),
+  infamy: (s) => s.board.objectives.map((p) => ({ type: 'infamy', objective: p.id })),
   takeCard: () => [
     { type: 'profiteer' },
     ...(['skill', 'tactic', 'expansion'] as const).flatMap((deck) =>
@@ -59,7 +59,7 @@ const DECISION_BRUTE_FORCE: { [K in Pending['kind']]: (s: GameState) => Action[]
   discardSkill: () => CARD_IDS.map((skill) => ({ type: 'discardSkill', skill })),
   placeExpansion: (s) => [{ type: 'placeExpansion', to: null }, ...allCells(s).map((to) => ({ type: 'placeExpansion', to }) as const)],
   showOfForce: (s) => s.dice.map((d) => ({ type: 'showOfForce', die: d.id })),
-  warpGate: (s) => allCells(s).map((cell) => ({ type: 'warpGate', cell })),
+  iceTunnel: (s) => allCells(s).map((cell) => ({ type: 'iceTunnel', cell })),
   placeBarrier: (s) => allCells(s).map((cell) => ({ type: 'placeBarrier', cell })),
   kineticShunt: (s) => s.dice.flatMap((d) => allCells(s).map((to) => ({ type: 'kineticShunt', die: d.id, to }) as const)),
   changeOfHeart: () => CARD_IDS.map((skill) => ({ type: 'changeOfHeart', skill })),
@@ -73,12 +73,12 @@ const DECISION_BRUTE_FORCE: { [K in Pending['kind']]: (s: GameState) => Action[]
     { type: 'unveilDone' },
     ...s.dice.flatMap((d) => [
       { type: 'unveilReroll', die: d.id } as const,
-      ...allCells(s).map((to) => ({ type: 'unveilDeploy', die: d.id, to }) as const),
+      ...allCells(s).map((to) => ({ type: 'unveilDrop', die: d.id, to }) as const),
     ]),
   ],
 };
 
-/** Every cell of the board, planets and off-board cells included. */
+/** Every cell of the board, objectives and off-board cells included. */
 function allCells(s: GameState): Cell[] {
   const out: Cell[] = [];
   for (let r = 0; r < s.board.rows; r++) for (let c = 0; c < s.board.cols; c++) out.push({ r, c });

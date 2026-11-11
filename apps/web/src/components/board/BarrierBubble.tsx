@@ -3,7 +3,7 @@ import { REGOLITH_SHADOW } from '@regolith/art';
 import { pieceShadowLength, pieceShadowOpacity, pieceShadowTint } from './shadows';
 
 /**
- * A barrier, as the Wisp makes it: a soft glass bubble on the planet's surface. The drone's flash-thermal
+ * A barrier, as the Wisp makes it: a soft glass bubble on the objective's surface. The drone's flash-thermal
  * pulse superheats surface regolith and volatile gases, blowing a vitreous blister that instantly flash-freezes
  * in the cold atmosphere into a seamless, translucent silica dome. It belongs to no one once blown, so it is
  * drawn in the ground's own mineral glass, caustic light and shadow, not a player's colour.
@@ -20,7 +20,7 @@ interface Tint {
   fused: string;
 }
 
-/** Tints for different world surfaces, drawing from the planet's own minerals. */
+/** Tints for different world surfaces, drawing from the objective's own minerals. */
 const WORLD_TINTS: Record<World, Tint> = {
   mars: {
     glass: 'rgba(246, 232, 212, 0.22)',
@@ -65,7 +65,7 @@ function seeded(r: number, c: number) {
   };
 }
 
-/** Generate a fused scorched base patch where molten regolith bonded to the planet surface. */
+/** Generate a fused scorched base patch where molten regolith bonded to the objective surface. */
 function fusedBasePatch(R: number, rand: () => number) {
   const n = 8;
   const turn = rand() * Math.PI * 2;
@@ -103,7 +103,7 @@ export interface BarrierBubbleProps {
 }
 
 /**
- * A barrier on the space centered on (x, y): a soft glass bubble resting on the planet's surface.
+ * A barrier on the space centered on (x, y): a soft glass bubble resting on the objective's surface.
  * `cast`: on `world`'s ground, it casts a lens-focused shadow and caustic hotspot.
  */
 export function BarrierBubble({ r, c, x, y, cell, mm, cast, world }: BarrierBubbleProps) {

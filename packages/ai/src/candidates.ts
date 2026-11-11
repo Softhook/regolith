@@ -2,9 +2,9 @@ import {
   cellOf,
   die,
   distance,
-  homePlanet,
+  homeObjective,
   legalActions,
-  orbitals,
+  perimeterSpaces,
   same,
   type Action,
   type Cell,
@@ -12,7 +12,7 @@ import {
   type PlayerId,
 } from '@regolith/engine';
 
-/** Calculating: the scrapyard numbers to take first (see candidates). */
+/** Calculating: the salvage yard numbers to take first (see candidates). */
 const CALCULATING_ORDER = [4, 3, 5, 2, 6, 1];
 
 /**
@@ -21,12 +21,12 @@ const CALCULATING_ORDER = [4, 3, 5, 2, 6, 1];
  */
 export function barrierShuntRank(s: GameState, a: Action, me: PlayerId): number {
   if (a.type !== 'shuntBarrier') return 0;
-  const home = homePlanet(s, me);
-  const onHome = (c: Cell) => !!home && orbitals(s.board, home).some((o) => same(o, c));
+  const home = homeObjective(s, me);
+  const onHome = (c: Cell) => !!home && perimeterSpaces(s.board, home).some((o) => same(o, c));
   const onEnemyHome = (c: Cell) =>
     s.players.some((p) => {
-      const h = p.id !== me && homePlanet(s, p.id);
-      return !!h && orbitals(s.board, h).some((o) => same(o, c));
+      const h = p.id !== me && homeObjective(s, p.id);
+      return !!h && perimeterSpaces(s.board, h).some((o) => same(o, c));
     });
   return (onHome(a.from) ? 3 : 0) - (onHome(a.to) ? 5 : 0) + (onEnemyHome(a.to) ? 2 : 0) - (onEnemyHome(a.from) ? 2 : 0);
 }
@@ -39,7 +39,7 @@ export function barrierShuntRank(s: GameState, a: Action, me: PlayerId): number 
 export function candidates(s: GameState, opts?: { includeCarry?: boolean }): Action[] {
   const all = legalActions(s, opts);
   const head = s.pending[0];
-  // Calculating: the evaluation can't tell ship numbers in the scrapyard apart, so ties go to the
+  // Calculating: the evaluation can't tell mech numbers in the salvage yard apart, so ties go to the
   // first. A Frigate (4) can become a 3 or 5 for free, the most flexible; over 200 games each,
   // Calculating won 57% this way against 40% taking 1s (docs/card-benchmark.md).
   if (head?.kind === 'clever' && head.source === 'calculating') {

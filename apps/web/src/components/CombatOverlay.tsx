@@ -3,7 +3,7 @@ import {
   cardName,
   canRespondToCombat,
   combatOutcome,
-  missileOffered,
+  atomicOffered,
   signed,
   tryApply,
   type Action,
@@ -22,14 +22,14 @@ import { useBattleReveal, useBattleSounds } from '../game/useBattleReveal';
 import { COMPACT_BATTLE, useMediaQuery } from '../game/useMediaQuery';
 import { useShortcut } from '../game/useShortcut';
 import { COMBAT_MS } from '../online/playback';
-import { MissileIcon } from './Card';
+import { AtomicIcon } from './Card';
 import { BattleArena } from './BattleArena';
 import { BattleSide } from './BattleSide';
 import { BattleVerdict } from './BattleVerdict';
 
 type Props = Parameters<typeof Battle>[0];
 
-/** A shot's battle (a ranged attack) opens once its missile has crossed the map (board/Shots). */
+/** A shot's battle (a ranged attack) opens once its atomic has crossed the map (board/Shots). */
 export function CombatOverlay(props: Props) {
   const [wait] = useState(() => shotWait(props.combat));
   const [landed, setLanded] = useState(!wait);
@@ -65,7 +65,7 @@ function Battle({
   const out = combatOutcome(game, combat);
   useBattleSounds(revealed, combat, out, mine);
   const humans = game.players.filter((p) => (online ? online.responders.includes(p.id) : mine(p.id)));
-  const shooters = humans.filter((p) => p.missiles > 0);
+  const shooters = humans.filter((p) => p.atomics > 0);
   const autoResolve = !humans.some((p) => canRespondToCombat(game, combat, p.id));
   const waitingNames = online
     ? online.waitingOn.map((id) => game.players[id].name).join(' and ')
@@ -101,11 +101,11 @@ function Battle({
   const side = (role: CombatRole) => {
     const s = combat[role];
     const total = out[role];
-    // The dice show the ship and the roll; listed are only what else counts: a card that sets the
-    // roll (not a missile: its die says so) and bonuses.
+    // The dice show the mech and the roll; listed are only what else counts: a card that sets the
+    // roll (not an atomic: its die says so) and bonuses.
     const rollPart = total.parts.find((part) => part.kind === 'roll');
     const bonuses = total.parts.filter((part) => part.kind === 'modifier');
-    const setBy = rollPart?.set && !s.missile && total.roll !== Math.min(...s.dice) ? rollPart.label : null;
+    const setBy = rollPart?.set && !s.atomic && total.roll !== Math.min(...s.dice) ? rollPart.label : null;
     return (
       <BattleSide
         game={game}
@@ -139,10 +139,10 @@ function Battle({
       >
         {revealed &&
           shooters.map((sh) => (
-            <MissileButton key={sh.id} game={game} combat={combat} role={role} shooter={sh} named={humans.length > 1} dispatch={dispatch} />
+            <AtomicButton key={sh.id} game={game} combat={combat} role={role} shooter={sh} named={humans.length > 1} dispatch={dispatch} />
           ))}
-        {revealed && !s.missile && total.roll === 1 && shooters.some((sh) => sh.id === s.player) && (
-          <p className="missile-note">{'Roll is already 1 — an atomic can’t help.'}</p>
+        {revealed && !s.atomic && total.roll === 1 && shooters.some((sh) => sh.id === s.player) && (
+          <p className="atomic-note">{'Roll is already 1 — an atomic can’t help.'}</p>
         )}
       </BattleSide>
     );
@@ -174,7 +174,7 @@ function Battle({
               OK
             </button>
           ) : online || timed ? (
-            // The battle moves on by itself shortly; restarts when a missile changes it.
+            // The battle moves on by itself shortly; restarts when an atomic changes it.
             <div className="autobar" key={combatStage(combat)}>
               <span style={{ animationDuration: `${online ? COMBAT_MS : COMBAT_RESOLVE_MS}ms` }} />
             </div>
@@ -191,7 +191,7 @@ function Battle({
 
 /**
  * Closes the battle with `f`, then swallows clicks for a moment: a double click would otherwise
- * land on whatever is under the battle (a ship, a space, the next choice). Undefined stays so.
+ * land on whatever is under the battle (a mech, a space, the next choice). Undefined stays so.
  */
 function close(f: (() => void) | undefined): (() => void) | undefined {
   if (!f) return undefined;
@@ -207,12 +207,12 @@ function close(f: (() => void) | undefined): (() => void) | undefined {
 }
 
 /**
- * A missile sets one combat roll to 1. Lower totals win, so firing at your opponent's roll
+ * An atomic sets one combat roll to 1. Lower totals win, so firing at your opponent's roll
  * only helps them: combatants are offered their own roll only, and not while already winning.
- * Players not in the battle may not fire (engine missileOffered).
+ * Players not in the battle may not fire (engine atomicOffered).
  * Each button previews the battle result if fired.
  */
-function MissileButton({
+function AtomicButton({
   game,
   combat,
   role,
@@ -227,13 +227,13 @@ function MissileButton({
   named: boolean;
   dispatch: Dispatch;
 }) {
-  if (!missileOffered(game, combat, shooter.id, role)) return null;
-  const action: Action = { type: 'missile', by: shooter.id, side: role };
+  if (!atomicOffered(game, combat, shooter.id, role)) return null;
+  const action: Action = { type: 'atomic', by: shooter.id, side: role };
   const next = tryApply(game, action);
   const nextCombat = next?.pending[0];
   if (!next || nextCombat?.kind !== 'combat') return null;
 
-  // Offered only on the shooter's own roll while losing, so the missile either flips the battle or doesn't.
+  // Offered only on the shooter's own roll while losing, so the atomic either flips the battle or doesn't.
   const after = combatOutcome(next, nextCombat);
   const attacking = role === 'attacker';
   const flips = attacking === after.attackerWins;
@@ -242,9 +242,9 @@ function MissileButton({
   const verdict = `${who} ${flips ? 'would win' : 'would still lose'} ${mine} vs ${theirs}`;
 
   return (
-    <button className={`btn btn-missile ${flips ? 'decisive' : ''}`} onClick={() => dispatch(action)}>
+    <button className={`btn btn-atomic ${flips ? 'decisive' : ''}`} onClick={() => dispatch(action)}>
       <span>
-        <MissileIcon /> {named ? `${shooter.name}: ` : ''}
+        <AtomicIcon /> {named ? `${shooter.name}: ` : ''}
         {'Fire atomic — your roll becomes 1'}
       </span>
       <small>{verdict}</small>

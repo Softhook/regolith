@@ -1,25 +1,25 @@
 # Regolith's map layouts
 #
-# A map is a layout of hex tiles: 7-hex flowers, the planet and the six spaces around it, so all six
-# spaces of a tile are its planet's orbit. A layout is read as rows of tiles where each odd row (the
+# A map is a layout of hex tiles: 7-hex flowers, the objective and the six spaces around it, so all six
+# spaces of a tile are its objective's perimeter. A layout is read as rows of tiles where each odd row (the
 # 2nd, 4th…) sits half a tile to the right, between the tiles of the rows above and below: a tile
 # touches the two tiles beside it and two in each neighbouring row (docs/HEX.md).
 #
 # Layout tokens (space-separated, one string per tile row):
-#   7 | 8 | 9 | 10   planet tile; number = conquer target and cube locations (7→1, 8→2, 9→3, 10→4)
-#   0                void tile: no planet; +1 research per own ship on it at start of turn
-#   -                blank tile: open ground, no planet and no research
+#   7 | 8 | 9 | 10   objective tile; number = claim target and cube locations (7→1, 8→2, 9→3, 10→4)
+#   0                Alien Artefact tile: no objective; +1 research per own mech on it at start of turn
+#   -                blank tile: open ground, no objective and no research
 #   .                no tile (empty gap, not part of the board)
 #   suffix n ne se s sw nw
-#                    the planet sits off the middle of its tile, on that hex (north is up as drawn)
-#   suffix *         starting planet, after any direction: 8*, 7ne*
+#                    the objective sits off the middle of its tile, on that hex (north is up as drawn)
+#   suffix *         starting objective, after any direction: 8*, 7ne*
 #
-# An off-centre planet's orbit is still the spaces next to it, so it reaches onto the tiles it faces,
-# loses spaces off the map's edge, and may overlap another planet's: a ship there counts for both. Each
-# starting planet needs 3 orbital spaces no other start shares.
+# An off-centre objective's perimeter is still the spaces next to it, so it reaches onto the tiles it faces,
+# loses spaces off the map's edge, and may overlap another objective's: a mech there counts for both. Each
+# starting objective needs 3 perimeter spaces no other start shares.
 #
 # Groups: hex (the basic and advanced maps), open (maps spread out with blank tiles),
-#         drift (planets off the middle of their tiles), prepared (maps that start with an Ice Tunnel or
+#         drift (objectives off the middle of their tiles), prepared (maps that start with an Ice Tunnel or
 #         barriers already on the ground).
 #
 # start: what the map starts with on the ground, optional. A space is named `row:col:side`, the layout's tile row
@@ -39,7 +39,7 @@
 #
 # Stats, all derivable from layout + cubes + player count (mapStats(), kept in step by maps.test.ts):
 #   slack   = total cube locations − players × cubes
-#   planets = planets that still have an empty location after setup
+#   objectives = objectives that still have an empty location after setup
 #   shared  = how many of those must be shared if everyone placed all their cubes
 
 maps:
@@ -50,7 +50,7 @@ maps:
     world: phobos
     length: short
     cubes: 5
-    stats: { slack: 0, shared: 1, planets: 7 }
+    stats: { slack: 0, shared: 1, objectives: 7 }
     layout:
       - ".  7*"
       - "7  7"
@@ -65,7 +65,7 @@ maps:
     world: deimos
     length: medium
     cubes: 5
-    stats: { slack: 4, shared: 4, planets: 10 }
+    stats: { slack: 4, shared: 4, objectives: 10 }
     layout:
       - "8* 7  8  8*"
       - "8  10 7"
@@ -79,7 +79,7 @@ maps:
     world: phobos
     length: long
     cubes: 5
-    stats: { slack: 4, shared: 5, planets: 9 }
+    stats: { slack: 4, shared: 5, objectives: 9 }
     layout:
       - ".  9*"
       - "9  8"
@@ -97,7 +97,7 @@ maps:
     world: mars
     length: medium
     cubes: 7
-    stats: { slack: 0, shared: 6, planets: 6 }
+    stats: { slack: 0, shared: 6, objectives: 6 }
     # A band of six 8s, a start at each end touching two of them.
     layout:
       - "8  8"
@@ -111,7 +111,7 @@ maps:
     world: phobos
     length: short
     cubes: 6
-    stats: { slack: 2, shared: 4, planets: 6 }
+    stats: { slack: 2, shared: 4, objectives: 6 }
     # A ring of eight round a two-tile hole, the starts across it.
     layout:
       - ".  7* 8  8"
@@ -125,8 +125,8 @@ maps:
     world: deimos
     length: short
     cubes: 7
-    stats: { slack: 2, shared: 2, planets: 10 }
-    # A void ringed by 8s and 7s; each start sits among three 7s at an end.
+    stats: { slack: 2, shared: 2, objectives: 10 }
+    # An Alien Artefact ringed by 8s and 7s; each start sits among three 7s at an end.
     layout:
       - "7  7* 7"
       - "8  7"
@@ -141,7 +141,7 @@ maps:
     world: phobos
     length: long
     cubes: 5
-    stats: { slack: 2, shared: 5, planets: 7 }
+    stats: { slack: 2, shared: 5, objectives: 7 }
     # Seven tiles: the starts round an 8, two spaces apart, with 8s between them.
     layout:
       - "9* 8"
@@ -155,8 +155,8 @@ maps:
     world: mars
     length: medium
     cubes: 7
-    stats: { slack: 6, shared: 3, planets: 12 }
-    # A void ringed by 9s and 8s; each start, out at a point, touches a 9, an 8 and a 7.
+    stats: { slack: 6, shared: 3, objectives: 12 }
+    # An Alien Artefact ringed by 9s and 8s; each start, out at a point, touches a 9, an 8 and a 7.
     layout:
       - ".  7* 8"
       - "7  9  8  7"
@@ -171,7 +171,7 @@ maps:
     world: phobos
     length: long
     cubes: 6
-    stats: { slack: 6, shared: 5, planets: 12 }
+    stats: { slack: 6, shared: 5, objectives: 12 }
     # Two 10s in the middle with the 7s and 8s round them; two starts touch a 10, two sit further out.
     layout:
       - ".  9*"
@@ -187,7 +187,7 @@ maps:
     world: deimos
     length: long
     cubes: 6
-    stats: { slack: 3, shared: 6, planets: 9 }
+    stats: { slack: 3, shared: 6, objectives: 9 }
     # A 12 (the Deep Space Array) in the middle, four arms of 8s out to the starts.
     layout:
       - ".  .  7*"
@@ -198,9 +198,9 @@ maps:
       - ".  .  8"
       - ".  .  7*"
 
-  # Drift: maps whose planets sit off the middle of their tiles (docs/HEX.md, Off-centre planets), so
-  # orbits cross tiles, shrink at the edge and overlap. The seats match under a half-turn (2 or 4 players)
-  # or a third-turn (3 players), even as the planets look scattered. Only 7s go off-centre on hex tiles:
+  # Drift: maps whose objectives sit off the middle of their tiles (docs/HEX.md, Off-centre objectives), so
+  # perimeters cross tiles, shrink at the edge and overlap. The seats match under a half-turn (2 or 4 players)
+  # or a third-turn (3 players), even as the objectives look scattered. Only 7s go off-centre on hex tiles:
   # anything bigger spills over the tile's edge (art OFF_CENTRE).
 
   - id: twin-drift
@@ -210,9 +210,9 @@ maps:
     world: deimos
     length: short
     cubes: 6
-    stats: { slack: 6, shared: 2, planets: 10 }
-    # Each start shares two orbital spaces with a 7 beside it, and the 9s share two more. Two 7s
-    # drift to the map's edge (3 orbital spaces), and two Voids sit between.
+    stats: { slack: 6, shared: 2, objectives: 10 }
+    # Each start shares two perimeter spaces with a 7 beside it, and the 9s share two more. Two 7s
+    # drift to the map's edge (3 perimeter spaces), and two Alien Artefacts sit between.
     layout:
       - "7se 8*   .    ."
       - "9   0    7n"
@@ -227,8 +227,8 @@ maps:
     world: phobos
     length: medium
     cubes: 6
-    stats: { slack: 2, shared: 4, planets: 6 }
-    # The two 7 starts lean into the ring's central gap, pulling orbits across the other tiles.
+    stats: { slack: 2, shared: 4, objectives: 6 }
+    # The two 7 starts lean into the ring's central gap, pulling perimeters across the other tiles.
     layout:
       - ".  7s* 8  8"
       - "8  .  .  8"
@@ -241,7 +241,7 @@ maps:
     world: deimos
     length: medium
     cubes: 5
-    stats: { slack: 4, shared: 4, planets: 10 }
+    stats: { slack: 4, shared: 4, objectives: 10 }
     # Three 7s drift around a central 10, each turned a third of a turn from the next.
     layout:
       - "8* 7ne  8  8*"
@@ -256,7 +256,7 @@ maps:
     world: phobos
     length: long
     cubes: 6
-    stats: { slack: 6, shared: 5, planets: 12 }
+    stats: { slack: 6, shared: 5, objectives: 12 }
     # Two 7s lean toward the pair of 10s; the other two starts sit further out, as on Nexus.
     layout:
       - ".  9*"
@@ -265,8 +265,8 @@ maps:
       - "9* 7sw 8"
       - ".  .  9*"
 
-  # Open ground: hex maps spread out with blank tiles (-), open ground with no planet and no research, among
-  # their voids, so the planets stand apart and mechs cross open country between them. Each is the same
+  # Open ground: hex maps spread out with blank tiles (-), open ground with no objective and no research, among
+  # their artefacts, so the objectives stand apart and mechs cross open country between them. Each is the same
   # turned (a half turn, or a third for 3 players).
 
   - id: arcadia-planitia
@@ -276,7 +276,7 @@ maps:
     world: mars
     length: medium
     cubes: 6
-    stats: { slack: 2, shared: 4, planets: 8 }
+    stats: { slack: 2, shared: 4, objectives: 8 }
     # A hexagon of 19 tiles round a void; each start sits in a corner, on open ground beside a 7.
     layout:
       - ".  7  -  8*"
@@ -292,7 +292,7 @@ maps:
     world: mars
     length: medium
     cubes: 7
-    stats: { slack: 6, shared: 4, planets: 10 }
+    stats: { slack: 6, shared: 4, objectives: 10 }
     # A long canyon, the starts at either end, 7 tiles apart, with the 10s in its middle.
     layout:
       - ".  -  8  -  10 -  7"
@@ -306,8 +306,8 @@ maps:
     world: phobos
     length: long
     cubes: 6
-    stats: { slack: 3, shared: 3, planets: 9 }
-    # A crater floor of blanks and three voids, ringed by 9s and 8s; the starts on the rim, touching a 7 and an 8.
+    stats: { slack: 3, shared: 3, objectives: 9 }
+    # A crater floor of blanks and three Alien Artefacts, ringed by 9s and 8s; the starts on the rim, touching a 7 and an 8.
     layout:
       - ".  .  9  -  7  7*"
       - "7* 8  0  -  8"
@@ -323,7 +323,7 @@ maps:
     world: mars
     length: long
     cubes: 6
-    stats: { slack: 4, shared: 4, planets: 10 }
+    stats: { slack: 4, shared: 4, objectives: 10 }
     # A 10 on a rise of open ground; each start stands on the slope beside a void and a 7, four tiles from the others.
     layout:
       - ".  .  .  7"
@@ -340,9 +340,9 @@ maps:
     world: mars
     length: long
     cubes: 6
-    stats: { slack: 6, shared: 4, planets: 14 }
+    stats: { slack: 6, shared: 4, objectives: 14 }
     # A void with two 10s across it, on an open plain; the four starts stand out at its edge, each touching a 7
-    # and a blank, 4 tiles from two starts and 6 from the one across. The two pairs see different planets nearby.
+    # and a blank, 4 tiles from two starts and 6 from the one across. The two pairs see different objectives nearby.
     layout:
       - ".  .  8*"
       - ".  7  -  9"
@@ -359,8 +359,8 @@ maps:
     world: phobos
     length: long
     cubes: 6
-    stats: { slack: 6, shared: 4, planets: 14 }
-    # Two voids side by side across open ground; two starts by a 10, two by a 9 and an 8.
+    stats: { slack: 6, shared: 4, objectives: 14 }
+    # Two artefacts side by side across open ground; two starts by a 10, two by a 9 and an 8.
     layout:
       - ".  8* 8  -  7"
       - "7  9  -  10 8*"
@@ -368,7 +368,7 @@ maps:
       - "8* 10 -  9  7"
       - ".  7  -  8  8*"
 
-  # Three layouts of opposed starts, central contests and ringed voids.
+  # Three layouts of opposed starts, central contests and ringed Alien Artefacts.
   # The 2-player map opens long alternate routes to a contested 9; the 3-player map trades its central
   # 10 for a research void and adds a balanced outer ring; the 4-player map turns Nexus's twin central
   # 10s into a shared research corridor and gives every start the same 9.
@@ -380,8 +380,8 @@ maps:
     world: mars
     length: short
     cubes: 7
-    stats: { slack: 5, shared: 1, planets: 13 }
-    # Starts at opposite corners, a 9 between them, and gaps and two voids that break the straight lanes.
+    stats: { slack: 5, shared: 1, objectives: 13 }
+    # Starts at opposite corners, a 9 between them, and gaps and two artefacts that break the straight lanes.
     layout:
       - "8* 7  7"
       - "7  .  7  8"
@@ -396,7 +396,7 @@ maps:
     world: deimos
     length: short
     cubes: 5
-    stats: { slack: 3, shared: 3, planets: 12 }
+    stats: { slack: 3, shared: 3, objectives: 12 }
     layout:
       - "."
       - ".  7"
@@ -412,7 +412,7 @@ maps:
     world: phobos
     length: medium
     cubes: 5
-    stats: { slack: 4, shared: 4, planets: 12 }
+    stats: { slack: 4, shared: 4, objectives: 12 }
     layout:
       - "7  9*"
       - "8  7  9*"
@@ -429,7 +429,7 @@ maps:
     world: mars
     length: medium
     cubes: 6
-    stats: { slack: 6, shared: 3, planets: 9 }
+    stats: { slack: 6, shared: 3, objectives: 9 }
     # A direct lane between equal homes, with a central 10, two 9s and four 7s along the route.
     layout:
       - "8* 7  9  7  10 7  9  7  8*"
@@ -441,7 +441,7 @@ maps:
     world: phobos
     length: long
     cubes: 6
-    stats: { slack: 2, shared: 5, planets: 10 }
+    stats: { slack: 2, shared: 5, objectives: 10 }
     # Equal 9 starts on a triangle, with an 11 (the Mass Driver) in the middle and two 3-fold rings around it.
     layout:
       - "9* 8  7  9*"
@@ -456,7 +456,7 @@ maps:
     world: deimos
     length: long
     cubes: 5
-    stats: { slack: 3, shared: 6, planets: 13 }
+    stats: { slack: 3, shared: 6, objectives: 13 }
     # Four equal 8 starts on the arms; the 7s make the approach easier and the central 12 (the Deep Space Array) rewards crossing.
     layout:
       - ".  .  8*"
@@ -478,8 +478,8 @@ maps:
     world: mars
     length: long
     cubes: 4
-    stats: { slack: 4, shared: 4, planets: 12 }
-    # A 10 in the middle of a ring of open ground; five 8 starts round the hexagon's rim, the 9s between pairs of them, and a void.
+    stats: { slack: 4, shared: 4, objectives: 12 }
+    # A 10 in the middle of a ring of open ground; five 8 starts round the hexagon's rim, the 9s between pairs of them, and an Alien Artefact.
     layout:
       - ".  8* 7  8*"
       - "7  -  -  9"
@@ -494,7 +494,7 @@ maps:
     world: deimos
     length: medium
     cubes: 4
-    stats: { slack: 5, shared: 5, planets: 12 }
+    stats: { slack: 5, shared: 5, objectives: 12 }
     # A ring of twelve round an empty middle, a start every two or three tiles; two starts share a 9 between them.
     layout:
       - ".  8* 8  8*"
@@ -510,7 +510,7 @@ maps:
     world: phobos
     length: medium
     cubes: 4
-    stats: { slack: 2, shared: 6, planets: 12 }
+    stats: { slack: 2, shared: 6, objectives: 12 }
     # Five of the hexagon's six corners hold starts; the sixth is a bay of open ground, with an 11 (the Mass Driver) in the middle.
     layout:
       - ".  8* 7  8*"
@@ -530,8 +530,8 @@ maps:
     world: mars
     length: short
     cubes: 5
-    stats: { slack: 6, shared: 1, planets: 9 }
-    # A 10 on the summit between two voids, an 8 and a 7 beside each start; the half turn matches the seats.
+    stats: { slack: 6, shared: 1, objectives: 9 }
+    # A 10 on the summit between two artefacts, an 8 and a 7 beside each start; the half turn matches the seats.
     layout:
       - ".  8* 7  8"
       - "7  0  -  -"
@@ -546,8 +546,8 @@ maps:
     world: phobos
     length: short
     cubes: 4
-    stats: { slack: 6, shared: 2, planets: 9 }
-    # A void ringed by 7s and 8s in turn, a 9 start at each of three corners, a third of a turn apart.
+    stats: { slack: 6, shared: 2, objectives: 9 }
+    # An Alien Artefact ringed by 7s and 8s in turn, a 9 start at each of three corners, a third of a turn apart.
     layout:
       - "9* 8  7  9*"
       - "7  0  8"
@@ -561,7 +561,7 @@ maps:
     world: mars
     length: medium
     cubes: 4
-    stats: { slack: 2, shared: 4, planets: 10 }
+    stats: { slack: 2, shared: 4, objectives: 10 }
     # Four 8 starts at the corners of a diamond, a void between them and a pair of 9s on its long diagonal.
     layout:
       - ".  .  8*"
@@ -579,7 +579,7 @@ maps:
     world: mars
     length: medium
     cubes: 5
-    stats: { slack: 3, shared: 3, planets: 7 }
+    stats: { slack: 3, shared: 3, objectives: 7 }
     # A straight approach through two Ice Mines to the lone Citadel; matching Habitats hold the ends.
     layout:
       - "8* 7  9  13 9  7  8*"
@@ -591,7 +591,7 @@ maps:
     world: deimos
     length: short
     cubes: 5
-    stats: { slack: 6, shared: 1, planets: 13 }
+    stats: { slack: 6, shared: 1, objectives: 13 }
     # A three-way survey ring around a Deep Space Array, with the original threefold seat symmetry.
     layout:
       - "."
@@ -608,7 +608,7 @@ maps:
     world: phobos
     length: long
     cubes: 5
-    stats: { slack: 0, shared: 7, planets: 11 }
+    stats: { slack: 0, shared: 7, objectives: 11 }
     # Four 8 starts in the corners, off both mirrors, so each seat mirrors every other: each has a 7 of its own,
     # a 9 it shares with the seat across the middle row, and the Mass Driver two steps away.
     layout:
@@ -629,7 +629,7 @@ maps:
     world: deimos
     length: medium
     cubes: 6
-    stats: { slack: 6, shared: 3, planets: 7 }
+    stats: { slack: 6, shared: 3, objectives: 7 }
     # A long lane like Canyon Relay, but an Ice Tunnel is open between its two 9s, past the central 10.
     start:
       tunnel: ["0:2:s", "0:6:n"]
@@ -643,7 +643,7 @@ maps:
     world: mars
     length: medium
     cubes: 4
-    stats: { slack: 6, shared: 2, planets: 9 }
+    stats: { slack: 6, shared: 2, objectives: 9 }
     # Triple Junction with nine barriers laid in threes, a third of a turn apart, that wall each pair of starts off from the other: the walk between homes goes from 7 spaces to 12, round the rubble.
     start:
       barriers: ["0:2:n", "2:2:se", "1:0:sw", "1:2:n", "2:1:se", "0:1:sw", "0:2:se", "2:2:sw", "1:0:n"]
@@ -660,7 +660,7 @@ maps:
     world: phobos
     length: short
     cubes: 4
-    stats: { slack: 2, shared: 2, planets: 4 }
+    stats: { slack: 2, shared: 2, objectives: 4 }
     # Circular Logic cut in two: each start has an arc of three objectives to itself, and only the wormhole crosses the gap. No arc has the four a player's cubes need, so one must be planted across.
     start:
       wormhole: ["0:2:s", "2:2:n"]
@@ -676,7 +676,7 @@ maps:
     world: mars
     length: short
     cubes: 5
-    stats: { slack: 6, shared: 1, planets: 9 }
+    stats: { slack: 6, shared: 1, objectives: 9 }
     # Olympus Mons with a rim of barriers round its summit 10, two one-space breaches. The 10 is a fort: whoever holds the breaches holds the claim.
     start:
       barriers:
@@ -695,7 +695,7 @@ maps:
     world: phobos
     length: medium
     cubes: 5
-    stats: { slack: 5, shared: 3, planets: 10 }
+    stats: { slack: 5, shared: 3, objectives: 10 }
     # Mare Trigonum with a rim of barriers round its central 11 and three one-space breaches, each facing a start's side.
     start:
       barriers:
@@ -713,7 +713,7 @@ maps:
     world: deimos
     length: short
     cubes: 5
-    stats: { slack: 0, shared: 1, planets: 7 }
+    stats: { slack: 0, shared: 1, objectives: 7 }
     # Alpha Sector with two broken walls across it, each a pair of 7s with two barriers between and gaps at both ends. The walk between the starts is 10 spaces, through the chamber with the 8.
     start:
       barriers: ["1:0:se", "1:1:nw", "3:1:nw", "3:0:se"]
@@ -731,7 +731,7 @@ maps:
     world: deimos
     length: long
     cubes: 4
-    stats: { slack: 0, shared: 6, planets: 8 }
+    stats: { slack: 0, shared: 6, objectives: 8 }
     # Cydonia cut across its void into two islands of two starts each; the wormhole is the only way over, and each island has too few objectives for its players' cubes.
     start:
       wormhole: ["2:1:se", "2:3:nw"]

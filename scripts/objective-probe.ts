@@ -22,7 +22,7 @@
 import { appendFileSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { chooseAction, chooseCombatResponse, type AiLevel } from '../packages/ai/src';
-import { apply, cellOf, createGame, mulberry32, orbitals, type Action, type GameState } from '../packages/engine/src';
+import { apply, cellOf, createGame, mulberry32, perimeterSpaces, type Action, type GameState } from '../packages/engine/src';
 import { OBJECTIVE_SETUPS, hubCapacity, hubMap, hubTiles, slack, type ObjectiveSetup } from '../packages/engine/test/objectiveSetups';
 import { args } from './args';
 import { defaultJobs, deliverWaiting, isWorker, pool } from './pool';
@@ -91,10 +91,10 @@ function play(t: Task): Result {
     mapId: map.id,
   });
   const tiles = new Set(hubTiles(setup));
-  const hubs = t.hub ? s.board.planets.filter((p) => tiles.has(s.board.cells[p.r][p.c].tile)) : [];
+  const hubs = t.hub ? s.board.objectives.filter((p) => tiles.has(s.board.cells[p.r][p.c].tile)) : [];
   if (t.hub && hubs.length !== tiles.size) throw new Error(`${map.id}: ${hubs.length} hubs laid, ${tiles.size} in the layout`);
   const hubIds = new Set(hubs.map((p) => p.id));
-  const perimeter = new Set(hubs.flatMap((p) => orbitals(s.board, p).map((c) => `${c.r},${c.c}`)));
+  const perimeter = new Set(hubs.flatMap((p) => perimeterSpaces(s.board, p).map((c) => `${c.r},${c.c}`)));
   const onPerimeter = (g: GameState) =>
     g.dice.filter((d) => {
       const c = cellOf(d);
@@ -119,11 +119,11 @@ function play(t: Task): Result {
     turns: 0,
     drought: 0,
   };
-  const cubes = (g: GameState) => g.board.planets.reduce((n, q) => n + q.cubes.length, 0);
+  const cubes = (g: GameState) => g.board.objectives.reduce((n, q) => n + q.cubes.length, 0);
   let first = -1;
   let lastCube = 0;
   let turn = -1;
-  let lastPlanet = -1;
+  let lastObjective = -1;
   for (let step = 0; s.phase !== 'over' && step < MAX_STEPS; step++) {
     if (first < 0 && s.phase === 'play') first = s.turn.player;
     if (s.phase === 'play' && s.turn.number !== turn) {
@@ -139,15 +139,15 @@ function play(t: Task): Result {
     const fights = s.combatCounter;
     const standing = onPerimeter(s);
     const mover = s.turn.player;
-    const target = action.type === 'conquer' || action.type === 'infamy' ? action.planet : -1;
-    const ownThere = target >= 0 ? s.board.planets[target].cubes.includes(mover) : false;
+    const target = action.type === 'claim' || action.type === 'infamy' ? action.objective : -1;
+    const ownThere = target >= 0 ? s.board.objectives[target].cubes.includes(mover) : false;
     const mechs = target >= 0 ? onPerimeter(s).filter((d) => d.owner === mover).length : 0;
     s = apply(s, action);
     r.attacks += s.combatCounter - fights;
-    r.hubKills += standing.filter((d) => s.dice.find((x) => x.id === d.id)?.loc.zone === 'scrapyard').length;
+    r.hubKills += standing.filter((d) => s.dice.find((x) => x.id === d.id)?.loc.zone === 'salvageYard').length;
     if (s.phase !== 'setup' && cubes(s) > before && s.turn.number > 0) {
-      lastPlanet = target;
-      if (action.type === 'conquer' && ownThere) r.backToOwn++;
+      lastObjective = target;
+      if (action.type === 'claim' && ownThere) r.backToOwn++;
       if (hubIds.has(target)) {
         if (action.type === 'infamy') r.hubTakeOvers++;
         else {
@@ -162,12 +162,12 @@ function play(t: Task): Result {
   }
   r.finished = s.phase === 'over';
   r.rounds = s.turn.number / setup.players;
-  r.hubHolders = new Set(hubs.flatMap((p) => s.board.planets[p.id].cubes)).size;
+  r.hubHolders = new Set(hubs.flatMap((p) => s.board.objectives[p.id].cubes)).size;
   if (r.finished) {
     const w = s.winner!;
     r.winnerPlace = (w - first + setup.players) % setup.players;
-    r.winnerOnHub = hubs.some((p) => s.board.planets[p.id].cubes.includes(w));
-    r.winningCubeOnHub = hubIds.has(lastPlanet);
+    r.winnerOnHub = hubs.some((p) => s.board.objectives[p.id].cubes.includes(w));
+    r.winningCubeOnHub = hubIds.has(lastObjective);
   } else r.drought = Math.max(r.drought, (s.turn.number - lastCube) / setup.players);
   return r;
 }

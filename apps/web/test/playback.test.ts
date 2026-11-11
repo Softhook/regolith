@@ -28,18 +28,18 @@ function walk(steps: Step[], shown: Step | null, battle?: { mine: boolean; dismi
   throw new Error('playback never settles');
 }
 
-const side = { player: 0, die: 'x', ship: 3, dice: [4], missile: false };
-const battle = (missile: boolean, id = 7): CombatPending =>
+const side = { player: 0, die: 'x', mech: 3, dice: [4], atomic: false };
+const battle = (atomic: boolean, id = 7): CombatPending =>
   ({
     kind: 'combat',
     id,
-    attacker: { ...side, missile },
+    attacker: { ...side, atomic },
     defender: { ...side, player: 1 },
     from: [0, 0],
     at: [0, 1],
     rerolls: [],
   }) as unknown as CombatPending;
-const fighting = (missile: boolean, id = 7) => step({ ...structuredClone(base), pending: [battle(missile, id)] });
+const fighting = (atomic: boolean, id = 7) => step({ ...structuredClone(base), pending: [battle(atomic, id)] });
 
 describe('online playback', () => {
   it('shows the next move after a pause, and own moves at once', () => {
@@ -76,7 +76,7 @@ describe('online playback', () => {
 
   it('keeps your own battle on screen until it is dismissed, but not each stage of it', () => {
     const steps = [fighting(false), fighting(true), step()];
-    // A missile changes the battle: shown after the usual pause.
+    // An atomic changes the battle: shown after the usual pause.
     expect(nextStep(steps, steps[0], mine, 0, { mine: true, dismissed: false })).toMatchObject({ step: steps[1], delay: COMBAT_MS });
     // The battle is over: held until the player dismisses it.
     expect(nextStep(steps, steps[1], mine, Infinity, { mine: true, dismissed: false })).toBeNull();

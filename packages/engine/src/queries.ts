@@ -1,25 +1,25 @@
-/** Read-only questions about a state: movement, deploying, conquering, combat totals… */
+/** Read-only questions about a state: movement, dropping, claiming, combat totals… */
 import {
   adjacent,
   cellAt,
-  gatePairs,
+  tunnelPairs,
   grid,
   type Grid,
   key,
   linked,
-  orbitals,
-  otherGate,
-  planetFreeSlots,
+  perimeterSpaces,
+  otherTunnel,
+  objectiveFreeSlots,
   same,
   spaces,
   stepNeighbours,
   straightLines,
 } from './board';
 import { cardName, card, effectOf } from './data';
-import { barrierAt, cellOf, die, dieAt, isEmptySpace, reserve, shipsOnBoard } from './lookups';
+import { barrierAt, cellOf, die, dieAt, isEmptySpace, reserve, mechsOnBoard } from './lookups';
 import { hooksOf, modeHasHook, rulesOf } from './rules';
 import { activeSkills, anySkill, ruleOf, skillRules, type CombatPart, type SkillRule } from './skillRules';
-import type { Barrier, Cell, CombatPending, CombatRole, Die, GameState, OncePerTurn, Planet, PlayerId, TurnState } from './types';
+import type { Barrier, Cell, CombatPending, CombatRole, Die, GameState, OncePerTurn, Objective, PlayerId, TurnState } from './types';
 
 export type { CombatPart } from './skillRules';
 
@@ -31,7 +31,7 @@ export function usedThisTurn(state: GameState, tag: OncePerTurn): boolean {
   return state.turn.oncePerTurn.includes(tag);
 }
 
-/** Cunning: one ship ability may be used a second time each turn. */
+/** Cunning: one mech ability may be used a second time each turn. */
 export function cunningAvailable(state: GameState, player: PlayerId): boolean {
   return anySkill(state, player, (r) => r.abilityTwice) && !usedThisTurn(state, 'cunning');
 }
@@ -41,10 +41,10 @@ export function canUseAbility(state: GameState, d: Die): boolean {
 }
 
 /**
- * Reconfigure targets one of your ships on the map or in your scrapyard (2013 rulebook p.5), which still
+ * Refit targets one of your mechs on the map or in your salvage yard (2013 rulebook p.5), which still
  * has a number it hasn't shown this turn (Community Edition).
  */
-export function canReconfigure(state: GameState, d: Die): boolean {
+export function canRefit(state: GameState, d: Die): boolean {
   return d.loc.zone !== 'reserve' && (state.turn.seen[d.id]?.length ?? 1) < 6;
 }
 
@@ -62,7 +62,7 @@ export function breakthroughAt(state: GameState, player: PlayerId): number {
   return Math.min(limit, ...skillRules(state, player).map((r) => r.breakthroughAt ?? limit));
 }
 
-/** Dominance needed for Take Over (normally 6, or 4 with Prideful). */
+/** Power needed for Take Over (normally 6, or 4 with Prideful). */
 export function infamyAt(state: GameState, player: PlayerId): number {
   return Math.min(6, ...skillRules(state, player).map((r) => r.infamyAt ?? 6));
 }
@@ -83,7 +83,7 @@ export function canCurious(state: GameState, player: PlayerId): boolean {
     player === t.player &&
     t.phase === 'actions' &&
     !t.attacked &&
-    (t.conquered ?? 0) === 0 &&
+    (t.claimed ?? 0) === 0 &&
     !t.curiousUsed
   );
 }
@@ -101,10 +101,10 @@ export function canPlayStoredTactic(state: GameState, player: PlayerId): boolean
   );
 }
 
-/** Profiteering: whether the current card pick may be taken as a missile instead. */
+/** Profiteering: whether the current card pick may be taken as an atomic instead. */
 export function canProfiteer(state: GameState): boolean {
   const head = state.pending[0];
-  return head?.kind === 'takeCard' && (head.conquer ?? 0) > 0 && anySkill(state, head.player, (r) => r.missileForConquest);
+  return head?.kind === 'takeCard' && (head.claim ?? 0) > 0 && anySkill(state, head.player, (r) => r.atomicForClaim);
 }
 
 /** Whether the player can gain research at all. */
@@ -115,7 +115,7 @@ export function canGainResearch(state: GameState, player: PlayerId): boolean {
 // ---------------------------------------------------------------------------
 // Movement
 
-/** The most a ship's die value counts for movement; skill bonuses add to it (ruling 2026-10-08, PROTOTYPING.md §2). */
+/** The most a mech's die value counts for movement; skill bonuses add to it (ruling 2026-10-08, PROTOTYPING.md §2). */
 export const MAX_MOVEMENT = 3;
 
 /** The die value counts up to MAX_MOVEMENT; skill bonuses add to that. */
@@ -125,9 +125,9 @@ export function movementRange(state: GameState, d: Die): number {
 }
 
 /**
- * Spaces where `mover`'s ships must stop, by board cell index (`at` is shipsByIndex): around enemy
- * ships with `stopsEnemies` (an ability, ShipHooks). Undefined when nothing stops them, so plain searches stay plain.
- * Devious ignores them: it slips past enemy ships (ruling 2026-10-12).
+ * Spaces where `mover`'s mechs must stop, by board cell index (`at` is mechsByIndex): around enemy
+ * mechs with `stopsEnemies` (an ability, MechHooks). Undefined when nothing stops them, so plain searches stay plain.
+ * Devious ignores them: it slips past enemy mechs (ruling 2026-10-12).
  */
 export function stopZone(state: GameState, mover: PlayerId, at: (Die | undefined)[]): Uint8Array | undefined {
   if (!modeHasHook(state, 'stopsEnemies') || anySkill(state, mover, (r) => r.moveThroughEnemies)) return undefined;
@@ -159,11 +159,11 @@ export interface AttackLaunch {
 }
 
 /**
- * Spaces a ship can reach within `range` steps, with the fewest steps to each, by board cell index
- * (see board.ts grid): this runs for every ship in every position the AI scores. `found` lists
+ * Spaces a mech can reach within `range` steps, with the fewest steps to each, by board cell index
+ * (see board.ts grid): this runs for every mech in every position the AI scores. `found` lists
  * them in the order they were first reached, the start first. `ignore` lists occupied spaces
- * treated as empty. With `through` (Devious), the ship may pass through that player's enemies'
- * ships at no cost; such spaces are marked in `passing`, as it can't stop there. The search doesn't
+ * treated as empty. With `through` (Devious), the mech may pass through that player's enemies'
+ * mechs at no cost; such spaces are marked in `passing`, as it can't stop there. The search doesn't
  * go on from a space in `zone` (stopZone), other than the start.
  */
 function reach(
@@ -172,7 +172,7 @@ function reach(
   range: number,
   ignore: Cell[] = [],
   through?: PlayerId,
-  at = shipsByIndex(state),
+  at = mechsByIndex(state),
   zone?: Uint8Array,
 ) {
   const g = grid(state.board);
@@ -182,7 +182,7 @@ function reach(
   const from = start.r * g.cols + start.c;
   const found: number[] = [from];
   steps[from] = 0;
-  const gate = gates(state, g);
+  const tunnel = tunnels(state, g);
   const near = g.ortho;
   const walls = barrierMask(state, g);
   /** 0 = blocked, 1 = free, 2 = passed through (Devious). */
@@ -212,7 +212,7 @@ function reach(
     const cur = queue[head++];
     if (steps[cur] >= range || (zone?.[cur] && cur !== from)) continue;
     for (const nb of near[cur]) visit(cur, nb);
-    const partner = gate(cur);
+    const partner = tunnel(cur);
     if (partner >= 0) visit(cur, partner);
   }
   return { found, steps, passing };
@@ -222,7 +222,7 @@ const BARRIER_MASKS = new WeakMap<readonly Barrier[], Uint8Array>();
 
 /**
  * 1 on each space with a barrier (GameState.barriers), by board cell index; undefined when there are none.
- * Cached by the list, which a state keeps until a barrier is added: the AI asks for it for every ship it moves.
+ * Cached by the list, which a state keeps until a barrier is added: the AI asks for it for every mech it moves.
  */
 function barrierMask(state: GameState, g: Grid): Uint8Array | undefined {
   const { barriers } = state;
@@ -237,15 +237,15 @@ function barrierMask(state: GameState, g: Grid): Uint8Array | undefined {
 }
 
 /** The cell indexes of the linked pairs, wormhole then Ice Tunnel, -1s where one isn't placed (see board.ts stepNeighbours). */
-function gateIndexes(state: GameState, g: Grid): [number, number, number, number] {
+function tunnelIndexes(state: GameState, g: Grid): [number, number, number, number] {
   const out: number[] = [-1, -1, -1, -1];
-  gatePairs(state).forEach((pair, i) => pair.forEach((c, k) => (out[2 * i + k] = c.r * g.cols + c.c)));
+  tunnelPairs(state).forEach((pair, i) => pair.forEach((c, k) => (out[2 * i + k] = c.r * g.cols + c.c)));
   return out as [number, number, number, number];
 }
 
-/** The Warp Gate partner of a cell index, or -1. */
-function gates(state: GameState, g: Grid): (i: number) => number {
-  const [a, b, c, d] = gateIndexes(state, g);
+/** The Ice Tunnel partner of a cell index, or -1. */
+function tunnels(state: GameState, g: Grid): (i: number) => number {
+  const [a, b, c, d] = tunnelIndexes(state, g);
   return (i) => (i === a ? b : i === b ? a : i === c ? d : i === d ? c : -1);
 }
 
@@ -267,9 +267,9 @@ export function moveOptions(state: GameState, dieId: string): MoveOptions {
 
 /**
  * The spaces worth choosing between to attack `target` from (moveOptions launches), nearest first:
- * the nearest of each outcome. Where the attack goes in from is where a repelled ship, or a winner
- * that stays, ends up, so spaces differ when the chance to win, the planets it would orbit or the ships
- * next to it (zones of control, support; through a Warp Gate too) differ.
+ * the nearest of each outcome. Where the attack goes in from is where a repelled mech, or a winner
+ * that stays, ends up, so spaces differ when the chance to win, the objectives it would perimeter or the mechs
+ * next to it (zones of control, support; through an Ice Tunnel too) differ.
  */
 export function attackLaunches(state: GameState, dieId: string, target: string, opts = moveOptions(state, dieId)): AttackLaunch[] {
   const launches = opts.attacks.get(target)?.launches ?? [];
@@ -277,19 +277,19 @@ export function attackLaunches(state: GameState, dieId: string, target: string, 
   const attacker = die(state, dieId);
   const defender = die(state, target);
   const g = grid(state.board);
-  const at = shipsByIndex(state);
-  const gate = gates(state, g);
+  const at = mechsByIndex(state);
+  const tunnel = tunnels(state, g);
   const seen = new Set<string>();
   return launches.filter(({ from }) => {
     const i = from.r * g.cols + from.c;
     const near: string[] = [];
     for (const p of g.ortho[i]) {
-      const planet = cellAt(state.board, g.cells[p])?.planet;
-      if (planet !== undefined) near.push(`objective ${planet}`);
+      const objective = cellAt(state.board, g.cells[p])?.objective;
+      if (objective !== undefined) near.push(`objective ${objective}`);
     }
-    for (const p of [...g.ortho[i], gate(i)]) {
-      const ship = at[p];
-      if (ship && ship !== attacker && ship !== defender) near.push(ship.id);
+    for (const p of [...g.ortho[i], tunnel(i)]) {
+      const mech = at[p];
+      if (mech && mech !== attacker && mech !== defender) near.push(mech.id);
     }
     const outcome = [attackChance(state, attacker, defender, from), ...near.sort()].join();
     if (seen.has(outcome)) return false;
@@ -299,22 +299,22 @@ export function attackLaunches(state: GameState, dieId: string, target: string, 
 }
 
 /**
- * The way a ship flies to `to` with a plain move (a destination in moveOptions, or the space an
+ * The way a mech flies to `to` with a plain move (a destination in moveOptions, or the space an
  * attack goes in from), its own space first: one of the shortest, with as few turns as it can.
  * Each space is next to the one before
- * it, across a joined edge of the map or through a Warp Gate. Empty if the ship can't get there.
+ * it, across a joined edge of the map or through an Ice Tunnel. Empty if the mech can't get there.
  */
 export function movePath(state: GameState, dieId: string, to: Cell): Cell[] {
   const d = die(state, dieId);
   const start = cellOf(d);
   if (!start) return [];
-  const at = shipsByIndex(state);
+  const at = mechsByIndex(state);
   const through = anySkill(state, d.owner, (r) => r.moveThroughEnemies) ? d.owner : undefined;
   const zone = stopZone(state, d.owner, at);
   const range = movementRange(state, d);
   const { steps, passing } = reach(state, start, range, [], through, at, zone);
   const g = grid(state.board);
-  const gate = gates(state, g);
+  const tunnel = tunnels(state, g);
   const near = g.ortho;
   const from = start.r * g.cols + start.c;
   const path = [to.r * g.cols + to.c];
@@ -323,7 +323,7 @@ export function movePath(state: GameState, dieId: string, to: Cell): Cell[] {
   // straight one first; back up from a dead end, which only a free pass can lead into.
   const back = (cur: number, next: number): boolean => {
     if (cur === from) return true;
-    const before = [...near[cur], gate(cur)].filter(
+    const before = [...near[cur], tunnel(cur)].filter(
       // A space the search went on from: reached, with movement left, and not in a zone of control.
       (p) =>
         p >= 0 &&
@@ -344,8 +344,8 @@ export function movePath(state: GameState, dieId: string, to: Cell): Cell[] {
   return back(path[0], -1) ? path.reverse().map((i) => g.cells[i]) : [];
 }
 
-/** The ships on the map by board cell index (see board.ts grid), for moveIndexes. */
-export function shipsByIndex(state: GameState): (Die | undefined)[] {
+/** The mechs on the map by board cell index (see board.ts grid), for moveIndexes. */
+export function mechsByIndex(state: GameState): (Die | undefined)[] {
   const cols = state.board.cols;
   const at: (Die | undefined)[] = [];
   for (const d of state.dice) if (d.loc.zone === 'board') at[d.loc.r * cols + d.loc.c] = d;
@@ -353,12 +353,12 @@ export function shipsByIndex(state: GameState): (Die | undefined)[] {
 }
 
 /**
- * moveOptions by board cell index (see board.ts grid), for code that asks about many ships and positions: the AI.
- * It may pass the ship itself and `at` (shipsByIndex), to look them up once for all ships. Each
+ * moveOptions by board cell index (see board.ts grid), for code that asks about many mechs and positions: the AI.
+ * It may pass the mech itself and `at` (mechsByIndex), to look them up once for all mechs. Each
  * attack lists every space it may be launched from, nearest first.
  */
-export function moveIndexes(state: GameState, ship: string | Die, at = shipsByIndex(state)) {
-  const d = typeof ship === 'string' ? die(state, ship) : ship;
+export function moveIndexes(state: GameState, mech: string | Die, at = mechsByIndex(state)) {
+  const d = typeof mech === 'string' ? die(state, mech) : mech;
   const result = {
     moves: new Map<number, { steps: number }>(),
     attacks: new Map<string, { from: number; at: number }[]>(),
@@ -371,7 +371,7 @@ export function moveIndexes(state: GameState, ship: string | Die, at = shipsByIn
   // Devious: normal moves only, not Transport or the Tactical step (RULES.md ruling 8).
   const through = anySkill(state, d.owner, (r) => r.moveThroughEnemies) ? d.owner : undefined;
   const g = grid(state.board);
-  const gate = gates(state, g);
+  const tunnel = tunnels(state, g);
   const { found, steps, passing } = reach(state, start, range, [], through, at, zone);
   for (const i of found) {
     if (steps[i] === 0 || passing[i]) continue;
@@ -387,32 +387,32 @@ export function moveIndexes(state: GameState, ship: string | Die, at = shipsByIn
   for (const i of found) {
     if (steps[i] >= range || passing[i]) continue;
     for (const nb of g.ortho[i]) attack(i, nb);
-    const partner = gate(i);
+    const partner = tunnel(i);
     if (partner >= 0) attack(i, partner);
   }
   return result;
 }
 
-export interface ShipReach {
+export interface MechReach {
   /** 1 on each empty space one move reaches, by board cell index (see board.ts grid). */
   moves: Uint8Array;
   /** How many spaces are marked in `moves`. */
   count: number;
-  /** The enemy ships it can attack. */
+  /** The enemy mechs it can attack. */
   attacks: Die[];
 }
 
-/** Scratch space for shipReach's search, reused: it runs for every ship in every position the AI scores. */
+/** Scratch space for mechReach's search, reused: it runs for every mech in every position the AI scores. */
 let STEPS = new Int32Array(0);
 let QUEUE = new Int32Array(0);
 
 /**
- * Where a ship can go with one move: the same spaces and targets as moveIndexes, without the steps
- * to each, for the AI's evaluation. `at` is shipsByIndex(state).
+ * Where a mech can go with one move: the same spaces and targets as moveIndexes, without the steps
+ * to each, for the AI's evaluation. `at` is mechsByIndex(state).
  */
-export function shipReach(state: GameState, d: Die, at: (Die | undefined)[]): ShipReach {
+export function mechReach(state: GameState, d: Die, at: (Die | undefined)[]): MechReach {
   const g = grid(state.board);
-  const result: ShipReach = { moves: new Uint8Array(g.size), count: 0, attacks: [] };
+  const result: MechReach = { moves: new Uint8Array(g.size), count: 0, attacks: [] };
   const start = cellOf(d);
   if (!start) return result;
   if (anySkill(state, d.owner, (r) => r.moveThroughEnemies)) {
@@ -428,8 +428,8 @@ export function shipReach(state: GameState, d: Die, at: (Die | undefined)[]): Sh
   }
   const range = movementRange(state, d);
   const from = start.r * g.cols + start.c;
-  // The gates inline rather than gates(): a call per step is measurable here.
-  const [gateA, gateB, gateC, gateD] = gateIndexes(state, g);
+  // The tunnels inline rather than tunnels(): a call per step is measurable here.
+  const [tunnelA, tunnelB, tunnelC, tunnelD] = tunnelIndexes(state, g);
   const zone = stopZone(state, d.owner, at);
   const walls = barrierMask(state, g);
   const near = g.ortho;
@@ -443,16 +443,26 @@ export function shipReach(state: GameState, d: Die, at: (Die | undefined)[]): Sh
     const cur = QUEUE[head++];
     const steps = STEPS[cur];
     if (steps >= range) continue;
-    // stopZone: a ship stopped there may still attack from it, but not move on.
+    // stopZone: a mech stopped there may still attack from it, but not move on.
     const stopped = zone !== undefined && zone[cur] === 1 && cur !== from;
     const list = near[cur];
     for (let k = 0; k <= list.length; k++) {
       const nb =
-        k < list.length ? list[k] : cur === gateA ? gateB : cur === gateB ? gateA : cur === gateC ? gateD : cur === gateD ? gateC : -1;
+        k < list.length
+          ? list[k]
+          : cur === tunnelA
+            ? tunnelB
+            : cur === tunnelB
+              ? tunnelA
+              : cur === tunnelC
+                ? tunnelD
+                : cur === tunnelD
+                  ? tunnelC
+                  : -1;
       if (nb < 0) continue;
-      const ship = at[nb];
-      if (ship) {
-        if (ship.owner !== d.owner && !result.attacks.includes(ship)) result.attacks.push(ship);
+      const mech = at[nb];
+      if (mech) {
+        if (mech.owner !== d.owner && !result.attacks.includes(mech)) result.attacks.push(mech);
         continue;
       }
       if (stopped || STEPS[nb] >= 0 || !g.space[nb] || walls?.[nb]) continue;
@@ -505,7 +515,7 @@ export function carryPassengers(state: GameState, flagshipId: string): Die[] {
     .filter((d): d is Die => !!d && d.owner === flag.owner);
 }
 
-/** Enemy ships a battlestation can attack with its free attack. */
+/** Enemy mechs a battlestation can attack with its free attack. */
 export function freeAttackTargets(state: GameState, dieId: string): Die[] {
   const d = die(state, dieId);
   const start = cellOf(d);
@@ -520,7 +530,7 @@ export interface TacticalOptions {
   attacks: { die: Die }[];
 }
 
-/** Tactical: one step (or an attack on an adjacent enemy) for a single ship. */
+/** Tactical: one step (or an attack on an adjacent enemy) for a single mech. */
 export function tacticalOptions(state: GameState, dieId: string): TacticalOptions {
   const d = die(state, dieId);
   const start = cellOf(d);
@@ -537,14 +547,14 @@ export function tacticalOptions(state: GameState, dieId: string): TacticalOption
 // ---------------------------------------------------------------------------
 // Setup and cards
 
-/** Empty orbital positions of a starting planet. */
-export function startSlots(state: GameState, planetId: number): Cell[] {
-  return orbitals(state.board, state.board.planets[planetId]).filter((p) => isEmptySpace(state, p));
+/** Empty perimeter positions of a starting objective. */
+export function startSlots(state: GameState, objectiveId: number): Cell[] {
+  return perimeterSpaces(state.board, state.board.objectives[objectiveId]).filter((p) => isEmptySpace(state, p));
 }
 
 /**
- * Whether the player may take this face-up card. An Expansion needs a ship in the reserve:
- * "If you already have both of your expansion ships in the game, you cannot use EXPANSION
+ * Whether the player may take this face-up card. An Expansion needs a mech in the reserve:
+ * "If you already have both of your expansion mechs in the game, you cannot use EXPANSION
  * cards" (2013 rulebook p.9).
  */
 export function canTakeCard(state: GameState, player: PlayerId, id: string): boolean {
@@ -560,106 +570,106 @@ export function canTakeAnyCard(state: GameState, player: PlayerId): boolean {
 }
 
 // ---------------------------------------------------------------------------
-// Deploy
+// Drop
 
-export function deployTargets(state: GameState, player: PlayerId): Cell[] {
+export function dropTargets(state: GameState, player: PlayerId): Cell[] {
   const targets = new Map<string, Cell>();
-  for (const planet of state.board.planets) {
-    if (!planet.cubes.includes(player)) continue;
-    for (const p of orbitals(state.board, planet)) {
+  for (const objective of state.board.objectives) {
+    if (!objective.cubes.includes(player)) continue;
+    for (const p of perimeterSpaces(state.board, objective)) {
       if (isEmptySpace(state, p)) targets.set(key(p), p);
     }
   }
-  if (modeHasHook(state, 'deployTargets')) {
+  if (modeHasHook(state, 'dropTargets')) {
     for (const d of state.dice) {
-      const extra = d.owner === player && d.loc.zone === 'board' ? hooksOf(state, d)?.deployTargets : undefined;
+      const extra = d.owner === player && d.loc.zone === 'board' ? hooksOf(state, d)?.dropTargets : undefined;
       if (extra) for (const p of extra(state, d)) if (isEmptySpace(state, p)) targets.set(key(p), p);
     }
   }
-  if (anySkill(state, player, (r) => r.deployIsolated)) {
+  if (anySkill(state, player, (r) => r.dropIsolated)) {
     for (const p of spaces(state.board)) {
       if (isEmptySpace(state, p) && !linked(state, p).some((q) => dieAt(state, q))) targets.set(key(p), p);
     }
   }
-  // Contested deploy (PROTOTYPING.md §6.8): every way of deploying (Expansion, Stealthy, Beacon too) stays out of
-  // a contested orbit, except a home shipyard's, so nobody is shut out.
-  const home = homePlanet(state, player);
-  for (const planet of state.board.planets) {
-    if (planet !== home && orbitBlockers(state, player, planet).length)
-      for (const p of orbitals(state.board, planet))
-        if (!(home && orbitals(state.board, home).some((h) => same(h, p)))) targets.delete(key(p));
+  // Contested drop (PROTOTYPING.md §6.8): every way of dropping (Expansion, Stealthy, Beacon too) stays out of
+  // a contested perimeter, except a home objective's, so nobody is shut out.
+  const home = homeObjective(state, player);
+  for (const objective of state.board.objectives) {
+    if (objective !== home && perimeterBlockers(state, player, objective).length)
+      for (const p of perimeterSpaces(state.board, objective))
+        if (!(home && perimeterSpaces(state.board, home).some((h) => same(h, p)))) targets.delete(key(p));
   }
   return [...targets.values()];
 }
 
 // ---------------------------------------------------------------------------
-// Cubes: conquering, Take Over, Relocation
+// Cubes: claiming, Take Over, Relocation
 
-export interface ConquerCheck {
+export interface ClaimCheck {
   ok: boolean;
   sum: number;
   target: number;
-  ships: Die[];
+  mechs: Die[];
   reason?: string;
-  /** Over-conquest: owners whose cube may be displaced. */
+  /** Over-claim: owners whose cube may be displaced. */
   replace?: PlayerId[];
-  /** Contested orbit: the ships make the sum, but opponents' ships in orbit stop the conquest. */
+  /** Contested perimeter: the mechs make the sum, but opponents' mechs on the perimeter stop the claim. */
   blocked?: boolean;
-  /** Research the conquest spends to move the sum onto the target (Science). */
+  /** Research the claim spends to move the sum onto the target (Science). */
   research?: number;
 }
 
-/** The player's home planet (home shipyard): their starting planet, unless their cube there has moved (`cubeLeft`). */
-export function homePlanet(state: GameState, player: PlayerId): Planet | undefined {
+/** The player's home objective (home objective): their starting objective, unless their cube there has moved (`cubeLeft`). */
+export function homeObjective(state: GameState, player: PlayerId): Objective | undefined {
   const id = state.players[player].home;
-  return id === undefined ? undefined : state.board.planets[id];
+  return id === undefined ? undefined : state.board.objectives[id];
 }
 
-/** Contested orbit (PROTOTYPING.md §6.8): opponents' ships in the planet's orbital positions, which stop `player` conquering it. */
-export function orbitBlockers(state: GameState, player: PlayerId, planet: Planet): Die[] {
-  return orbitals(state.board, planet)
+/** Contested perimeter (PROTOTYPING.md §6.8): opponents' mechs in the objective's perimeter positions, which stop `player` claiming it. */
+export function perimeterBlockers(state: GameState, player: PlayerId, objective: Objective): Die[] {
+  return perimeterSpaces(state.board, objective)
     .map((p) => dieAt(state, p))
     .filter((d): d is Die => !!d && d.owner !== player);
 }
 
-/** The orbit sum that displaces an opponent's cube, on any planet (PROTOTYPING.md §6.10). */
-const OVER_CONQUEST_TARGET = 12;
+/** The perimeter sum that displaces an opponent's cube, on any objective (PROTOTYPING.md §6.10). */
+const OVER_CLAIM_TARGET = 12;
 
 /**
- * Whether `player` may conquer the planet. With `displace` (over-conquest), the check is for taking
- * the place of an opponent's cube at a sum of 12 whatever the planet; on a full planet that is the only way.
+ * Whether `player` may claim the objective. With `displace` (over-claim), the check is for taking
+ * the place of an opponent's cube at a sum of 12 whatever the objective; on a full objective that is the only way.
  */
-export function conquerCheck(state: GameState, player: PlayerId, planetId: number, displace = false): ConquerCheck {
-  const planet = state.board.planets[planetId];
-  const own = planet.cubes.filter((x) => x === player).length;
-  let target = planet.number;
-  const fail = (reason: string, ships: Die[] = [], sum = 0): ConquerCheck => ({
+export function claimCheck(state: GameState, player: PlayerId, objectiveId: number, displace = false): ClaimCheck {
+  const objective = state.board.objectives[objectiveId];
+  const own = objective.cubes.filter((x) => x === player).length;
+  let target = objective.number;
+  const fail = (reason: string, mechs: Die[] = [], sum = 0): ClaimCheck => ({
     ok: false,
     sum,
     target,
-    ships,
+    mechs,
     reason,
   });
 
   let replace: PlayerId[] | undefined;
-  if (planetFreeSlots(planet) <= 0 || displace) {
-    if (!rulesOf(state).overConquest) return fail('No empty cube location');
-    replace = [...new Set(planet.cubes.filter((x) => x !== player))];
+  if (objectiveFreeSlots(objective) <= 0 || displace) {
+    if (!rulesOf(state).overClaim) return fail('No empty cube location');
+    replace = [...new Set(objective.cubes.filter((x) => x !== player))];
     if (!replace.length) return fail('No opponent cube to displace');
-    target = OVER_CONQUEST_TARGET;
+    target = OVER_CLAIM_TARGET;
   } else if (own > 0) {
-    // Entanglement: only once you hold every planet that still has room.
-    const blocked = state.board.planets.some((p) => planetFreeSlots(p) > 0 && !p.cubes.includes(player));
+    // Entanglement: only once you hold every objective that still has room.
+    const blocked = state.board.objectives.some((p) => objectiveFreeSlots(p) > 0 && !p.cubes.includes(player));
     if (blocked) return fail('You already have a cube here');
     target += 3 * own;
   }
 
-  const rules = skillRules(state, player).flatMap((r) => (r.conquer ? [r.conquer] : []));
+  const rules = skillRules(state, player).flatMap((r) => (r.claim ? [r.claim] : []));
   const mine = (spaces: readonly Cell[]) => spaces.map((p) => dieAt(state, p)).filter((d): d is Die => !!d && d.owner === player);
-  const all = mine(orbitals(state.board, planet));
-  const total = (ships: Die[]) => ships.reduce((a, d) => a + d.value, 0);
-  // Contested orbit: named in every refusal, though the sum is checked first, so a blocked orbit still says how far it is from it.
-  const blockers = orbitBlockers(state, player, planet);
+  const all = mine(perimeterSpaces(state.board, objective));
+  const total = (mechs: Die[]) => mechs.reduce((a, d) => a + d.value, 0);
+  // Contested perimeter: named in every refusal, though the sum is checked first, so a blocked perimeter still says how far it is from it.
+  const blockers = perimeterBlockers(state, player, objective);
   const blockade = blockers.length ? `; enemy mechs on the perimeter block it too (${blockers.map((d) => d.value).join(', ')})` : '';
   if (!all.length) return fail(`No mechs on the perimeter${blockade}`, all, 0);
 
@@ -667,22 +677,22 @@ export function conquerCheck(state: GameState, player: PlayerId, planetId: numbe
   const tolerance = Math.max(0, ...rules.map((r) => r.tolerance ?? 0));
   // Science: Research above 1 (the die's lowest face) moves the sum up or down, as little as needed.
   const spendable = rules.some((r) => r.spendResearch) ? Math.max(0, p.research - 1) : 0;
-  // Every orbital ship counts.
+  // Every perimeter mech counts.
   const sum = total(all);
-  const ctx = { sum, ships: all, dominance: p.dominance, research: p.research };
+  const ctx = { sum, mechs: all, power: p.power, research: p.research };
   const sums = [sum, ...rules.flatMap((r) => r.sums?.(ctx) ?? [])];
   const research = Math.min(...sums.map((s) => Math.max(0, Math.abs(s - target) - tolerance)));
   if (research <= spendable) {
     if (blockers.length)
       return { ...fail(`Enemy mechs on the perimeter block it (${blockers.map((d) => d.value).join(', ')})`, all, sum), blocked: true };
-    return { ok: true, sum, target, ships: all, replace, ...(research && { research }) };
+    return { ok: true, sum, target, mechs: all, replace, ...(research && { research }) };
   }
   return fail(`Perimeter totals ${sum}, needs ${target}${blockade}`, all, sum);
 }
 
-/** Any planet without your cube; if none has room, Entanglement allows your own planets. */
-export function infamyTargets(state: GameState, player: PlayerId): Planet[] {
-  const open = state.board.planets.filter((p) => planetFreeSlots(p) > 0);
+/** Any objective without your cube; if none has room, Entanglement allows your own objectives. */
+export function infamyTargets(state: GameState, player: PlayerId): Objective[] {
+  const open = state.board.objectives.filter((p) => objectiveFreeSlots(p) > 0);
   const fresh = open.filter((p) => !p.cubes.includes(player));
   return fresh.length ? fresh : open;
 }
@@ -696,10 +706,10 @@ export interface CombatTotal {
   parts: CombatPart[];
 }
 
-/** The value a side's combat roll is set to, overriding the dice: a missile, Plan Ahead or Rational (in that priority). */
+/** The value a side's combat roll is set to, overriding the dice: an atomic, Plan Ahead or Rational (in that priority). */
 function rollOverride(state: GameState, combat: CombatPending, side: CombatRole): CombatPart | undefined {
   const s = combat[side];
-  if (s.missile) return { kind: 'roll', set: true, label: 'Atomic', value: 1 };
+  if (s.atomic) return { kind: 'roll', set: true, label: 'Atomic', value: 1 };
   if (state.players[s.player].planAhead > 0) return { kind: 'roll', set: true, label: cardName('plan-ahead'), value: 1 };
   const fixed = activeSkills(state, s.player)
     .filter((a) => a.rule.combat?.roll !== undefined)
@@ -709,7 +719,7 @@ function rollOverride(state: GameState, combat: CombatPending, side: CombatRole)
 
 /**
  * Combat roll pipeline (docs/RULES.md ruling 1):
- * roll (Brutal: lower of two) → set effects (Rational 3, Plan Ahead 1) → missile (1) → modifiers.
+ * roll (Brutal: lower of two) → set effects (Rational 3, Plan Ahead 1) → atomic (1) → modifiers.
  */
 export function combatTotal(state: GameState, combat: CombatPending, side: CombatRole): CombatTotal {
   const s = combat[side];
@@ -718,7 +728,7 @@ export function combatTotal(state: GameState, combat: CombatPending, side: Comba
   const set = rollOverride(state, combat, side);
   const roll = set?.value ?? (s.dice.length > 1 ? Math.min(...s.dice) : s.dice[0]);
   parts.push(set ?? { kind: 'roll', label: s.dice.length > 1 ? `${cardName('brutal')} roll` : 'Roll', value: roll });
-  parts.push({ kind: 'ship', label: 'Mech', value: s.ship });
+  parts.push({ kind: 'mech', label: 'Mech', value: s.mech });
   for (const { card: id, rule } of skills) {
     const value = rule.combat!.modifier?.({ state, combat, side }) ?? 0;
     if (value) parts.push({ kind: 'modifier', label: card(id).name, value });
@@ -744,29 +754,29 @@ export function combatOutcome(state: GameState, combat: CombatPending) {
 export type CombatOutcome = ReturnType<typeof combatOutcome>;
 
 /**
- * Whether `by` is offered a missile on `side`'s combat roll. A combatant is only offered their own
+ * Whether `by` is offered an atomic on `side`'s combat roll. A combatant is only offered their own
  * roll (a lower roll for the opponent only helps them), and not while already winning. Players not
  * in the battle may not fire. A roll that is already 1 is never offered.
  */
-export function missileOffered(state: GameState, combat: CombatPending, by: PlayerId, side: CombatRole): boolean {
-  return missileRefusal(state, combat, by, side) === null;
+export function atomicOffered(state: GameState, combat: CombatPending, by: PlayerId, side: CombatRole): boolean {
+  return atomicRefusal(state, combat, by, side) === null;
 }
 
-/** Why `by` is not offered a missile on `side`'s roll (see missileOffered), or null if they are. */
-export function missileRefusal(state: GameState, combat: CombatPending, by: PlayerId, side: CombatRole): string | null {
-  if (state.players[by].missiles <= 0) return 'No atomics left';
-  if (combat[side].missile || combatTotal(state, combat, side).roll === 1) return 'That combat roll is already 1';
+/** Why `by` is not offered an atomic on `side`'s roll (see atomicOffered), or null if they are. */
+export function atomicRefusal(state: GameState, combat: CombatPending, by: PlayerId, side: CombatRole): string | null {
+  if (state.players[by].atomics <= 0) return 'No atomics left';
+  if (combat[side].atomic || combatTotal(state, combat, side).roll === 1) return 'That combat roll is already 1';
   if (by !== combat.attacker.player && by !== combat.defender.player) return 'Only the attacker and defender may fire an atomic';
   if (combat[side].player !== by || combatOutcome(state, combat).attackerWins === (side === 'attacker'))
     return 'You may only fire an atomic on your own roll, while losing';
-  const fired = { ...combat, [side]: { ...combat[side], missile: true } };
+  const fired = { ...combat, [side]: { ...combat[side], atomic: true } };
   if (combatOutcome(state, fired).attackerWins !== (side === 'attacker')) return 'An atomic would not win this battle';
   return null;
 }
 
-/** Whether `player` can still respond to the battle with a missile. */
+/** Whether `player` can still respond to the battle with an atomic. */
 export function canRespondToCombat(state: GameState, combat: CombatPending, player: PlayerId): boolean {
-  return (['attacker', 'defender'] as const).some((side) => missileOffered(state, combat, player, side));
+  return (['attacker', 'defender'] as const).some((side) => atomicOffered(state, combat, player, side));
 }
 
 /** How many combat dice the player rolls (the lowest counts). */
@@ -774,7 +784,7 @@ export function combatDice(state: GameState, player: PlayerId): number {
   return Math.max(1, ...skillRules(state, player).map((r) => r.combat?.dice ?? 1));
 }
 
-/** Probability that an attacker ship of value `a` beats a defender of value `d` with plain dice. */
+/** Probability that an attacker mech of value `a` beats a defender of value `d` with plain dice. */
 export function attackOdds(a: number, d: number): number {
   let wins = 0;
   for (let x = 1; x <= 6; x++) for (let y = 1; y <= 6; y++) if (a + x <= d + y) wins++;
@@ -783,13 +793,13 @@ export function attackOdds(a: number, d: number): number {
 
 /** The battle `attacker` would start against `defender` from `from`, every die rolling a 6 (a placeholder). */
 function previewCombat(attacker: Die, defender: Die, from: Cell): CombatPending {
-  const side = (d: Die) => ({ player: d.owner, die: d.id, ship: d.value, dice: [6], missile: false });
+  const side = (d: Die) => ({ player: d.owner, die: d.id, mech: d.value, dice: [6], atomic: false });
   return { kind: 'combat', id: 0, attacker: side(attacker), defender: side(defender), from, at: cellOf(defender)! };
 }
 
 /**
  * Probability that `attacker` beats `defender` if it attacks from `from` (by default, where it is
- * now), with both players' combat skills and Plan Ahead (not re-rolls, missiles or Dangerous).
+ * now), with both players' combat skills and Plan Ahead (not re-rolls, atomics or Dangerous).
  */
 export function attackChance(state: GameState, attacker: Die, defender: Die, from: Cell = cellOf(attacker)!): number {
   const plain = (p: PlayerId) => !state.players[p].planAhead && !activeSkills(state, p).some((a) => a.rule.combat);
@@ -819,7 +829,7 @@ function skillName(state: GameState, player: PlayerId, test: (r: SkillRule) => u
 }
 
 /**
- * What changes the odds of an attack (see attackChance) for each side, beyond the ships and the
+ * What changes the odds of an attack (see attackChance) for each side, beyond the mechs and the
  * dice, by the cards' names: e.g. "Armour Piercing −1", "Drill Sergeant: rolls 3", "Paired Cannons: lowest
  * of 2 dice", "Entrenched: wins ties".
  */
@@ -849,9 +859,9 @@ export function signed(n: number): string {
   return n < 0 ? `−${-n}` : `+${n}`;
 }
 
-/** Whether a barrier can go on `p`, by Barricade or a Wisp: an empty space with no warp gate on it. */
+/** Whether a barrier can go on `p`, by Barricade or a Wisp: an empty space with no Ice Tunnel on it. */
 export function canHoldBarrier(state: GameState, p: Cell): boolean {
-  return isEmptySpace(state, p) && !state.gates.some((g) => same(g, p)) && !state.wormhole?.some((g) => same(g, p));
+  return isEmptySpace(state, p) && !state.tunnels.some((g) => same(g, p)) && !state.wormhole?.some((g) => same(g, p));
 }
 
 /** The spaces Barricade can place a barrier on. */
@@ -862,7 +872,7 @@ export function barrierSpaces(state: GameState): Cell[] {
 /** How far Kinetic Shunt pushes a mech or a barrier. */
 const SHUNT_RANGE = 4;
 
-/** A space Kinetic Shunt can push a mech to, and whether it gets there through a warp gate. */
+/** A space Kinetic Shunt can push a mech to, and whether it gets there through an Ice Tunnel. */
 export interface ShuntPath {
   to: Cell;
   tunnel: boolean;
@@ -870,9 +880,9 @@ export interface ShuntPath {
 
 /**
  * Where Kinetic Shunt can push a mech: the empty spaces up to 4 away in a straight line, stopping before
- * anything in its way (a planet, a mech, a barrier, the void or the board's edge). A mech pushed onto a
- * warp gate (Ice Tunnel) may come out of the other one, which counts as a space, and go on in the same line;
- * one already on a gate may be pushed through it, then out of the other gate along any line.
+ * anything in its way (an objective, a mech, a barrier, the Alien Artefacts or the board's edge). A mech pushed onto an
+ * Ice Tunnel (Ice Tunnel) may come out of the other one, which counts as a space, and go on in the same line;
+ * one already on a tunnel may be pushed through it, then out of the other tunnel along any line.
  */
 export function shuntPaths(state: GameState, d: Die): ShuntPath[] {
   const start = cellOf(d);
@@ -889,7 +899,7 @@ export function shuntPaths(state: GameState, d: Die): ShuntPath[] {
     const blocked = line.slice(0, n).findIndex((p) => !isEmptySpace(state, p));
     return line.slice(0, blocked < 0 ? n : blocked);
   };
-  const partner = otherGate(state, start);
+  const partner = otherTunnel(state, start);
   if (partner && isEmptySpace(state, partner)) {
     add(partner, true);
     for (const line of straightLines(state.board, partner)) for (const p of clear(line, SHUNT_RANGE - 1)) add(p, true);
@@ -897,8 +907,8 @@ export function shuntPaths(state: GameState, d: Die): ShuntPath[] {
   straightLines(state.board, start).forEach((line, side) => {
     clear(line, SHUNT_RANGE).forEach((p, k) => {
       add(p, false);
-      // Onto the gate at step k + 1, out of the other at k + 2, then on along the same line.
-      const exit = otherGate(state, p);
+      // Onto the tunnel at step k + 1, out of the other at k + 2, then on along the same line.
+      const exit = otherTunnel(state, p);
       if (!exit || !isEmptySpace(state, exit) || k + 2 > SHUNT_RANGE) return;
       add(exit, true);
       for (const q of clear(straightLines(state.board, exit)[side], SHUNT_RANGE - k - 2)) add(q, true);
@@ -914,7 +924,7 @@ export function shuntTargets(state: GameState, d: Die): Cell[] {
 
 /**
  * Where Kinetic Shunt can push a barrier: the spaces up to 4 away in a straight line that can hold one, stopping
- * before anything in its way. A barrier doesn't use the Ice Tunnel and can't stop on a gate.
+ * before anything in its way. A barrier doesn't use the Ice Tunnel and can't stop on a tunnel.
  */
 export function barrierShuntTargets(state: GameState, from: Cell): Cell[] {
   return straightLines(state.board, from).flatMap((line) => {
@@ -926,7 +936,7 @@ export function barrierShuntTargets(state: GameState, from: Cell): Cell[] {
 /** Whether Kinetic Shunt has anything to push: a mech or a barrier on the map with somewhere to go. */
 export function canShunt(state: GameState): boolean {
   return (
-    shipsOnBoard(state).some((d) => shuntPaths(state, d).length > 0) ||
+    mechsOnBoard(state).some((d) => shuntPaths(state, d).length > 0) ||
     (state.barriers ?? []).some((b) => barrierShuntTargets(state, b).length > 0)
   );
 }

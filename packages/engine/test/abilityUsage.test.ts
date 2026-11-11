@@ -1,5 +1,5 @@
 /**
- * How much each ship ability is used in each mode (AI self-play). Prints a table per mode; the
+ * How much each mech ability is used in each mode (AI self-play). Prints a table per mode; the
  * assertions only guard the measurement itself, so an ability can be judged by eye:
  * an ability that is offered often but never used is dead weight, one used every time may be too strong.
  * By default one quick game per mode, so the suite stays fast; the numbers worth reading need more games
@@ -31,7 +31,7 @@ describe('ability usage by mode', () => {
 
   // The quick games above are below level 4, so no transport is played in them: one game that plays some (about 2s).
   it('counts Behemoth transports', () => {
-    const flagship = measureAbilityUsage('basic', { games: 1, level: 4 }).rows.find((r) => r.ship === 'Behemoth')!;
+    const flagship = measureAbilityUsage('basic', { games: 1, level: 4 }).rows.find((r) => r.mech === 'Behemoth')!;
     expect(flagship.used).toBeGreaterThan(0);
     expect(flagship.usedTurns).toBeLessThanOrEqual(flagship.offeredTurns);
   }, 120_000);

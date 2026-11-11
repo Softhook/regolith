@@ -8,7 +8,7 @@ import { PHONE, REDUCED_MOTION, useMediaQuery } from '../../game/useMediaQuery';
 
 /**
  * Behind the lobby: a close look at the chosen map's world, its ground drifting slowly past as if from a low
- * orbit. The ground is the game's own tiles laid edge to edge, as hex tiles fit together: mostly its blank tiles,
+ * perimeter. The ground is the game's own tiles laid edge to edge, as hex tiles fit together: mostly its blank tiles,
  * with the chosen map's tiles among them now and then. They're the images the game draws them from (tileImages),
  * so what the lobby draws is ready, and stored, for the game; and each is drawn once, however often it shows.
  * Purely decoration: hidden from screen readers, and still under reduced motion.

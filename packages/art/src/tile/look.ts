@@ -4,7 +4,7 @@ export type World = 'phobos' | 'deimos' | 'mars';
 /** Each world's name, as players read it. */
 export const WORLD_NAMES: Record<World, string> = { phobos: 'Phobos', deimos: 'Deimos', mars: 'Mars' };
 
-/** What a tile's planet is on a world's ground, by its number (0 for a Void): docs/regolith/REGOLITH-WORLD.md, *Objectives*. */
+/** What a tile's objective is on a world's ground, by its number (0 for an Alien Artefact): docs/regolith/REGOLITH-WORLD.md, *Objectives*. */
 export const OBJECTIVE_NAMES: Record<number, string> = {
   7: 'Habitat',
   8: 'Refinery',

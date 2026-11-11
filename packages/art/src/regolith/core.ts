@@ -71,7 +71,7 @@ export function anywhere(r: Rng, reach: number): Spot {
   return p;
 }
 
-/** A point `d` spaces from the planet's space at `angle` degrees (0 right, y down), in board units. */
+/** A point `d` spaces from the objective's space at `angle` degrees (0 right, y down), in board units. */
 export const toward = (angle: number, d: number): Spot => polar(angle, d * SPACE);
 
 /** The trim and its bleed in board units, and the margin past it, which the ground is drawn and lit over. */

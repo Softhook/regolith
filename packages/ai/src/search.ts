@@ -3,10 +3,10 @@ import {
   apply,
   copyState,
   decisionCandidates,
-  deployTargets,
+  dropTargets,
   legalActions,
   mulberry32,
-  scrapyard,
+  salvageYard,
   tryApply,
   type Action,
   type GameState,
@@ -128,19 +128,19 @@ export class Search {
     return scored[0].a;
   }
 
-  /** Should `player` fire a missile into the current combat? The dice are known, so this is exact. */
-  missile(state: GameState, player: PlayerId): Action | null {
+  /** Should `player` fire an atomic into the current combat? The dice are known, so this is exact. */
+  atomic(state: GameState, player: PlayerId): Action | null {
     const head = state.pending[0];
-    if (head?.kind !== 'combat' || state.players[player].missiles <= 0) return null;
+    if (head?.kind !== 'combat' || state.players[player].atomics <= 0) return null;
     const root = hideUnknowns(state, this.random);
     const after = (s: GameState) => evaluate(this.settle(apply(s, { type: 'resolveCombat' })), player);
     let pick: Action | null = null;
-    // The evaluation already counts a kept missile; a small margin avoids firing for nothing.
+    // The evaluation already counts a kept atomic; a small margin avoids firing for nothing.
     let top = after(root) + 10;
     const legal = legalActions(root);
     for (const side of ['attacker', 'defender'] as const) {
-      const a: Action = { type: 'missile', by: player, side };
-      if (!legal.some((x) => x.type === 'missile' && x.by === player && x.side === side)) continue;
+      const a: Action = { type: 'atomic', by: player, side };
+      if (!legal.some((x) => x.type === 'atomic' && x.by === player && x.side === side)) continue;
       const v = after(apply(root, a));
       if (v > top) {
         top = v;
@@ -243,7 +243,7 @@ export class Search {
     let s = state;
     for (let i = 0; i < 20 && s.pending.length && s.phase !== 'over'; i++) {
       const head = s.pending[0];
-      if (head.kind === 'setupRoll' || head.kind === 'skillDraft' || head.kind === 'placeStart' || head.kind === 'placeShips') break;
+      if (head.kind === 'setupRoll' || head.kind === 'skillDraft' || head.kind === 'placeStart' || head.kind === 'placeMechs') break;
       if (head.kind === 'combat') {
         s = apply(s, { type: 'resolveCombat' });
         continue;
@@ -332,18 +332,18 @@ function quickSettle(state: GameState): GameState {
 }
 
 /**
- * Settling Unveil the Fleet: the next ship onto the first space it may take, or Done when
+ * Settling Unveil the Fleet: the next mech onto the first space it may take, or Done when
  * none is left, so every option at the root is played out alike and cheaply. Unveil is many steps, each with up to
- * a hundred spaces (a skill that deploys anywhere isolated): trying them all at each step made one AI decision
- * take minutes. Where each ship goes is still chosen properly, one ship per decision, at the root (`choose`).
+ * a hundred spaces (a skill that drops anywhere isolated): trying them all at each step made one AI decision
+ * take minutes. Where each mech goes is still chosen properly, one mech per decision, at the root (`choose`).
  */
 function unveilPlacements(s: GameState): Action[] {
   // Built directly: legalActions would build and test every placement to take the first.
   const head = s.pending[0] as Extract<Pending, { kind: 'unveil' }>;
-  const targets = deployTargets(s, head.player);
+  const targets = dropTargets(s, head.player);
   if (!targets.length) return [{ type: 'unveilDone' }];
-  const die = scrapyard(s, head.player)[0];
-  return [die ? { type: 'unveilDeploy', die: die.id, to: targets[0] } : { type: 'unveilDone' }];
+  const die = salvageYard(s, head.player)[0];
+  return [die ? { type: 'unveilDrop', die: die.id, to: targets[0] } : { type: 'unveilDone' }];
 }
 
 function seed(random: () => number): number {
@@ -380,8 +380,8 @@ function signature(s: GameState): string {
     [turn, sortedEntries(moved), sortedEntries(abilityUsed), sortedEntries(seen)],
     s.players.map(({ id: _id, name: _name, color: _color, ai: _ai, aiLevel: _aiLevel, stats: _stats, ...changing }) => changing),
     [m.skillRow, m.tacticRow, m.skillDeck.length, m.tacticDeck.length, m.skillDiscard.length, m.tacticDiscard.length, m.expansions],
-    s.board.planets.map((p) => p.cubes),
-    s.gates,
+    s.board.objectives.map((p) => p.cubes),
+    s.tunnels,
     s.barriers ?? [],
     s.pending,
   ]);

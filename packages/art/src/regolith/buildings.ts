@@ -56,7 +56,7 @@ const wellsOf = (pads: readonly Spot[], wells?: Wells): Pick<Part, 'tint' | 'pai
 };
 
 /**
- * The hub: a deck round the planet's cube sockets (`cubePadCentres`, one per cube it holds), no larger
+ * The hub: a deck round the objective's cube sockets (`cubePadCentres`, one per cube it holds), no larger
  * than they need, edged in amber, a light at a corner: round three, the three squares' own
  * shape, smoothed; otherwise a box.
  */

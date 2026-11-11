@@ -26,8 +26,8 @@ import {
   createGame,
   distance,
   mulberry32,
-  orbitals,
-  shipsOnBoard,
+  perimeterSpaces,
+  mechsOnBoard,
   type Action,
   type GameMode,
   type GameState,
@@ -46,7 +46,7 @@ const {
 const levels = levelList.split(',').map(Number) as AiLevel[];
 const setups = setupList.split(',');
 
-const CATS = ['attack', 'move', 'conquer', 'fleet', 'card', 'missile', 'other'] as const;
+const CATS = ['attack', 'move', 'claim', 'fleet', 'card', 'atomic', 'other'] as const;
 type Cat = (typeof CATS)[number];
 const BY_TYPE: Partial<Record<Action['type'], Cat>> = {
   move: 'move',
@@ -55,16 +55,16 @@ const BY_TYPE: Partial<Record<Action['type'], Cat>> = {
   attack: 'attack',
   freeAttack: 'attack',
   ability: 'attack',
-  deploy: 'fleet',
-  reconfigure: 'fleet',
+  drop: 'fleet',
+  refit: 'fleet',
   change: 'fleet',
-  conquer: 'conquer',
-  missile: 'missile',
+  claim: 'claim',
+  atomic: 'atomic',
   endTurn: 'other',
   setupKeep: 'other',
   setupReroll: 'other',
   placeStart: 'other',
-  placeShip: 'other',
+  placeMech: 'other',
 };
 /** Follow-ups of a battle, credited to whatever started it. */
 const FOLLOW = new Set<Action['type']>(['resolveCombat', 'advance', 'infamy']);
@@ -86,14 +86,14 @@ interface Game {
   /** Player-turns starting with the fleets at most 2 spaces apart, and the closest distance summed. */
   contact: number;
   closest: number;
-  /** Player-turns starting with both players' ships in one orbit, and with the mover's orbit adding up but an enemy in it. */
-  sharedOrbit: number;
+  /** Player-turns starting with both players' mechs in one perimeter, and with the mover's perimeter adding up but an enemy in it. */
+  sharedPerimeter: number;
   blocked: number;
   moves: number;
   contactMoves: number;
-  conquers: number;
-  /** Conquests of a planet the opponent had a ship orbiting in the last 2 player-turns. */
-  contestedConquers: number;
+  claims: number;
+  /** Claims of an objective the opponent had a mech perimeter in the last 2 player-turns. */
+  contestedClaims: number;
   cardActions: number;
 }
 
@@ -119,17 +119,17 @@ function play(setup: string, g: number): Game {
     gain: tally(),
     contact: 0,
     closest: 0,
-    sharedOrbit: 0,
+    sharedPerimeter: 0,
     blocked: 0,
     moves: 0,
     contactMoves: 0,
-    conquers: 0,
-    contestedConquers: 0,
+    claims: 0,
+    contestedClaims: 0,
     cardActions: 0,
   };
-  const at = (d: { r: number; c: number }) => shipsOnBoard(s).find((x) => cellOf(x)!.r === d.r && cellOf(x)!.c === d.c);
-  // Player-turn at which each player last had a ship in each planet's orbit.
-  const inOrbit = s.board.planets.map(() => [-9, -9]);
+  const at = (d: { r: number; c: number }) => mechsOnBoard(s).find((x) => cellOf(x)!.r === d.r && cellOf(x)!.c === d.c);
+  // Player-turn at which each player last had a mech in each objective's perimeter.
+  const onPerimeter = s.board.objectives.map(() => [-9, -9]);
   let turnKey = '';
   let chain: Cat = 'other';
   let values: number[] | null = null; // from the first player-turn on
@@ -140,24 +140,24 @@ function play(setup: string, g: number): Game {
       r.playerTurns++;
       values ??= [0, 1].map((p) => valueOf(s, p));
       const p = s.turn.player;
-      const ships = shipsOnBoard(s);
+      const mechs = mechsOnBoard(s);
       let closest = 12;
-      for (const x of ships)
-        for (const y of ships) if (x.owner === p && y.owner !== p) closest = Math.min(closest, distance(cellOf(x)!, cellOf(y)!));
+      for (const x of mechs)
+        for (const y of mechs) if (x.owner === p && y.owner !== p) closest = Math.min(closest, distance(cellOf(x)!, cellOf(y)!));
       r.closest += closest;
       if (closest <= 2) r.contact++;
       let shared = false;
-      for (const pl of s.board.planets) {
-        const here = orbitals(s.board, pl)
+      for (const pl of s.board.objectives) {
+        const here = perimeterSpaces(s.board, pl)
           .map(at)
           .filter((d) => !!d);
-        for (const q of [0, 1]) if (here.some((d) => d.owner === q)) inOrbit[pl.id][q] = r.playerTurns;
+        for (const q of [0, 1]) if (here.some((d) => d.owner === q)) onPerimeter[pl.id][q] = r.playerTurns;
         const foe = here.some((d) => d.owner !== p);
         if (foe && here.some((d) => d.owner === p)) shared = true;
         const sum = here.filter((d) => d.owner === p).reduce((n, d) => n + d.value, 0);
         if (foe && sum === pl.number && pl.cubes.length < pl.capacity) r.blocked++;
       }
-      if (shared) r.sharedOrbit++;
+      if (shared) r.sharedPerimeter++;
     }
     const action = aiAction(s, [levels[side(0)], levels[side(1)]], random);
     if (!action) throw new Error(`${setup} game ${g}: no action at step ${step}`);
@@ -169,9 +169,9 @@ function play(setup: string, g: number): Game {
       r.moves++;
       if (adjacent(s.board, action.to).some((c) => at(c) && at(c)!.owner !== who)) r.contactMoves++;
     }
-    if (action.type === 'conquer') {
-      r.conquers++;
-      if (r.playerTurns - inOrbit[action.planet][1 - who] <= 2) r.contestedConquers++;
+    if (action.type === 'claim') {
+      r.claims++;
+      if (r.playerTurns - onPerimeter[action.objective][1 - who] <= 2) r.contestedClaims++;
     }
     s = apply(s, action);
     if (!values || s.phase === 'over') continue;
@@ -217,7 +217,7 @@ function report(results: Map<string, Game[]>) {
       },
     ],
     ['Harm per player-turn (cubes)', (gs) => (sum(gs, (g) => total(g.harm)) / sum(gs, (g) => g.playerTurns) / 1000).toFixed(2)],
-    ...(['attack', 'move', 'card', 'missile'] as const).map(
+    ...(['attack', 'move', 'card', 'atomic'] as const).map(
       (c) =>
         [
           `Harm from ${c === 'card' ? 'cards' : `${c}s`}`,
@@ -227,11 +227,11 @@ function report(results: Map<string, Game[]>) {
     ['Own gains from cards', (gs) => pct(sum(gs, (g) => g.gain.card) / sum(gs, (g) => total(g.gain)))],
     ['Card actions', (gs) => (sum(gs, (g) => g.cardActions) / gs.length).toFixed(1)],
     ['Turns with fleets ≤ 2 apart', (gs) => pct(sum(gs, (g) => g.contact) / sum(gs, (g) => g.playerTurns))],
-    ['Closest enemy ship', (gs) => (sum(gs, (g) => g.closest) / sum(gs, (g) => g.playerTurns)).toFixed(1)],
+    ['Closest enemy mech', (gs) => (sum(gs, (g) => g.closest) / sum(gs, (g) => g.playerTurns)).toFixed(1)],
     ['Moves ending next to an enemy', (gs) => pct(sum(gs, (g) => g.contactMoves) / sum(gs, (g) => g.moves))],
-    ['Turns with a shared orbit', (gs) => pct(sum(gs, (g) => g.sharedOrbit) / sum(gs, (g) => g.playerTurns))],
-    ['Conquests blocked per game', (gs) => (sum(gs, (g) => g.blocked) / gs.length).toFixed(2)],
-    ['Conquests the opponent contested', (gs) => pct(sum(gs, (g) => g.contestedConquers) / sum(gs, (g) => g.conquers))],
+    ['Turns with a shared perimeter', (gs) => pct(sum(gs, (g) => g.sharedPerimeter) / sum(gs, (g) => g.playerTurns))],
+    ['Claims blocked per game', (gs) => (sum(gs, (g) => g.blocked) / gs.length).toFixed(2)],
+    ['Claims the opponent contested', (gs) => pct(sum(gs, (g) => g.contestedClaims) / sum(gs, (g) => g.claims))],
   ];
   if (levels[0] !== levels[1])
     rows.push([

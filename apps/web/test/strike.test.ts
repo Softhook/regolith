@@ -4,7 +4,7 @@ import type { CombatPending } from '@regolith/engine';
 import { SHOT } from '../src/beats';
 import { shotWait } from '../src/game/strike';
 
-const side = { player: 0, die: 'd', ship: 5, dice: [3], missile: false };
+const side = { player: 0, die: 'd', mech: 5, dice: [3], atomic: false };
 const shot = { kind: 'combat', id: 1, attacker: side, defender: side, ranged: true } as unknown as CombatPending;
 const motion = (reduced: boolean) => vi.stubGlobal('matchMedia', () => ({ matches: reduced }));
 
@@ -21,9 +21,9 @@ describe('shotWait', () => {
     expect(shotWait(shot)).toBe(0);
   });
 
-  it('waits for nothing once a missile has changed the battle, or in a battle hand to hand', () => {
+  it('waits for nothing once an atomic has changed the battle, or in a battle hand to hand', () => {
     motion(false);
-    expect(shotWait({ ...shot, attacker: { ...side, missile: true } })).toBe(0);
+    expect(shotWait({ ...shot, attacker: { ...side, atomic: true } })).toBe(0);
     expect(shotWait({ ...shot, ranged: undefined })).toBe(0);
   });
 });

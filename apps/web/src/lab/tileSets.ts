@@ -9,7 +9,7 @@ const mapsOn = (worlds: readonly World[], players?: number) =>
 export const tileSetPlayers = (worlds: readonly World[]) => [...new Set(mapsOn(worlds).map((map) => map.players))].sort((a, b) => a - b);
 
 /**
- * One physical tile of a kit: the tile (art `TILE_SET`) and where its planet sits, as a map's layout token says
+ * One physical tile of a kit: the tile (art `TILE_SET`) and where its objective sits, as a map's layout token says
  * (`se`), `''` for the middle. A map that moves a 7 off the middle lays a tile printed that way, so a kit
  * can hold the same tile twice: `p7-01` in the middle for one map, `p7-01` at `se` for another.
  */
@@ -21,7 +21,7 @@ export interface KitTile {
 /** A kit tile's key, unique in its kit: `p7-01`, `p7-01-se`. */
 export const kitKey = (k: KitTile) => k.tile.id + (k.at ? `-${k.at}` : '');
 
-/** The tiles a map lays, as the board assigns them (art `assignTiles`), each with where its planet sits. */
+/** The tiles a map lays, as the board assigns them (art `assignTiles`), each with where its objective sits. */
 export function mapTiles(map: MapDef): KitTile[] {
   const tokens = map.layout
     .flat()
@@ -32,7 +32,7 @@ export function mapTiles(map: MapDef): KitTile[] {
 }
 
 /**
- * The tiles a kit needs: every tile any of its maps lays, where that map puts its planet, so each map is laid
+ * The tiles a kit needs: every tile any of its maps lays, where that map puts its objective, so each map is laid
  * with the tiles the screen shows (art `assignTiles`). Without a player count, every map on its worlds. A
  * two-sided kit has a world on each side, so it takes its maps from both. Empty when no map fits. In set
  * order, a tile in the middle before the same tile off it.

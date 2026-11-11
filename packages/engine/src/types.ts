@@ -7,21 +7,22 @@ export interface Cell {
   c: number;
 }
 
-export type CellKind = 'off' | 'space' | 'planet';
+export type CellKind = 'off' | 'space' | 'objective';
 
 export interface BoardCell {
   kind: CellKind;
   /** Index of the tile this cell belongs to, -1 when off-board. */
   tile: number;
-  planet?: number;
-  void?: boolean;
+  objective?: number;
+  /** An Alien Artefact space. */
+  artefact?: boolean;
 }
 
-export interface Planet {
+export interface Objective {
   id: number;
   number: number;
   capacity: number;
-  /** Owners of the cubes on this planet, in placement order. */
+  /** Owners of the cubes on this objective, in placement order. */
   cubes: PlayerId[];
   start: boolean;
   r: number;
@@ -39,10 +40,10 @@ export interface Board {
   /** The world the board is on, which its artwork shows (MapDef.world). Its cells are flat-topped hexes in axial coordinates (board.ts). */
   world: World;
   cells: BoardCell[][];
-  planets: Planet[];
+  objectives: Objective[];
 }
 
-export type DieLoc = { zone: 'board'; r: number; c: number } | { zone: 'scrapyard' } | { zone: 'reserve' };
+export type DieLoc = { zone: 'board'; r: number; c: number } | { zone: 'salvageYard' } | { zone: 'reserve' };
 
 export interface Die {
   id: string;
@@ -71,13 +72,13 @@ export interface PlayerConfig {
 
 export interface PlayerState extends PlayerConfig {
   id: PlayerId;
-  dominance: number;
+  power: number;
   research: number;
-  missiles: number;
+  atomics: number;
   cubesLeft: number;
   /**
-   * Home shipyard (Regolith): the planet this player may always deploy to. Their starting planet; when
-   * their last cube there leaves, it goes with the cube (Relocation) or to another of their planets.
+   * Home home objective (Regolith): the objective this player may always drop to. Their starting objective; when
+   * their last cube there leaves, it goes with the cube (Relocation) or to another of their objectives.
    */
   home?: number;
   skills: OwnedSkill[];
@@ -92,8 +93,8 @@ export interface PlayerState extends PlayerConfig {
   storedTactics?: string[];
   /** Card picks still owed when Momentum interrupted the card phase; taken in the bonus turn's. */
   carriedPicks?: number;
-  /** How many of the carried picks were earned by Conquer actions (Profiteering). */
-  carriedConquerPicks?: number;
+  /** How many of the carried picks were earned by Claim actions (Profiteering). */
+  carriedClaimPicks?: number;
   /** Turns in a row this player ended without spending an action (the AI uses it to avoid stalemates). */
   idleTurns?: number;
   /** What this player has done so far, for the game over (counted as it happens: the log keeps only the latest entries). */
@@ -104,12 +105,12 @@ export interface PlayerState extends PlayerConfig {
 export interface PlayerStats {
   battlesWon: number;
   battlesLost: number;
-  /** Enemy ships destroyed, in battle or by a card. */
-  shipsDestroyed: number;
-  /** This player's ships destroyed by someone else. */
-  shipsLost: number;
-  /** Planets conquered (or seized through Take Over). */
-  planetsTaken: number;
+  /** Enemy mechs destroyed, in battle or by a card. */
+  mechsDestroyed: number;
+  /** This player's mechs destroyed by someone else. */
+  mechsLost: number;
+  /** Objectives claimed (or seized through Take Over). */
+  objectivesTaken: number;
   /** Cards gained: taken from the market (Skills, Tactics, Expansions) or drawn by a card (Change of Heart). */
   cardsTaken: number;
 }
@@ -131,16 +132,16 @@ export interface TurnState {
   number: number;
   phase: 'actions' | 'cards';
   actionsLeft: number;
-  freeDeploys: number;
+  freeDrops: number;
   moved: Record<string, number>;
   abilityUsed: Record<string, boolean>;
-  /** Values each die has shown this turn (for Reconfigure). */
+  /** Values each die has shown this turn (for Refit). */
   seen: Record<string, number[]>;
-  conquests: number;
-  /** Conquer actions taken this turn; unlike `conquests`, Take Over cubes don't count (Profiteering). */
-  conquered?: number;
+  claims: number;
+  /** Claim actions taken this turn; unlike `claims`, Take Over cubes don't count (Profiteering). */
+  claimed?: number;
   attacked: boolean;
-  /** Players who have already destroyed an enemy ship this turn ("first time each turn" triggers). */
+  /** Players who have already destroyed an enemy mech this turn ("first time each turn" triggers). */
   destroyedBy: PlayerId[];
   /** Once-per-turn effects already used. */
   oncePerTurn: OncePerTurn[];
@@ -160,7 +161,7 @@ export interface TurnState {
   acted?: boolean;
 }
 
-/** Effects limited to once per turn. 'cunning' is the second use of a ship ability. */
+/** Effects limited to once per turn. 'cunning' is the second use of a mech ability. */
 export type OncePerTurn = 'composed' | 'ambitious' | 'flexible' | 'resourceful' | 'tactical' | 'cunning';
 
 /** The two sides of a battle. */
@@ -169,9 +170,9 @@ export type CombatRole = 'attacker' | 'defender';
 export interface CombatSide {
   player: PlayerId;
   die: string;
-  ship: number;
+  mech: number;
   dice: number[];
-  missile: boolean;
+  atomic: boolean;
 }
 
 export interface CombatPending {
@@ -191,30 +192,30 @@ export type Pending =
   | { kind: 'setupRoll'; player: PlayerId; rerolled: boolean }
   | { kind: 'skillDraft'; player: PlayerId; options: string[] }
   | { kind: 'placeStart'; player: PlayerId }
-  /** Setup: place your starting ships, one at a time, in orbital positions of your starting planet. */
-  | { kind: 'placeShips'; player: PlayerId; planet: number }
+  /** Setup: place your starting mechs, one at a time, in perimeter positions of your starting objective. */
+  | { kind: 'placeMechs'; player: PlayerId; objective: number }
   | CombatPending
-  /** Dangerous: before the dice are rolled, the defender may destroy both ships. */
+  /** Dangerous: before the dice are rolled, the defender may destroy both mechs. */
   | { kind: 'dangerous'; player: PlayerId; attacker: string; defender: string; from: Cell; ranged?: true }
   /**
-   * The player chooses the number of a ship that was just rolled: Clever, one of `options` (the reconfigured
-   * number ± 1); Calculating, any number for a ship going to the scrapyard.
+   * The player chooses the number of a mech that was just rolled: Clever, one of `options` (the refitted
+   * number ± 1); Calculating, any number for a mech going to the salvageYard.
    */
   | { kind: 'clever'; player: PlayerId; die: string; options?: number[]; source?: 'calculating' | 'clever' }
   | { kind: 'advance'; player: PlayerId; die: string; to: Cell }
   | { kind: 'infamy'; player: PlayerId }
-  /** `conquer`: how many of the picks were earned by Conquer actions (Profiteering may take a missile instead). */
-  | { kind: 'takeCard'; player: PlayerId; count: number; conquer?: number }
+  /** `claim`: how many of the picks were earned by Claim actions (Profiteering may take an atomic instead). */
+  | { kind: 'takeCard'; player: PlayerId; count: number; claim?: number }
   | { kind: 'peek'; player: PlayerId; deck: DeckKind; top: string; store?: boolean }
   /** `cannotDiscard`: a card that must be kept (Prideful, just taken). */
   | { kind: 'discardSkill'; player: PlayerId; reason?: 'limit'; cannotDiscard?: string }
   | { kind: 'placeExpansion'; player: PlayerId; die: string }
   | { kind: 'showOfForce'; player: PlayerId }
-  | { kind: 'warpGate'; player: PlayerId; placed: Cell[] }
+  | { kind: 'iceTunnel'; player: PlayerId; placed: Cell[] }
   | { kind: 'placeBarrier'; player: PlayerId; placed: Cell[] }
   | { kind: 'kineticShunt'; player: PlayerId }
   | { kind: 'changeOfHeart'; player: PlayerId }
-  /** Prideful: take Prideful from victim who lost a ship. */
+  /** Prideful: take Prideful from victim who lost a mech. */
   | { kind: 'prideful'; player: PlayerId; victim: PlayerId }
   /** Ruthless: disable one active skill of the victim. */
   | { kind: 'ruthless'; player: PlayerId; victim: PlayerId }
@@ -228,23 +229,23 @@ export type LogEvent =
   | 'victory'
   | 'infamy'
   | 'seize'
-  | 'conquer'
-  | 'startPlanet'
+  | 'claim'
+  | 'startObjective'
   | 'battleWon'
   | 'repelled'
-  | 'missile'
-  | 'shipDestroyed'
+  | 'atomic'
+  | 'mechDestroyed'
   | 'cardTaken'
   | 'cardPlayed'
   | 'expansion'
   | 'discard'
   | 'breakthrough';
 
-/** A skill's bonus, as actually gained (after the research and dominance limits). */
+/** A skill's bonus, as actually gained (after the research and power limits). */
 export interface Gains {
   actions?: number;
   research?: number;
-  dominance?: number;
+  power?: number;
 }
 
 export interface LogEntry {
@@ -252,8 +253,8 @@ export interface LogEntry {
   player?: PlayerId;
   text: string;
   event?: LogEvent;
-  /** Ids of the planets the text names as `planet N`, in order, so the UI can show their names. */
-  planets?: number[];
+  /** Ids of the objectives the text names as `objective N`, in order, so the UI can show their names. */
+  objectives?: number[];
   /** The card an entry is about (played, taken or used), so the UI can show it. */
   card?: string;
   /** What a skill firing by itself (Hostile, Plundering, Arrogant…) gave, so the UI can point at just that. */
@@ -262,7 +263,7 @@ export interface LogEntry {
   turn?: true;
 }
 
-/** A barrier on the map, and the player whose ship placed it; null for one the map started with (data/maps.yaml `start`). */
+/** A barrier on the map, and the player whose mech placed it; null for one the map started with (data/maps.yaml `start`). */
 export interface Barrier extends Cell {
   owner: PlayerId | null;
 }
@@ -276,14 +277,14 @@ export interface GameState {
   players: PlayerState[];
   dice: Die[];
   market: Market;
-  gates: Cell[];
+  tunnels: Cell[];
   /**
    * A wormhole the map started with (data/maps.yaml `start`): a pair of spaces linked like the Ice Tunnel's, for good.
    * The Ice Tunnel tactic can't close it or land on it. Absent on a map without one.
    */
   wormhole?: Cell[];
   /**
-   * Barriers on the map (the Wisp and Barricade place them): nothing moves into, is deployed on or
+   * Barriers on the map (the Wisp and Barricade place them): nothing moves into, is dropped on or
    * shoots through their spaces. Only Kinetic Shunt moves one. Absent in a game that never had one.
    */
   barriers?: Barrier[];
@@ -297,29 +298,29 @@ export interface GameState {
   logCounter: number;
 }
 
-export type ShipAbility = 'freeAttack' | 'carry' | 'swap' | 'change';
+export type MechAbility = 'freeAttack' | 'carry' | 'swap' | 'change';
 
 export type Action =
   // setup
   | { type: 'setupKeep' }
   | { type: 'setupReroll' }
   | { type: 'draftSkill'; skill: string }
-  | { type: 'placeStart'; planet: number }
-  | { type: 'placeShip'; die: string; to: Cell }
+  | { type: 'placeStart'; objective: number }
+  | { type: 'placeMech'; die: string; to: Cell }
   // phase 1 actions
   | { type: 'move'; die: string; to: Cell }
   /** `from`: the space to attack from (moveOptions launches); the nearest when left out. */
   | { type: 'attack'; die: string; target: string; from?: Cell }
-  /** A ship ability's action (ShipHooks.action), aimed at a ship, a space or both. */
+  /** A mech ability's action (MechHooks.action), aimed at a mech, a space or both. */
   | { type: 'ability'; die: string; target?: string; to?: Cell }
-  | { type: 'deploy'; die: string; to: Cell }
+  | { type: 'drop'; die: string; to: Cell }
   /** Destroy the barrier on `cell` (RuleSet.breakBarriers, breakBarriers.ts). */
   | { type: 'breakBarrier'; die: string; cell: Cell }
-  | { type: 'reconfigure'; die: string }
+  | { type: 'refit'; die: string }
   | { type: 'research' }
-  | { type: 'conquer'; planet: number; replace?: PlayerId }
+  | { type: 'claim'; objective: number; replace?: PlayerId }
   | { type: 'endTurn' }
-  // ship abilities
+  // mech abilities
   | { type: 'freeAttack'; die: string; target: string }
   | { type: 'carry'; die: string; passenger: string; to: Cell; setDown: Cell }
   | { type: 'swap'; die: string; other: string }
@@ -332,20 +333,20 @@ export type Action =
   /** Tactical's 1-space move (`to`) or attack (`target`); with `passenger` + `setDown` it is a Flagship transport. */
   | { type: 'tactical'; die: string; to?: Cell; target?: string; passenger?: string; setDown?: Cell }
   // combat & decisions
-  | { type: 'missile'; by: PlayerId; side: CombatRole }
+  | { type: 'atomic'; by: PlayerId; side: CombatRole }
   | { type: 'dangerous'; destroy: boolean }
   | { type: 'clever'; value: number }
   | { type: 'resolveCombat' }
   | { type: 'advance'; move: boolean }
-  | { type: 'infamy'; planet: number }
+  | { type: 'infamy'; objective: number }
   | { type: 'takeCard'; deck: DeckKind | 'expansion'; index: number; store?: boolean }
   | { type: 'peekChoice'; takeTop: boolean }
-  /** Profiteering: take 1 missile instead of a card earned by conquering. */
+  /** Profiteering: take 1 atomic instead of a card earned by claiming. */
   | { type: 'profiteer' }
   | { type: 'discardSkill'; skill: string }
   | { type: 'placeExpansion'; to: Cell | null }
   | { type: 'showOfForce'; die: string }
-  | { type: 'warpGate'; cell: Cell }
+  | { type: 'iceTunnel'; cell: Cell }
   | { type: 'placeBarrier'; cell: Cell }
   | { type: 'kineticShunt'; die: string; to: Cell }
   | { type: 'shuntBarrier'; from: Cell; to: Cell }
@@ -356,7 +357,7 @@ export type Action =
   /** Patient, when taken: store the face-up Tactic at `index`, or none if left out. */
   | { type: 'patientTactic'; index?: number }
   | { type: 'unveilReroll'; die: string }
-  | { type: 'unveilDeploy'; die: string; to: Cell }
+  | { type: 'unveilDrop'; die: string; to: Cell }
   | { type: 'unveilDone' };
 
 export class RuleError extends Error {}

@@ -8,7 +8,7 @@ import { SheetPreview } from './SheetPreview';
 import { AID_COPIES, AID_SHEETS, printableAid } from './pressSheets';
 
 /**
- * Art Lab, player aid page (#lab/aid): the A6 board every player gets, with the dominance and research
+ * Art Lab, player aid page (#lab/aid): the A6 board every player gets, with the power and research
  * die pads, the turn, and what each mech can do. Exports for print: the board, print sheets (two to a
  * page), and its CMYK press sheets.
  */

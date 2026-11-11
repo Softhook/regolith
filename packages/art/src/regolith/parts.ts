@@ -124,7 +124,7 @@ export const BUILDING_GRADIENTS =
     [1, 'rgb(0,210,225)', 0],
   ]);
 
-/** A piece of a base, round its planet's space in board units: the ground levelled under it, its height map, colour laid on the lit relief (by hue, so the light stays), and paint and lights over that. */
+/** A piece of a base, round its objective's space in board units: the ground levelled under it, its height map, colour laid on the lit relief (by hue, so the light stays), and paint and lights over that. */
 export interface Part {
   /** How far it reaches from its middle: the circle it stands in, before it's placed. */
   extent?: number;

@@ -271,7 +271,7 @@ async function main() {
     const cdp = await context.newCDPSession(page);
     page.on('pageerror', (e) => problem(`page error: ${e.message}`));
     await page.goto(url);
-    await page.waitForSelector('.ship');
+    await page.waitForSelector('.mech');
     await page.waitForTimeout(3000); // the tiles drawn, the dev server's modules loaded
     if (!(await page.locator('.zoom-controls').count())) {
       problem(`${name}: the map doesn't zoom at this size`);

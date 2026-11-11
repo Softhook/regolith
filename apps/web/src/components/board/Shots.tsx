@@ -19,7 +19,7 @@ function shotsOf(before: GameState, game: GameState): MapEffect[] {
 
 /**
  * A shot on the map, instead of the attacker lunging at its target: a muzzle flash, a missile and its
- * trail along the line, and an impact as it lands. Over the ships; remounted for a jump to another position (`key`).
+ * trail along the line, and an impact as it lands. Over the mechs; remounted for a jump to another position (`key`).
  */
 export function Shots({ game, cell }: { game: GameState; cell: number }) {
   return useStepEffects(game, SHOT_EFFECT_MS, shotsOf).map((e) => (

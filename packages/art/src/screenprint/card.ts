@@ -28,9 +28,9 @@ const PLATE: Record<string, string> = {
   expansion: INKS.ice,
   combat: INKS.oxide,
   power: INKS.oxide,
-  ship: INKS.oxide,
+  mech: INKS.oxide,
   action: INKS.dust,
-  conquer: INKS.dust,
+  claim: INKS.dust,
   card: INKS.dust,
 };
 

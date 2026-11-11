@@ -1,11 +1,11 @@
 import { memo } from 'react';
 import { drawing, type Board, type GameState } from '@regolith/engine';
-import { PLANET_DIAMETER, TILE } from '@regolith/art';
+import { OBJECTIVE_DIAMETER, TILE } from '@regolith/art';
 import { BarrierBubble } from './BarrierBubble';
 import { tileArt, type TileArt } from '../../art/boardTiles';
-import { GATE_COLOR, WORMHOLE_COLOR } from '../../theme';
+import { TUNNEL_COLOR, WORMHOLE_COLOR } from '../../theme';
 import { placement } from './geometry';
-import { CubeWells } from './PlanetMarkings';
+import { CubeWells } from './ObjectiveMarkings';
 import { MapTiles } from './MapTiles';
 
 // A map's tile art, worked out once: a map id always names the same layout.
@@ -17,11 +17,11 @@ export function tileArtOf(board: Board): TileArt[] {
 }
 
 /**
- * The map drawn in SVG: tile art, spaces, warp gates, and each planet's cube slots. Memoised:
+ * The map drawn in SVG: tile art, spaces, Ice Tunnels, and each objective's cube slots. Memoised:
  * a pan moves the board, not what's drawn on it.
  */
 export const BoardArt = memo(function BoardArt({ game, cell }: { game: GameState; cell: number }) {
-  const { planets } = game.board;
+  const { objectives } = game.board;
   const tiles = tileArtOf(game.board);
   const { rows, cols } = drawing(game.board);
   const W = cols * cell;
@@ -30,13 +30,13 @@ export const BoardArt = memo(function BoardArt({ game, cell }: { game: GameState
   // Print millimetres to screen pixels: the tile art and everything drawn over it use the printed geometry.
   const mm = cell / TILE.cell;
   const { world } = game.board;
-  // The open gates, then any of a Warp Gate pair placed so far: faint until the pair is complete.
+  // The open tunnels, then any of an Ice Tunnel pair placed so far: faint until the pair is complete.
   const head = game.pending[0];
-  const placing = head?.kind === 'warpGate' ? head.placed : [];
-  const gates = [
+  const placing = head?.kind === 'iceTunnel' ? head.placed : [];
+  const tunnels = [
     ...(game.wormhole ?? []).map((g) => ({ ...g, open: true, wormhole: true, color: WORMHOLE_COLOR })),
-    ...game.gates.map((g) => ({ ...g, open: true, wormhole: false, color: GATE_COLOR })),
-    ...placing.map((g) => ({ ...g, open: false, wormhole: false, color: GATE_COLOR })),
+    ...game.tunnels.map((g) => ({ ...g, open: true, wormhole: false, color: TUNNEL_COLOR })),
+    ...placing.map((g) => ({ ...g, open: false, wormhole: false, color: TUNNEL_COLOR })),
   ];
   return (
     <>
@@ -49,22 +49,22 @@ export const BoardArt = memo(function BoardArt({ game, cell }: { game: GameState
 
         <MapTiles board={game.board} tiles={tiles} cell={cell} />
 
-        {gates.map((g, i) => (
+        {tunnels.map((g, i) => (
           <g key={i} transform={`translate(${mid(g).x} ${mid(g).y})`} opacity={g.open ? 1 : 0.5}>
             <circle r={cell * 0.4} fill="none" stroke={g.color} strokeWidth={cell * 0.05} filter="url(#glow)" />
           </g>
         ))}
 
-        {/* Barriers (an ability): soft glass bubbles on the planet's surface (BarrierBubble). */}
+        {/* Barriers (an ability): soft glass bubbles on the objective's surface (BarrierBubble). */}
         {(game.barriers ?? []).map((b) => (
           <BarrierBubble key={`b${b.r},${b.c}`} r={b.r} c={b.c} x={mid(b).x} y={mid(b).y} cell={cell} mm={mm} cast world={world} />
         ))}
 
-        {planets.map((p) => {
+        {objectives.map((p) => {
           const { x: cx, y: cy } = mid(p);
-          // The planet itself is the tile's art (MapTiles); this layer adds the live cube spaces, placed
+          // The objective itself is the tile's art (MapTiles); this layer adds the live cube spaces, placed
           // and sized as on the printed tile.
-          const R = (PLANET_DIAMETER[p.number] / 2) * mm;
+          const R = (OBJECTIVE_DIAMETER[p.number] / 2) * mm;
           return (
             <g key={p.id}>
               {p.start && game.phase === 'setup' && (
@@ -83,11 +83,11 @@ export const BoardArt = memo(function BoardArt({ game, cell }: { game: GameState
           );
         })}
       </svg>
-      {/* Each gate's turning ring is its own element over the map, so turning it doesn't repaint the map. */}
-      {gates.map((g, i) => (
+      {/* Each tunnel's turning ring is its own element over the map, so turning it doesn't repaint the map. */}
+      {tunnels.map((g, i) => (
         <svg
           key={i}
-          className={g.wormhole ? 'gate-spin wormhole-spin' : 'gate-spin'}
+          className={g.wormhole ? 'tunnel-spin wormhole-spin' : 'tunnel-spin'}
           style={{ left: box(g).left, top: box(g).top, opacity: g.open ? 1 : 0.5 }}
           width={cell}
           height={cell}

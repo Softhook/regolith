@@ -3,11 +3,11 @@
  *
  * - sound:    every action legalActions() offers is accepted by apply().
  * - complete: every action apply() accepts is offered by legalActions(), checked by brute force:
- *             answers to every decision over all players, sides, cards, planets and cells
+ *             answers to every decision over all players, sides, cards, objectives and cells
  *             (decisions.ts), and phase-1 actions over all dice × cells × targets on a sample of
  *             states (DEEP=1: all states).
  * - invariants hold after every action, and the checker itself notices broken states.
- * - the AI's shortcuts agree with what they stand for: shipReach with moveIndexes, and
+ * - the AI's shortcuts agree with what they stand for: mechReach with moveIndexes, and
  *   decisionCandidates with legalActions.
  *
  * The UI and the AI only offer what legalActions() returns, so a failure here is a move a
@@ -25,9 +25,9 @@ import {
   moveOptions,
   MODES,
   movePath,
-  shipReach,
-  shipsByIndex,
-  shipsOnBoard,
+  mechReach,
+  mechsByIndex,
+  mechsOnBoard,
   spaces,
   stepNeighbours,
   tryApply,
@@ -56,14 +56,14 @@ function bruteForce(s: GameState, withCarry: boolean): Action[] {
   const mine = s.dice.filter((d) => d.owner === me);
   const onBoard = s.dice.filter((d) => d.loc.zone === 'board');
   const out: Action[] = [{ type: 'endTurn' }, { type: 'research' }, { type: 'composed' }, { type: 'ambitious' }];
-  for (const p of s.board.planets) {
-    out.push({ type: 'conquer', planet: p.id });
-    for (const pl of s.players) if (pl.id !== me) out.push({ type: 'conquer', planet: p.id, replace: pl.id });
+  for (const p of s.board.objectives) {
+    out.push({ type: 'claim', objective: p.id });
+    for (const pl of s.players) if (pl.id !== me) out.push({ type: 'claim', objective: p.id, replace: pl.id });
   }
   for (const card of s.players[me].storedTactics ?? []) out.push({ type: 'playStoredTactic', card });
   for (const d of mine) {
     out.push(
-      { type: 'reconfigure', die: d.id },
+      { type: 'refit', die: d.id },
       { type: 'change', die: d.id, value: 3 },
       { type: 'change', die: d.id, value: 5 },
       { type: 'flexible', die: d.id, delta: 1 },
@@ -73,7 +73,7 @@ function bruteForce(s: GameState, withCarry: boolean): Action[] {
     for (const to of cells)
       out.push(
         { type: 'move', die: d.id, to },
-        { type: 'deploy', die: d.id, to },
+        { type: 'drop', die: d.id, to },
         { type: 'tactical', die: d.id, to },
         { type: 'ability', die: d.id, to },
       );
@@ -83,8 +83,8 @@ function bruteForce(s: GameState, withCarry: boolean): Action[] {
       else
         out.push(
           { type: 'attack', die: d.id, target: o.id },
-          // Next to the target, or on a Warp Gate: an attack through the gate goes in from the other end.
-          ...[...stepNeighbours(s, cellOf(o)!), ...s.gates].map((from) => ({
+          // Next to the target, or on an Ice Tunnel: an attack through the tunnel goes in from the other end.
+          ...[...stepNeighbours(s, cellOf(o)!), ...s.tunnels].map((from) => ({
             type: 'attack' as const,
             die: d.id,
             target: o.id,
@@ -125,14 +125,14 @@ function playChecked(mode: GameMode, players: number, seed: number, mapId?: stri
 
       const tried = decisionCandidates(s).filter((a) => tryApply(s, a));
       expect(tried.map(keyOf), `${where}: decisionCandidates`).toEqual(legalActions(s).map(keyOf));
-      const at = shipsByIndex(s);
-      for (const d of shipsOnBoard(s)) {
+      const at = mechsByIndex(s);
+      for (const d of mechsOnBoard(s)) {
         const { moves, attacks } = moveIndexes(s, d.id);
-        const fast = shipReach(s, d, at);
+        const fast = mechReach(s, d, at);
         const marked = [...fast.moves.keys()].filter((i) => fast.moves[i]);
-        expect(marked, `${where}: shipReach moves of ${d.id}`).toEqual([...moves.keys()].sort((a, b) => a - b));
+        expect(marked, `${where}: mechReach moves of ${d.id}`).toEqual([...moves.keys()].sort((a, b) => a - b));
         expect(fast.count).toBe(moves.size);
-        expect(fast.attacks.map((x) => x.id).sort(), `${where}: shipReach attacks of ${d.id}`).toEqual([...attacks.keys()].sort());
+        expect(fast.attacks.map((x) => x.id).sort(), `${where}: mechReach attacks of ${d.id}`).toEqual([...attacks.keys()].sort());
         // The board draws the way to every space an attack goes in from (movePath): it must find one.
         // Moves too, which ask the same search. Sampled, like the brute force below.
         if (!DEEP && step % 4) continue;
@@ -174,7 +174,7 @@ describe('legal actions agree with the engine', () => {
         ]
       : [[3, 22]])
       it(`${mode}, ${players} players, seed ${seed}`, () => playChecked(mode, players, seed), DEEP ? 600_000 : 60_000);
-  // The open-ground and off-centre maps: blank tiles, and orbits that overlap, cross tiles and lose spaces at the edge.
+  // The open-ground and off-centre maps: blank tiles, and perimeters that overlap, cross tiles and lose spaces at the edge.
   for (const { id: mode } of MODES)
     for (const [players, mapId] of DEEP
       ? ([
@@ -194,7 +194,7 @@ describe('invariant checker', () => {
     expect(checkInvariants(fresh())).toEqual([]);
   });
 
-  it('notices two ships on one space', () => {
+  it('notices two mechs on one space', () => {
     const s = fresh();
     const [a, b] = s.dice.filter((d) => d.loc.zone === 'board');
     b.loc = { ...a.loc };

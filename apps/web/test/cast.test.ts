@@ -4,7 +4,7 @@ import { apply, type GameState, type LogEntry } from '@regolith/engine';
 import { arrange, quickStart } from '../../../packages/engine/test/helpers';
 import { castOf, landing, repeatsLastTurn } from '../src/game/cast';
 
-/** Player `me` has taken a card after conquering and will take the first Tactic: `card`. */
+/** Player `me` has taken a card after claiming and will take the first Tactic: `card`. */
 function taking(card: string, skills: string[] = []): GameState {
   let s = quickStart(2, 42);
   const me = s.turn.player;
@@ -31,14 +31,14 @@ describe('castOf', () => {
     expect(castOf(s, after)?.card).toBe('r-show-of-force');
   });
 
-  it('is nothing for a card taken, or for placing a CE Expansion ship after an earlier Tactic', () => {
+  it('is nothing for a card taken, or for placing a CE Expansion mech after an earlier Tactic', () => {
     const s = quickStart(2, 42);
     s.pending.unshift({ kind: 'takeCard', player: s.turn.player, count: 1 });
     s.market.skillRow[0] = 'r-agile';
     const after = apply(s, { type: 'takeCard', deck: 'skill', index: 0 });
     expect(castOf(s, after)).toBeUndefined();
 
-    // Play a Tactic first, then take an Expansion from the CE pile and place its ship.
+    // Play a Tactic first, then take an Expansion from the CE pile and place its mech.
     let g = taking('r-aggression');
     g.pending[0] = { kind: 'takeCard', player: g.turn.player, count: 2 };
     g = apply(g, { type: 'takeCard', deck: 'tactic', index: 0 });

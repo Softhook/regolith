@@ -4,11 +4,11 @@ import { aiLevelInfo } from '../game/aiClient';
 import type { Controller } from '../game/controller';
 import type { Dispatch } from '../game/useGame';
 import { useStepEffects } from '../game/useTransient';
-import { CategoryIcon, MissileIcon, categoryStyle } from './Card';
+import { CategoryIcon, AtomicIcon, categoryStyle } from './Card';
 import { CardViewer } from './CardViewer';
 import { Tip } from './InfoPop';
 import { PANEL_EFFECT_MS, panelEffectsOf, type PanelEffect } from './panelEffects';
-import { Scrapyard, turnScrapOwner } from './Scrapyard';
+import { SalvageYard, turnScrapOwner } from './SalvageYard';
 
 /** The effect on one spot of a panel, if any: the latest, so a fresh one restarts it (`key`). */
 const effectAt = (fx: PanelEffect[], spot: PanelEffect['spot']) => fx.filter((e) => e.spot === spot).at(-1);
@@ -86,7 +86,7 @@ function PlayerCard({
 }) {
   const active = game.phase === 'play' && game.turn.player === p.id;
   const rules = rulesOf(game);
-  const placed = game.board.planets.reduce((a, pl) => a + pl.cubes.filter((x) => x === p.id).length, 0);
+  const placed = game.board.objectives.reduce((a, pl) => a + pl.cubes.filter((x) => x === p.id).length, 0);
   const totalCubes = p.cubesLeft + placed;
   const [viewing, setViewing] = useState<string | null>(null);
 
@@ -106,13 +106,13 @@ function PlayerCard({
         </Tip>
       </div>
       <div className="player-tracks">
-        <Track label={'Power'} value={p.dominance} tone="dom" spot="dominance" fx={effectAt(fx, 'dominance')} />
+        <Track label={'Power'} value={p.power} tone="power" spot="power" fx={effectAt(fx, 'power')} />
         {rules.cards && <Track label="Research" value={p.research} tone="res" spot="research" fx={effectAt(fx, 'research')} />}
       </div>
       <div className="player-row">
-        <Tip className="stat" data-fx="missiles" tip={'Atomics: in a battle you are losing, set your own combat roll to 1'}>
-          <MissileIcon size={14} /> {p.missiles}
-          <Flash e={effectAt(fx, 'missiles')} />
+        <Tip className="stat" data-fx="atomics" tip={'Atomics: in a battle you are losing, set your own combat roll to 1'}>
+          <AtomicIcon size={14} /> {p.atomics}
+          <Flash e={effectAt(fx, 'atomics')} />
         </Tip>
         {p.planAhead > 0 && (
           <Tip className="stat gold" data-fx="planAhead" tip={`${cardName('plan-ahead')}: all your combat rolls are 1`}>
@@ -133,10 +133,10 @@ function PlayerCard({
           </Tip>
         )}
       </div>
-      {/* The turn panel shows one player's scrapyard (see turnScrapOwner); the others' are here. */}
+      {/* The turn panel shows one player's salvage yard (see turnScrapOwner); the others' are here. */}
       {showScrap && (
-        <div className="player-scrap">
-          <Scrapyard game={game} p={p} ctl={ctl} dispatch={dispatch} />
+        <div className="player-salvage">
+          <SalvageYard game={game} p={p} ctl={ctl} dispatch={dispatch} />
         </div>
       )}
       {(p.skills.length > 0 || (p.storedTactics?.length ?? 0) > 0) && (

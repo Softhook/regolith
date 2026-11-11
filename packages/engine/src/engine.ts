@@ -4,21 +4,21 @@
  * Every action type has exactly one handler (the Handlers type makes the compiler enforce it),
  * grouped by topic:
  *
- *   setup.ts      game creation, mech roll, starting skill, starting planet and ships
- *   actions.ts    Move/Attack, Deploy, Reconfigure, Research, Conquer, end turn
- *   abilities.ts  ship abilities 1–6
- *   combat.ts     attacks, missiles, advancing, Take Over
+ *   setup.ts      game creation, mech roll, starting skill, starting objective and mechs
+ *   actions.ts    Move/Attack, Drop, Refit, Research, Claim, end turn
+ *   abilities.ts  mech abilities 1–6
+ *   combat.ts     attacks, atomics, advancing, Take Over
  *   cards.ts      the card market, Tactic effects and their decisions
  *   effects.ts    the implemented Skill and Tactic effects, as types
  *   skillRules.ts what every skill does, as hooks the rules read
  *   skillActions.ts skills used as an action of their own
- *   ships.ts      the mechs, and ShipHooks: how the abilities in abilities/ (one file each) plug in
+ *   mechs.ts      the mechs, and MechHooks: how the abilities in abilities/ (one file each) plug in
  *   rulesets.ts   the rule sets: Regolith, and Basic, Regolith without its cards
  *   turn.ts       start / end of turn, and auto-resolving decisions after each action
  *   legal.ts      legal action enumeration (AI, UI hints)
  *   rules.ts      what differs between rule sets (Basic, Regolith)
  *   core.ts       shared helpers: errors, log, dice, tracks, cubes
- *   queries.ts    read-only questions about a state (movement, conquering, combat totals…)
+ *   queries.ts    read-only questions about a state (movement, claiming, combat totals…)
  *   lookups.ts    where dice are and what is on a space (no rules)
  *   invariants.ts consistency checks every state must pass (tests, dev builds)
  */
@@ -94,7 +94,7 @@ export function cloneState<T>(x: T): T {
 
 /**
  * A copy of a state to change. The board's cells never change after the board is built, so states
- * share them: copying them was most of the AI's time (an Unveil with five ships to place took minutes). A log
+ * share them: copying them was most of the AI's time (an Unveil with five mechs to place took minutes). A log
  * entry doesn't change once the step that wrote it is over either, so they share those too: with a position kept
  * for every move of a game (web past.ts), copying them was most of its memory.
  */
@@ -117,7 +117,7 @@ export function tryApply(prev: GameState, action: Action): GameState | null {
 
 /**
  * Whether the player in `seat` may send `action` (online play, where every action names its seat).
- * Missiles and combat re-rolls belong to the player named in them, who may be anyone at the table;
+ * Atomics and combat re-rolls belong to the player named in them, who may be anyone at the table;
  * resolving a battle is never a player's action (the table resolves it once everyone has passed);
  * everything else belongs to `actor(state)`. Whether the action is legal is still `apply`'s call.
  */
@@ -125,7 +125,7 @@ export function mayAct(state: GameState, seat: PlayerId, action: Action): boolea
   switch (action.type) {
     case 'resolveCombat':
       return false;
-    case 'missile':
+    case 'atomic':
       return action.by === seat;
     default:
       return actor(state) === seat;

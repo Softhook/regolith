@@ -4,7 +4,7 @@ import { MODES } from '../src';
 import { playAiGame } from './helpers';
 
 const ORIGINAL_WORDS =
-  /\b(ships?|planets?|orbits?|orbital|conquer\w*|deploy\w*|missiles?|scrapyards?|dominance|reconfigur\w*|warp gates?)\b/i;
+  /\b(ships?|planets?|orbits?|orbital|conquer\w*|deploy\w*|missiles?|scrapyards?|dominance|reconfigur\w*|warp gates?|voids?|gates?)\b/i;
 
 describe("Regolith's words", () => {
   it('describe both modes in the lobby', () => {

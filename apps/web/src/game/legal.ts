@@ -35,16 +35,16 @@ export function legalFor(game: GameState): Legal {
 }
 
 /**
- * What a tap on a planet does about conquering it: its one way to be conquered, `choose` when there
- * are several (an empty place, or over-conquest displacing one of several opponents' cubes: the
- * player chooses, ConquerChoice), or null when it can't be conquered.
+ * What a tap on an objective does about claiming it: its one way to be claimed, `choose` when there
+ * are several (an empty place, or over-claim displacing one of several opponents' cubes: the
+ * player chooses, ClaimChoice), or null when it can't be claimed.
  */
-export function conquerTap(legal: Legal, planet: number): Action | 'choose' | null {
-  const options = conquerOptions(legal, planet);
+export function claimTap(legal: Legal, objective: number): Action | 'choose' | null {
+  const options = claimOptions(legal, objective);
   return options.length > 1 ? 'choose' : (options[0] ?? null);
 }
 
-/** The ways to conquer `planet`. */
-export function conquerOptions(legal: Legal, planet: number): ActionOf<'conquer'>[] {
-  return legal.of('conquer', (a) => a.planet === planet);
+/** The ways to claim `objective`. */
+export function claimOptions(legal: Legal, objective: number): ActionOf<'claim'>[] {
+  return legal.of('claim', (a) => a.objective === objective);
 }

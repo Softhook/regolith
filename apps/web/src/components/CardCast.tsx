@@ -111,23 +111,23 @@ const actionsTarget = (game: GameState, player: number) =>
 
 /** What a skill firing by itself gave (its `gains`): its tracks, its actions. */
 function gainTargets(game: GameState, e: LogEntry): Target[] {
-  const { research, dominance, actions } = e.gains ?? {};
+  const { research, power, actions } = e.gains ?? {};
   const p = e.player!;
-  return [research && panelTarget(p, 'research'), dominance && panelTarget(p, 'dominance'), actions && actionsTarget(game, p)].filter(
+  return [research && panelTarget(p, 'research'), power && panelTarget(p, 'power'), actions && actionsTarget(game, p)].filter(
     (t): t is Target => !!t,
   );
 }
 
 /**
  * What the step from `before` to `game` marks: the spaces of its map effects (CardEffects) and new Warp
- * Gates, and the spots of its panel effects, less what skills firing by themselves in it gave (they cast
+ * Tunnels, and the spots of its panel effects, less what skills firing by themselves in it gave (they cast
  * for themselves). With none, the card's player's row (Momentum's extra turn), unless the card is yet to
  * land (Show of Force before its target is chosen) or has just finished landing (unveilDone).
  */
 function stepTargets(before: GameState, game: GameState, player: number): Target[] {
   const last = lastLogId(before);
   const cells = cardEffectsOf(before, game).flatMap((e) => (e.to ? [e.at, e.to] : [e.at]));
-  cells.push(...game.gates.filter((g) => !before.gates.some((x) => same(x, g))));
+  cells.push(...game.tunnels.filter((g) => !before.tunnels.some((x) => same(x, g))));
   const out = cells.map((c) => cellTarget(game, c));
   // What the step's skill bonuses account for, by player and track.
   const claimed = new Map<string, number>();
@@ -135,7 +135,7 @@ function stepTargets(before: GameState, game: GameState, player: number): Target
     if (e.id > last && e.gains)
       for (const [k, n] of Object.entries(e.gains)) claimed.set(`${e.player}:${k}`, (claimed.get(`${e.player}:${k}`) ?? 0) + (n ?? 0));
   for (const e of panelEffectsOf(before, game)) {
-    // Another player's research changing when the turn moves on is their start-of-turn gain (Brilliant, Void), not the card's.
+    // Another player's research changing when the turn moves on is their start-of-turn gain (Brilliant, Alien Artefact), not the card's.
     if (e.spot === 'research' && e.player !== player) continue;
     // A gain the bonuses fully account for isn't the card's (Plundering's research after Show of Force).
     if ('from' in e && e.to > e.from && e.to - e.from <= (claimed.get(`${e.player}:${e.spot}`) ?? 0)) continue;

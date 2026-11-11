@@ -17,7 +17,7 @@ function gained(before: GameState, after: GameState) {
   );
 }
 
-/** Player 0's ship p0d0 attacks player 1's p1d0 with fixed combat rolls (the lower total wins); `foe`: player 1's skills. */
+/** Player 0's mech p0d0 attacks player 1's p1d0 with fixed combat rolls (the lower total wins); `foe`: player 1's skills. */
 function battle(attackerWins: boolean, foe: string[] = []) {
   const before = arrange(quickStart(2, 5), { p0d0: [7, 2, 3], p1d0: [7, 3, 3] });
   before.turn.player = 0;
@@ -34,18 +34,18 @@ function battle(attackerWins: boolean, foe: string[] = []) {
 describe('game stats', () => {
   it('start at zero for every player', () => {
     for (const p of quickStart(3, 1).players)
-      expect(p.stats).toEqual({ battlesWon: 0, battlesLost: 0, shipsDestroyed: 0, shipsLost: 0, planetsTaken: 0, cardsTaken: 0 });
+      expect(p.stats).toEqual({ battlesWon: 0, battlesLost: 0, mechsDestroyed: 0, mechsLost: 0, objectivesTaken: 0, cardsTaken: 0 });
   });
 
-  it('count a battle won by the attacker, and the ship it destroyed', () => {
+  it('count a battle won by the attacker, and the mech it destroyed', () => {
     const { before, s } = battle(true);
     expect(gained(before, s)).toEqual([
-      { battlesWon: 1, shipsDestroyed: 1 },
-      { battlesLost: 1, shipsLost: 1 },
+      { battlesWon: 1, mechsDestroyed: 1 },
+      { battlesLost: 1, mechsLost: 1 },
     ]);
   });
 
-  it('count a repelled attack as a battle won by the defender, with no ship lost', () => {
+  it('count a repelled attack as a battle won by the defender, with no mech lost', () => {
     const { before, s } = battle(false);
     expect(gained(before, s)).toEqual([{ battlesLost: 1 }, { battlesWon: 1 }]);
   });
@@ -53,42 +53,42 @@ describe('game stats', () => {
   it('count a Stubborn defender destroying the attacker', () => {
     const { before, s } = battle(false, ['r-stubborn']);
     expect(gained(before, s)).toEqual([
-      { battlesLost: 1, shipsLost: 1 },
-      { battlesWon: 1, shipsDestroyed: 1 },
+      { battlesLost: 1, mechsLost: 1 },
+      { battlesWon: 1, mechsDestroyed: 1 },
     ]);
   });
 
-  it('count Dangerous destroying both ships as no battle: only the enemy ship', () => {
+  it('count Dangerous destroying both mechs as no battle: only the enemy mech', () => {
     const { before } = battle(true, ['r-dangerous']);
     let s = apply(before, { type: 'attack', die: 'p0d0', target: 'p1d0' });
     expect(s.pending[0]?.kind).toBe('dangerous');
     s = apply(s, { type: 'dangerous', destroy: true });
-    expect(gained(before, s)).toEqual([{ shipsLost: 1 }, { shipsDestroyed: 1 }]);
+    expect(gained(before, s)).toEqual([{ mechsLost: 1 }, { mechsDestroyed: 1 }]);
   });
 
-  it('count a ship destroyed by Show of Force, but not your own', () => {
+  it('count a mech destroyed by Show of Force, but not your own', () => {
     const before = arrange(quickStart(2, 5), { p0d0: [7, 2, 3], p1d0: [7, 4, 3] });
     before.pending.unshift({ kind: 'showOfForce', player: 0 });
     const s = apply(before, { type: 'showOfForce', die: 'p1d0' });
-    expect(gained(before, s)).toEqual([{ shipsDestroyed: 1 }, { shipsLost: 1 }]);
+    expect(gained(before, s)).toEqual([{ mechsDestroyed: 1 }, { mechsLost: 1 }]);
     before.pending[0] = { kind: 'showOfForce', player: 0 };
     expect(gained(before, apply(before, { type: 'showOfForce', die: 'p0d0' }))).toEqual([{}, {}]);
   });
 
-  it('count a conquest and a planet seized through Take Over, but not a starting planet', () => {
+  it('count a claim and an objective seized through Take Over, but not a starting objective', () => {
     const base = quickStart(2, 1, 'basic');
-    expect(base.players.map((p) => p.stats!.planetsTaken)).toEqual([0, 0]);
-    // Planet 4 (an 8) between a 6 and a 2 (basic.test.ts's scenario).
+    expect(base.players.map((p) => p.stats!.objectivesTaken)).toEqual([0, 0]);
+    // Objective 4 (an 8) between a 6 and a 2 (basic.test.ts's scenario).
     const before = arrange(base, { p0d0: [5, 4, 6], p0d1: [7, 4, 2] });
-    for (const p of before.board.planets) p.cubes = p.cubes.filter((o) => o !== 0 || p.id === 2);
+    for (const p of before.board.objectives) p.cubes = p.cubes.filter((o) => o !== 0 || p.id === 2);
     before.players[0].cubesLeft = 4;
     before.turn = { ...before.turn, player: 0, phase: 'actions', actionsLeft: 3 };
-    const s = apply(before, { type: 'conquer', planet: 4 });
-    expect(gained(before, s)).toEqual([{ planetsTaken: 1 }, {}]);
+    const s = apply(before, { type: 'claim', objective: 4 });
+    expect(gained(before, s)).toEqual([{ objectivesTaken: 1 }, {}]);
 
-    const free = s.board.planets.find((p) => !p.cubes.includes(1))!;
+    const free = s.board.objectives.find((p) => !p.cubes.includes(1))!;
     s.pending.unshift({ kind: 'infamy', player: 1 });
-    expect(gained(s, apply(s, { type: 'infamy', planet: free.id }))).toEqual([{}, { planetsTaken: 1 }]);
+    expect(gained(s, apply(s, { type: 'infamy', objective: free.id }))).toEqual([{}, { objectivesTaken: 1 }]);
   });
 
   it('count every card gained: taken, stored with Patient, an Expansion, or drawn by Change of Heart', () => {
@@ -120,10 +120,10 @@ describe('game stats', () => {
       const { state } = playAiGame({ mode, players: 3, seed: 21, aiSeed: 21 * 7919 });
       const stats = state.players.map((p) => p.stats);
       expect(sum(stats, 'battlesWon')).toBeGreaterThan(0);
-      // Every battle has one winner and one loser; every enemy ship destroyed was someone's loss.
+      // Every battle has one winner and one loser; every enemy mech destroyed was someone's loss.
       expect(sum(stats, 'battlesWon')).toBe(sum(stats, 'battlesLost'));
-      expect(sum(stats, 'shipsDestroyed')).toBe(sum(stats, 'shipsLost'));
-      expect(state.players[state.winner!].stats!.planetsTaken).toBeGreaterThan(0);
+      expect(sum(stats, 'mechsDestroyed')).toBe(sum(stats, 'mechsLost'));
+      expect(state.players[state.winner!].stats!.objectivesTaken).toBeGreaterThan(0);
       if (mode !== 'basic') expect(sum(stats, 'cardsTaken')).toBeGreaterThan(0);
     }, 60_000);
 });

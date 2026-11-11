@@ -2,7 +2,7 @@ import type { CSSProperties, ReactNode } from 'react';
 import { drawing, type Board } from '@regolith/engine';
 import type { MapEffect } from '../../game/cardEffects';
 
-/** How many of `owner`'s cubes a planet holds. */
+/** How many of `owner`'s cubes an objective holds. */
 export const cubeCount = (cubes: readonly number[], owner: number) => cubes.filter((x) => x === owner).length;
 
 /**

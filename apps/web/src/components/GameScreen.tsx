@@ -2,7 +2,7 @@ import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
 import { actor, drawing, rulesOf, type GameState, type PlayerId } from '@regolith/engine';
 import { useController } from '../game/controller';
 import { useUndoShortcut } from '../game/useGame';
-import { conquerOptions } from '../game/legal';
+import { claimOptions } from '../game/legal';
 import { lost, type GameView } from '../game/view';
 import { useReview, type Review } from '../game/review';
 import { logText } from '../game/logText';
@@ -16,7 +16,7 @@ import { Log } from './Log';
 import { PlayerList } from './PlayerList';
 import { TurnPanel } from './TurnPanel';
 import { CombatOverlay } from './CombatOverlay';
-import { ConquerChoice, DecisionOverlay, GameOver } from './Overlays';
+import { ClaimChoice, DecisionOverlay, GameOver } from './Overlays';
 import { ErrorToast, PlayedCard, Toasts } from './Toasts';
 import { FullscreenButton } from './FullscreenButton';
 import { MusicButton, SoundButton } from './SoundButton';
@@ -82,7 +82,7 @@ export function Game({
   const sheet = useMediaQuery(SHEET);
   const cards = rulesOf(game).cards;
   const { sel } = ctl;
-  const conquering = sel.kind === 'conquer' ? conquerOptions(ctl.legal, sel.planet) : [];
+  const claiming = sel.kind === 'claim' ? claimOptions(ctl.legal, sel.objective) : [];
   // The same panels in both layouts, in a different order.
   const turnPanel = <TurnPanel game={game} ctl={ctl} dispatch={dispatch} undo={undo} />;
   // Changes when the screen jumps to another position rather than following a move: looking back, or skipping ahead online.
@@ -118,12 +118,12 @@ export function Game({
         <main className={`layout ${sheet ? 'sheet-layout' : ''}`}>
           {/* First in both layouts, so turning the phone keeps the board (and its zoom). */}
           <div className="stage" style={{ '--map-ratio': mapRatio(game) } as CSSProperties}>
-            {/* Choosing a starting planet is the first moment the map is yours to look at: show it zooms then. */}
+            {/* Choosing a starting objective is the first moment the map is yours to look at: show it zooms then. */}
             <Board
               game={returning ?? game}
               ctl={ctl}
               scene={scene}
-              introduce={!review && game.phase === 'setup' && ctl.highlights.planets.size > 0}
+              introduce={!review && game.phase === 'setup' && ctl.highlights.objectives.size > 0}
             />
             {review && <ReviewBar review={review} game={live} waiting={waitingFor(view)} />}
             {/* The game's news goes on while looking back, as news of the game now. */}
@@ -173,8 +173,8 @@ export function Game({
           />
         )}
         {!review && <DecisionOverlay game={game} dispatch={dispatch} human={ctl.human} />}
-        {conquering.length > 0 && (
-          <ConquerChoice game={game} options={conquering} dispatch={dispatch} onClose={() => ctl.select({ kind: 'none' })} />
+        {claiming.length > 0 && (
+          <ClaimChoice game={game} options={claiming} dispatch={dispatch} onClose={() => ctl.select({ kind: 'none' })} />
         )}
         {!review && game.phase === 'over' && !hideGameOver && (
           <GameOver

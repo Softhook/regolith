@@ -1,18 +1,18 @@
-/** Game creation and the setup decisions: mech roll, starting skill, starting planet and ships. */
-import { buildBoard, same, startingGround, STARTING_SHIPS } from './board';
+/** Game creation and the setup decisions: mech roll, starting skill, starting objective and mechs. */
+import { buildBoard, same, startingGround, STARTING_MECHS } from './board';
 import { dealt } from './effects';
-import { aShip, emptyTurn, fail, headOf, log, note, logTo, name, placeCube, roll, type Handlers } from './core';
+import { aMech, emptyTurn, fail, headOf, log, note, logTo, name, placeCube, roll, type Handlers } from './core';
 import { defaultMapFor } from './rules';
 import { effectOf, MAPS, type CardDef, type GameMode } from './data';
-import { boardLoc, die, scrapyard } from './lookups';
+import { boardLoc, die, salvageYard } from './lookups';
 import { startSlots } from './queries';
 import { shuffle } from './rng';
 import { DEFAULT_MODE, RULESETS } from './rulesets';
 import { ruleOf } from './skillRules';
 import type { Die, GameState, PlayerConfig } from './types';
 
-/** Missiles each player starts with (Community Edition). */
-const STARTING_MISSILES = 1;
+/** Atomics each player starts with (Community Edition). */
+const STARTING_ATOMICS = 1;
 
 export interface NewGameOptions {
   players: PlayerConfig[];
@@ -45,9 +45,9 @@ export function createGame(opts: NewGameOptions): GameState {
     players: opts.players.map((p, id) => ({
       ...p,
       id,
-      dominance: 1,
+      power: 1,
       research: 1,
-      missiles: STARTING_MISSILES,
+      atomics: STARTING_ATOMICS,
       cubesLeft: map.cubes,
       skills: [],
       ambitionTokens: 0,
@@ -55,7 +55,7 @@ export function createGame(opts: NewGameOptions): GameState {
       planAhead: 0,
       bonusTurns: [],
       storedTactics: [],
-      stats: { battlesWon: 0, battlesLost: 0, shipsDestroyed: 0, shipsLost: 0, planetsTaken: 0, cardsTaken: 0 },
+      stats: { battlesWon: 0, battlesLost: 0, mechsDestroyed: 0, mechsLost: 0, objectivesTaken: 0, cardsTaken: 0 },
     })),
     dice: [],
     market: {
@@ -67,7 +67,7 @@ export function createGame(opts: NewGameOptions): GameState {
       tacticDiscard: [],
       expansions: rules.cards?.expansionPile ? n + 1 : 0,
     },
-    gates: ground.gates,
+    tunnels: ground.tunnels,
     ...(ground.wormhole.length && { wormhole: ground.wormhole }),
     ...(ground.barriers.length && { barriers: ground.barriers.map((c) => ({ ...c, owner: null })) }),
     turn: emptyTurn(0, 0),
@@ -95,17 +95,17 @@ export function createGame(opts: NewGameOptions): GameState {
     }
   }
 
-  // 7 dice per player: STARTING_SHIPS (3) starting ships, 2 expansion ships in reserve (2 more are trackers).
+  // 7 dice per player: STARTING_MECHS (3) starting mechs, 2 expansion mechs in reserve (2 more are trackers).
   for (const p of state.players) {
     for (let i = 0; i < 5; i++) {
       const d: Die = {
         id: `p${p.id}d${i}`,
         owner: p.id,
         value: 1,
-        loc: i < STARTING_SHIPS ? { zone: 'scrapyard' } : { zone: 'reserve' },
+        loc: i < STARTING_MECHS ? { zone: 'salvageYard' } : { zone: 'reserve' },
         rolls: 0,
       };
-      if (i < STARTING_SHIPS) roll(state, d);
+      if (i < STARTING_MECHS) roll(state, d);
       state.dice.push(d);
     }
     state.pending.push({ kind: 'setupRoll', player: p.id, rerolled: false });
@@ -115,10 +115,10 @@ export function createGame(opts: NewGameOptions): GameState {
   }
   log(state, `New ${rules.title} game on ${map.name}.`);
   const nBarriers = ground.barriers.length;
-  if (ground.gates.length || ground.wormhole.length || nBarriers)
+  if (ground.tunnels.length || ground.wormhole.length || nBarriers)
     log(
       state,
-      `The ground starts with ${[ground.gates.length && 'a pair of ice tunnels', ground.wormhole.length && 'a wormhole', nBarriers && `${nBarriers} barriers`].filter(Boolean).join(' and ')}.`,
+      `The ground starts with ${[ground.tunnels.length && 'a pair of ice tunnels', ground.wormhole.length && 'a wormhole', nBarriers && `${nBarriers} barriers`].filter(Boolean).join(' and ')}.`,
     );
   return state;
 }
@@ -132,7 +132,7 @@ export const setupHandlers = {
     const head = headOf(s, 'setupRoll', 'Not rolling mechs');
     if (head.rerolled) fail('You may only re-roll once');
     head.rerolled = true;
-    const mechs = scrapyard(s, head.player);
+    const mechs = salvageYard(s, head.player);
     for (const d of mechs) roll(s, d);
     note(s, `${name(s, head.player)} re-rolls their mechs: ${mechs.map((d) => d.value).join(', ')}.`, head.player);
   },
@@ -148,23 +148,23 @@ export const setupHandlers = {
   },
   placeStart(s, a) {
     const head = headOf(s, 'placeStart', 'Not placing a starting objective');
-    const planet = s.board.planets[a.planet];
-    if (!planet?.start) fail('Choose a starting objective');
-    if (planet.cubes.length) fail('That starting objective is taken');
-    placeCube(s, head.player, planet.id);
-    s.players[head.player].home = planet.id;
-    log(s, `${name(s, head.player)} starts at objective ${planet.number}.`, head.player, undefined, [planet.id]);
+    const objective = s.board.objectives[a.objective];
+    if (!objective?.start) fail('Choose a starting objective');
+    if (objective.cubes.length) fail('That starting objective is taken');
+    placeCube(s, head.player, objective.id);
+    s.players[head.player].home = objective.id;
+    log(s, `${name(s, head.player)} starts at objective ${objective.number}.`, head.player, undefined, [objective.id]);
     s.pending.shift();
-    // Rulebook p.3: every player places a cube first, then ships are placed in player order.
-    s.pending.push({ kind: 'placeShips', player: head.player, planet: planet.id });
+    // Rulebook p.3: every player places a cube first, then mechs are placed in player order.
+    s.pending.push({ kind: 'placeMechs', player: head.player, objective: objective.id });
   },
-  placeShip(s, a) {
-    const head = headOf(s, 'placeShips', 'Not placing starting mechs');
+  placeMech(s, a) {
+    const head = headOf(s, 'placeMechs', 'Not placing starting mechs');
     const d = die(s, a.die);
-    if (d.owner !== head.player || d.loc.zone !== 'scrapyard') fail('Choose one of your starting mechs');
-    if (!startSlots(s, head.planet).some((p) => same(p, a.to))) fail('Place it in an empty perimeter space of your starting objective');
+    if (d.owner !== head.player || d.loc.zone !== 'salvageYard') fail('Choose one of your starting mechs');
+    if (!startSlots(s, head.objective).some((p) => same(p, a.to))) fail('Place it in an empty perimeter space of your starting objective');
     d.loc = boardLoc(a.to);
-    logTo(s, head.player, `${name(s, head.player)} places ${aShip(s, d)}`, a.to);
-    // When the last ship is placed, settle() moves on (turn.ts AUTO_RESOLVE.placeShips).
+    logTo(s, head.player, `${name(s, head.player)} places ${aMech(s, d)}`, a.to);
+    // When the last mech is placed, settle() moves on (turn.ts AUTO_RESOLVE.placeMechs).
   },
 } satisfies Partial<Handlers>;

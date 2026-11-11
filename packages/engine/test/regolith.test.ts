@@ -1,8 +1,8 @@
 /**
- * Regolith mode (docs/regolith/PROTOTYPING.md; rulesets.ts, ships.ts, powers/): Community Edition with movement capped at 3,
- * zones of control (every ship pickets the spaces around it), a new power for the 5 (Shoot), which
- * replaces Manoeuvre, a 6 that fires barriers, contested orbits, and over-conquest (an orbit of 12) when
- * REGOLITH_OVER_CONQUEST is on. The first block checks the two modes, Basic and Regolith.
+ * Regolith mode (docs/regolith/PROTOTYPING.md; rulesets.ts, mechs.ts, powers/): Community Edition with movement capped at 3,
+ * zones of control (every mech pickets the spaces around it), a new power for the 5 (Shoot), which
+ * replaces Manoeuvre, a 6 that fires barriers, contested perimeters, and over-claim (a perimeter of 12) when
+ * REGOLITH_OVER_CLAIM is on. The first block checks the two modes, Basic and Regolith.
  *
  * Scenarios run on Alpha Sector (hex), the basic map for 2 players, in axial cells (docs/HEX.md): a space's
  * sides are a row or column away, or (-1, +1) and (+1, -1). The middle 8 is at (6,4); row 7 runs clear from
@@ -13,12 +13,12 @@ import { describe, expect, it } from 'vitest';
 import {
   adjacent,
   apply,
-  orbitals,
-  conquerCheck,
-  deployTargets,
-  homePlanet,
+  perimeterSpaces,
+  claimCheck,
+  dropTargets,
+  homeObjective,
   infamyTargets,
-  orbitedPlanets,
+  objectivesAround,
   grid,
   attackLaunches,
   cardKind,
@@ -31,10 +31,10 @@ import {
   movePath,
   moveOptions,
   mulberry32,
-  planetFreeSlots,
+  objectiveFreeSlots,
   rulesOf,
   RULESETS,
-  shipsByIndex,
+  mechsByIndex,
   shuntTargets,
   barrierShuntTargets,
   spaces,
@@ -48,30 +48,30 @@ import {
 } from '../src';
 import { cubeLeft } from '../src/core';
 import { beginPlay, settle } from '../src/turn';
-import { REGOLITH_DECKS, REGOLITH_OVER_CONQUEST } from '../src/rulesets';
+import { REGOLITH_DECKS, REGOLITH_OVER_CLAIM } from '../src/rulesets';
 import { barrier as barrierAbility, barrierTargets } from '../src/abilities/barrier';
 import { picket } from '../src/abilities/picket';
 import { shoot as shootAbility, shootTargets } from '../src/abilities/shoot';
 import { arrange, quickStart } from './helpers';
 import { toRow } from './audit';
 
-/** Regolith on Alpha Sector (hex); `open`, on Arcadia Planitia, whose blank tiles are next to no planet. */
+/** Regolith on Alpha Sector (hex); `open`, on Arcadia Planitia, whose blank tiles are next to no objective. */
 const BASE: Record<'regolith' | 'open', GameState> = {
   regolith: quickStart(2, 1, 'regolith', 'alpha-hex'),
   open: quickStart(2, 1, 'regolith', 'arcadia-planitia'),
 };
 
-/** Player 0 to act with 3 fresh actions, only the listed ships on the map, and the given skills. */
+/** Player 0 to act with 3 fresh actions, only the listed mechs on the map, and the given skills. */
 function scenario(dice: Record<string, [number, number, number]>, skills: string[] = [], map: keyof typeof BASE = 'regolith'): GameState {
   const s = structuredClone(BASE[map]);
-  for (const d of s.dice) if (d.loc.zone === 'board') d.loc = { zone: 'scrapyard' };
+  for (const d of s.dice) if (d.loc.zone === 'board') d.loc = { zone: 'salvageYard' };
   for (const [id, [r, c, value]] of Object.entries(dice)) {
     const d = s.dice.find((x) => x.id === id)!;
     d.loc = { zone: 'board', r, c };
     d.value = value;
   }
   for (const p of s.players) p.skills = p.id === 0 ? skills.map((id) => ({ id, active: true })) : [];
-  s.turn = { ...s.turn, player: 0, phase: 'actions', actionsLeft: 3, moved: {}, abilityUsed: {}, seen: {}, conquests: 0, oncePerTurn: [] };
+  s.turn = { ...s.turn, player: 0, phase: 'actions', actionsLeft: 3, moved: {}, abilityUsed: {}, seen: {}, claims: 0, oncePerTurn: [] };
   for (const d of s.dice) s.turn.seen[d.id] = [d.value];
   return s;
 }
@@ -79,7 +79,7 @@ function scenario(dice: Record<string, [number, number, number]>, skills: string
 const at = (s: GameState, id: string) => s.dice.find((d) => d.id === id)!;
 const farthest = (s: GameState, id: string) => Math.max(...[...moveOptions(s, id).moves.values()].map((m) => m.steps));
 const offered = (s: GameState, type: Action['type']) => legalActions(s).filter((a) => a.type === type);
-/** The ships p0d0 may shoot now, by the legal actions (so cost and power included). */
+/** The mechs p0d0 may shoot now, by the legal actions (so cost and power included). */
 const shots = (s: GameState) =>
   legalActions(s)
     .flatMap((a) => (a.type === 'ability' && a.die === 'p0d0' && a.target ? [a.target] : []))
@@ -121,13 +121,13 @@ describe('Regolith mode', () => {
     const played = MAPS.filter((m) => ['hex', 'open', 'drift', 'prepared'].includes(m.group));
     for (const m of played) expect(m.world, m.id).toBeDefined();
     expect(played.map((m) => m.id)).toContain('twin-drift');
-    expect(regolith.overConquest).toBe(REGOLITH_OVER_CONQUEST);
-    expect(regolith.ships[5].hooks).toEqual({ ...shootAbility.hooks, ...picket.hooks });
-    expect(regolith.ships[5].builtIn).toBeUndefined();
-    expect(regolith.ships[6].hooks).toEqual({ ...barrierAbility.hooks, ...picket.hooks });
-    expect(regolith.ships[6].builtIn).toBeUndefined();
-    expect([1, 2, 3, 4].map((v) => regolith.ships[v].builtIn)).toEqual(['strike', 'transport', 'warp', 'modify']);
-    expect([1, 2, 3, 4, 5, 6].map((v) => regolith.ships[v].name)).toEqual([
+    expect(regolith.overClaim).toBe(REGOLITH_OVER_CLAIM);
+    expect(regolith.mechs[5].hooks).toEqual({ ...shootAbility.hooks, ...picket.hooks });
+    expect(regolith.mechs[5].builtIn).toBeUndefined();
+    expect(regolith.mechs[6].hooks).toEqual({ ...barrierAbility.hooks, ...picket.hooks });
+    expect(regolith.mechs[6].builtIn).toBeUndefined();
+    expect([1, 2, 3, 4].map((v) => regolith.mechs[v].builtIn)).toEqual(['strike', 'transport', 'warp', 'modify']);
+    expect([1, 2, 3, 4, 5, 6].map((v) => regolith.mechs[v].name)).toEqual([
       'Breacher',
       'Behemoth',
       'Tactician',
@@ -135,7 +135,7 @@ describe('Regolith mode', () => {
       'Sniper',
       'Wisp',
     ]);
-    for (const v of [1, 2, 3, 4, 5, 6]) expect(regolith.ships[v].hooks?.stopsEnemies, `ship ${v}`).toBe(picket.hooks.stopsEnemies);
+    for (const v of [1, 2, 3, 4, 5, 6]) expect(regolith.mechs[v].hooks?.stopsEnemies, `mech ${v}`).toBe(picket.hooks.stopsEnemies);
   });
 
   it('has Basic, Regolith without its cards, as its learning game', () => {
@@ -147,7 +147,7 @@ describe('Regolith mode', () => {
     const s = scenario({ p0d0: [7, 2, 5], p1d0: [7, 4, 4], p1d1: [12, 2, 6] });
     s.mode = 'basic';
     expect(offered(s, 'ability')).toEqual([{ type: 'ability', die: 'p0d0', target: 'p1d0' }]);
-    expect(stopZone(s, 0, shipsByIndex(s))).toBeDefined();
+    expect(stopZone(s, 0, mechsByIndex(s))).toBeDefined();
   });
 
   it('uses mode-configured regular-turn actions and research cap', () => {
@@ -188,10 +188,10 @@ describe('movement cap', () => {
   });
 });
 
-describe('zones of control (Picket on every ship)', () => {
+describe('zones of control (Picket on every mech)', () => {
   const reachable = (s: GameState) => [...moveOptions(s, 'p0d0').moves.keys()];
 
-  it('stops an enemy ship next to a ship, on any of its 6 sides: it can’t move through', () => {
+  it('stops an enemy mech next to a mech, on any of its 6 sides: it can’t move through', () => {
     // Along row 7 from (7,2), (7,4) is next to the enemy at (8,4); every other way to (7,5) passes its zone too.
     const s = scenario({ p0d0: [7, 2, 3], p1d0: [8, 4, 6] });
     expect(reachable(s)).toContain('7,4');
@@ -204,12 +204,12 @@ describe('zones of control (Picket on every ship)', () => {
     expect(moveOptions(s, 'p0d0').attacks.has('p1d0')).toBe(true);
   });
 
-  it('lets a ship that starts in a zone leave, and never stops friendly ships', () => {
+  it('lets a mech that starts in a zone leave, and never stops friendly mechs', () => {
     expect(reachable(scenario({ p0d0: [7, 3, 3], p1d0: [7, 4, 6] }))).toContain('8,1');
     expect(reachable(scenario({ p0d0: [7, 2, 3], p0d1: [8, 4, 6] }))).toContain('7,5');
   });
 
-  it('every ship has a zone, and the engine refuses a move through one', () => {
+  it('every mech has a zone, and the engine refuses a move through one', () => {
     for (const v of [1, 2, 3, 4, 5, 6])
       expect(reachable(scenario({ p0d0: [7, 2, 3], p1d0: [8, 4, v] })), `enemy ${v}`).not.toContain('7,5');
     const move: Action = { type: 'move', die: 'p0d0', to: { r: 7, c: 5 } };
@@ -217,7 +217,7 @@ describe('zones of control (Picket on every ship)', () => {
     expect(tryApply(scenario({ p0d0: [7, 2, 3] }), move)).not.toBeNull();
   });
 
-  it('lets a stopped ship attack another enemy next to it, but not with no steps left', () => {
+  it('lets a stopped mech attack another enemy next to it, but not with no steps left', () => {
     // Stopped at (7,4) by p1d0's zone, with p1d1 next to it as well.
     expect([...moveOptions(scenario({ p0d0: [7, 2, 3], p1d0: [8, 4, 6], p1d1: [6, 5, 6] }), 'p0d0').attacks.keys()].sort()).toEqual([
       'p1d0',
@@ -226,7 +226,7 @@ describe('zones of control (Picket on every ship)', () => {
     expect(moveOptions(scenario({ p0d0: [7, 2, 2], p1d0: [7, 5, 6] }), 'p0d0').attacks.size).toBe(0);
   });
 
-  it('doesn’t stop a player with Devious, who may also pass through the ship', () => {
+  it('doesn’t stop a player with Devious, who may also pass through the mech', () => {
     // Devious passes (7,3), next to p1d0, and p1d0 itself for free: (7,6) is 3 steps from (7,2).
     expect(reachable(scenario({ p0d0: [7, 2, 3], p1d0: [7, 4, 6] }, ['r-devious']))).toContain('7,6');
     expect(reachable(scenario({ p0d0: [7, 2, 3], p1d0: [7, 4, 6] }))).not.toContain('7,6');
@@ -234,15 +234,15 @@ describe('zones of control (Picket on every ship)', () => {
     expect(reachable(scenario({ p0d0: [7, 2, 3], p1d0: [8, 4, 6] }))).not.toContain('7,5');
   });
 
-  it('stops a ship on a Warp Gate exit in a zone', () => {
+  it('stops a mech on an Ice Tunnel exit in a zone', () => {
     const s = scenario({ p0d0: [7, 2, 3], p1d0: [2, 6, 6] });
-    s.gates = [
+    s.tunnels = [
       { r: 7, c: 3 },
       { r: 2, c: 5 },
     ];
     expect(reachable(s)).toContain('2,5');
-    expect(reachable(s)).not.toContain('2,4'); // 3 steps only through the gate and (2,5)
-    at(s, 'p1d0').loc = { zone: 'scrapyard' };
+    expect(reachable(s)).not.toContain('2,4'); // 3 steps only through the tunnel and (2,5)
+    at(s, 'p1d0').loc = { zone: 'salvageYard' };
     expect(reachable(s)).toContain('2,4');
   });
 
@@ -285,10 +285,10 @@ describe('zones of control (Picket on every ship)', () => {
   });
 });
 
-/** Moves and attacks by a plain breadth-first search, 1 step per space, stopping in any space next to an enemy (no gates or skills). */
+/** Moves and attacks by a plain breadth-first search, 1 step per space, stopping in any space next to an enemy (no tunnels or skills). */
 function referenceReach(s: GameState, id: string) {
   const g = grid(s.board);
-  const at = shipsByIndex(s);
+  const at = mechsByIndex(s);
   const me = at.find((d) => d?.id === id)!;
   const from = at.indexOf(me);
   const zone = new Set(at.flatMap((d, i) => (d && d.owner !== me.owner ? g.ortho[i] : [])));
@@ -313,14 +313,14 @@ function referenceReach(s: GameState, id: string) {
 }
 
 describe('where an attack goes in from', () => {
-  // On Arcadia Planitia's open ground, next to no planet: a 4 at (7,5) can attack p1d0 at (7,3) from (7,4), one step
+  // On Arcadia Planitia's open ground, next to no objective: a 4 at (7,5) can attack p1d0 at (7,3) from (7,4), one step
   // away, or from (6,4) or (8,3), two away; all three are next to nothing else.
   const launches = (s: GameState) => attackLaunches(s, 'p0d0', 'p1d0').map((x) => `${x.from.r},${x.from.c}`);
   const attack = (r: number, c: number): Action => ({ type: 'attack', die: 'p0d0', target: 'p1d0', from: { r, c } });
   const open = (dice: Record<string, [number, number, number]>) => scenario(dice, [], 'open');
 
   it('offers one space for each different outcome, the nearest', () => {
-    // p0d1 at (9,3) is next to (8,3): a repelled ship there would have support.
+    // p0d1 at (9,3) is next to (8,3): a repelled mech there would have support.
     const s = open({ p0d0: [7, 5, 4], p1d0: [7, 3, 6], p0d1: [9, 3, 2] });
     expect(moveOptions(s, 'p0d0').attacks.get('p1d0')?.launches).toHaveLength(3);
     expect(launches(s)).toEqual(['7,4', '8,3']);
@@ -338,21 +338,21 @@ describe('where an attack goes in from', () => {
     expect(launches(open({ p0d0: [7, 4, 1], p1d0: [7, 3, 6] }))).toEqual(['7,4']);
   });
 
-  it('tells apart a space next to another enemy ship, which stops a ship in its zone of control', () => {
+  it('tells apart a space next to another enemy mech, which stops a mech in its zone of control', () => {
     // (6,4) is next to p1d1 as well; (7,4) and (8,3) are next to nothing else, so only the nearer is offered.
     const s = open({ p0d0: [7, 5, 4], p1d0: [7, 3, 6], p1d1: [5, 4, 6] });
     expect(launches(s)).toEqual(['7,4', '6,4']);
   });
 });
 
-describe('the way a ship flies (movePath)', () => {
+describe('the way a mech flies (movePath)', () => {
   const path = (s: GameState, r: number, c: number) => movePath(s, 'p0d0', { r, c }).map((p) => `${p.r},${p.c}`);
 
   it('goes straight when it can', () => {
     expect(path(scenario({ p0d0: [7, 2, 4] }), 7, 5)).toEqual(['7,2', '7,3', '7,4', '7,5']);
   });
 
-  it('goes round a ship in the way, one space at a time, by a shortest way', () => {
+  it('goes round a mech in the way, one space at a time, by a shortest way', () => {
     const way = path(scenario({ p0d0: [7, 2, 4], p0d1: [7, 3, 6] }), 7, 4);
     expect(way).toHaveLength(4);
     expect(way).not.toContain('7,3');
@@ -363,12 +363,12 @@ describe('the way a ship flies (movePath)', () => {
     }
   });
 
-  it('passes through enemy ships for free with Devious', () => {
+  it('passes through enemy mechs for free with Devious', () => {
     const s = scenario({ p0d0: [7, 2, 1], p1d0: [7, 3, 6], p1d1: [7, 4, 6] }, ['r-devious']);
     expect(path(s, 7, 5)).toEqual(['7,2', '7,3', '7,4', '7,5']);
   });
 
-  it('is empty where the ship can’t go, as past a zone of control', () => {
+  it('is empty where the mech can’t go, as past a zone of control', () => {
     expect(path(scenario({ p0d0: [7, 2, 3], p1d0: [8, 4, 6] }), 7, 5)).toEqual([]);
     expect(path(scenario({ p0d0: [7, 2, 3], p1d0: [8, 4, 6] }), 7, 4)).toEqual(['7,2', '7,3', '7,4']);
   });
@@ -399,17 +399,17 @@ describe('Shoot (5 Sniper)', () => {
   }
   const mine = (s: GameState, type: Action['type']) => legalActions(s).filter((a) => a.type === type && 'die' in a && a.die === 'p0d0');
 
-  it('attacks a ship 2 spaces away, and stays put when it wins', () => {
+  it('attacks a mech 2 spaces away, and stays put when it wins', () => {
     const s0 = scenario({ p0d0: [7, 2, 5], p1d0: [7, 4, 3] });
     expect(offered(s0, 'ability')).toEqual([{ type: 'ability', die: 'p0d0', target: 'p1d0' }]);
     const s = shoot(s0, 'p1d0', 1, 6);
-    expect(at(s, 'p1d0').loc.zone).toBe('scrapyard');
+    expect(at(s, 'p1d0').loc.zone).toBe('salvageYard');
     expect(at(s, 'p0d0').loc).toEqual({ zone: 'board', r: 7, c: 2 });
     expect(s.pending.some((p) => p.kind === 'advance')).toBe(false);
-    expect(s.players[0].dominance).toBeGreaterThan(BASE.regolith.players[0].dominance);
+    expect(s.players[0].power).toBeGreaterThan(BASE.regolith.players[0].power);
   });
 
-  it('is the ship’s one action: no move, attack or second shot after it', () => {
+  it('is the mech’s one action: no move, attack or second shot after it', () => {
     const s = shoot(scenario({ p0d0: [7, 2, 5], p1d0: [7, 4, 3], p1d1: [5, 2, 2] }), 'p1d0', 6, 1);
     expect(s.turn.actionsLeft).toBe(2);
     expect(mine(s, 'ability')).toEqual([]);
@@ -428,7 +428,7 @@ describe('Shoot (5 Sniper)', () => {
     expect(shots(resolved.pending.length ? apply(resolved, { type: 'advance', move: false }) : resolved)).toEqual([]);
   });
 
-  it('reaches the first ship in a clear straight line out of a side, at any distance', () => {
+  it('reaches the first mech in a clear straight line out of a side, at any distance', () => {
     const ids = (s: GameState) =>
       shootTargets(s, at(s, 'p0d0'))
         .map((d) => d.id)
@@ -437,10 +437,10 @@ describe('Shoot (5 Sniper)', () => {
     expect(ids(scenario({ p0d0: [2, 5, 5], p1d0: [7, 5, 3] }))).toEqual(['p1d0']);
   });
 
-  it('is blocked by ships, planets and the edge of the board', () => {
+  it('is blocked by mechs, objectives and the edge of the board', () => {
     expect(shots(scenario({ p0d0: [7, 2, 5], p0d1: [7, 3, 2], p1d0: [7, 4, 3] }))).toEqual([]);
     expect(shots(scenario({ p0d0: [7, 2, 5], p1d0: [7, 4, 3], p1d1: [7, 6, 2] }))).toEqual(['p1d0']); // only the first
-    expect(shots(scenario({ p0d0: [4, 2, 5], p1d0: [4, 4, 3] }))).toEqual([]); // a planet in between
+    expect(shots(scenario({ p0d0: [4, 2, 5], p1d0: [4, 4, 3] }))).toEqual([]); // an objective in between
     expect(shots(scenario({ p0d0: [7, 2, 5], p0d1: [7, 4, 3] }))).toEqual([]);
   });
 
@@ -449,15 +449,15 @@ describe('Shoot (5 Sniper)', () => {
       shootTargets(s, at(s, 'p0d0'))
         .map((d) => d.id)
         .sort();
-    // From (7,3): along +c to (7,6), along (+1,-1) to (9,1) and down to (10,3); (6,3)'s line meets a planet.
+    // From (7,3): along +c to (7,6), along (+1,-1) to (9,1) and down to (10,3); (6,3)'s line meets an objective.
     expect(ids(scenario({ p0d0: [7, 3, 5], p1d0: [7, 6, 3], p1d1: [9, 1, 2], p1d2: [10, 3, 1] }))).toEqual(['p1d0', 'p1d1', 'p1d2']);
     // (8,4) and (5,4) are hex diagonals, two hexes away between two sides.
     expect(ids(scenario({ p0d0: [7, 3, 5], p1d0: [8, 4, 3], p1d1: [5, 4, 2] }))).toEqual([]);
   });
 
-  it('flies over the void', () => {
+  it('flies over the Alien Artefacts', () => {
     const s = scenario({ p0d0: [7, 2, 5], p1d0: [7, 4, 3] });
-    s.board.cells[7][3].void = true;
+    s.board.cells[7][3].artefact = true;
     expect(shootTargets(s, at(s, 'p0d0')).map((d) => d.id)).toEqual(['p1d0']);
   });
 
@@ -528,9 +528,9 @@ describe('Barrier (6 Wisp)', () => {
     expect(cells(barrierTargets(blocked, at(blocked, 'p0d0')))).not.toContain('7,5');
   });
 
-  it('flies over a warp gate but doesn’t land on one, as Barricade’s don’t', () => {
+  it('flies over an Ice Tunnel but doesn’t land on one, as Barricade’s don’t', () => {
     const s = scenario({ p0d0: [7, 2, 6] });
-    s.gates = [
+    s.tunnels = [
       { r: 7, c: 3 },
       { r: 12, c: 2 },
     ];
@@ -543,16 +543,16 @@ describe('Barrier (6 Wisp)', () => {
   it('holds a perimeter space: nothing drops there', () => {
     // A perimeter space player 0 may drop into, and a space next to it for the Wisp to fire from.
     let found: [GameState, { r: number; c: number }] | undefined;
-    for (const p of deployTargets(scenario({}), 0))
+    for (const p of dropTargets(scenario({}), 0))
       for (const q of adjacent(BASE.regolith.board, p)) {
         const s0 = scenario({ p0d0: [q.r, q.c, 6] });
-        if (!found && s0.board.cells[q.r][q.c].kind === 'space' && cells(deployTargets(s0, 0)).includes(`${p.r},${p.c}`)) found = [s0, p];
+        if (!found && s0.board.cells[q.r][q.c].kind === 'space' && cells(dropTargets(s0, 0)).includes(`${p.r},${p.c}`)) found = [s0, p];
       }
     expect(found).toBeDefined();
     const [s0, p] = found!;
-    expect(orbitedPlanets(s0.board, p).length).toBeGreaterThan(0);
+    expect(objectivesAround(s0.board, p).length).toBeGreaterThan(0);
     const s = fire(s0, p.r, p.c);
-    expect(cells(deployTargets(s, 0))).not.toContain(`${p.r},${p.c}`);
+    expect(cells(dropTargets(s, 0))).not.toContain(`${p.r},${p.c}`);
   });
 
   it('stays for good: nothing can attack or remove it', () => {
@@ -622,219 +622,222 @@ describe('breaking barriers (on trial: RuleSet.breakBarriers)', () => {
   });
 });
 
-describe('contested orbit', () => {
-  /** p0's ships making a free planet's number in its orbit, and `enemy` (p1's ship) in another of its spaces or beside the orbit. */
-  const siege = (enemy: 'orbit' | 'outside' | 'none' = 'orbit') => {
+describe('contested perimeter', () => {
+  /** p0's mechs making a free objective's number in its perimeter, and `enemy` (p1's mech) in another of its spaces or beside the perimeter. */
+  const siege = (enemy: 'perimeter' | 'outside' | 'none' = 'perimeter') => {
     const base = BASE.regolith;
-    const planet = base.board.planets.find((q) => !q.start && !q.cubes.length)!;
-    const [a, b, c] = orbitals(base.board, planet);
-    const placed: Record<string, [number, number, number]> = { p0d0: [a.r, a.c, 6], p0d1: [b.r, b.c, planet.number - 6] };
-    if (enemy === 'orbit') placed.p1d0 = [c.r, c.c, 3];
+    const objective = base.board.objectives.find((q) => !q.start && !q.cubes.length)!;
+    const [a, b, c] = perimeterSpaces(base.board, objective);
+    const placed: Record<string, [number, number, number]> = { p0d0: [a.r, a.c, 6], p0d1: [b.r, b.c, objective.number - 6] };
+    if (enemy === 'perimeter') placed.p1d0 = [c.r, c.c, 3];
     if (enemy === 'outside') {
-      // A space next to the orbit but not in it (another planet's orbit).
+      // A space next to the perimeter but not in it (another objective's perimeter).
       const g = grid(base.board);
-      const inOrbit = (q: { r: number; c: number }) => orbitals(base.board, planet).some((o) => o.r === q.r && o.c === q.c);
-      const near = g.cells.find((q, i) => g.space[i] && !inOrbit(q) && g.orthoCells[i].some(inOrbit))!;
+      const onPerimeter = (q: { r: number; c: number }) => perimeterSpaces(base.board, objective).some((o) => o.r === q.r && o.c === q.c);
+      const near = g.cells.find((q, i) => g.space[i] && !onPerimeter(q) && g.orthoCells[i].some(onPerimeter))!;
       placed.p1d0 = [near.r, near.c, 3];
     }
-    return { s: scenario(placed), planet: planet.id };
+    return { s: scenario(placed), objective: objective.id };
   };
 
-  it('stops a conquest while an enemy ship is in orbit, though the sum is made', () => {
-    const { s, planet } = siege();
-    const check = conquerCheck(s, 0, planet);
-    expect(check).toMatchObject({ ok: false, blocked: true, sum: s.board.planets[planet].number });
-    expect(offered(s, 'conquer')).toEqual([]);
-    expect(tryApply(s, { type: 'conquer', planet })).toBeNull();
+  it('stops a claim while an enemy mech is on the perimeter, though the sum is made', () => {
+    const { s, objective } = siege();
+    const check = claimCheck(s, 0, objective);
+    expect(check).toMatchObject({ ok: false, blocked: true, sum: s.board.objectives[objective].number });
+    expect(offered(s, 'claim')).toEqual([]);
+    expect(tryApply(s, { type: 'claim', objective })).toBeNull();
   });
 
-  it('lets it go ahead once the orbit is clear, or with the enemy ship beside the orbit', () => {
+  it('lets it go ahead once the perimeter is clear, or with the enemy mech beside the perimeter', () => {
     for (const enemy of ['none', 'outside'] as const) {
-      const { s, planet } = siege(enemy);
-      expect(conquerCheck(s, 0, planet).ok, enemy).toBe(true);
-      expect(offered(s, 'conquer'), enemy).toContainEqual({ type: 'conquer', planet });
+      const { s, objective } = siege(enemy);
+      expect(claimCheck(s, 0, objective).ok, enemy).toBe(true);
+      expect(offered(s, 'claim'), enemy).toContainEqual({ type: 'claim', objective });
     }
   });
 
-  it('never blocks a player’s own ships, nor Take Over', () => {
-    const { s, planet } = siege();
-    expect(conquerCheck(s, 1, planet)).not.toMatchObject({ blocked: true });
-    expect(infamyTargets(s, 0).map((p) => p.id)).toContain(planet);
+  it('never blocks a player’s own mechs, nor Take Over', () => {
+    const { s, objective } = siege();
+    expect(claimCheck(s, 1, objective)).not.toMatchObject({ blocked: true });
+    expect(infamyTargets(s, 0).map((p) => p.id)).toContain(objective);
   });
 
   it('names the blockade when the sum is short too', () => {
-    const { s, planet } = siege();
+    const { s, objective } = siege();
     s.dice.find((d) => d.id === 'p0d1')!.value++;
-    const check = conquerCheck(s, 0, planet);
+    const check = claimCheck(s, 0, objective);
     expect(check.blocked).toBeUndefined();
     expect(check.reason).toMatch(/needs .*enemy mechs on the perimeter block it too \(3\)/);
   });
 
-  it('on off-centre maps, an enemy on a space two orbits share blocks both planets', () => {
+  it('on off-centre maps, an enemy on a space two perimeters share blocks both objectives', () => {
     for (const map of ['twin-drift']) {
       const base = quickStart(2, 1, 'regolith', map);
-      const shared = base.board.planets.flatMap((p) => orbitals(base.board, p)).find((c) => orbitedPlanets(base.board, c).length > 1)!;
-      const planets = orbitedPlanets(base.board, shared);
-      expect(planets.length, map).toBe(2);
-      for (const planet of planets) {
-        const [a, b] = orbitals(base.board, planet).filter((c) => c.r !== shared.r || c.c !== shared.c);
-        const s = arrange(base, { p0d0: [a.r, a.c, 6], p0d1: [b.r, b.c, planet.number - 6], p1d0: [shared.r, shared.c, 2] });
-        s.board.planets[planet.id].cubes = [];
-        expect(conquerCheck(s, 0, planet.id).blocked, `${map}, planet ${planet.number}`).toBe(true);
+      const shared = base.board.objectives
+        .flatMap((p) => perimeterSpaces(base.board, p))
+        .find((c) => objectivesAround(base.board, c).length > 1)!;
+      const objectives = objectivesAround(base.board, shared);
+      expect(objectives.length, map).toBe(2);
+      for (const objective of objectives) {
+        const [a, b] = perimeterSpaces(base.board, objective).filter((c) => c.r !== shared.r || c.c !== shared.c);
+        const s = arrange(base, { p0d0: [a.r, a.c, 6], p0d1: [b.r, b.c, objective.number - 6], p1d0: [shared.r, shared.c, 2] });
+        s.board.objectives[objective.id].cubes = [];
+        expect(claimCheck(s, 0, objective.id).blocked, `${map}, objective ${objective.number}`).toBe(true);
       }
     }
   });
 
-  it('blocks over-conquest too, when that is on', () => {
+  it('blocks over-claim too, when that is on', () => {
     const base = BASE.regolith;
-    const planet = base.board.planets.find((q) => !q.start && q.capacity >= 2)!;
-    const [a, b, c] = orbitals(base.board, planet);
+    const objective = base.board.objectives.find((q) => !q.start && q.capacity >= 2)!;
+    const [a, b, c] = perimeterSpaces(base.board, objective);
     const s = scenario({ p0d0: [a.r, a.c, 6], p0d1: [b.r, b.c, 6], p1d0: [c.r, c.c, 3] });
-    s.board.planets[planet.id].cubes = Array(planet.capacity).fill(1);
-    const rules = rulesOf(s) as { overConquest?: boolean };
-    const was = rules.overConquest;
-    rules.overConquest = true;
+    s.board.objectives[objective.id].cubes = Array(objective.capacity).fill(1);
+    const rules = rulesOf(s) as { overClaim?: boolean };
+    const was = rules.overClaim;
+    rules.overClaim = true;
     try {
-      expect(offered(s, 'conquer')).toEqual([]);
-      at(s, 'p1d0').loc = { zone: 'scrapyard' };
-      expect(offered(s, 'conquer')).toEqual([{ type: 'conquer', planet: planet.id, replace: 1 }]);
+      expect(offered(s, 'claim')).toEqual([]);
+      at(s, 'p1d0').loc = { zone: 'salvageYard' };
+      expect(offered(s, 'claim')).toEqual([{ type: 'claim', objective: objective.id, replace: 1 }]);
     } finally {
-      rules.overConquest = was;
+      rules.overClaim = was;
     }
   });
 });
 
-describe('deploying to a contested planet', () => {
-  const deploys = (s: GameState) => offered(s, 'deploy').map((a) => (a.type === 'deploy' ? `${a.to.r},${a.to.c}` : ''));
-  const ring = (s: GameState, planet: { id: number }) => orbitals(s.board, s.board.planets[planet.id]).map((c) => `${c.r},${c.c}`);
-  const into = (s: GameState, planet: { id: number }) => new Set(deploys(s).filter((c) => ring(s, planet).includes(c))).size;
-  /** Player 0's starting planet (its home, where there is a home shipyard). */
-  const home = () => BASE.regolith.board.planets.find((q) => q.start && q.cubes.includes(0))!;
-  /** Player 0 with a cube on a second planet away from home (sharing no orbit space with it), `ships` placed, and `enemy` in that planet's orbit. */
-  const colony = (enemy = true, ships: Record<string, [number, number, number]> = {}) => {
+describe('dropping to a contested objective', () => {
+  const drops = (s: GameState) => offered(s, 'drop').map((a) => (a.type === 'drop' ? `${a.to.r},${a.to.c}` : ''));
+  const ring = (s: GameState, objective: { id: number }) =>
+    perimeterSpaces(s.board, s.board.objectives[objective.id]).map((c) => `${c.r},${c.c}`);
+  const into = (s: GameState, objective: { id: number }) => new Set(drops(s).filter((c) => ring(s, objective).includes(c))).size;
+  /** Player 0's starting objective (its home, where there is a home objective). */
+  const home = () => BASE.regolith.board.objectives.find((q) => q.start && q.cubes.includes(0))!;
+  /** Player 0 with a cube on a second objective away from home (sharing no perimeter space with it), `mechs` placed, and `enemy` in that objective's perimeter. */
+  const colony = (enemy = true, mechs: Record<string, [number, number, number]> = {}) => {
     const base = BASE.regolith;
     const homeRing = ring(base, home());
-    const planet = base.board.planets.find((q) => !q.start && !ring(base, q).some((c) => homeRing.includes(c)))!;
-    const [a] = orbitals(base.board, planet);
-    const s = scenario(enemy ? { ...ships, p1d0: [a.r, a.c, 6] } : ships);
-    s.board.planets[planet.id].cubes = [0];
-    return { s, planet };
+    const objective = base.board.objectives.find((q) => !q.start && !ring(base, q).some((c) => homeRing.includes(c)))!;
+    const [a] = perimeterSpaces(base.board, objective);
+    const s = scenario(enemy ? { ...mechs, p1d0: [a.r, a.c, 6] } : mechs);
+    s.board.objectives[objective.id].cubes = [0];
+    return { s, objective };
   };
 
-  it('keeps a player out of the orbit of their planet while an enemy ship is in it', () => {
-    const { s, planet } = colony();
-    expect(into(s, planet)).toBe(0);
-    expect(tryApply(s, { type: 'deploy', die: 'p0d0', to: orbitals(s.board, planet)[1] })).toBeNull();
-    at(s, 'p1d0').loc = { zone: 'scrapyard' };
-    expect(into(s, planet)).toBeGreaterThan(0);
+  it('keeps a player out of the perimeter of their objective while an enemy mech is in it', () => {
+    const { s, objective } = colony();
+    expect(into(s, objective)).toBe(0);
+    expect(tryApply(s, { type: 'drop', die: 'p0d0', to: perimeterSpaces(s.board, objective)[1] })).toBeNull();
+    at(s, 'p1d0').loc = { zone: 'salvageYard' };
+    expect(into(s, objective)).toBeGreaterThan(0);
   });
 
-  it('is never stopped by a player’s own ships in orbit', () => {
+  it('is never stopped by a player’s own mechs on the perimeter', () => {
     const base = BASE.regolith;
     const homeRing = ring(base, home());
-    const planet = base.board.planets.find((q) => !q.start && !ring(base, q).some((c) => homeRing.includes(c)))!;
-    const [a] = orbitals(base.board, planet);
+    const objective = base.board.objectives.find((q) => !q.start && !ring(base, q).some((c) => homeRing.includes(c)))!;
+    const [a] = perimeterSpaces(base.board, objective);
     const { s } = colony(false, { p0d1: [a.r, a.c, 6] });
-    expect(into(s, planet)).toBeGreaterThan(0);
+    expect(into(s, objective)).toBeGreaterThan(0);
   });
 
-  it('keeps Stealthy out of a contested orbit too', () => {
+  it('keeps Stealthy out of a contested perimeter too', () => {
     const base = BASE.regolith;
-    const planet = base.board.planets.find((q) => !q.cubes.includes(0))!;
-    const [a] = orbitals(base.board, planet);
+    const objective = base.board.objectives.find((q) => !q.cubes.includes(0))!;
+    const [a] = perimeterSpaces(base.board, objective);
     const s = scenario({ p1d0: [a.r, a.c, 6] }, ['r-stealthy']);
-    expect(deployTargets(s, 0).some((c) => ring(s, planet).includes(`${c.r},${c.c}`))).toBe(false);
+    expect(dropTargets(s, 0).some((c) => ring(s, objective).includes(`${c.r},${c.c}`))).toBe(false);
   });
 
-  it('knows each player’s home: the starting planet they chose', () => {
+  it('knows each player’s home: the starting objective they chose', () => {
     const s = structuredClone(BASE.regolith);
-    const mine = homePlanet(s, 0)!;
+    const mine = homeObjective(s, 0)!;
     expect(mine.start).toBe(true);
     expect(mine.cubes).toContain(0);
-    expect(homePlanet(s, 1)).not.toBe(mine);
+    expect(homeObjective(s, 1)).not.toBe(mine);
   });
 
   describe('a home moves with the last cube on it', () => {
-    const elsewhere = (s: GameState) => s.board.planets.find((q) => !q.start && !q.cubes.length)!;
+    const elsewhere = (s: GameState) => s.board.objectives.find((q) => !q.start && !q.cubes.length)!;
 
-    it('to another of their planets when over-conquest displaces it, or nowhere', () => {
+    it('to another of their objectives when over-claim displaces it, or nowhere', () => {
       const s = structuredClone(BASE.regolith);
-      const home = homePlanet(s, 0)!.id;
+      const home = homeObjective(s, 0)!.id;
       const other = elsewhere(s).id;
-      s.board.planets[other].cubes.push(0);
-      s.board.planets[home].cubes = [];
+      s.board.objectives[other].cubes.push(0);
+      s.board.objectives[home].cubes = [];
       cubeLeft(s, 0, home);
-      expect(homePlanet(s, 0)!.id).toBe(other);
-      s.board.planets[other].cubes = [];
+      expect(homeObjective(s, 0)!.id).toBe(other);
+      s.board.objectives[other].cubes = [];
       cubeLeft(s, 0, other);
-      expect(homePlanet(s, 0)).toBeUndefined();
+      expect(homeObjective(s, 0)).toBeUndefined();
     });
   });
 
-  it('a home shipyard stays open while contested, so a player is never shut out', () => {
-    const planet = home();
-    const [a] = orbitals(BASE.regolith.board, planet);
-    // Player 0 holds only its home, its whole fleet is in the scrapyard, and an enemy sits in that orbit.
+  it('a home objective stays open while contested, so a player is never shut out', () => {
+    const objective = home();
+    const [a] = perimeterSpaces(BASE.regolith.board, objective);
+    // Player 0 holds only its home, its whole fleet is in the salvage yard, and an enemy sits in that perimeter.
     const s = scenario({ p1d0: [a.r, a.c, 6] });
-    for (const q of s.board.planets) q.cubes = q.cubes.filter((x) => x !== 0 || q.id === planet.id);
-    expect(into(s, planet)).toBe(ring(s, planet).length - 1);
+    for (const q of s.board.objectives) q.cubes = q.cubes.filter((x) => x !== 0 || q.id === objective.id);
+    expect(into(s, objective)).toBe(ring(s, objective).length - 1);
   });
 
-  it('a home shipyard doesn’t open a player’s other planets, nor a rival’s home', () => {
-    const { s, planet } = colony();
-    expect(into(s, planet)).toBe(0);
-    const theirs = homePlanet(s, 1)!;
-    expect(conquerCheck(s, 0, theirs.id).ok).toBe(false);
+  it('a home objective doesn’t open a player’s other objectives, nor a rival’s home', () => {
+    const { s, objective } = colony();
+    expect(into(s, objective)).toBe(0);
+    const theirs = homeObjective(s, 1)!;
+    expect(claimCheck(s, 0, theirs.id).ok).toBe(false);
   });
 });
 
-describe.runIf(REGOLITH_OVER_CONQUEST)('over-conquest', () => {
+describe.runIf(REGOLITH_OVER_CLAIM)('over-claim', () => {
   it('needs a sum of 12 and displaces a chosen opponent cube', () => {
     const base = scenario({});
-    const planet = base.board.planets.find((q) => q.cubes.length === 0)!;
+    const objective = base.board.objectives.find((q) => q.cubes.length === 0)!;
     const target = 12;
-    const spots = orbitals(base.board, planet);
+    const spots = perimeterSpaces(base.board, objective);
     const values: number[] = [];
     for (let left = target; left > 0; left -= values[values.length - 1]) values.push(Math.min(6, left));
     const placed: Record<string, [number, number, number]> = {};
     values.forEach((v, i) => (placed[`p0d${i}`] = [spots[i].r, spots[i].c, v]));
     const s = scenario(placed);
-    const p = s.board.planets[planet.id];
-    while (planetFreeSlots(p) > 0) p.cubes.push(1);
-    const check = conquerCheck(s, 0, p.id);
+    const p = s.board.objectives[objective.id];
+    while (objectiveFreeSlots(p) > 0) p.cubes.push(1);
+    const check = claimCheck(s, 0, p.id);
     expect(check.target).toBe(target);
     expect(check.ok).toBe(true);
     expect(check.replace).toEqual([1]);
     const before = s.players[1].cubesLeft;
-    const after = apply(s, { type: 'conquer', planet: p.id, replace: 1 });
+    const after = apply(s, { type: 'claim', objective: p.id, replace: 1 });
     expect(after.players[1].cubesLeft).toBe(before + 1);
-    expect(after.board.planets[planet.id].cubes.filter((c) => c === 0)).toHaveLength(1);
-    expect(after.board.planets[planet.id].cubes.filter((c) => c === 1)).toHaveLength(p.cubes.length - 1);
+    expect(after.board.objectives[objective.id].cubes.filter((c) => c === 0)).toHaveLength(1);
+    expect(after.board.objectives[objective.id].cubes.filter((c) => c === 1)).toHaveLength(p.cubes.length - 1);
   });
-  it('is also offered on a planet with room, next to a plain conquest', () => {
+  it('is also offered on an objective with room, next to a plain claim', () => {
     const base = scenario({});
-    const planet = base.board.planets.find((q) => q.capacity >= 2)!;
-    const spots = orbitals(base.board, planet);
+    const objective = base.board.objectives.find((q) => q.capacity >= 2)!;
+    const spots = perimeterSpaces(base.board, objective);
     const values: number[] = [];
     for (let left = 12; left > 0; left -= values[values.length - 1]) values.push(Math.min(6, left));
     const placed: Record<string, [number, number, number]> = {};
     values.forEach((v, i) => (placed[`p0d${i}`] = [spots[i].r, spots[i].c, v]));
     const s = scenario(placed);
-    const p = s.board.planets[planet.id];
+    const p = s.board.objectives[objective.id];
     p.cubes = [1];
-    expect(planetFreeSlots(p)).toBeGreaterThan(0);
-    expect(conquerCheck(s, 0, p.id).ok).toBe(false);
-    expect(conquerCheck(s, 0, p.id, true).ok).toBe(true);
-    expect(legalActions(s)).toContainEqual({ type: 'conquer', planet: p.id, replace: 1 });
-    const after = apply(s, { type: 'conquer', planet: p.id, replace: 1 });
-    expect(after.board.planets[planet.id].cubes).toEqual([0]);
+    expect(objectiveFreeSlots(p)).toBeGreaterThan(0);
+    expect(claimCheck(s, 0, p.id).ok).toBe(false);
+    expect(claimCheck(s, 0, p.id, true).ok).toBe(true);
+    expect(legalActions(s)).toContainEqual({ type: 'claim', objective: p.id, replace: 1 });
+    const after = apply(s, { type: 'claim', objective: p.id, replace: 1 });
+    expect(after.board.objectives[objective.id].cubes).toEqual([0]);
   });
 });
 
 describe('Science: Research spent to move the claim total', () => {
   const base = scenario({});
-  const planet = base.board.planets.find((q) => !q.start && !q.cubes.length && q.number > 6)!;
-  const [o1, o2] = orbitals(base.board, planet);
+  const objective = base.board.objectives.find((q) => !q.start && !q.cubes.length && q.number > 6)!;
+  const [o1, o2] = perimeterSpaces(base.board, objective);
   const short = (research: number) => {
     const s = scenario({ p0d0: [o1.r, o1.c, 6] }, ['r-pioneering']);
     s.players[0].research = research;
@@ -842,36 +845,36 @@ describe('Science: Research spent to move the claim total', () => {
   };
 
   it('adds the Research needed, and only that', () => {
-    const gap = planet.number - 6;
+    const gap = objective.number - 6;
     const s = short(6);
-    expect(conquerCheck(s, 0, planet.id)).toMatchObject({ ok: true, research: gap });
-    const after = apply(s, { type: 'conquer', planet: planet.id });
+    expect(claimCheck(s, 0, objective.id)).toMatchObject({ ok: true, research: gap });
+    const after = apply(s, { type: 'claim', objective: objective.id });
     expect(after.players[0].research).toBe(6 - gap);
     expect(after.log.at(-1)?.text).toMatch(`spending ${gap} research`);
   });
 
   it('can’t spend the die’s lowest face', () => {
-    expect(conquerCheck(short(planet.number - 6), 0, planet.id).ok).toBe(false);
-    expect(conquerCheck(short(planet.number - 5), 0, planet.id).ok).toBe(true);
+    expect(claimCheck(short(objective.number - 6), 0, objective.id).ok).toBe(false);
+    expect(claimCheck(short(objective.number - 5), 0, objective.id).ok).toBe(true);
   });
 
-  it('subtracts from an orbit over the target', () => {
+  it('subtracts from a perimeter over the target', () => {
     const s = scenario({ p0d0: [o1.r, o1.c, 6], p0d1: [o2.r, o2.c, 6] }, ['r-pioneering']);
     s.players[0].research = 6;
-    expect(conquerCheck(s, 0, planet.id)).toMatchObject({ ok: true, research: 12 - planet.number });
+    expect(claimCheck(s, 0, objective.id)).toMatchObject({ ok: true, research: 12 - objective.number });
   });
 
   it('spends nothing when the mechs make the total', () => {
-    const s = scenario({ p0d0: [o1.r, o1.c, 6], p0d1: [o2.r, o2.c, planet.number - 6] }, ['r-pioneering']);
+    const s = scenario({ p0d0: [o1.r, o1.c, 6], p0d1: [o2.r, o2.c, objective.number - 6] }, ['r-pioneering']);
     s.players[0].research = 5;
-    expect(conquerCheck(s, 0, planet.id).research).toBeUndefined();
-    expect(apply(s, { type: 'conquer', planet: planet.id }).players[0].research).toBe(5);
+    expect(claimCheck(s, 0, objective.id).research).toBeUndefined();
+    expect(apply(s, { type: 'claim', objective: objective.id }).players[0].research).toBe(5);
   });
 
   it('never stops an exact total, even with no Research at all', () => {
-    const s = scenario({ p0d0: [o1.r, o1.c, 6], p0d1: [o2.r, o2.c, planet.number - 6] }, ['r-pioneering']);
+    const s = scenario({ p0d0: [o1.r, o1.c, 6], p0d1: [o2.r, o2.c, objective.number - 6] }, ['r-pioneering']);
     s.players[0].research = 0;
-    expect(conquerCheck(s, 0, planet.id).ok).toBe(true);
+    expect(claimCheck(s, 0, objective.id).ok).toBe(true);
   });
 });
 
@@ -898,11 +901,11 @@ describe('Barricade tactic card (Regolith)', () => {
     expect(s.pending[0]).toMatchObject({ kind: 'placeBarrier', player: me, placed: [] });
     const legal = legalActions(s);
     expect(legal.every((a) => a.type === 'placeBarrier')).toBe(true);
-    // Cannot place on planets
-    const planet = s.board.planets[0];
-    expect(legal).not.toContainEqual({ type: 'placeBarrier', cell: { r: planet.r, c: planet.c } });
-    expect(() => apply(s, { type: 'placeBarrier', cell: { r: planet.r, c: planet.c } })).toThrow(/Barriers go on spaces/);
-    // Cannot place on an occupied space (ship)
+    // Cannot place on objectives
+    const objective = s.board.objectives[0];
+    expect(legal).not.toContainEqual({ type: 'placeBarrier', cell: { r: objective.r, c: objective.c } });
+    expect(() => apply(s, { type: 'placeBarrier', cell: { r: objective.r, c: objective.c } })).toThrow(/Barriers go on spaces/);
+    // Cannot place on an occupied space (mech)
     expect(legal).not.toContainEqual({ type: 'placeBarrier', cell: { r: 7, c: 2 } });
     expect(() => apply(s, { type: 'placeBarrier', cell: { r: 7, c: 2 } })).toThrow(/Barriers go on empty spaces/);
 
@@ -958,10 +961,12 @@ describe('Kinetic Shunt tactic card (Regolith)', () => {
     expect(legal.some((a) => a.type === 'kineticShunt' && a.die === 'p0d0')).toBe(true);
     expect(legal.some((a) => a.type === 'kineticShunt' && a.die === 'p1d0')).toBe(true);
 
-    // Cannot push into an occupied space or planet or non-straight line
-    const planet = s.board.planets[0];
-    expect(legal).not.toContainEqual({ type: 'kineticShunt', die: 'p0d0', to: { r: planet.r, c: planet.c } });
-    expect(() => apply(s, { type: 'kineticShunt', die: 'p0d0', to: { r: planet.r, c: planet.c } })).toThrow(/Not a valid push destination/);
+    // Cannot push into an occupied space or objective or non-straight line
+    const objective = s.board.objectives[0];
+    expect(legal).not.toContainEqual({ type: 'kineticShunt', die: 'p0d0', to: { r: objective.r, c: objective.c } });
+    expect(() => apply(s, { type: 'kineticShunt', die: 'p0d0', to: { r: objective.r, c: objective.c } })).toThrow(
+      /Not a valid push destination/,
+    );
 
     // Push p1d0 along its row: from (4,4), (4,5) is empty (+1), (4,6) (+2), (4,7) (+3) and (4,8) (+4)
     const canPushTo = shuntTargets(s, at(s, 'p1d0'));
@@ -990,25 +995,27 @@ describe('Kinetic Shunt tactic card (Regolith)', () => {
     expect(s.pending).toHaveLength(0);
   });
 
-  it('can push an enemy mech off an objective perimeter to break contested orbit', () => {
+  it('can push an enemy mech off an objective perimeter to break contested perimeter', () => {
     const base = BASE.regolith;
-    const planet = base.board.planets.find((q) => !q.start && !q.cubes.length)!;
-    const [o1, , o3] = orbitals(base.board, planet);
-    let s = scenario({ p0d0: [o1.r, o1.c, planet.number], p1d0: [o3.r, o3.c, 6] });
-    expect(conquerCheck(s, 0, planet.id).blocked).toBe(true);
-    expect(conquerCheck(s, 0, planet.id).ok).toBe(false);
+    const objective = base.board.objectives.find((q) => !q.start && !q.cubes.length)!;
+    const [o1, , o3] = perimeterSpaces(base.board, objective);
+    let s = scenario({ p0d0: [o1.r, o1.c, objective.number], p1d0: [o3.r, o3.c, 6] });
+    expect(claimCheck(s, 0, objective.id).blocked).toBe(true);
+    expect(claimCheck(s, 0, objective.id).ok).toBe(false);
 
     // Play Kinetic Shunt to shove enemy off the perimeter
     s.pending.unshift({ kind: 'kineticShunt', player: 0 });
-    const target = shuntTargets(s, at(s, 'p1d0')).find((c) => !orbitals(s.board, planet).some((p) => p.r === c.r && p.c === c.c))!;
+    const target = shuntTargets(s, at(s, 'p1d0')).find(
+      (c) => !perimeterSpaces(s.board, objective).some((p) => p.r === c.r && p.c === c.c),
+    )!;
     expect(target).toBeDefined();
 
     s = apply(s, { type: 'kineticShunt', die: 'p1d0', to: target });
     expect(at(s, 'p1d0').loc).toEqual({ zone: 'board', r: target.r, c: target.c });
 
-    // Now contested orbit is cleared and conquest is allowed!
-    expect(conquerCheck(s, 0, planet.id).blocked).toBeUndefined();
-    expect(conquerCheck(s, 0, planet.id).ok).toBe(true);
+    // Now contested perimeter is cleared and claim is allowed!
+    expect(claimCheck(s, 0, objective.id).blocked).toBeUndefined();
+    expect(claimCheck(s, 0, objective.id).ok).toBe(true);
   });
 
   it('logs "their" when pushing a friendly mech and auto-resolves when no mechs can be shunted', () => {
@@ -1020,7 +1027,7 @@ describe('Kinetic Shunt tactic card (Regolith)', () => {
     expect(s.log[s.log.length - 1].text).toMatch(/pushes their Tactician/);
 
     // If kineticShunt is pending but no mechs are on board, settle auto-resolves it
-    s.dice.forEach((d) => (d.loc = { zone: 'scrapyard' }));
+    s.dice.forEach((d) => (d.loc = { zone: 'salvageYard' }));
     s.pending.unshift({ kind: 'kineticShunt', player: 0 });
     settle(s);
     expect(s.pending.some((p) => p.kind === 'kineticShunt')).toBe(false);
@@ -1028,18 +1035,18 @@ describe('Kinetic Shunt tactic card (Regolith)', () => {
 
   it('can push mechs through an ice tunnel and out the other side', () => {
     let s = scenario({ p0d0: [7, 2, 3] });
-    const gateA = { r: 7, c: 3 };
-    const gateB = { r: 2, c: 5 };
-    s.gates = [gateA, gateB];
+    const tunnelA = { r: 7, c: 3 };
+    const tunnelB = { r: 2, c: 5 };
+    s.tunnels = [tunnelA, tunnelB];
 
-    // p0d0 is at (7,2). Pushing along the row reaches Gate A (7,3) in 1 space.
-    // Traversing to Gate B (2,5) is step 2.
-    // Continuing along the row from Gate B: (2,6) is step 3.
+    // p0d0 is at (7,2). Pushing along the row reaches Tunnel A (7,3) in 1 space.
+    // Traversing to Tunnel B (2,5) is step 2.
+    // Continuing along the row from Tunnel B: (2,6) is step 3.
     const targets = shuntTargets(s, at(s, 'p0d0'));
     expect(targets).toEqual(
       expect.arrayContaining([
-        expect.objectContaining(gateA),
-        expect.objectContaining(gateB),
+        expect.objectContaining(tunnelA),
+        expect.objectContaining(tunnelB),
         expect.objectContaining({ r: 2, c: 6 }),
         expect.objectContaining({ r: 7, c: 4 }),
       ]),
@@ -1052,19 +1059,19 @@ describe('Kinetic Shunt tactic card (Regolith)', () => {
     // In the engine's words: the UI shows it as an ice tunnel.
     expect(s.log[s.log.length - 1].text).toMatch(/pushes their Tactician.*through an ice tunnel/);
 
-    // A straight push says nothing of the gates, even with a pair on the map.
+    // A straight push says nothing of the tunnels, even with a pair on the map.
     const straight = scenario({ p0d0: [7, 2, 3] });
-    straight.gates = [gateA, gateB];
+    straight.tunnels = [tunnelA, tunnelB];
     straight.pending.unshift({ kind: 'kineticShunt', player: 0 });
     const pushed = apply(straight, { type: 'kineticShunt', die: 'p0d0', to: { r: 8, c: 2 } });
     expect(pushed.log[pushed.log.length - 1].text).not.toMatch(/ice tunnel/);
 
-    // If Gate B is blocked by an enemy mech, pushing through the tunnel is blocked
+    // If Tunnel B is blocked by an enemy mech, pushing through the tunnel is blocked
     const blocked = scenario({ p0d0: [7, 2, 3], p1d0: [2, 5, 6] });
-    blocked.gates = [gateA, gateB];
+    blocked.tunnels = [tunnelA, tunnelB];
     const blockedTargets = shuntTargets(blocked, at(blocked, 'p0d0'));
-    expect(blockedTargets).toContainEqual(expect.objectContaining(gateA));
-    expect(blockedTargets).not.toContainEqual(expect.objectContaining(gateB));
+    expect(blockedTargets).toContainEqual(expect.objectContaining(tunnelA));
+    expect(blockedTargets).not.toContainEqual(expect.objectContaining(tunnelB));
     expect(blockedTargets).not.toContainEqual(expect.objectContaining({ r: 2, c: 6 }));
   });
 
@@ -1101,7 +1108,7 @@ describe('Kinetic Shunt tactic card (Regolith)', () => {
   });
 
   it('Boxed-in mech: a mech with 0 valid shunt destinations is not in legal actions', () => {
-    // (0,5) at the top of the map: a planet below, the edge above, an enemy and a barrier at its sides.
+    // (0,5) at the top of the map: an objective below, the edge above, an enemy and a barrier at its sides.
     const s = scenario({
       p0d0: [0, 5, 3],
       p1d0: [0, 6, 6],
@@ -1137,19 +1144,19 @@ describe('Kinetic Shunt tactic card (Regolith)', () => {
 
   it('Player can shunt friendly mech onto perimeter to claim objective', () => {
     const base = quickStart(2, 10, 'regolith');
-    const planet = base.board.planets.find((q) => !q.start && !q.cubes.length)!;
-    const [o1, o2] = orbitals(base.board, planet);
+    const objective = base.board.objectives.find((q) => !q.start && !q.cubes.length)!;
+    const [o1, o2] = perimeterSpaces(base.board, objective);
 
-    const deltaR = o2.r - planet.r;
-    const deltaC = o2.c - planet.c;
+    const deltaR = o2.r - objective.r;
+    const deltaC = o2.c - objective.c;
     const startR = o2.r + deltaR * 2;
     const startC = o2.c + deltaC * 2;
 
     let s = scenario({ p0d0: [o1.r, o1.c, 5], p0d1: [startR, startC, 3] });
-    const p = s.board.planets.find((x) => x.id === planet.id)!;
+    const p = s.board.objectives.find((x) => x.id === objective.id)!;
     p.number = 8;
 
-    expect(conquerCheck(s, 0, p.id).ok).toBe(false);
+    expect(claimCheck(s, 0, p.id).ok).toBe(false);
 
     s.pending.unshift({ kind: 'kineticShunt', player: 0 });
     const targets = shuntTargets(s, at(s, 'p0d1'));
@@ -1157,7 +1164,7 @@ describe('Kinetic Shunt tactic card (Regolith)', () => {
 
     s = apply(s, { type: 'kineticShunt', die: 'p0d1', to: o2 });
     expect(at(s, 'p0d1').loc).toEqual({ zone: 'board', r: o2.r, c: o2.c });
-    expect(conquerCheck(s, 0, p.id).ok).toBe(true);
+    expect(claimCheck(s, 0, p.id).ok).toBe(true);
   });
 
   it('Patient: storing Kinetic Shunt and playing it later as stored tactic works', () => {
@@ -1178,14 +1185,14 @@ describe('Kinetic Shunt tactic card (Regolith)', () => {
     expect(s.pending).toHaveLength(0);
   });
 
-  it('Warp Gate / Ice Tunnel: starting on Gate A allows choosing any direction out of Gate B', () => {
+  it('Ice Tunnel / Ice Tunnel: starting on Tunnel A allows choosing any direction out of Tunnel B', () => {
     const s = scenario({ p0d0: [7, 3, 3] });
-    const gateA = { r: 7, c: 3 };
-    const gateB = { r: 2, c: 5 };
-    s.gates = [gateA, gateB];
+    const tunnelA = { r: 7, c: 3 };
+    const tunnelB = { r: 2, c: 5 };
+    s.tunnels = [tunnelA, tunnelB];
 
     const targets = shuntTargets(s, at(s, 'p0d0'));
-    expect(targets).toContainEqual(expect.objectContaining(gateB));
+    expect(targets).toContainEqual(expect.objectContaining(tunnelB));
     expect(targets).toContainEqual(expect.objectContaining({ r: 2, c: 6 }));
     expect(targets).toContainEqual(expect.objectContaining({ r: 2, c: 4 }));
     expect(targets).toContainEqual(expect.objectContaining({ r: 3, c: 5 }));

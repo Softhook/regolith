@@ -1,5 +1,5 @@
 import { cellOf, same, type Cell, type GameState } from '@regolith/engine';
-import { GATE_COLOR } from '../theme';
+import { TUNNEL_COLOR } from '../theme';
 import { cardsUsed, lastLogId } from './steps';
 
 /** A short effect on the map: on the space `at`, or from `at` to `to`, in a player's colour. */
@@ -11,17 +11,17 @@ export interface MapEffect {
 }
 
 /**
- * A card's mark on the map, over the plain action effects (ActionEffects): Show of Force striking a ship,
- * Warp Gates linked and the old pair closed (the board draws the gates themselves), an expansion ship
- * arriving, a fleet cloaked and unveiled, a ship number nudged (Flexible, Clever), a ship scrapped
- * (Resourceful), and the two ships Dangerous destroys. `replaces` names what the effect stands in for an action's effect on
- * (ActionEffects): a ship, or `planet:<id>` for the planet a cube was relocated to.
+ * A card's mark on the map, over the plain action effects (ActionEffects): Show of Force striking a mech,
+ * Ice Tunnels linked and the old pair closed (the board draws the tunnels themselves), an expansion mech
+ * arriving, a fleet cloaked and unveiled, a mech number nudged (Flexible, Clever), a mech scrapped
+ * (Resourceful), and the two mechs Dangerous destroys. `replaces` names what the effect stands in for an action's effect on
+ * (ActionEffects): a mech, or `objective:<id>` for the objective a cube was relocated to.
  */
 export type CardEffect = MapEffect & { replaces?: string } & (
     { kind: 'strike' | 'expansion' | 'cloak' | 'decloak' | 'implode' | 'raise' | 'lower' | 'blink' } | { kind: 'beam' | 'arc'; to: Cell }
   );
 
-const gatesKey = (g: GameState) => g.gates.map((c) => `${c.r},${c.c}`).join(' ');
+const tunnelsKey = (g: GameState) => g.tunnels.map((c) => `${c.r},${c.c}`).join(' ');
 
 /** What a card did on the map in the step from `before` to `game`, as effects. */
 export function cardEffectsOf(before: GameState, game: GameState): CardEffect[] {
@@ -31,7 +31,7 @@ export function cardEffectsOf(before: GameState, game: GameState): CardEffect[] 
   const colorOf = (p: number) => game.players[p].color;
   const was = new Map(before.dice.map((d) => [d.id, d]));
   const used = cardsUsed(before, game);
-  // Unveil the Fleet takes the player's ships off the map as it is played (a Clever choice for each
+  // Unveil the Fleet takes the player's mechs off the map as it is played (a Clever choice for each
   // may come before the unveil itself).
   const unveiling = used.has('unveil-the-fleet');
 
@@ -42,7 +42,7 @@ export function cardEffectsOf(before: GameState, game: GameState): CardEffect[] 
     const to = cellOf(d);
     const fx = { id: `${d.id}:${step}`, color: colorOf(d.owner), replaces: d.id };
     if (from && !to) {
-      // Dangerous: both ships go, joined by an arc (below).
+      // Dangerous: both mechs go, joined by an arc (below).
       if (head?.kind === 'dangerous') continue;
       if (head?.kind === 'showOfForce') out.push({ kind: 'strike', ...fx, at: from, color: colorOf(head.player) });
       else if (used.has('resourceful')) out.push({ kind: 'implode', ...fx, at: from });
@@ -68,12 +68,12 @@ export function cardEffectsOf(before: GameState, game: GameState): CardEffect[] 
     }
   }
 
-  if (game.gates.length === 2 && gatesKey(game) !== gatesKey(before)) {
-    const [a, b] = game.gates;
-    out.push({ kind: 'beam', id: `gates:${step}`, at: a, to: b, color: GATE_COLOR });
+  if (game.tunnels.length === 2 && tunnelsKey(game) !== tunnelsKey(before)) {
+    const [a, b] = game.tunnels;
+    out.push({ kind: 'beam', id: `tunnels:${step}`, at: a, to: b, color: TUNNEL_COLOR });
     // A new pair closes the old one.
-    before.gates.forEach((g, i) => {
-      if (!game.gates.some((x) => same(x, g))) out.push({ kind: 'implode', id: `gate${i}:${step}`, at: g, color: GATE_COLOR });
+    before.tunnels.forEach((g, i) => {
+      if (!game.tunnels.some((x) => same(x, g))) out.push({ kind: 'implode', id: `tunnel${i}:${step}`, at: g, color: TUNNEL_COLOR });
     });
   }
   return out;

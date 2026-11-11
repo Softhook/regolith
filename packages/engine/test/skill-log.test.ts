@@ -11,7 +11,7 @@ function game(skills: string[]): GameState {
   const me = s.turn.player;
   s = arrange(s, { [`p${me}d0`]: [0, 5, 6], [`p${1 - me}d0`]: [0, 6, 3] });
   s.players[me].skills = skills.map((id) => ({ id, active: true }));
-  s.players[me].dominance = 3;
+  s.players[me].power = 3;
   s.players[me].research = 2;
   s.turn.actionsLeft = 3;
   return s;
@@ -47,7 +47,7 @@ describe('skills firing by themselves', () => {
   it('Curious names its card on the Move or Research it pays for', () => {
     let s = game(['r-curious']);
     const me = s.turn.player;
-    for (let i = 0; i < 3; i++) s = apply(s, { type: 'reconfigure', die: `p${me}d0` });
+    for (let i = 0; i < 3; i++) s = apply(s, { type: 'refit', die: `p${me}d0` });
     const after = apply(s, { type: 'research' });
     expect(fresh(s, after).find((e) => e.card)).toEqual(expect.objectContaining({ card: 'r-curious', player: me }));
     // An action paid the usual way doesn't.

@@ -1,8 +1,8 @@
 /**
  * Plays a first move, in Chrome, on each map, including those with off-centre
- * planets (docs/HEX.md): starts a Regolith game, picks one of your ships, taps a space it can move to on the
- * map and checks the ship went there. Checks too that the map draws a well for each space, cross-hatched
- * where the engine has two orbits overlap.
+ * objectives (docs/HEX.md): starts a Regolith game, picks one of your mechs, taps a space it can move to on the
+ * map and checks the mech went there. Checks too that the map draws a well for each space, cross-hatched
+ * where the engine has two perimeters overlap.
  * Exits with 1 when a map doesn't draw, a tap misses or the page logs an error.
  *
  *   npm run hex:check                        # starts its own dev server
@@ -11,7 +11,7 @@
  * Screenshots go to test-results/hex/.
  */
 import { mkdirSync } from 'node:fs';
-import { cellOf, MAPS, orbitedPlanets, spaces, type GameState } from '../packages/engine/src';
+import { cellOf, MAPS, objectivesAround, spaces, type GameState } from '../packages/engine/src';
 import { devServer, finish, launchChrome, playUrl } from './mobile-common';
 
 const OUT = 'test-results/hex';
@@ -49,17 +49,17 @@ for (const map of MAPS) {
 
   // The spaces as drawn (MapTiles), against the engine's.
   const board = before.board;
-  const shared = spaces(board).filter((p) => orbitedPlanets(board, p).length > 1).length;
+  const shared = spaces(board).filter((p) => objectivesAround(board, p).length > 1).length;
   const drawn = await page.locator('.board-svg .well').count();
   const drawnShared = await page.locator('.board-svg .well[data-role^="shared"]').count();
   if (drawn !== spaces(board).length) problem(`${drawn} wells drawn for ${spaces(board).length} spaces`);
   if (drawnShared !== shared) problem(`${drawnShared} shared wells drawn, the engine has ${shared}`);
 
-  // One of your ships, then a space it can move to, tapped where it is drawn. The tap goes near the
+  // One of your mechs, then a space it can move to, tapped where it is drawn. The tap goes near the
   // hex's top right side, in the corner of its square box that the hex up and right of it reaches over: a space
   // whose neighbour there is highlighted too, if there is one, so a tap on the wrong one would show.
-  const ship = page.locator('.ship.own').first();
-  await ship.click();
+  const mech = page.locator('.mech.own').first();
+  await mech.click();
   const spots = await page
     .locator('.hl')
     .evaluateAll((els) => els.map((e) => ({ r: Number(e.getAttribute('data-r')), c: Number(e.getAttribute('data-c')) })));
@@ -77,7 +77,7 @@ for (const map of MAPS) {
   await page.waitForTimeout(800);
   const after = await state();
   const arrived = after.dice.some((d) => d.owner === 0 && cellOf(d)?.r === r && cellOf(d)?.c === c);
-  if (!arrived) problem(`tapped ${r},${c}: no ship of yours there`);
+  if (!arrived) problem(`tapped ${r},${c}: no mech of yours there`);
   else console.log(`  ✓ moved to ${r},${c}`);
   await page.screenshot({ path: `${OUT}/${map.id}-moved.png` });
   await page.close();

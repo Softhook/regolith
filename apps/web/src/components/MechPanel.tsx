@@ -6,7 +6,7 @@ import {
   die,
   hasSkill,
   movementRange,
-  shipOf,
+  mechOf,
   skillCard,
   type GameState,
 } from '@regolith/engine';
@@ -15,8 +15,8 @@ import type { Dispatch } from '../game/useGame';
 import { Die3D } from './Die3D';
 import { Tip } from './InfoPop';
 
-/** Actions for the selected ship: its ability, Reconfigure, and skills that act on one ship. */
-export function ShipPanel({ game, ctl, dispatch }: { game: GameState; ctl: Controller; dispatch: Dispatch }) {
+/** Actions for the selected mech: its ability, Refit, and skills that act on one mech. */
+export function MechPanel({ game, ctl, dispatch }: { game: GameState; ctl: Controller; dispatch: Dispatch }) {
   const { sel, legal } = ctl;
   if (!('die' in sel) || !ctl.actionPhase) return null;
   const d = game.dice.find((x) => x.id === sel.die);
@@ -28,12 +28,12 @@ export function ShipPanel({ game, ctl, dispatch }: { game: GameState; ctl: Contr
   const secondUse = !used && !!t.abilityUsed[d.id];
   const tacticalId = skillCard(game, me, 'tactical');
   const mine = (a: { die: string }) => a.die === d.id;
-  const ship = shipOf(game, d.value);
-  const ability = ship.ability;
+  const mech = mechOf(game, d.value);
+  const ability = mech.ability;
   // An ability with hooks and no built-in one is never "used this turn".
-  const passive = !ship.builtIn;
+  const passive = !mech.builtIn;
   const cancel = () => ctl.select({ kind: 'none' });
-  // The cards in the odds shown on the ships it may attack (the same for most targets).
+  // The cards in the odds shown on the mechs it may attack (the same for most targets).
   const factors = [
     ...new Set(
       [...ctl.attacks].flatMap(([id, a]) => {
@@ -46,7 +46,7 @@ export function ShipPanel({ game, ctl, dispatch }: { game: GameState; ctl: Contr
 
   const abilityButton = () => {
     if (!onBoard) return null;
-    if (ship.hooks?.action) {
+    if (mech.hooks?.action) {
       return (
         <button
           className="btn"
@@ -59,7 +59,7 @@ export function ShipPanel({ game, ctl, dispatch }: { game: GameState; ctl: Contr
       );
     }
     if (used) return null;
-    switch (ship.builtIn) {
+    switch (mech.builtIn) {
       case 'strike':
         return (
           <button className="btn" disabled={!legal.can('freeAttack', mine)} onClick={() => ctl.select({ kind: 'freeAttack', die: d.id })}>
@@ -106,13 +106,13 @@ export function ShipPanel({ game, ctl, dispatch }: { game: GameState; ctl: Contr
   };
 
   return (
-    <div className="ship-panel">
-      <div className="ship-panel-head">
+    <div className="mech-panel">
+      <div className="mech-panel-head">
         <Die3D value={d.value} rolls={d.rolls} size={34} color={game.players[d.owner].color} sound={false} />
         {/* On phones the ability text below is hidden: a tap on the name shows it. */}
         <Tip
           as="div"
-          className="ship-name"
+          className="mech-name"
           tip={
             <>
               <span>{`${ability.name}: ${used && !passive ? 'used this turn' : ability.text}`}</span>
@@ -120,7 +120,7 @@ export function ShipPanel({ game, ctl, dispatch }: { game: GameState; ctl: Contr
             </>
           }
         >
-          <strong>{ship.name}</strong>
+          <strong>{mech.name}</strong>
           <small>
             {onBoard ? `Moves ${movementRange(game, d)} · ${canMoveDie(game, d) ? 'ready' : 'already moved'}` : 'In salvage yard'}
           </small>
@@ -129,17 +129,17 @@ export function ShipPanel({ game, ctl, dispatch }: { game: GameState; ctl: Contr
           ×
         </button>
       </div>
-      <p className="ship-ability">
+      <p className="mech-ability">
         <b>{ability.name}</b> {used && !passive ? '— used this turn' : `— ${ability.text}`}
         {secondUse && !passive && <em className="muted"> (second use via {cardName('cunning')})</em>}
       </p>
-      {oddsNote && <p className="ship-odds-note">{oddsNote}</p>}
+      {oddsNote && <p className="mech-odds-note">{oddsNote}</p>}
       <div className="turn-actions">
         {abilityButton()}
         <button
           className="btn"
-          disabled={!legal.can('reconfigure', mine)}
-          onClick={() => dispatch({ type: 'reconfigure', die: d.id })}
+          disabled={!legal.can('refit', mine)}
+          onClick={() => dispatch({ type: 'refit', die: d.id })}
           title={'Spend 1 action to re-roll this mech to a new number.'}
         >
           {'Refit'}
@@ -158,7 +158,7 @@ export function ShipPanel({ game, ctl, dispatch }: { game: GameState; ctl: Contr
           <button
             className="btn"
             onClick={() => ctl.select({ kind: 'carryPassenger', die: d.id, tactical: true })}
-            title={`${card(tacticalId).text} The ${ship.name} may transport a mech over that 1 space.`}
+            title={`${card(tacticalId).text} The ${mech.name} may transport a mech over that 1 space.`}
             aria-label={`${cardName('tactical')} carry`}
           >
             <Label long={`${cardName('tactical')} carry`} short="Carry" />
@@ -197,7 +197,7 @@ export function ShipPanel({ game, ctl, dispatch }: { game: GameState; ctl: Contr
   );
 }
 
-/** A button's label, and a shorter one for when the selected ship's row is narrow (a phone's turn panel). */
+/** A button's label, and a shorter one for when the selected mech's row is narrow (a phone's turn panel). */
 function Label({ long, short }: { long: string; short: string }) {
   return (
     <>

@@ -1,19 +1,19 @@
 import type { CSSProperties } from 'react';
 import { drawing, key, type Board, type Cell } from '@regolith/engine';
 import type { Route } from '../../game/controller';
-import { touching as touchingSpots } from '../../game/shipSpots';
+import { touching as touchingSpots } from '../../game/mechSpots';
 import { placement } from './geometry';
 
-/** Next to each other on the map as drawn (shipSpots `touching`). */
+/** Next to each other on the map as drawn (mechSpots `touching`). */
 const touching = (board: Board, a: Cell, b: Cell) => {
   const { at } = drawing(board);
   return touchingSpots(at(a), at(b));
 };
 
 /**
- * The ways ships would fly (Controller.routes), as lines from space to space in the mover's `color`: the main one solid,
+ * The ways mechs would fly (Controller.routes), as lines from space to space in the mover's `color`: the main one solid,
  * alternatives dashed under it. An attack ends in an arrow halfway into its target's space. A line
- * breaks where the way jumps, across a joined edge or a Warp Gate. A tap on a way takes it (`onPick` its `from`).
+ * breaks where the way jumps, across a joined edge or an Ice Tunnel. A tap on a way takes it (`onPick` its `from`).
  */
 export function Routes({
   board,

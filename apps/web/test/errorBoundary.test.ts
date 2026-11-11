@@ -23,7 +23,7 @@ describe('the crash screen', () => {
   }
 
   it('says what was thrown, an Error or not', () => {
-    expect(shown(new Error('no such ship'))).toContain('no such ship');
-    expect(shown('no such planet')).toContain('no such planet');
+    expect(shown(new Error('no such mech'))).toContain('no such mech');
+    expect(shown('no such objective')).toContain('no such objective');
   });
 });

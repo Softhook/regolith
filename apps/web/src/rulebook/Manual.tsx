@@ -2,7 +2,7 @@ import type { CSSProperties, MouseEvent, ReactNode } from 'react';
 import type { CardDeck } from '@regolith/art';
 import { MODES, RULESETS } from '@regolith/engine';
 import { GAME_NAME } from '../appId';
-import { ActionHex, MissileIcon } from '../components/Card';
+import { ActionHex, AtomicIcon } from '../components/Card';
 import { PLAYER_COLORS } from '../theme';
 import {
   Arrow,
@@ -17,9 +17,9 @@ import {
   Mark,
   Note,
   Path,
-  PlanetIcon,
-  PlanetMarks,
-  Ship,
+  ObjectiveIcon,
+  ObjectiveMarks,
+  Mech,
   Tile,
   around,
   cardBackUrl,
@@ -38,15 +38,15 @@ import { MapList } from './maps';
  */
 
 const REGOLITH = RULESETS.regolith;
-const SHIPS = REGOLITH.ships;
+const MECHS = REGOLITH.mechs;
 /** How far a mech's number takes it: never more than 3 spaces. */
 const MOVE_CAP = 3;
 
 /** The manual's short form of each mech's ability; the game's tooltips keep the full text from RULESETS. */
 const ABILITY_TEXT: Record<number, string> = {
   1: 'Attack an adjacent enemy without using the mech’s normal move.',
-  2: SHIPS[2].ability.text,
-  3: SHIPS[3].ability.text,
+  2: MECHS[2].ability.text,
+  3: MECHS[3].ability.text,
   4: 'Refit to become a Tactician or a Sniper.',
   5: 'Instead of moving or attacking, it can shoot in any straight line unless blocked by an obstruction.',
   6: 'As a free ability, fire a permanent barrier onto any empty space in a straight line.',
@@ -64,7 +64,7 @@ const CARD_TYPES: [deck: CardDeck, name: string, text: string][] = [
 
 const SECTIONS: [id: string, title: string][] = [
   ['mn-goal', 'Goal'],
-  ['mn-ships', 'Mechs'],
+  ['mn-mechs', 'Mechs'],
   ['mn-map', 'Map'],
   ['mn-turn', 'Your turn'],
   ['mn-hold', 'Holding ground'],
@@ -124,7 +124,7 @@ function Action({
 }
 
 /** A 1–6 track coloured like the player panel's (Power red, Research violet), with a reward at 6. */
-function Track({ at, next, end, tone }: { at: number; next?: boolean; end: ReactNode; tone: 'dom' | 'res' }) {
+function Track({ at, next, end, tone }: { at: number; next?: boolean; end: ReactNode; tone: 'power' | 'res' }) {
   return (
     <div className={`mn-track mn-track-${tone}`}>
       {[1, 2, 3, 4, 5, 6].map((n) => (
@@ -140,13 +140,13 @@ function Track({ at, next, end, tone }: { at: number; next?: boolean; end: React
 /** One side of the combat example: mech + die = total. */
 function Side({
   role,
-  ship,
+  mech,
   die,
   total,
   win,
 }: {
   role: 'Attacker' | 'Defender';
-  ship: ReactNode;
+  mech: ReactNode;
   die: ReactNode;
   total: number;
   win?: boolean;
@@ -156,7 +156,7 @@ function Side({
       <small>{role}</small>
       <div className="mn-eq">
         <span className="mn-eq-part">
-          {ship}
+          {mech}
           <i>mech</i>
         </span>
         <b>+</b>
@@ -188,7 +188,7 @@ function PerimeterFigure() {
     <Diagram cells={flower(HERE)} scale={1.45} label="The six spaces around an objective are its perimeter.">
       <Tile id="p8-01" at={HERE} />
       <Glow cells={around(HERE)} />
-      <PlanetMarks at={HERE} n={8} />
+      <ObjectiveMarks at={HERE} n={8} />
     </Diagram>
   );
 }
@@ -203,13 +203,13 @@ function MoveFigure() {
     <Diagram cells={spaces} label="A 5 mech moves at most 3 spaces; the dots show where it can go.">
       <Tile id="p9-01" at={HERE} />
       <Tile id="p8-01" at={RIGHT} />
-      <PlanetMarks at={HERE} n={9} />
-      <PlanetMarks at={RIGHT} n={8} />
+      <ObjectiveMarks at={HERE} n={9} />
+      <ObjectiveMarks at={RIGHT} n={8} />
       <Dots cells={not(reach, [route[route.length - 1]])} />
-      <Ship at={friend} v={2} />
+      <Mech at={friend} v={2} />
       <Path cells={route} />
-      <Ship at={route[route.length - 1]} v={5} ghost />
-      <Ship at={from} v={5} />
+      <Mech at={route[route.length - 1]} v={5} ghost />
+      <Mech at={from} v={5} />
     </Diagram>
   );
 }
@@ -230,13 +230,13 @@ function ZoneFigure() {
     >
       <Tile id="p7-01" at={HERE} />
       <Tile id="p8-01" at={RIGHT} />
-      <PlanetMarks at={HERE} n={7} />
-      <PlanetMarks at={RIGHT} n={8} />
+      <ObjectiveMarks at={HERE} n={7} />
+      <ObjectiveMarks at={RIGHT} n={8} />
       <Glow cells={zone} tone="zone" />
-      <Ship at={foe} v={4} who="foe" />
+      <Mech at={foe} v={4} who="foe" />
       <Path cells={route} />
-      <Ship at={route[route.length - 1]} v={3} ghost />
-      <Ship at={route[0]} v={3} />
+      <Mech at={route[route.length - 1]} v={3} ghost />
+      <Mech at={route[0]} v={3} />
       <Mark at={[-1, 1]} ok={false} />
     </Diagram>
   );
@@ -252,10 +252,10 @@ function AttackFigure() {
   return (
     <Diagram cells={flower(HERE)} label="A 3 moves two spaces and makes its third step into an enemy mech.">
       <Tile id="p7-01" at={HERE} />
-      <PlanetMarks at={HERE} n={7} />
-      <Ship at={[0, 1]} v={5} who="foe" />
+      <ObjectiveMarks at={HERE} n={7} />
+      <Mech at={[0, 1]} v={5} who="foe" />
       <Path cells={route} attack />
-      <Ship at={route[0]} v={3} />
+      <Mech at={route[0]} v={3} />
     </Diagram>
   );
 }
@@ -272,11 +272,11 @@ function ShootFigure() {
     >
       <Tile id="p9-02" at={HERE} />
       <Tile id="blank-01" at={RIGHT} />
-      <PlanetMarks at={HERE} n={9} />
-      <Ship at={[1, 0]} v={2} who="foe" />
-      <Ship at={fire[2]} v={3} who="foe" />
+      <ObjectiveMarks at={HERE} n={9} />
+      <Mech at={[1, 0]} v={2} who="foe" />
+      <Mech at={fire[2]} v={3} who="foe" />
       <Path cells={[sniper, ...fire]} attack shot />
-      <Ship at={sniper} v={5} />
+      <Mech at={sniper} v={5} />
     </Diagram>
   );
 }
@@ -290,10 +290,10 @@ function BarrierFigure() {
     <Diagram cells={spaces} label="Your Wisp fires a barrier down a clear straight line, onto a space of the 9's perimeter.">
       <Tile id="p9-02" at={HERE} />
       <Tile id="blank-02" at={RIGHT} />
-      <PlanetMarks at={HERE} n={9} />
+      <ObjectiveMarks at={HERE} n={9} />
       <Path cells={[wisp, ...fire]} shot />
       <Barrier at={fire[1]} />
-      <Ship at={wisp} v={6} />
+      <Mech at={wisp} v={6} />
     </Diagram>
   );
 }
@@ -313,11 +313,11 @@ function ClaimTile({ after }: { after?: boolean }) {
       <Tile id="p9-01" at={HERE} />
       <Tile id="blank-01" at={BELOW} />
       {!after && <Glow cells={around(HERE)} />}
-      <PlanetMarks at={HERE} n={9} cubes={after ? ['you'] : []} />
-      <Ship at={[-1, 0]} v={6} />
-      <Ship at={[0, 1]} v={3} />
-      <Ship at={[1, 1]} v={4} who="foe" dim={!after} />
-      <Ship at={[0, 2]} v={2} dim={!after} />
+      <ObjectiveMarks at={HERE} n={9} cubes={after ? ['you'] : []} />
+      <Mech at={[-1, 0]} v={6} />
+      <Mech at={[0, 1]} v={3} />
+      <Mech at={[1, 1]} v={4} who="foe" dim={!after} />
+      <Mech at={[0, 2]} v={2} dim={!after} />
       {!after && (
         <>
           <Mark at={[-1, 0]} ok />
@@ -332,14 +332,14 @@ function ClaimTile({ after }: { after?: boolean }) {
 
 function ClaimFigure() {
   return (
-    <div className="mn-conquer">
+    <div className="mn-claim">
       <figure>
         <ClaimTile />
         <figcaption>Before</figcaption>
       </figure>
       <div className="mn-sum">
         <div className="mn-eq">
-          <DieIcon v={6} size={34} /> <b>+</b> <DieIcon v={3} size={34} /> <b>=</b> <PlanetIcon n={9} size={30} />
+          <DieIcon v={6} size={34} /> <b>+</b> <DieIcon v={3} size={34} /> <b>=</b> <ObjectiveIcon n={9} size={30} />
         </div>
         <div className="mn-eq-result mn-ok">exactly 9: claimed</div>
         <div className="mn-eq-arrow">⟶</div>
@@ -357,10 +357,10 @@ function ContestedFigure() {
     <Diagram cells={flower(HERE)} scale={1.45} label="Your 5 and 3 make 8, but the enemy 6 on the perimeter blocks the claim.">
       <Tile id="p8-01" at={HERE} />
       <Glow cells={around(HERE)} />
-      <PlanetMarks at={HERE} n={8} />
-      <Ship at={[-1, 0]} v={5} />
-      <Ship at={[1, 0]} v={3} />
-      <Ship at={[0, -1]} v={6} who="foe" />
+      <ObjectiveMarks at={HERE} n={8} />
+      <Mech at={[-1, 0]} v={5} />
+      <Mech at={[1, 0]} v={3} />
+      <Mech at={[0, -1]} v={6} who="foe" />
       <Mark at={[0, -1]} ok={false} />
     </Diagram>
   );
@@ -379,19 +379,19 @@ function DropFigure() {
       </Note>
       <DieFace x={-97} y={6} v={4} />
       <Tile id="p8-02" at={HERE} />
-      <PlanetMarks at={HERE} n={8} cubes={['you']} />
-      <Ship at={[0, -1]} v={4} ghost />
+      <ObjectiveMarks at={HERE} n={8} cubes={['you']} />
+      <Mech at={[0, -1]} v={4} ghost />
       <Arrow x1={-78} y1={-4} x2={-46} y2={-16} curve={14} />
     </Diagram>
   );
 }
 
-function PlanetSizes() {
+function ObjectiveSizes() {
   return (
     <div className="mn-sizes" role="img" aria-label="A 7 holds 1 cube, an 8 holds 2, a 9 holds 3 and a 10 holds 4.">
       {[7, 8, 9, 10].map((n) => (
         <div key={n}>
-          <PlanetIcon n={n} size={56} cubes={n === 9 ? ['foe'] : []} />
+          <ObjectiveIcon n={n} size={56} cubes={n === 9 ? ['foe'] : []} />
           <small>holds {n - 6}</small>
         </div>
       ))}
@@ -426,11 +426,11 @@ export function Manual({ dark, drawMapsWhenNear }: { dark?: boolean; drawMapsWhe
           <div className="mn-route">
             <h3>Claim an objective</h3>
             <div className="mn-route-fig">
-              <DieIcon v={5} /> <b>+</b> <DieIcon v={3} /> <b>=</b> <PlanetIcon n={8} size={28} />
+              <DieIcon v={5} /> <b>+</b> <DieIcon v={3} /> <b>=</b> <ObjectiveIcon n={8} size={28} />
             </div>
             <p>
               Stand mechs around an objective so their numbers add up <b>exactly</b> to its number, so that you can place a cube.{' '}
-              <a href="#mn-conquer" onClick={jump}>
+              <a href="#mn-claim" onClick={jump}>
                 How →
               </a>
             </p>
@@ -438,7 +438,7 @@ export function Manual({ dark, drawMapsWhenNear }: { dark?: boolean; drawMapsWhe
           <div className="mn-route">
             <h3>Take Over</h3>
             <div className="mn-route-fig">
-              <Track at={5} next tone="dom" end={<CubeIcon size={18} />} />
+              <Track at={5} next tone="power" end={<CubeIcon size={18} />} />
             </div>
             <p>
               Every fight you win raises your Power. At 6, place a cube on any objective.{' '}
@@ -451,7 +451,7 @@ export function Manual({ dark, drawMapsWhenNear }: { dark?: boolean; drawMapsWhe
       </section>
 
       {/* ---------------------------------------------------------------- mechs */}
-      <section id="mn-ships">
+      <section id="mn-mechs">
         <h2>Your mechs</h2>
         <p>
           Each die is a mech, and its number tells you <b>how strong it is in a fight</b>. <b>Lower numbers win fights.</b> It also shows
@@ -470,12 +470,12 @@ export function Manual({ dark, drawMapsWhenNear }: { dark?: boolean; drawMapsWhe
           <div className="mn-scale-bar mn-fast">faster ▶</div>
         </div>
         <p>Each mech also has an ability that can be used once per turn:</p>
-        <div className="mn-ships">
+        <div className="mn-mechs">
           {[1, 2, 3, 4, 5, 6].map((v) => (
-            <div key={v} className="mn-ship">
+            <div key={v} className="mn-mech">
               <MechKey v={v} />
               <div>
-                <span className="mn-ability">{SHIPS[v].ability.name}</span>
+                <span className="mn-ability">{MECHS[v].ability.name}</span>
                 <p>{ABILITY_TEXT[v]}</p>
               </div>
             </div>
@@ -485,14 +485,14 @@ export function Manual({ dark, drawMapsWhenNear }: { dark?: boolean; drawMapsWhe
           <figure>
             <ShootFigure />
             <figcaption>
-              <b>{SHIPS[5].ability.name}.</b> The {SHIPS[5].name} hits the first mech down a clear line. The objective blocks the line to
+              <b>{MECHS[5].ability.name}.</b> The {MECHS[5].name} hits the first mech down a clear line. The objective blocks the line to
               the other.
             </figcaption>
           </figure>
           <figure>
             <BarrierFigure />
             <figcaption>
-              <b>{SHIPS[6].ability.name}.</b> The {SHIPS[6].name}’s barrier blocks a space of the 9’s perimeter.
+              <b>{MECHS[6].ability.name}.</b> The {MECHS[6].name}’s barrier blocks a space of the 9’s perimeter.
             </figcaption>
           </figure>
         </div>
@@ -509,7 +509,7 @@ export function Manual({ dark, drawMapsWhenNear }: { dark?: boolean; drawMapsWhe
             </figcaption>
           </figure>
           <figure>
-            <PlanetSizes />
+            <ObjectiveSizes />
             <figcaption>
               <b>Bigger objectives hold more cubes</b>, one per player. You can never place more than one of your cubes on the same
               objective.
@@ -603,7 +603,7 @@ export function Manual({ dark, drawMapsWhenNear }: { dark?: boolean; drawMapsWhe
             </p>
           </Action>
 
-          <div id="mn-conquer" className="mn-action mn-wide mn-key">
+          <div id="mn-claim" className="mn-action mn-wide mn-key">
             <header>
               <h3>Claim</h3>
               <Tag>the key move</Tag>
@@ -663,9 +663,9 @@ export function Manual({ dark, drawMapsWhenNear }: { dark?: boolean; drawMapsWhe
           Both players roll a die and <b>add their mech’s number</b>. The <b>lower total wins</b>. Ties go to the attacker.
         </p>
         <div className="mn-fight">
-          <Side role="Attacker" ship={<DieIcon v={2} size={36} />} die={<DieIcon v={3} kind="atk" size={36} />} total={5} win />
+          <Side role="Attacker" mech={<DieIcon v={2} size={36} />} die={<DieIcon v={3} kind="atk" size={36} />} total={5} win />
           <div className="mn-vs">vs</div>
-          <Side role="Defender" ship={<DieIcon v={4} kind="foe" size={36} />} die={<DieIcon v={2} kind="def" size={36} />} total={6} />
+          <Side role="Defender" mech={<DieIcon v={4} kind="foe" size={36} />} die={<DieIcon v={2} kind="def" size={36} />} total={6} />
         </div>
         <p className="mn-center mn-legend">5 is lower than 6, so the attacker wins.</p>
 
@@ -679,7 +679,7 @@ export function Manual({ dark, drawMapsWhenNear }: { dark?: boolean; drawMapsWhe
               <li>
                 Attacker <b>+1 Power</b>, defender <b>−1</b>.
               </li>
-              <li>The attacker moves into the space or stays where it was. A {SHIPS[5].name} that shot always stays.</li>
+              <li>The attacker moves into the space or stays where it was. A {MECHS[5].name} that shot always stays.</li>
             </ul>
           </div>
           <div className="mn-outcome">
@@ -696,7 +696,7 @@ export function Manual({ dark, drawMapsWhenNear }: { dark?: boolean; drawMapsWhe
         <div className="mn-two">
           <div className="mn-box">
             <h3>Take Over</h3>
-            <Track at={6} tone="dom" end={<CubeIcon size={18} />} />
+            <Track at={6} tone="power" end={<CubeIcon size={18} />} />
             <p>
               When your Power reaches 6, place a cube right away on any objective with room and none of your cubes, contested or not. Then
               reset to 1. If there’s nowhere to place it, Power stays at 6.
@@ -704,8 +704,8 @@ export function Manual({ dark, drawMapsWhenNear }: { dark?: boolean; drawMapsWhe
           </div>
           <div className="mn-box">
             <h3>Atomics</h3>
-            <p className="mn-missile">
-              <MissileIcon size={28} /> <span>→</span> <DieIcon v={1} kind="atk" size={28} /> <span>or</span>{' '}
+            <p className="mn-atomic">
+              <AtomicIcon size={28} /> <span>→</span> <DieIcon v={1} kind="atk" size={28} /> <span>or</span>{' '}
               <DieIcon v={1} kind="def" size={28} />
             </p>
             <p>
@@ -724,7 +724,7 @@ export function Manual({ dark, drawMapsWhenNear }: { dark?: boolean; drawMapsWhe
         <div className="mn-two">
           <div className="mn-earn">
             <span className="mn-earn-icon">
-              <PlanetIcon n={7} size={30} />
+              <ObjectiveIcon n={7} size={30} />
             </span>
             <p>
               <b>1 card for each objective</b> you claimed this turn, Take Over included.

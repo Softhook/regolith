@@ -16,8 +16,8 @@ const withMiddle = (token: string, world: MapDef['world']): MapDef => ({
 
 describe('objectives that stand on one world', () => {
   it('lets the Mass Driver stand on Phobos with 2 cubes, and the Deep Space Array on Deimos with 3', () => {
-    expect(buildBoard(withMiddle('11', 'phobos')).planets.find((p) => p.number === 11)?.capacity).toBe(2);
-    expect(buildBoard(withMiddle('12', 'deimos')).planets.find((p) => p.number === 12)?.capacity).toBe(3);
+    expect(buildBoard(withMiddle('11', 'phobos')).objectives.find((p) => p.number === 11)?.capacity).toBe(2);
+    expect(buildBoard(withMiddle('12', 'deimos')).objectives.find((p) => p.number === 12)?.capacity).toBe(3);
   });
 
   it('keeps each off the other worlds', () => {

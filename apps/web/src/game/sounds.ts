@@ -22,17 +22,17 @@ import { lost } from './view';
 
 type Sound = keyof typeof sfx;
 
-/** A card's own sound plays first, then its effects (ships, missiles) this much later, in ms. */
+/** A card's own sound plays first, then its effects (mechs, atomics) this much later, in ms. */
 const CARD_THEN = 350;
 
 /**
- * The sound for each logged event. Ships destroyed, moved or deployed, cubes placed or moved and tracks gained are
+ * The sound for each logged event. Mechs destroyed, moved or dropped, cubes placed or moved and tracks gained are
  * heard from the state instead (see `soundsFor`), and a battle's result as it shows (`battleSounds`).
  */
 const EVENT_SOUNDS: Partial<Record<LogEvent, Sound>> = {
   victory: 'win',
   infamy: 'infamy',
-  missile: 'atomic',
+  atomic: 'atomic',
   cardTaken: 'card',
   expansion: 'launch',
   discard: 'discard',
@@ -72,7 +72,7 @@ export function soundsFor(
   const then = new Set<Sound>();
   const destroyed = destroyedOf(prev, next).length;
 
-  // Cards played resolve first; their effects (ships, missiles) follow a beat later.
+  // Cards played resolve first; their effects (mechs, atomics) follow a beat later.
   for (const e of fresh) {
     const s =
       e.event === 'cardPlayed' ? (e.card ? TACTIC_SOUNDS[effectOf(e.card) as TacticEffect] : 'card') : e.event && EVENT_SOUNDS[e.event];
@@ -80,20 +80,20 @@ export function soundsFor(
     if (s === 'infamy' && destroyed) then.add(s);
     else if (s) first.add(s === 'win' && lost(next, mine) ? 'lose' : s);
   }
-  // Cubes: placed, knocked off, or relocated (a planet's cubes changed with none placed or taken back). Heard as they drop.
+  // Cubes: placed, knocked off, or relocated (an objective's cubes changed with none placed or taken back). Heard as they drop.
   const placed = next.players.some((pl, i) => pl.cubesLeft < prev.players[i].cubesLeft);
   const displaced = next.players.some((pl, i) => pl.cubesLeft > prev.players[i].cubesLeft);
   if (placed) first.add('cube');
   if (displaced) first.add('displace');
-  const cubesOf = (s: GameState) => s.board.planets.map((p) => [...p.cubes].sort().join()).join('|');
+  const cubesOf = (s: GameState) => s.board.objectives.map((p) => [...p.cubes].sort().join()).join('|');
   if (!placed && !displaced && cubesOf(prev) !== cubesOf(next)) first.add('relocate');
 
   // With nothing to go first, the effects themselves do.
   const effects = first.size ? then : first;
 
-  // Ships: flown, arrived, destroyed, swapped or renumbered.
+  // Mechs: flown, arrived, destroyed, swapped or renumbered.
   const before = new Map(prev.dice.map((d) => [d.id, d]));
-  // A ship a card brings (Expansion, Nomadic) appears as its effect gets there (staging): heard landing
+  // A mech a card brings (Expansion, Nomadic) appears as its effect gets there (staging): heard landing
   // then, rather than flying or warping in on its own.
   const late = stagingOf(prev, next).late;
   let lands: number | undefined;
@@ -112,11 +112,11 @@ export function soundsFor(
     else if (d.value !== p.value && d.rolls === p.rolls) effects.add('retune');
   }
   const swapped = moved.some((a) => moved.some((b) => a !== b && same(a.from, b.to) && same(a.to, b.from)));
-  // Kinetic Shunt pushes a ship or a barrier: a shove, not an engine.
+  // Kinetic Shunt pushes a mech or a barrier: a shove, not an engine.
   if (prev.pending[0]?.kind === 'kineticShunt') effects.add('shunt');
   else if (swapped) effects.add('swap');
   else if (moved.length) effects.add('fly');
-  // A gate closing is under the new pair's sound.
+  // A tunnel closing is under the new pair's sound.
   for (const e of cardEffectsOf(prev, next)) {
     const s = EFFECT_SOUNDS[e.kind];
     if (s && (e.kind !== 'implode' || e.replaces)) effects.add(s);
@@ -125,13 +125,13 @@ export function soundsFor(
   // A shot: the missile's launch, flight and impact (board/Shots).
   if (shotOf(prev, next)) effects.add('shot');
 
-  if (next.players.some((pl, i) => pl.missiles > prev.players[i].missiles)) effects.add('missileLoad');
+  if (next.players.some((pl, i) => pl.atomics > prev.players[i].atomics)) effects.add('atomicLoad');
   if ((next.barriers?.length ?? 0) > (prev.barriers?.length ?? 0)) effects.add('barrier');
 
-  // The tracks, unless a louder sound already says so: a breakthrough (research), Take Over or a kill (dominance).
-  const rose = (k: 'research' | 'dominance') => next.players.some((pl, i) => pl[k] > prev.players[i][k]);
+  // The tracks, unless a louder sound already says so: a breakthrough (research), Take Over or a kill (power).
+  const rose = (k: 'research' | 'power') => next.players.some((pl, i) => pl[k] > prev.players[i][k]);
   if (rose('research') && !first.has('breakthrough')) effects.add('research');
-  if (rose('dominance') && !destroyed && !first.has('infamy')) effects.add('dominance');
+  if (rose('power') && !destroyed && !first.has('infamy')) effects.add('power');
 
   // Once-per-turn skills used this step, or a skill disabled by Ruthless.
   const sameTurn = prev.turn.number === next.turn.number && prev.turn.player === next.turn.player;
@@ -168,9 +168,9 @@ export function playBattleResult(combat: CombatPending, out: CombatOutcome, mine
 /** Plays what the step from `prev` to `next` sounds like. */
 export function playSounds(prev: GameState, next: GameState, mine: (p: PlayerId) => boolean) {
   const { first, then, destroyed, lands } = soundsFor(prev, next, logSince(prev, next), mine);
-  // Under reduced motion the staging has none of a card's effects wait: ships go and come at once, heard so.
+  // Under reduced motion the staging has none of a card's effects wait: mechs go and come at once, heard so.
   const still = reducedMotion();
-  // Ships a card's blow destroys (Show of Force, Dangerous) blow up as it lands, heard as seen (Explosions).
+  // Mechs a card's blow destroys (Show of Force, Dangerous) blow up as it lands, heard as seen (Explosions).
   const strike = still ? 0 : strikeOf(prev);
   const timed: Partial<Record<Sound, () => void>> = {
     explode: () => sfx.explode(destroyed, strike),
@@ -180,7 +180,7 @@ export function playSounds(prev: GameState, next: GameState, mine: (p: PlayerId)
   };
   const play = (s: Sound) => (timed[s] ?? sfx[s])();
   first.forEach(play);
-  // A ship a card brings lands as it appears, whatever the card's own sound.
+  // A mech a card brings lands as it appears, whatever the card's own sound.
   if (lands !== undefined) sfx.warpIn(still ? undefined : lands);
   if (then.length) window.setTimeout(() => then.forEach(play), CARD_THEN);
 }

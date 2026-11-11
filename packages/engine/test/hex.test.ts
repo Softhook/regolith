@@ -12,7 +12,7 @@ import {
   carryPassengers,
   checkInvariants,
   cellAtPoint,
-  conquerCheck,
+  claimCheck,
   createGame,
   effectOf,
   distance,
@@ -20,7 +20,7 @@ import {
   grid,
   mapStats,
   moveOptions,
-  orbitals,
+  perimeterSpaces,
   same,
   startingGround,
   spaces,
@@ -30,24 +30,24 @@ import {
 } from '../src';
 import { playAiGame, players, quickStart } from './helpers';
 
-// The basic maps on hex tiles; the drift maps (offset.test.ts) put their planets off the middle.
+// The basic maps on hex tiles; the drift maps (offset.test.ts) put their objectives off the middle.
 const HEX_MAPS = MAPS.filter((m) => m.group === 'hex');
 /** The basic maps on hex tiles (the hex group's others adapt advanced maps). */
 const BASIC_HEX = HEX_MAPS.filter((m) => ['alpha-hex', 'beta-hex', 'gamma-hex'].includes(m.id));
 const BASE = quickStart(2, 1, 'basic', 'alpha-hex');
-/** Alpha Sector (hex)'s middle planet, the 8: every other tile is next to it but the two starts. */
-const CENTRE = BASE.board.planets.find((p) => p.number === 8)!;
+/** Alpha Sector (hex)'s middle objective, the 8: every other tile is next to it but the two starts. */
+const CENTRE = BASE.board.objectives.find((p) => p.number === 8)!;
 
-/** Player 0 to act with 3 fresh actions, only the listed ships on the map, at [cell, value]. */
+/** Player 0 to act with 3 fresh actions, only the listed mechs on the map, at [cell, value]. */
 function scenario(dice: Record<string, [Cell, number]>): GameState {
   const s = structuredClone(BASE);
-  for (const d of s.dice) if (d.loc.zone === 'board') d.loc = { zone: 'scrapyard' };
+  for (const d of s.dice) if (d.loc.zone === 'board') d.loc = { zone: 'salvageYard' };
   for (const [id, [cell, value]] of Object.entries(dice)) {
     const d = s.dice.find((x) => x.id === id)!;
     d.loc = { zone: 'board', ...cell };
     d.value = value;
   }
-  s.turn = { ...s.turn, player: 0, phase: 'actions', actionsLeft: 3, moved: {}, abilityUsed: {}, seen: {}, conquests: 0, oncePerTurn: [] };
+  s.turn = { ...s.turn, player: 0, phase: 'actions', actionsLeft: 3, moved: {}, abilityUsed: {}, seen: {}, claims: 0, oncePerTurn: [] };
   for (const d of s.dice) s.turn.seen[d.id] = [d.value];
   return s;
 }
@@ -59,34 +59,34 @@ describe('hex maps', () => {
     for (const m of BASIC_HEX) expect(mapStats(m)).toEqual(m.stats);
   });
 
-  it('are built of 7-hex tiles: each planet with its 6 orbital spaces, the planets of touching tiles 3 apart', () => {
+  it('are built of 7-hex tiles: each objective with its 6 perimeter spaces, the objectives of touching tiles 3 apart', () => {
     for (const m of MAPS.filter((x) => x.group !== 'drift')) {
       const b = buildBoard(m);
-      for (const p of b.planets) {
-        expect(orbitals(b, p)).toHaveLength(6);
-        // Each orbital space is next to its own planet only.
-        for (const q of orbitals(b, p)) expect(b.planets.filter((x) => distance(x, q) === 1)).toEqual([p]);
+      for (const p of b.objectives) {
+        expect(perimeterSpaces(b, p)).toHaveLength(6);
+        // Each perimeter space is next to its own objective only.
+        for (const q of perimeterSpaces(b, p)) expect(b.objectives.filter((x) => distance(x, q) === 1)).toEqual([p]);
       }
-      // A void or blank tile is 7 spaces and no planet.
+      // A void or blank tile is 7 spaces and no objective.
       const empty = m.layout.flat().filter((t) => t === '0' || t === '-').length;
-      expect(spaces(b)).toHaveLength(b.planets.length * 6 + empty * 7);
+      expect(spaces(b)).toHaveLength(b.objectives.length * 6 + empty * 7);
     }
     const b = BASE.board;
-    expect(b.planets.filter((p) => distance(p, CENTRE) === 3)).toHaveLength(6);
+    expect(b.objectives.filter((p) => distance(p, CENTRE) === 3)).toHaveLength(6);
   });
 
-  it('finds each tile’s middle: its planet', () => {
+  it('finds each tile’s middle: its objective', () => {
     for (const m of HEX_MAPS) {
       const b = buildBoard(m);
       const centres = tileCentres(b);
       expect(centres.size).toBe(new Set(b.cells.flat().flatMap((x) => (x.kind === 'off' ? [] : [x.tile]))).size);
-      for (const p of b.planets) expect(centres.get(b.cells[p.r][p.c].tile)).toEqual({ r: p.r, c: p.c });
+      for (const p of b.objectives) expect(centres.get(b.cells[p.r][p.c].tile)).toEqual({ r: p.r, c: p.c });
     }
   });
 
   it('measures distance in hexes', () => {
     const b = BASE.board;
-    const p = orbitals(b, CENTRE)[0];
+    const p = perimeterSpaces(b, CENTRE)[0];
     for (const q of adjacent(b, p)) expect(distance(p, q)).toBe(1);
     expect(adjacent(b, CENTRE)).toHaveLength(6);
     // Two steps straight on, or a diagonal: both 2 away.
@@ -129,7 +129,7 @@ describe('hex maps', () => {
       // A map's own Ice Tunnel and wormhole join the islands it has.
       const ground = startingGround(m);
       const via = (p: Cell) =>
-        [ground.gates, ground.wormhole].flatMap(([g1, g2]) => (g1 && same(p, g1) ? [g2] : g2 && same(p, g2) ? [g1] : []));
+        [ground.tunnels, ground.wormhole].flatMap(([g1, g2]) => (g1 && same(p, g1) ? [g2] : g2 && same(p, g2) ? [g1] : []));
       for (const queue = [all[0]]; queue.length;)
         for (const q of [...adjacent(b, queue[queue.length - 1]), ...via(queue.pop()!)]) {
           if (b.cells[q.r][q.c].kind !== 'space' || seen.has(`${q.r},${q.c}`)) continue;
@@ -140,35 +140,35 @@ describe('hex maps', () => {
     }
   });
 
-  it('moves a ship across hexes, up to its number', () => {
-    const from = orbitals(BASE.board, CENTRE)[0];
+  it('moves a mech across hexes, up to its number', () => {
+    const from = perimeterSpaces(BASE.board, CENTRE)[0];
     const s = scenario({ p0d0: [from, 1] });
     const moves = [...moveOptions(s, 'p0d0').moves.values()].map((m) => m.cell);
-    // Next to the planet, a Battlestation (moves 1) has the 5 spaces around it that aren't the planet.
+    // Next to the objective, a Battlestation (moves 1) has the 5 spaces around it that aren't the objective.
     expect(moves).toHaveLength(5);
     for (const q of moves) expect(distance(from, q)).toBe(1);
     const s3 = scenario({ p0d0: [from, 3] });
     for (const m of moveOptions(s3, 'p0d0').moves.values()) expect(distance(from, m.cell)).toBeLessThanOrEqual(3);
   });
 
-  it('counts ships on any of a planet’s six orbital hexes towards a conquest', () => {
-    const [, , a, b, c, d] = orbitals(BASE.board, CENTRE);
+  it('counts mechs on any of an objective’s six perimeter hexes towards a claim', () => {
+    const [, , a, b, c, d] = perimeterSpaces(BASE.board, CENTRE);
     const s = scenario({ p0d0: [a, 1], p0d1: [b, 1], p0d2: [c, 2], p0d3: [d, 4] });
-    expect(conquerCheck(s, 0, CENTRE.id)).toMatchObject({ ok: true, sum: 8 });
-    const after = apply(s, { type: 'conquer', planet: CENTRE.id });
-    expect(after.board.planets[CENTRE.id].cubes).toContain(0);
+    expect(claimCheck(s, 0, CENTRE.id)).toMatchObject({ ok: true, sum: 8 });
+    const after = apply(s, { type: 'claim', objective: CENTRE.id });
+    expect(after.board.objectives[CENTRE.id].cubes).toContain(0);
   });
 
-  it('carries only ships on the six touching hexes, not ones further off', () => {
+  it('carries only mechs on the six touching hexes, not ones further off', () => {
     const b = BASE.board;
-    const from = orbitals(b, CENTRE)[0];
+    const from = perimeterSpaces(b, CENTRE)[0];
     const side = adjacent(b, from).find((q) => b.cells[q.r][q.c].kind === 'space')!;
     const diagonal = spaces(b).find((q) => distance(from, q) === 2)!;
     expect(carryPassengers(scenario({ p0d0: [from, 2], p0d1: [side, 3] }), 'p0d0').map((d) => d.id)).toEqual(['p0d1']);
     expect(carryPassengers(scenario({ p0d0: [from, 2], p0d1: [diagonal, 3] }), 'p0d0')).toEqual([]);
   });
 
-  it('leaves Ingenious (conquer from the corners) out of the deck, as hex tiles have no corners', () => {
+  it('leaves Ingenious (claim from the corners) out of the deck, as hex tiles have no corners', () => {
     const cards = (mapId: string) => {
       const s = createGame({ players: players(2), seed: 1, mode: 'regolith', mapId });
       expect(checkInvariants(s)).toEqual([]);

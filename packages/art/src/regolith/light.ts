@@ -233,7 +233,7 @@ export function built(r: Rng, area: Box, world: World): string {
     '<feComposite in="spec" in2="SMOOTH" operator="in" result="specM"/>' +
     '<feComposite in="lit" in2="specM" operator="arithmetic" k2="1" k3="0.6" result="lit2"/>' +
     // Shadowed where something taller stands towards the light, as long as the ground's cast ones (on Mars a
-    // height of 1 throws 42), so a ship's falls across its pad and a tank's across its deck.
+    // height of 1 throws 42), so a mech's falls across its pad and a tank's across its deck.
     shadow(
       'H',
       [1, 2, 3.5, 5, 7, 9.5, 12.5, 16].map((d) => [d * length, -d / 42]),

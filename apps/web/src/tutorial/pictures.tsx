@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useRef, useState, type ReactNode } from 'react';
-import { ActionHex, MissileIcon } from '../components/Card';
+import { ActionHex, AtomicIcon } from '../components/Card';
 import {
   Arrow,
   CubeIcon,
@@ -10,9 +10,9 @@ import {
   Glow,
   Note,
   Path,
-  PlanetIcon,
-  PlanetMarks,
-  Ship,
+  ObjectiveIcon,
+  ObjectiveMarks,
+  Mech,
   Tile,
   around,
   flower,
@@ -123,8 +123,8 @@ const SPACES = picture(
     <Diagram cells={flower(HERE)} scale={2.1} label="A map of hexagon spaces, with a mech on some of them.">
       <Tile id="blank-01" at={HERE} />
       <Glow cells={flower(HERE)} tone="plain" />
-      {s >= 1 && <Ship at={at(0, -1)} v={5} />}
-      {s >= 2 && <Ship at={at(0, 1)} v={3} />}
+      {s >= 1 && <Mech at={at(0, -1)} v={5} />}
+      {s >= 2 && <Mech at={at(0, 1)} v={3} />}
     </Diagram>
   ),
 );
@@ -148,7 +148,7 @@ const OBJECTIVE = picture(
         const on = s === 0 || s === 5 || s === n - 6;
         return (
           <div key={n} className={on ? 'on' : 'off'}>
-            <PlanetIcon n={n} size={80} />
+            <ObjectiveIcon n={n} size={80} />
             <span className="mn-spaces">
               {Array.from({ length: n - 6 }, (_, i) => (
                 <CubeIcon key={i} size={18} empty />
@@ -173,7 +173,7 @@ const PERIMETER = picture(
     <Diagram cells={flower(HERE)} scale={2.6} label="An 8, and the six spaces around it, its perimeter.">
       <Tile id="p8-01" at={HERE} />
       <Glow cells={RING.slice(0, Math.min(s, 6))} />
-      <PlanetMarks at={HERE} n={8} />
+      <ObjectiveMarks at={HERE} n={8} />
     </Diagram>
   ),
 );
@@ -199,9 +199,9 @@ const HOME = picture(
       <Diagram cells={TWO_TILES} scale={2.1} label="Two home objectives, each with its player's cube and 3 mechs.">
         <Tile id="p7-01" at={HERE} />
         <Tile id="p7-01" at={RIGHT} />
-        <PlanetMarks at={HERE} n={7} cubes={s >= 1 ? ['you'] : []} />
-        <PlanetMarks at={RIGHT} n={7} cubes={s >= 1 ? ['foe'] : []} />
-        {s >= 1 && HOME_MECHS.map(([p, v, who]) => <Ship key={p.join()} at={p} v={v} who={who} />)}
+        <ObjectiveMarks at={HERE} n={7} cubes={s >= 1 ? ['you'] : []} />
+        <ObjectiveMarks at={RIGHT} n={7} cubes={s >= 1 ? ['foe'] : []} />
+        {s >= 1 && HOME_MECHS.map(([p, v, who]) => <Mech key={p.join()} at={p} v={v} who={who} />)}
       </Diagram>
       {/* However many cubes the map gives: one placed, the rest to go. */}
       <div className={s >= 2 ? 'mn-tray on' : 'mn-tray'} aria-label="Your cubes: one placed, the rest to go">
@@ -306,12 +306,12 @@ const REACH = picture(
         {s < 3 && <Dots cells={within(s + 1).filter((p) => p[0] || p[1])} />}
         {walked > 0 && (
           <>
-            <Ship at={HERE} v={v} ghost />
+            <Mech at={HERE} v={v} ghost />
             <Dots cells={WALK.slice(walked + 1)} />
             <Path cells={WALK.slice(0, walked + 1)} />
           </>
         )}
-        <Ship at={WALK[walked]} v={v} />
+        <Mech at={WALK[walked]} v={v} />
       </Diagram>
     );
   },
@@ -354,9 +354,9 @@ const SUM = picture(
         <Diagram cells={flower(HERE)} scale={2.3} label="A 9 and the mechs on its perimeter.">
           <Tile id="p9-01" at={HERE} />
           <Glow cells={RING} />
-          <PlanetMarks at={HERE} n={9} cubes={claimed ? ['you'] : []} />
+          <ObjectiveMarks at={HERE} n={9} cubes={claimed ? ['you'] : []} />
           {mine.map(([p, v]) => (
-            <Ship key={p.join()} at={p} v={v} />
+            <Mech key={p.join()} at={p} v={v} />
           ))}
         </Diagram>
         <div className="mn-sum-eq">
@@ -371,7 +371,7 @@ const SUM = picture(
             <b>=</b>
             <span className={result ? (result.ok ? 'mn-total win' : 'mn-total no') : 'mn-total'}>{total}</span>
             <b>needs</b>
-            <PlanetIcon n={9} size={34} />
+            <ObjectiveIcon n={9} size={34} />
           </div>
           <div className={result ? (result.ok ? 'mn-eq-result mn-ok' : 'mn-eq-result mn-no') : 'mn-eq-result'}>{result?.text ?? ' '}</div>
         </div>
@@ -454,7 +454,7 @@ const FIGHT = picture(
           <FightSide role="Defender" roll={f.d} win={f.win === 'd'} lose={f.win === 'a'} />
         </div>
         <div className={f.atomic ? 'mn-atomic on' : 'mn-atomic'}>
-          <MissileIcon size={26} /> <span>Atomic</span>
+          <AtomicIcon size={26} /> <span>Atomic</span>
         </div>
       </div>
     );
@@ -488,11 +488,11 @@ const OUTCOME = picture(
       <Tile id="blank-01" at={HERE} />
       {/* The destroyed 4, re-rolled: it waits in the yard as a 1. */}
       {s >= 1 && <DieFace x={-97} y={6} v={1} kind="foe" />}
-      {s === 0 && <Ship at={HERE} v={4} who="foe" />}
+      {s === 0 && <Mech at={HERE} v={4} who="foe" />}
       {s === 0 && <Path cells={[FROM, HERE]} attack />}
-      {s >= 3 && <Ship at={NEXT} v={6} who="foe" />}
+      {s >= 3 && <Mech at={NEXT} v={6} who="foe" />}
       {s === 3 && <Path cells={[HERE, NEXT]} attack />}
-      <Ship at={s >= 2 ? HERE : FROM} v={2} />
+      <Mech at={s >= 2 ? HERE : FROM} v={2} />
     </Diagram>
   ),
 );
@@ -514,10 +514,10 @@ const ZONE_SCENE = picture(
     <Diagram cells={GROUND} scale={2.1} label="A mech that moves next to an enemy must stop there, and can still attack it.">
       <Glow cells={GROUND} tone="plain" />
       <Glow cells={RING} tone="zone" />
-      <Ship at={HERE} v={4} who="foe" />
+      <Mech at={HERE} v={4} who="foe" />
       {s === 1 && <Path cells={ZONE_ROUTE} />}
       {s === 3 && <Path cells={[ZONE_ROUTE[1], HERE]} attack />}
-      <Ship at={s >= 2 ? ZONE_ROUTE[1] : ZONE_ROUTE[0]} v={3} />
+      <Mech at={s >= 2 ? ZONE_ROUTE[1] : ZONE_ROUTE[0]} v={3} />
     </Diagram>
   ),
 );
@@ -533,11 +533,11 @@ const CONTESTED = picture(
     <Diagram cells={flower(HERE)} scale={2.6} label="Your 5 and 3 make 8, but an enemy 6 on the perimeter blocks the claim.">
       <Tile id="p8-01" at={HERE} />
       <Glow cells={RING} />
-      <PlanetMarks at={HERE} n={8} cubes={s === 3 ? ['you'] : []} />
-      {s >= 1 && s <= 2 && <Ship at={at(0, -1)} v={6} who="foe" />}
+      <ObjectiveMarks at={HERE} n={8} cubes={s === 3 ? ['you'] : []} />
+      {s >= 1 && s <= 2 && <Mech at={at(0, -1)} v={6} who="foe" />}
       {s === 2 && <Path cells={[at(-1, 0), at(0, -1)]} attack />}
-      <Ship at={at(-1, 0)} v={5} />
-      <Ship at={at(1, 0)} v={3} />
+      <Mech at={at(-1, 0)} v={5} />
+      <Mech at={at(1, 0)} v={3} />
     </Diagram>
   ),
 );
@@ -561,15 +561,15 @@ const DROP = picture(
       {OUT_YARD}
       <Tile id="p8-02" at={HERE} />
       <Glow cells={s === 1 ? RING : []} />
-      <PlanetMarks at={HERE} n={8} cubes={['you']} />
+      <ObjectiveMarks at={HERE} n={8} cubes={['you']} />
       {s < 2 && <DieFace x={-97} y={6} v={4} />}
       {s === 1 && (
         <>
-          <Ship at={at(0, -1)} v={4} ghost />
+          <Mech at={at(0, -1)} v={4} ghost />
           <Arrow x1={-78} y1={-4} x2={-46} y2={-16} curve={14} />
         </>
       )}
-      {s >= 2 && <Ship at={at(0, -1)} v={4} />}
+      {s >= 2 && <Mech at={at(0, -1)} v={4} />}
     </Diagram>
   ),
 );
@@ -612,7 +612,7 @@ const POWER = picture(
     return (
       <div className="mn-powerscene">
         <small>Power</small>
-        <div className="mn-track mn-track-dom" role="img" aria-label={`Power ${power} of 6`}>
+        <div className="mn-track mn-track-power" role="img" aria-label={`Power ${power} of 6`}>
           {[1, 2, 3, 4, 5, 6].map((n) => (
             <span key={n} className={n <= power ? 'on' : ''}>
               {n}
@@ -623,7 +623,7 @@ const POWER = picture(
           </span>
         </div>
         <div className="mn-power-target">
-          <PlanetIcon n={9} size={74} cubes={s >= 9 ? ['you'] : []} />
+          <ObjectiveIcon n={9} size={74} cubes={s >= 9 ? ['you'] : []} />
           <small>{s >= 9 ? 'placed, free' : 'any objective'}</small>
         </div>
       </div>

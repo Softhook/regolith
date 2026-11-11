@@ -9,10 +9,10 @@
  * Uses the installed Google Chrome (launchChrome). Games start from the dev-only `?play=` link
  * (playUrl), so `--url` must be a dev server.
  * Screenshots go to test-results/mobile/ (the game, each setup popup as `-popupN`, and your first turn
- * with a ship selected as `-turn`). Exits with 1 when a layout is broken: the board wider or taller
+ * with a mech selected as `-turn`). Exits with 1 when a layout is broken: the board wider or taller
  * than its stage, a page wider than the screen (the phone then zooms the page out), a setup popup
  * whose buttons or cards are off screen without scrolling, or something you'd have to scroll to (or
- * that is covered) while placing your ships or on your turn, or the turn bar over the board.
+ * that is covered) while placing your mechs or on your turn, or the turn bar over the board.
  * Then each device opens the in-game popups (`-combat`, `-combatFull`, `-changeOfHeart`, `-over`, `-rules`, see
  * POPUPS): the popup must fit the screen, and its buttons must be on screen without scrolling inside
  * it (Change of Heart and the rules scroll their content, so only their heading and × must show).
@@ -80,7 +80,7 @@ function unreachable(page: Page, sel: string): Promise<string[]> {
     return [...document.querySelectorAll(sel)].flatMap((el) => {
       const r = el.getBoundingClientRect();
       if (!r.width) return []; // not shown at this size
-      const label = (el.getAttribute('aria-label') ?? el.textContent ?? '').trim() || 'ship';
+      const label = (el.getAttribute('aria-label') ?? el.textContent ?? '').trim() || 'mech';
       if (r.top < -1 || r.left < -1 || r.bottom > innerHeight + 1 || r.right > innerWidth + 1) return [`"${label}" off screen`];
       const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
       return hit && (el.closest('.panel') ?? el).contains(hit) ? [] : [`"${label}" covered by ${hit?.className}`];
@@ -99,24 +99,24 @@ async function unreachableOnceSettled(page: Page, sel: string): Promise<string[]
 }
 
 /**
- * Plays the human's setup (start planet, ship placement) and waits through the AI until it's the human's
- * turn, then selects a ship. Checks the ships to place and, at the turn, End turn and the ship's buttons.
+ * Plays the human's setup (start objective, mech placement) and waits through the AI until it's the human's
+ * turn, then selects a mech. Checks the mechs to place and, at the turn, End turn and the mech's buttons.
  */
 async function playToMyTurn(page: Page) {
   const issues: string[] = [];
-  let deployChecked = false;
+  let dropChecked = false;
   let myTurn = false;
   // The AI players' opening turns: about a minute here, but GitHub's runner shares 4 cores between every device's
   // browser and AI, so it gets four.
   const tries = process.env.CI ? 600 : 150;
   for (let i = 0; i < tries && !myTurn; i++) {
     await page.waitForTimeout(400);
-    if (!deployChecked && (await page.locator('.turn-scrap .scrap-die.clickable').count())) {
-      deployChecked = true;
-      // The turn bar's scrapyard below 980px, the player list's on the desktop layout (the sidebar may scroll there).
-      if (await page.locator('.turn-scrap').isVisible()) {
-        const hidden = await unreachableOnceSettled(page, '.turn-scrap .scrap-die.clickable');
-        issues.push(...hidden.map((t) => `placing ships: ${t}`));
+    if (!dropChecked && (await page.locator('.turn-salvage .salvage-die.clickable').count())) {
+      dropChecked = true;
+      // The turn bar's salvage yard below 980px, the player list's on the desktop layout (the sidebar may scroll there).
+      if (await page.locator('.turn-salvage').isVisible()) {
+        const hidden = await unreachableOnceSettled(page, '.turn-salvage .salvage-die.clickable');
+        issues.push(...hidden.map((t) => `placing mechs: ${t}`));
       }
     }
     const step = await page.evaluate(() => {
@@ -130,26 +130,26 @@ async function playToMyTurn(page: Page) {
       }
       if (document.querySelector('.turn-actions .btn-primary:not([disabled])')) return 'mine';
       const target =
-        document.querySelector('.planet-start, .planet-conquer, .planet-infamy') ??
+        document.querySelector('.objective-start, .objective-claim, .objective-infamy') ??
         document.querySelector('.hl') ??
-        document.querySelector('.turn-scrap .scrap-die.clickable');
+        document.querySelector('.turn-salvage .salvage-die.clickable');
       (target as HTMLElement | null)?.click();
       return 'wait';
     });
     myTurn = step === 'mine';
   }
-  if (!myTurn) return { issues, deployChecked, myTurn };
-  // Where the selected ship is a row in the turn panel (below 980px), each of your ships and its actions must fit
+  if (!myTurn) return { issues, dropChecked, myTurn };
+  // Where the selected mech is a row in the turn panel (below 980px), each of your mechs and its actions must fit
   // that one row, without wrapping or scrolling the buttons (the name may be cut short).
-  const ownShips = await page.locator('.ship.own').count();
-  for (let i = 0; i < ownShips; i++) {
-    await page.evaluate((i) => (document.querySelectorAll('.ship.own')[i] as HTMLElement).click(), i);
+  const ownMechs = await page.locator('.mech.own').count();
+  for (let i = 0; i < ownMechs; i++) {
+    await page.evaluate((i) => (document.querySelectorAll('.mech.own')[i] as HTMLElement).click(), i);
     await page.waitForTimeout(250);
     const row = await page.evaluate(() => {
-      const panel = document.querySelector<HTMLElement>('.turn-panel .ship-panel');
+      const panel = document.querySelector<HTMLElement>('.turn-panel .mech-panel');
       if (!panel || getComputedStyle(panel).display !== 'flex') return null;
-      const name = panel.querySelector('.ship-name strong')?.textContent ?? 'ship';
-      const tops = [...panel.querySelectorAll('.ship-panel-head > :not(.icon-btn), .turn-actions .btn')].flatMap((el) => {
+      const name = panel.querySelector('.mech-name strong')?.textContent ?? 'mech';
+      const tops = [...panel.querySelectorAll('.mech-panel-head > :not(.icon-btn), .turn-actions .btn')].flatMap((el) => {
         const r = el.getBoundingClientRect();
         return r.width ? [r.top + r.height / 2] : []; // not shown at this size
       });
@@ -160,13 +160,13 @@ async function playToMyTurn(page: Page) {
         scrolls: actions.scrollWidth > actions.clientWidth + 1,
       };
     });
-    if (row?.wraps) issues.push(`ship row: ${row.name} wraps`);
-    if (row?.scrolls) issues.push(`ship row: ${row.name}'s buttons don't fit (they scroll)`);
-    await page.evaluate(() => (document.querySelector('.turn-panel .ship-panel .icon-btn') as HTMLElement | null)?.click());
+    if (row?.wraps) issues.push(`mech row: ${row.name} wraps`);
+    if (row?.scrolls) issues.push(`mech row: ${row.name}'s buttons don't fit (they scroll)`);
+    await page.evaluate(() => (document.querySelector('.turn-panel .mech-panel .icon-btn') as HTMLElement | null)?.click());
   }
-  await page.evaluate(() => (document.querySelector('.ship.own') as HTMLElement | null)?.click());
+  await page.evaluate(() => (document.querySelector('.mech.own') as HTMLElement | null)?.click());
   await page.waitForTimeout(500);
-  const hidden = await unreachableOnceSettled(page, '.turn-actions .btn-primary, .turn-panel .ship-panel button');
+  const hidden = await unreachableOnceSettled(page, '.turn-actions .btn-primary, .turn-panel .mech-panel button');
   issues.push(...hidden.map((t) => `your turn: ${t}`));
   const overlap = await page.evaluate(() => {
     const a = document.querySelector('.board')!.getBoundingClientRect();
@@ -176,12 +176,12 @@ async function playToMyTurn(page: Page) {
     );
   });
   if (overlap > 2) issues.push(`your turn: turn bar covers ${Math.round(overlap)}px of the board`);
-  return { issues, deployChecked, myTurn };
+  return { issues, dropChecked, myTurn };
 }
 
 /**
  * On your turn, on a touch screen where the map zooms: pinches out on the map, pans it with one finger, then taps
- * *Whole map*. The spaces must grow, the pan must move the map without moving a ship or scrolling the page, and
+ * *Whole map*. The spaces must grow, the pan must move the map without moving a mech or scrolling the page, and
  * *Whole map* must bring back the fitted size. Chrome only (the gestures are synthesised through the DevTools
  * protocol). Returns null where it doesn't apply.
  */
@@ -193,8 +193,8 @@ async function checkZoom(page: Page): Promise<{ issues: string[]; cells: number[
       const board = document.querySelector('.board') as HTMLElement;
       const cell = parseFloat(board.style.getPropertyValue('--cell'));
       // In spaces, so a zoom doesn't count as a move.
-      const ships = [...document.querySelectorAll<HTMLElement>('.ship')].map((s) => `${s.dataset.r},${s.dataset.c}`);
-      return { cell, left: board.offsetLeft, top: board.offsetTop, ships: ships.sort().join(' '), scrollY: window.scrollY };
+      const mechs = [...document.querySelectorAll<HTMLElement>('.mech')].map((s) => `${s.dataset.r},${s.dataset.c}`);
+      return { cell, left: board.offsetLeft, top: board.offsetTop, mechs: mechs.sort().join(' '), scrollY: window.scrollY };
     });
   type State = Awaited<ReturnType<typeof state>>;
   // CI runners are slow: polls until the gesture has landed and the board has stopped changing, rather than
@@ -219,7 +219,7 @@ async function checkZoom(page: Page): Promise<{ issues: string[]; cells: number[
   const pinched = await settle((s) => s.cell >= fitted.cell * 1.3);
   if (pinched.cell < fitted.cell * 1.3) issues.push(`pinch: spaces ${fitted.cell}px → ${pinched.cell}px`);
 
-  // A slow drag, so it doesn't fling, starting off-centre so it doesn't begin on the ship just selected.
+  // A slow drag, so it doesn't fling, starting off-centre so it doesn't begin on the mech just selected.
   // Sent a second time if the first is lost on a slow runner; a broken pan fails both.
   const moved = (s: State) => s.left !== pinched.left || s.top !== pinched.top;
   let panned = pinched;
@@ -236,7 +236,7 @@ async function checkZoom(page: Page): Promise<{ issues: string[]; cells: number[
     panned = await settle(moved);
   }
   if (panned.left === pinched.left && panned.top === pinched.top) issues.push("pan: the map didn't move");
-  if (panned.ships !== fitted.ships) issues.push('pan: a ship moved');
+  if (panned.mechs !== fitted.mechs) issues.push('pan: a mech moved');
   if (panned.scrollY !== fitted.scrollY) issues.push(`pan: the page scrolled ${panned.scrollY - fitted.scrollY}px`);
 
   const whole = page.locator('.zoom-controls button[aria-label="Whole map"]');
@@ -426,11 +426,11 @@ async function main() {
           if (m.pageWidth > screen.width) issues.push(`page ${m.pageWidth}px wide on a ${screen.width}px screen`);
           if (m.overflowsStage) issues.push('board overflows its stage');
 
-          // Play on to your first turn: you never scroll to act. Placing your ships, then with a ship
+          // Play on to your first turn: you never scroll to act. Placing your mechs, then with a mech
           // selected, everything you tap is on screen and not under anything, and the turn bar doesn't
           // cover the board.
           const turn = await playToMyTurn(page);
-          if (!turn.deployChecked) issues.push('never had ships to place');
+          if (!turn.dropChecked) issues.push('never had mechs to place');
           if (!turn.myTurn) issues.push('never reached your turn');
           issues.push(...turn.issues);
           await page.screenshot({ path: `${OUT}/${name}-turn.png` });

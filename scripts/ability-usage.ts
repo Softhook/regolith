@@ -1,5 +1,5 @@
 /**
- * Ship-ability usage per mode over AI self-play.
+ * Mech-ability usage per mode over AI self-play.
  *   npm run ability:usage -- [games=20] [modes=basic,regolith] [players=2] [level=4]
  */
 import type { GameMode } from '../packages/engine/src';

@@ -363,7 +363,7 @@ export function useBoardZoom(wrap: RefObject<HTMLDivElement>, board: RefObject<H
       preview(next);
     };
     const up = (e: PointerEvent) => lift(e.pointerId);
-    // A drag that ends over a ship or a space must not also act on it.
+    // A drag that ends over a mech or a space must not also act on it.
     const click = (e: MouseEvent) => {
       if (performance.now() >= swallowUntil) return;
       swallowUntil = 0;

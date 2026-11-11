@@ -67,8 +67,8 @@ const PARTS: Record<CardEffect['kind'], ReactNode> = {
 };
 
 /**
- * Over the ships and explosions. Remounted for a jump to another position (`key`), so that shows none.
- * Ids are only unique per kind (Nomadic's fold and open share the ship's), hence the kind in each `key`.
+ * Over the mechs and explosions. Remounted for a jump to another position (`key`), so that shows none.
+ * Ids are only unique per kind (Nomadic's fold and open share the mech's), hence the kind in each `key`.
  */
 export function CardEffects({ game, cell }: { game: GameState; cell: number }) {
   return useStepEffects(game, CARD_EFFECT_MS, cardEffectsOf).map((e) => (

@@ -1,5 +1,5 @@
 import { useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode, type RefObject } from 'react';
-import { CARD_CATEGORIES, ICONS, cardPalette, missile } from '@regolith/art';
+import { CARD_CATEGORIES, ICONS, cardPalette, atomic } from '@regolith/art';
 import { cardName, card, cardKind } from '@regolith/engine';
 import { useCardImage } from '../art/useCardImages';
 
@@ -49,16 +49,16 @@ export function ActionHex({ size = 20, off = false }: { size?: number; off?: boo
   );
 }
 
-/** A missile: the same drawing as on the cards, pointing up and to the right. */
-export function MissileIcon({ size = 16 }: { size?: number }) {
+/** An atomic: the same drawing as on the cards, pointing up and to the right. */
+export function AtomicIcon({ size = 16 }: { size?: number }) {
   return (
     <svg
-      className="missile-icon"
+      className="atomic-icon"
       width={size}
       height={size}
       viewBox="-3.6 -3.6 7.2 7.2"
       aria-hidden
-      dangerouslySetInnerHTML={{ __html: missile(0.5, -0.5, -45) }}
+      dangerouslySetInnerHTML={{ __html: atomic(0.5, -0.5, -45) }}
     />
   );
 }

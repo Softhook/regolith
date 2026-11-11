@@ -1,14 +1,14 @@
-import { CUBE_PAD, NUMBER_TEXT, PLANET_CAPACITY, TILE } from '../tokens';
+import { CUBE_PAD, NUMBER_TEXT, OBJECTIVE_CAPACITY, TILE } from '../tokens';
 import { n, type Box } from '../svg';
 
 /**
- * Where things are on a tile, in trim millimetres: its spaces (a 7-hex flower), where a planet may sit and
+ * Where things are on a tile, in trim millimetres: its spaces (a 7-hex flower), where an objective may sit and
  * where its number and cube pads go round it, and the tile's shape and die-cut line. Shared by every world's
  * ground (index.ts puts a tile together).
  */
 
 /**
- * The planets a map may put off the middle of a tile: an off-centre planet sits on an outer hex, half a
+ * The objectives a map may put off the middle of a tile: an off-centre objective sits on an outer hex, half a
  * space from the tile's edge. A 9 or 10 is wider than that (0.6 and 0.72 spaces to its rim) and an 8 fills
  * an outer hex to its sides, so only 7s go there.
  */
@@ -34,7 +34,7 @@ export const TILE_SPOTS: Readonly<Record<string, Spot>> = {
   ),
 };
 
-/** A corner of a planet: right or left of it, below or above it. */
+/** A corner of an objective: right or left of it, below or above it. */
 export interface Corner {
   x: 1 | -1;
   y: 1 | -1;
@@ -49,15 +49,15 @@ const CORNERS: readonly Corner[] = [
 ];
 
 /**
- * Where the spaces meet at a planet's bottom right, in spaces from its middle: the vertex three hexes share
+ * Where the spaces meet at an objective's bottom right, in spaces from its middle: the vertex three hexes share
  * (its own, the one below and the one below right). Clear of dice, so the number goes there.
  */
 const MEET: Spot = { x: 0.5 / Math.sqrt(3), y: 0.5 };
 
 /**
- * Which corner of a planet its number goes in, from where the planet sits on its tile: the one nearest
- * the tile's middle, so the number is always on the planet's own tile, clear of the tile's edge and of
- * anything on the next tile. A planet in the middle (and wherever two corners are as near) keeps the
+ * Which corner of an objective its number goes in, from where the objective sits on its tile: the one nearest
+ * the tile's middle, so the number is always on the objective's own tile, clear of the tile's edge and of
+ * anything on the next tile. An objective in the middle (and wherever two corners are as near) keeps the
  * printed bottom right.
  */
 export function numberCorner(at: Spot): Corner {
@@ -66,10 +66,10 @@ export function numberCorner(at: Spot): Corner {
   return CORNERS.reduce((best, k) => (far(k) < far(best) - 1e-9 ? k : best));
 }
 
-/** Where a tile's planet sits (`TileOptions.planetAt`), in spaces from its middle. */
-export function planetSpot(at = ''): Spot {
+/** Where a tile's objective sits (`TileOptions.objectiveAt`), in spaces from its middle. */
+export function objectiveSpot(at = ''): Spot {
   const spot = TILE_SPOTS[at];
-  if (!spot) throw new Error(`A tile's planet can't sit "${at}"`);
+  if (!spot) throw new Error(`A tile's objective can't sit "${at}"`);
   return spot;
 }
 
@@ -88,7 +88,7 @@ export const MID = TILE.size / 2;
  */
 const HEX_CENTRES = Object.values(TILE_SPOTS).map((p) => ({ x: MID + p.x * TILE.cell, y: MID + p.y * TILE.cell }));
 
-/** Where the cube pads go on a planet: a cluster centred on it. Coordinates are pad centres. */
+/** Where the cube pads go on an objective: a cluster centred on it. Coordinates are pad centres. */
 export function cubePadCentres(capacity: number, cx: number, cy: number): { x: number; y: number }[] {
   const h = (CUBE_PAD.size + CUBE_PAD.gap) / 2;
   switch (capacity) {
@@ -120,7 +120,7 @@ export function boxGap(cx: number, cy: number, hw: number, hh: number, x: number
   return Math.hypot(Math.max(0, Math.abs(cx - x) - hw - h), Math.max(0, Math.abs(cy - y) - hh - h));
 }
 
-/** Where the planet number goes and how big it is. Offsets are from the planet's centre (mm). */
+/** Where the objective number goes and how big it is. Offsets are from the objective's centre (mm). */
 export interface NumberPlacement {
   x: number;
   y: number;
@@ -131,8 +131,8 @@ export interface NumberPlacement {
 }
 
 /**
- * The number is centred where the spaces meet at the planet's bottom right (`MEET`, three hexes'
- * vertex), clear of the dice and away from the planet. If it would touch a cube pad (the
+ * The number is centred where the spaces meet at the objective's bottom right (`MEET`, three hexes'
+ * vertex), clear of the dice and away from the objective. If it would touch a cube pad (the
  * 10's four fill the middle), it moves further out the same way until it is clear.
  */
 export function numberPlacement(number: number): NumberPlacement {
@@ -140,7 +140,7 @@ export function numberPlacement(number: number): NumberPlacement {
   const size = digits > 1 ? NUMBER_TEXT.sizeTwoDigits : NUMBER_TEXT.size;
   const halfW = 0.32 * size * digits;
   const halfH = 0.37 * size;
-  const pads = cubePadCentres(PLANET_CAPACITY[number], 0, 0);
+  const pads = cubePadCentres(OBJECTIVE_CAPACITY[number], 0, 0);
   const m = MEET;
   let [x, y] = [m.x * TILE.cell, m.y * TILE.cell];
   while (pads.some((p) => boxGap(x, y, halfW, halfH, p.x, p.y, CUBE_PAD.size / 2) < 0.8)) {

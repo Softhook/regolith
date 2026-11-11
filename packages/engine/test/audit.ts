@@ -35,7 +35,7 @@ import {
   RuleError,
   RULESETS,
   same,
-  shipsOnBoard,
+  mechsOnBoard,
   shuntTargets,
   spaces,
   type Action,
@@ -202,7 +202,7 @@ function deal(s: GameState, offset: number) {
 /** What the audit remembers about the current turn, independently of the engine's own bookkeeping. */
 interface TurnLog {
   number: number;
-  attackedOrConquered: boolean;
+  attackedOrClaimed: boolean;
   curiousUsed: boolean;
   destroyers: Set<PlayerId>;
 }
@@ -232,31 +232,30 @@ function decider(s: GameState): PlayerId {
 
 const turnChanged = (c: Step) => c.after.turn.number !== c.before.turn.number;
 
-/** A ship destroyed by `w`: Dominance, research and action bonuses, Ruthless and Prideful. */
+/** A mech destroyed by `w`: Power, research and action bonuses, Ruthless and Prideful. */
 function destroyed(c: Step, w: PlayerId, v: PlayerId, inCombat: boolean) {
   const { before, after } = c;
   const first = !c.turn.destroyers.has(w);
   c.turn.destroyers.add(w);
 
-  // Winner: Dominance +1 (+1 more with Ravenous on the first destroy).
+  // Winner: Power +1 (+1 more with Ravenous on the first destroy).
   const ravenous = first ? held(before, w, 'ravenous') : undefined;
-  const dominance = Math.min(6, before.players[w].dominance + 1 + (ravenous ? 1 : 0));
-  if (after.players[w].dominance !== dominance) {
-    c.fail(ravenous, `winner's Dominance ${before.players[w].dominance} → ${after.players[w].dominance}, expected ${dominance}`);
+  const power = Math.min(6, before.players[w].power + 1 + (ravenous ? 1 : 0));
+  if (after.players[w].power !== power) {
+    c.fail(ravenous, `winner's Power ${before.players[w].power} → ${after.players[w].power}, expected ${power}`);
   } else c.fire(ravenous);
 
-  // Loser (combat only, RULES.md ruling 14): Dominance −1, unless Righteous.
+  // Loser (combat only, RULES.md ruling 14): Power −1, unless Righteous.
   if (inCombat) {
     const keep = held(before, v, 'righteous');
-    const was = before.players[v].dominance;
+    const was = before.players[v].power;
     const expected = keep ? was : Math.max(1, was - 1);
-    if (after.players[v].dominance !== expected)
-      c.fail(keep, `loser's Dominance ${was} → ${after.players[v].dominance}, expected ${expected}`);
+    if (after.players[v].power !== expected) c.fail(keep, `loser's Power ${was} → ${after.players[v].power}, expected ${expected}`);
     else if (keep && was > 1) c.fire(keep);
   }
 
   const ownTurn = w === before.turn.player;
-  // The winner's own next turn may have started in the same step (Brilliant, Void tiles, ...).
+  // The winner's own next turn may have started in the same step (Brilliant, Alien Artefact tiles, ...).
   if (turnChanged(c) && after.turn.player === w) return;
   // Research: Plundering +3 on the first destroy of a turn; Righteous gains none.
   const plunder = first ? held(before, w, 'plundering') : undefined;
@@ -281,10 +280,10 @@ function destroyed(c: Step, w: PlayerId, v: PlayerId, inCombat: boolean) {
       c.fail(ruthless, 'no Ruthless decision after the first destroy');
     else c.fire(ruthless);
   }
-  // Prideful: whoever destroys its owner's ship may take it.
+  // Prideful: whoever destroys its owner's mech may take it.
   if (before.players[v].skills.some((sk) => effectOf(sk.id) === 'prideful')) {
     if (!after.pending.some((p) => p.kind === 'prideful' && p.player === w && p.victim === v))
-      c.fail('prideful', 'no Prideful decision after destroying its owner’s ship');
+      c.fail('prideful', 'no Prideful decision after destroying its owner’s mech');
   }
 }
 
@@ -334,42 +333,42 @@ const ORACLES: ((c: Step) => void)[] = [
     const attackerWins = a < d || (a === d && !stubborn);
     const zone = (id: string) => c.after.dice.find((x) => x.id === id)!.loc.zone;
     if (attackerWins) {
-      if (zone(head.defender.die) !== 'scrapyard') return c.fail(undefined, `attacker won ${a} vs ${d} but the defender survived`);
+      if (zone(head.defender.die) !== 'salvageYard') return c.fail(undefined, `attacker won ${a} vs ${d} but the defender survived`);
       destroyed(c, head.attacker.player, head.defender.player, true);
     } else if (stubborn) {
-      if (zone(head.attacker.die) !== 'scrapyard') return c.fail(stubborn, 'Stubborn defender won but the attacker survived');
+      if (zone(head.attacker.die) !== 'salvageYard') return c.fail(stubborn, 'Stubborn defender won but the attacker survived');
       c.fire(stubborn);
       destroyed(c, head.defender.player, head.attacker.player, true);
-    } else if (zone(head.attacker.die) === 'scrapyard' || zone(head.defender.die) === 'scrapyard') {
-      c.fail(undefined, `attack repelled ${a} vs ${d} but a ship was destroyed`);
+    } else if (zone(head.attacker.die) === 'salvageYard' || zone(head.defender.die) === 'salvageYard') {
+      c.fail(undefined, `attack repelled ${a} vs ${d} but a mech was destroyed`);
     }
   },
 
-  // Show of Force: the chosen ship is destroyed; an enemy ship counts as destroyed by the chooser.
+  // Show of Force: the chosen mech is destroyed; an enemy mech counts as destroyed by the chooser.
   (c) => {
     const head = c.before.pending[0];
     if (c.action.type !== 'showOfForce' || head?.kind !== 'showOfForce') return;
     const owner = c.before.dice.find((d) => d.id === (c.action as { die: string }).die)!.owner;
     if (owner === head.player) {
-      const expected = Math.min(6, c.before.players[owner].dominance + 1);
-      if (c.after.players[owner].dominance !== expected) c.fail('show-of-force', 'destroying your own ship should give 1 Dominance');
+      const expected = Math.min(6, c.before.players[owner].power + 1);
+      if (c.after.players[owner].power !== expected) c.fail('show-of-force', 'destroying your own mech should give 1 Power');
     } else destroyed(c, head.player, owner, false);
   },
 
-  // Calculating: a ship placed in its owner's scrapyard lets the owner choose its number.
+  // Calculating: a mech placed in its owner's salvage yard lets the owner choose its number.
   (c) => {
     for (const d of c.after.dice) {
       const was = c.before.dice.find((x) => x.id === d.id)!;
-      if (was.loc.zone !== 'board' || d.loc.zone !== 'scrapyard') continue;
+      if (was.loc.zone !== 'board' || d.loc.zone !== 'salvageYard') continue;
       const calc = held(c.before, d.owner, 'calculating');
       if (!calc) continue;
       if (!c.after.pending.some((p) => p.kind === 'clever' && p.die === d.id))
-        c.fail(calc, `no number choice for ${d.id} sent to the scrapyard`);
+        c.fail(calc, `no number choice for ${d.id} sent to the salvage yard`);
       else c.fire(calc);
     }
   },
 
-  // Righteous (CE): never gains research; Dominance only drops through an Take Over reset.
+  // Righteous (CE): never gains research; Power only drops through an Take Over reset.
   (c) => {
     for (const p of c.after.players) {
       const r = held(c.before, p.id, 'righteous');
@@ -377,7 +376,7 @@ const ORACLES: ((c: Step) => void)[] = [
       const was = c.before.players[p.id];
       if (p.research > was.research) c.fail(r, `research rose ${was.research} → ${p.research}`);
       const infamy = c.action.type === 'infamy' && decider(c.before) === p.id;
-      if (p.dominance < was.dominance && !infamy) c.fail(r, `Dominance fell ${was.dominance} → ${p.dominance}`);
+      if (p.power < was.power && !infamy) c.fail(r, `Power fell ${was.power} → ${p.power}`);
     }
   },
 
@@ -395,8 +394,7 @@ const ORACLES: ((c: Step) => void)[] = [
     if (after.turn.actionsLeft !== base)
       c.fail(penalty ? 'sabotage' : undefined, `turn starts with ${after.turn.actionsLeft} actions, expected ${base}`);
     const industrious = held(after, p, 'industrious');
-    if (after.turn.freeDeploys !== (industrious ? 1 : 0))
-      c.fail(industrious, `${after.turn.freeDeploys} free deploys at the start of the turn`);
+    if (after.turn.freeDrops !== (industrious ? 1 : 0)) c.fail(industrious, `${after.turn.freeDrops} free drops at the start of the turn`);
     else c.fire(industrious);
     const brilliant = held(after, p, 'brilliant');
     if (brilliant && !held(after, p, 'righteous') && before.turn.player !== p) {
@@ -437,10 +435,10 @@ const ORACLES: ((c: Step) => void)[] = [
     const bad = (message: string) => c.fail(id, message);
     switch (effectOf(id)) {
       case 'aggression':
-        if (now.dominance !== Math.min(6, was.dominance + 2)) bad(`Dominance ${was.dominance} → ${now.dominance}, expected +2`);
+        if (now.power !== Math.min(6, was.power + 2)) bad(`Power ${was.power} → ${now.power}, expected +2`);
         break;
       case 'black-market':
-        if (now.missiles !== was.missiles + 2) bad(`missiles ${was.missiles} → ${now.missiles}, expected +2`);
+        if (now.atomics !== was.atomics + 2) bad(`atomics ${was.atomics} → ${now.atomics}, expected +2`);
         break;
       case 'momentum':
         if (now.bonusTurns.length !== was.bonusTurns.length + 1 && !(turnChanged(c) && after.turn.player === p && after.turn.bonus))
@@ -457,26 +455,29 @@ const ORACLES: ((c: Step) => void)[] = [
         }
         break;
       case 'show-of-force':
-        if (shipsOnBoard(before).length && !pending('showOfForce')) bad('no ship to choose');
+        if (mechsOnBoard(before).length && !pending('showOfForce')) bad('no mech to choose');
         break;
       case 'warp-gate':
-        if (!pending('warpGate')) bad('no gates to place');
+        if (!pending('iceTunnel')) bad('no tunnels to place');
         break;
       case 'barrier':
-        if (spaces(before.board).some((c) => isEmptySpace(before, c) && !before.gates?.some((g) => same(g, c))) && !pending('placeBarrier'))
+        if (
+          spaces(before.board).some((c) => isEmptySpace(before, c) && !before.tunnels?.some((g) => same(g, c))) &&
+          !pending('placeBarrier')
+        )
           bad('no barrier to place');
         break;
       case 'kinetic-shunt':
-        if (shipsOnBoard(before).some((d) => shuntTargets(before, d).length > 0) && !pending('kineticShunt')) bad('no mech to shunt');
+        if (mechsOnBoard(before).some((d) => shuntTargets(before, d).length > 0) && !pending('kineticShunt')) bad('no mech to shunt');
         break;
       case 'change-of-heart':
         if ((before.market.skillDeck.length || before.market.skillDiscard.length) && !pending('changeOfHeart')) bad('no skill to choose');
         break;
       case 'unveil-the-fleet':
-        if (!pending('unveil')) bad('no ships to re-roll and deploy');
+        if (!pending('unveil')) bad('no mechs to re-roll and drop');
         break;
       case 'expansion':
-        if (reserve(before, p).length && !pending('placeExpansion')) bad('no new ship to place');
+        if (reserve(before, p).length && !pending('placeExpansion')) bad('no new mech to place');
         break;
     }
   },
@@ -508,7 +509,7 @@ const ORACLES: ((c: Step) => void)[] = [
     }
   },
 
-  // Curious (CE): with no actions left, no Attack and no Conquer this turn, one more Move or Research; then nothing more.
+  // Curious (CE): with no actions left, no Attack and no Claim this turn, one more Move or Research; then nothing more.
   (c) => {
     const { before, action, legal } = c;
     const p = before.turn.player;
@@ -519,7 +520,7 @@ const ORACLES: ((c: Step) => void)[] = [
         c.fail(curious, 'more actions offered after the Curious action');
       return;
     }
-    if (before.turn.actionsLeft > 0 || c.turn.attackedOrConquered || before.turn.storedTacticPlayed) return;
+    if (before.turn.actionsLeft > 0 || c.turn.attackedOrClaimed || before.turn.storedTacticPlayed) return;
     const canResearch = before.players[p].research < 6 && !held(before, p, 'righteous');
     if (canResearch && !legal.some((a) => a.type === 'research')) c.fail(curious, 'no Curious Research offered');
     if (action.type === 'research' || action.type === 'move' || action.type === 'carry') {
@@ -547,35 +548,34 @@ const ORACLES: ((c: Step) => void)[] = [
     if (c.action.type === 'dangerous' && c.action.destroy) c.fire(held(c.before, decider(c.before), 'dangerous'));
   },
 
-  // Clever: after a Reconfigure, keep or change by 1.
+  // Clever: after a Refit, keep or change by 1.
   (c) => {
     const a = c.action;
     if (a.type === 'clever') {
       const head = c.before.pending[0];
       if (head?.kind === 'clever') c.fire(head.source === 'calculating' ? undefined : held(c.before, head.player, 'clever'));
     }
-    if (a.type !== 'reconfigure') return;
+    if (a.type !== 'refit') return;
     const p = c.before.turn.player;
     const clever = held(c.before, p, 'clever');
-    if (clever && !c.after.pending.some((x) => x.kind === 'clever' && x.die === a.die))
-      c.fail(clever, 'no number choice after a Reconfigure');
+    if (clever && !c.after.pending.some((x) => x.kind === 'clever' && x.die === a.die)) c.fail(clever, 'no number choice after a Refit');
   },
 
-  // Take Over: Dominance reaching the threshold (6, or 4 with Prideful) earns an Take Over decision.
+  // Take Over: Power reaching the threshold (6, or 4 with Prideful) earns an Take Over decision.
   (c) => {
     for (const p of c.after.players) {
       const prideful = held(c.after, p.id, 'prideful');
       const at = prideful ? 4 : 6;
       const wasAt = held(c.before, p.id, 'prideful') ? 4 : 6;
-      const crossed = p.dominance >= at && (p.dominance > c.before.players[p.id].dominance || at < wasAt);
+      const crossed = p.power >= at && (p.power > c.before.players[p.id].power || at < wasAt);
       if (!crossed || !infamyTargets(c.after, p.id).length) continue;
       if (!c.after.pending.some((x) => x.kind === 'infamy' && x.player === p.id))
-        c.fail(prideful, `${p.name} at ${p.dominance} Dominance without Take Over`);
-      else if (prideful && p.dominance < 6) c.fire(prideful);
+        c.fail(prideful, `${p.name} at ${p.power} Power without Take Over`);
+      else if (prideful && p.power < 6) c.fire(prideful);
     }
   },
 
-  // Ambitious is discarded with its third token; Profiteering offers a missile for a conquest pick.
+  // Ambitious is discarded with its third token; Profiteering offers an atomic for a claim pick.
   (c) => {
     for (const p of c.after.players) {
       const ambitious = held(c.after, p.id, 'ambitious');
@@ -583,15 +583,15 @@ const ORACLES: ((c: Step) => void)[] = [
     }
     if (c.action.type === 'ambitious') c.fire(held(c.before, c.before.turn.player, 'ambitious'));
     const head = c.before.pending[0];
-    if (c.legal && head?.kind === 'takeCard' && head.conquer) {
+    if (c.legal && head?.kind === 'takeCard' && head.claim) {
       const profiteering = held(c.before, head.player, 'profiteering');
-      if (profiteering && !c.legal.some((a) => a.type === 'profiteer')) c.fail(profiteering, 'no missile offered for a conquest pick');
+      if (profiteering && !c.legal.some((a) => a.type === 'profiteer')) c.fail(profiteering, 'no atomic offered for a claim pick');
     }
     if (c.action.type === 'profiteer') c.fire(held(c.before, decider(c.before), 'profiteering'));
   },
 ];
 
-/** Activated skills and ship-number choices without a dedicated oracle: each use counts as firing. */
+/** Activated skills and mech-number choices without a dedicated oracle: each use counts as firing. */
 const USES: Partial<Record<Action['type'], string[]>> = {
   composed: ['composed'],
   flexible: ['flexible'],
@@ -603,8 +603,8 @@ const USES: Partial<Record<Action['type'], string[]>> = {
 const PASSIVE: Partial<Record<Action['type'], string[]>> = {
   move: ['agile', 'devious', 'steadfast'],
   carry: ['agile', 'steadfast'],
-  deploy: ['stealthy'],
-  conquer: ['intelligent', 'science', 'tyrannical'],
+  drop: ['stealthy'],
+  claim: ['intelligent', 'science', 'tyrannical'],
 };
 
 /** The other firings without an oracle: combat skills that changed a roll or total, Cunning, Talented. */
@@ -644,7 +644,7 @@ export function auditGame(g: AuditGame, opts: { maxSteps?: number; onStep?: (ste
   const coverage = new Map(modeCards(g.mode).map((c) => [c.id, { heldTurns: 0, fired: 0 }]));
   let s = createGame({ players: players(g.players), seed: g.seed, mode: g.mode, mapId: g.mapId });
   const random = seededRandom(g.seed * 7919);
-  let turn: TurnLog = { number: -1, attackedOrConquered: false, curiousUsed: false, destroyers: new Set() };
+  let turn: TurnLog = { number: -1, attackedOrClaimed: false, curiousUsed: false, destroyers: new Set() };
   let step = 0;
   let dealt = false;
   let action: Action | null = null;
@@ -660,7 +660,7 @@ export function auditGame(g: AuditGame, opts: { maxSteps?: number; onStep?: (ste
       dealt = true;
     }
     if (s.turn.number !== turn.number)
-      turn = { number: s.turn.number, attackedOrConquered: false, curiousUsed: false, destroyers: new Set() };
+      turn = { number: s.turn.number, attackedOrClaimed: false, curiousUsed: false, destroyers: new Set() };
 
     action = null;
     after = undefined;
@@ -721,10 +721,10 @@ export function auditGame(g: AuditGame, opts: { maxSteps?: number; onStep?: (ste
       if (
         action.type === 'attack' ||
         action.type === 'freeAttack' ||
-        action.type === 'conquer' ||
+        action.type === 'claim' ||
         (action.type === 'tactical' && 'target' in action)
       ) {
-        turn.attackedOrConquered = true;
+        turn.attackedOrClaimed = true;
       }
       if (turnChanged(c)) {
         for (const sk of s.players[s.turn.player].skills) if (sk.active && coverage.has(sk.id)) coverage.get(sk.id)!.heldTurns++;

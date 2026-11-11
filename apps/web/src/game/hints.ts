@@ -1,18 +1,18 @@
 import {
   cardName,
   canProfiteer,
-  conquerCheck,
-  deployTargets,
+  claimCheck,
+  dropTargets,
   die,
-  homePlanet,
-  orbitBlockers,
-  shipOf,
+  homeObjective,
+  perimeterBlockers,
+  mechOf,
   type GameState,
 } from '@regolith/engine';
 import type { Sel } from './controller';
 
-/** The carrying ship's name in this game's rules, as a common noun: "flagship", or "behemoth" in Regolith. */
-const carrier = (game: GameState, id: string) => shipOf(game, die(game, id).value).name.toLowerCase();
+/** The carrying mech's name in this game's rules, as a common noun: "flagship", or "behemoth" in Regolith. */
+const carrier = (game: GameState, id: string) => mechOf(game, die(game, id).value).name.toLowerCase();
 
 /** One-line guidance for the current human decision. */
 export function hintFor(game: GameState, sel: Sel): string {
@@ -21,7 +21,7 @@ export function hintFor(game: GameState, sel: Sel): string {
     switch (head.kind) {
       case 'placeStart':
         return 'Choose a glowing starting objective for your first cube.';
-      case 'placeShips':
+      case 'placeMechs':
         return 'Place your mechs on the perimeter of your starting objective: pick a mech in your salvage yard (or take the next one), then a glowing space.';
       case 'infamy':
         return 'Take Over! Seize any objective that does not have your cube yet.';
@@ -33,7 +33,7 @@ export function hintFor(game: GameState, sel: Sel): string {
         return 'Place your new mech on the perimeter of one of your objectives, or send it to your salvage yard.';
       case 'showOfForce':
         return `${cardName('show-of-force')}: choose any mech on the map to destroy.`;
-      case 'warpGate':
+      case 'iceTunnel':
         return `Place Ice Tunnel ${head.placed.length + 1} of 2 on an empty space.`;
       case 'placeBarrier':
         return `Place Barrier ${head.placed.length + 1} of 2 on an empty space.`;
@@ -46,35 +46,33 @@ export function hintFor(game: GameState, sel: Sel): string {
       case 'discardSkill':
         return 'Choose a card to discard.';
       case 'advance':
-        return `Victory! Advance your ${shipOf(game, die(game, head.die).value).name} into the destroyed mech’s space, or hold your position.`;
+        return `Victory! Advance your ${mechOf(game, die(game, head.die).value).name} into the destroyed mech’s space, or hold your position.`;
       default:
         return '';
     }
   }
   switch (sel.kind) {
-    case 'ship':
+    case 'mech':
       return 'Click a highlighted space to move, or a red target to attack.';
     case 'attackFrom':
       return 'Choose a way to attack along, or click the target again for the solid one.';
-    case 'scrap': {
-      // Contested deploy: say which of your planets an enemy ship in orbit keeps you from.
+    case 'salvage': {
+      // Contested drop: say which of your objectives an enemy mech on the perimeter keeps you from.
       const me = game.turn.player;
-      const home = homePlanet(game, me);
-      const barred = game.board.planets
-        .filter((p) => p !== home && p.cubes.includes(me) && orbitBlockers(game, me, p).length)
+      const home = homeObjective(game, me);
+      const barred = game.board.objectives
+        .filter((p) => p !== home && p.cubes.includes(me) && perimeterBlockers(game, me, p).length)
         .map((p) => `objective ${p.number}`);
       if (!barred.length) return 'Click a highlighted perimeter space to drop this mech.';
       const why = `enemy mechs on the perimeter of ${barred.join(' and ')} keep you from dropping there`;
-      return deployTargets(game, me).length
-        ? `Click a highlighted perimeter space to drop this mech (${why}).`
-        : `Nowhere to drop: ${why}.`;
+      return dropTargets(game, me).length ? `Click a highlighted perimeter space to drop this mech (${why}).` : `Nowhere to drop: ${why}.`;
     }
     case 'swap':
       return 'Choose another of your mechs to switch places with.';
     case 'freeAttack':
       return 'Choose an adjacent enemy to attack for free.';
     case 'ability': {
-      const { ability } = shipOf(game, die(game, sel.die).value);
+      const { ability } = mechOf(game, die(game, sel.die).value);
       return ability.hint ?? `${ability.name}: ${ability.text}`;
     }
     case 'tactical':
@@ -88,8 +86,8 @@ export function hintFor(game: GameState, sel: Sel): string {
     case 'carrySetDown':
       return 'Choose where to set the passenger down.';
   }
-  // Contested orbit: say why a planet whose orbit makes the sum can't be conquered.
-  const blocked = game.board.planets.filter((p) => conquerCheck(game, game.turn.player, p.id).blocked).map((p) => `objective ${p.number}`);
+  // Contested perimeter: say why an objective whose perimeter makes the sum can't be claimed.
+  const blocked = game.board.objectives.filter((p) => claimCheck(game, game.turn.player, p.id).blocked).map((p) => `objective ${p.number}`);
   if (blocked.length)
     return `Select a mech. Your perimeter makes the sum for ${blocked.join(' and ')}, but enemy mechs on the perimeter block the claim: destroy them first.`;
   return 'Select a mech';

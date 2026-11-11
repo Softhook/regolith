@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   BLANK,
-  PLANET_DIAMETER,
+  OBJECTIVE_DIAMETER,
   SET_COUNTS,
   TILE_SET,
   TILE_SPOTS,
@@ -11,7 +11,7 @@ import {
   numberCorner,
   numberPlacement,
   cubePadCentres,
-  PLANET_CAPACITY,
+  OBJECTIVE_CAPACITY,
   tileSpec,
   fighterMuzzle,
   mechFighterSvg,
@@ -117,32 +117,32 @@ describe('tile set', () => {
 });
 
 describe('cube pads', () => {
-  it('fit inside the printed planet', () => {
+  it('fit inside the printed objective', () => {
     for (const num of [7, 8, 9, 10, 11, 12]) {
-      const R = PLANET_DIAMETER[num] / 2;
+      const R = OBJECTIVE_DIAMETER[num] / 2;
       const h = CUBE_PAD.size / 2;
-      for (const p of cubePadCentres(PLANET_CAPACITY[num], 0, 0)) {
+      for (const p of cubePadCentres(OBJECTIVE_CAPACITY[num], 0, 0)) {
         const far = Math.hypot(Math.abs(p.x) + h, Math.abs(p.y) + h);
-        expect(far, `planet ${num}`).toBeLessThan(R);
+        expect(far, `objective ${num}`).toBeLessThan(R);
       }
     }
   });
 });
 
-describe('planet number', () => {
+describe('objective number', () => {
   it('sits at the vertex three hexes share, a third of a space right and half a space down, unless its pads push it out', () => {
     for (const k of [7, 8, 9, 10, 11, 12]) {
       const at = numberPlacement(k);
-      expect(at.y / at.x, `planet ${k}`).toBeCloseTo(Math.sqrt(3));
-      expect(at.y, `planet ${k}`).toBeGreaterThanOrEqual(TILE.cell / 2);
+      expect(at.y / at.x, `objective ${k}`).toBeCloseTo(Math.sqrt(3));
+      expect(at.y, `objective ${k}`).toBeGreaterThanOrEqual(TILE.cell / 2);
     }
   });
 
   it('stays clear of the cube pads', () => {
     for (const num of [7, 8, 9, 10, 11, 12]) {
       const at = numberPlacement(num);
-      for (const p of cubePadCentres(PLANET_CAPACITY[num], 0, 0)) {
-        expect(boxGap(at.x, at.y, at.halfW, at.halfH, p.x, p.y, CUBE_PAD.size / 2), `planet ${num} pad`).toBeGreaterThan(0.5);
+      for (const p of cubePadCentres(OBJECTIVE_CAPACITY[num], 0, 0)) {
+        expect(boxGap(at.x, at.y, at.halfW, at.halfH, p.x, p.y, CUBE_PAD.size / 2), `objective ${num} pad`).toBeGreaterThan(0.5);
       }
     }
   });
@@ -158,16 +158,16 @@ describe('tile shape', () => {
   const seven = TILE_SET.find((t) => t.number === 7)!;
   const outlines = (svg: string) => (svg.match(/<polygon /g) ?? []).length;
 
-  it('names the same planet spots as the engine reads from a layout token', () => {
+  it('names the same objective spots as the engine reads from a layout token', () => {
     expect(Object.keys(TILE_SPOTS).sort()).toEqual(['', 'n', 'ne', 'nw', 's', 'se', 'sw']);
     for (const [dir, p] of Object.entries(TILE_SPOTS)) expect(Math.hypot(p.x, p.y)).toBeCloseTo(dir ? 1 : 0);
   });
 
-  it('draws six hex outlines round its planet, cut to the flower', () => {
+  it('draws six hex outlines round its objective, cut to the flower', () => {
     const svg = tileSvg(seven, { markings: true, rounded: true });
     expect(outlines(svg)).toBe(6);
     expect(svg).toContain(`${seven.id}-flower`);
-    expect(outlines(tileSvg(seven, { markings: true, planetAt: 'n' }))).toBe(6);
+    expect(outlines(tileSvg(seven, { markings: true, objectiveAt: 'n' }))).toBe(6);
   });
 
   it('is knocked out past its flower: at the cut, or past it by the bleed', () => {
@@ -213,9 +213,9 @@ describe('player aid', () => {
   });
 
   it('draws six different mechs on their dice', () => {
-    const ships = [1, 2, 3, 4, 5, 6].map((v) => mechDie(v, 0, 0, 19).body);
-    expect(new Set(ships).size).toBe(6);
-    for (const s of ships) expect(s).not.toMatch(/NaN|undefined/);
+    const mechs = [1, 2, 3, 4, 5, 6].map((v) => mechDie(v, 0, 0, 19).body);
+    expect(new Set(mechs).size).toBe(6);
+    for (const s of mechs) expect(s).not.toMatch(/NaN|undefined/);
   });
 });
 

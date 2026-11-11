@@ -7,7 +7,7 @@ import { kitKey, mapTiles, tileKit, tileSetPlayers, tileSide } from '../src/lab/
 const keysOf = (worlds: World[], players?: number) => new Set(tileKit(worlds, players).map(kitKey));
 
 describe('physical tile kits', () => {
-  it('lays every map for its player count and world, each planet where the map puts it, without needing the full set', () => {
+  it('lays every map for its player count and world, each objective where the map puts it, without needing the full set', () => {
     for (const map of MAPS) {
       const kit = keysOf([map.world ?? 'mars'], map.players);
       for (const k of mapTiles(map)) expect(kit, `${map.id}: ${kitKey(k)}`).toContain(kitKey(k));
@@ -23,7 +23,7 @@ describe('physical tile kits', () => {
     expect(off.every((k) => k.tile.number === 7)).toBe(true);
     const kit = tileKit(['deimos'], 2);
     for (const k of off) expect(kit.some((t) => t.tile.id === k.tile.id && t.at === k.at)).toBe(true);
-    // A tile is in a kit once for each spot its maps put its planet, and nowhere else.
+    // A tile is in a kit once for each spot its maps put its objective, and nowhere else.
     expect(new Set(kit.map(kitKey)).size).toBe(kit.length);
   });
 

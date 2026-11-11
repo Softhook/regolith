@@ -28,7 +28,7 @@ export interface MapSheetTile {
   /** Its middle, in spaces from the drawing's top left (a space is one unit tall). */
   x: number;
   y: number;
-  /** An objective's number (7–10), 0 for an Alien Artefact (the engine's Void), or BLANK. */
+  /** An objective's number (7–10), 0 for an Alien Artefact (the engine's Alien Artefact), or BLANK. */
   number: number;
   /** Where the objective sits, in spaces from the tile's middle (x right, y down). */
   at: Spot;

@@ -1,6 +1,6 @@
 /**
  * Cards taken on someone else's turn (an off-turn Take Over pick), and a few card edge cases:
- * Warp Gate placement, Change of Heart with an empty deck, Ambitious tokens on discard, and
+ * Ice Tunnel placement, Change of Heart with an empty deck, Ambitious tokens on discard, and
  * when CE Brilliant asks.
  */
 import { describe, expect, it } from 'vitest';
@@ -70,18 +70,18 @@ describe('cards taken off-turn', () => {
 });
 
 describe('card edge cases', () => {
-  it('Warp Gate may go on an occupied space, but not on a planet', () => {
+  it('Ice Tunnel may go on an occupied space, but not on an objective', () => {
     let s = quickStart();
     const me = s.turn.player;
     s = takeTactic(offTurnPick(s, me), 'r-warp-gate');
-    const ship = s.dice.find((d) => d.loc.zone === 'board')!;
-    if (ship.loc.zone !== 'board') throw new Error('no ship on the map');
-    const cell = { r: ship.loc.r, c: ship.loc.c };
-    expect(legalActions(s)).toContainEqual({ type: 'warpGate', cell });
-    s = apply(s, { type: 'warpGate', cell });
-    expect(s.pending[0]).toMatchObject({ kind: 'warpGate', placed: [cell] });
-    const planet = s.board.planets[0];
-    expect(() => apply(s, { type: 'warpGate', cell: { r: planet.r, c: planet.c } })).toThrow(/not objectives/);
+    const mech = s.dice.find((d) => d.loc.zone === 'board')!;
+    if (mech.loc.zone !== 'board') throw new Error('no mech on the map');
+    const cell = { r: mech.loc.r, c: mech.loc.c };
+    expect(legalActions(s)).toContainEqual({ type: 'iceTunnel', cell });
+    s = apply(s, { type: 'iceTunnel', cell });
+    expect(s.pending[0]).toMatchObject({ kind: 'iceTunnel', placed: [cell] });
+    const objective = s.board.objectives[0];
+    expect(() => apply(s, { type: 'iceTunnel', cell: { r: objective.r, c: objective.c } })).toThrow(/not objectives/);
   });
 
   it('Change of Heart reshuffles the skill discards into an empty deck', () => {

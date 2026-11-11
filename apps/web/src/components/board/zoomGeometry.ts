@@ -6,7 +6,7 @@ const MAX_ZOOM = 4;
 const MIN_ZOOM = 1.8;
 /**
  * How far past their sharp size the tile images may be stretched: they're soft noise, so a little is hard to see,
- * and what's drawn over them (ships, dice, labels) is vector and sharp at any size.
+ * and what's drawn over them (mechs, dice, labels) is vector and sharp at any size.
  */
 const STRETCH = 1.5;
 

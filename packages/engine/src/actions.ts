@@ -1,4 +1,4 @@
-/** The five phase-1 actions (Move/Attack, Deploy, Reconfigure, Research, Conquer) and ending the turn. */
+/** The five phase-1 actions (Move/Attack, Drop, Refit, Research, Claim) and ending the turn. */
 import { cellIndex, same } from './board';
 import { startCombat } from './combat';
 import {
@@ -9,12 +9,12 @@ import {
   logTo,
   markMoved,
   name,
-  ownShip,
+  ownMech,
   placeCube,
   requireActionPhase,
   rerollNew,
-  aShip,
-  shipName,
+  aMech,
+  mechName,
   spend,
   spendPeaceful,
   tally,
@@ -22,34 +22,25 @@ import {
   type Handlers,
 } from './core';
 import { boardLoc, die } from './lookups';
-import {
-  attackLaunches,
-  canGainResearch,
-  canMoveDie,
-  canReconfigure,
-  conquerCheck,
-  deployTargets,
-  moveIndexes,
-  moveOptions,
-} from './queries';
+import { attackLaunches, canGainResearch, canMoveDie, canRefit, claimCheck, dropTargets, moveIndexes, moveOptions } from './queries';
 import { rulesOf } from './rules';
 import { endTurn } from './turn';
 
 export const actionHandlers = {
   move(s, a) {
     requireActionPhase(s);
-    const d = ownShip(s, a.die, 'board');
+    const d = ownMech(s, a.die, 'board');
     if (!canMoveDie(s, d)) fail('This mech already moved this turn');
     const opt = moveIndexes(s, d).moves.get(cellIndex(s.board, a.to));
     if (!opt) fail('Out of range');
     spendPeaceful(s);
     d.loc = boardLoc(a.to);
     markMoved(s, d);
-    logTo(s, d.owner, `${name(s, d.owner)} moves their ${shipName(s, d)}`, a.to);
+    logTo(s, d.owner, `${name(s, d.owner)} moves their ${mechName(s, d)}`, a.to);
   },
   attack(s, a) {
     requireActionPhase(s);
-    const d = ownShip(s, a.die, 'board');
+    const d = ownMech(s, a.die, 'board');
     if (!canMoveDie(s, d)) fail('This mech already moved this turn');
     const opts = moveOptions(s, d.id);
     if (!opts.attacks.has(a.target)) fail('Target out of range');
@@ -60,23 +51,23 @@ export const actionHandlers = {
     markMoved(s, d);
     startCombat(s, d, die(s, a.target), opt.from);
   },
-  deploy(s, a) {
+  drop(s, a) {
     const t = requireActionPhase(s);
-    const d = ownShip(s, a.die, 'scrapyard');
-    if (!deployTargets(s, t.player).some((p) => same(p, a.to))) fail('Drop onto the perimeter of an objective with your cube');
-    if (t.freeDeploys > 0) t.freeDeploys--;
+    const d = ownMech(s, a.die, 'salvageYard');
+    if (!dropTargets(s, t.player).some((p) => same(p, a.to))) fail('Drop onto the perimeter of an objective with your cube');
+    if (t.freeDrops > 0) t.freeDrops--;
     else spend(s, 1);
     d.loc = boardLoc(a.to);
-    logTo(s, d.owner, `${name(s, d.owner)} drops ${aShip(s, d)}`, a.to);
+    logTo(s, d.owner, `${name(s, d.owner)} drops ${aMech(s, d)}`, a.to);
   },
-  reconfigure(s, a) {
+  refit(s, a) {
     requireActionPhase(s);
-    const d = ownShip(s, a.die);
-    if (!canReconfigure(s, d)) fail('This mech cannot be refitted');
+    const d = ownMech(s, a.die);
+    if (!canRefit(s, d)) fail('This mech cannot be refitted');
     spend(s, 1);
-    const was = shipName(s, d);
+    const was = mechName(s, d);
     rerollNew(s, d);
-    note(s, `${name(s, d.owner)} refits their ${was} into ${aShip(s, d)}.`, d.owner);
+    note(s, `${name(s, d.owner)} refits their ${was} into ${aMech(s, d)}.`, d.owner);
   },
   research(s) {
     const t = requireActionPhase(s);
@@ -87,27 +78,27 @@ export const actionHandlers = {
     spendPeaceful(s);
     gainResearch(s, t.player, 1);
   },
-  conquer(s, a) {
+  claim(s, a) {
     const t = requireActionPhase(s);
-    const check = conquerCheck(s, t.player, a.planet, a.replace !== undefined);
+    const check = claimCheck(s, t.player, a.objective, a.replace !== undefined);
     if (!check.ok) fail(check.reason ?? 'Cannot claim');
     if (check.replace) {
       const owner = a.replace;
       if (owner === undefined || !check.replace.includes(owner)) fail('Choose which opponent cube to displace');
-      const planet = s.board.planets[a.planet];
-      planet.cubes.splice(planet.cubes.lastIndexOf(owner), 1);
+      const objective = s.board.objectives[a.objective];
+      objective.cubes.splice(objective.cubes.lastIndexOf(owner), 1);
       s.players[owner].cubesLeft++;
-      cubeLeft(s, owner, a.planet);
-      log(s, `${name(s, t.player)} displaces ${name(s, owner)}'s cube.`, t.player, 'conquer', [a.planet]);
+      cubeLeft(s, owner, a.objective);
+      log(s, `${name(s, t.player)} displaces ${name(s, owner)}'s cube.`, t.player, 'claim', [a.objective]);
     }
     spend(s, 2);
-    t.conquered = (t.conquered ?? 0) + 1;
+    t.claimed = (t.claimed ?? 0) + 1;
     // Science: the research that moved the sum onto the target.
     if (check.research) s.players[t.player].research -= check.research;
     const spent = check.research ? `, spending ${check.research} research` : '';
-    log(s, `${name(s, t.player)} claims objective ${s.board.planets[a.planet].number}${spent}.`, t.player, 'conquer', [a.planet]);
-    tally(s, t.player, 'planetsTaken');
-    placeCube(s, t.player, a.planet);
+    log(s, `${name(s, t.player)} claims objective ${s.board.objectives[a.objective].number}${spent}.`, t.player, 'claim', [a.objective]);
+    tally(s, t.player, 'objectivesTaken');
+    placeCube(s, t.player, a.objective);
   },
   endTurn(s) {
     requireActionPhase(s, true);

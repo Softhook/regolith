@@ -240,8 +240,8 @@ describe('online timeline', () => {
     expect(t.replay()!.steps).toHaveLength(2);
   });
 
-  it('a missile and a pass racing for one battle give the same game in either order', () => {
-    // Two browsers both moving an AI seat in a battle it is losing: one fires its missile, the other
+  it('an atomic and a pass racing for one battle give the same game in either order', () => {
+    // Two browsers both moving an AI seat in a battle it is losing: one fires its atomic, the other
     // passes. Whichever arrives first, every browser must end up with the same game.
     const t = new Timeline();
     const all: Post[] = [create('alice', [seat('Alice'), seat('Nova', true), seat('Orion', true)], [], 1, 'regolith')];
@@ -253,9 +253,9 @@ describe('online timeline', () => {
       const s = head(r);
       expect(s.phase).not.toBe('over');
       const c = r.combat;
-      const missile = c ? legalActions(s).find((a) => a.type === 'missile' && r.seats[a.by].ai && c.waitingOn.includes(a.by)) : undefined;
-      if (missile?.type === 'missile') {
-        const fire = post('alice', actBody(r, missile.by, missile)!, r.tip);
+      const atomic = c ? legalActions(s).find((a) => a.type === 'atomic' && r.seats[a.by].ai && c.waitingOn.includes(a.by)) : undefined;
+      if (atomic?.type === 'atomic') {
+        const fire = post('alice', actBody(r, atomic.by, atomic)!, r.tip);
         const passes = c!.waitingOn.map((w) => post('bob', { t: 'pass', seat: w, stage: c!.stage }));
         const browser = (order: Post[]) => {
           const b = new Timeline();
@@ -264,13 +264,13 @@ describe('online timeline', () => {
           for (const p of order) b.add(p);
           return b.replay()!;
         };
-        const missileFirst = browser([fire, ...passes]);
+        const atomicFirst = browser([fire, ...passes]);
         const passesFirst = browser([...passes, fire]);
-        // Every seat the battle waited for passed, so it was decided there: the missile came too late.
-        expect(missileFirst.steps.length).toBe(passesFirst.steps.length);
-        expect(head(missileFirst)).toEqual(head(passesFirst));
-        expect(head(passesFirst).players[missile.by].missiles).toBe(s.players[missile.by].missiles);
-        expect(missileFirst.desync).toBeNull();
+        // Every seat the battle waited for passed, so it was decided there: the atomic came too late.
+        expect(atomicFirst.steps.length).toBe(passesFirst.steps.length);
+        expect(head(atomicFirst)).toEqual(head(passesFirst));
+        expect(head(passesFirst).players[atomic.by].atomics).toBe(s.players[atomic.by].atomics);
+        expect(atomicFirst.desync).toBeNull();
         return;
       }
       if (c) {

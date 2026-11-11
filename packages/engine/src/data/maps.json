@@ -8,7 +8,7 @@
     "stats": {
       "slack": 0,
       "shared": 1,
-      "planets": 7
+      "objectives": 7
     },
     "world": "phobos",
     "length": "short",
@@ -45,7 +45,7 @@
     "stats": {
       "slack": 4,
       "shared": 4,
-      "planets": 10
+      "objectives": 10
     },
     "world": "deimos",
     "length": "medium",
@@ -81,7 +81,7 @@
     "stats": {
       "slack": 4,
       "shared": 5,
-      "planets": 9
+      "objectives": 9
     },
     "world": "phobos",
     "length": "long",
@@ -118,7 +118,7 @@
     "stats": {
       "slack": 0,
       "shared": 6,
-      "planets": 6
+      "objectives": 6
     },
     "world": "mars",
     "length": "medium",
@@ -149,7 +149,7 @@
     "stats": {
       "slack": 2,
       "shared": 4,
-      "planets": 6
+      "objectives": 6
     },
     "world": "phobos",
     "length": "short",
@@ -183,7 +183,7 @@
     "stats": {
       "slack": 2,
       "shared": 2,
-      "planets": 10
+      "objectives": 10
     },
     "world": "deimos",
     "length": "short",
@@ -222,7 +222,7 @@
     "stats": {
       "slack": 2,
       "shared": 5,
-      "planets": 7
+      "objectives": 7
     },
     "world": "phobos",
     "length": "long",
@@ -251,7 +251,7 @@
     "stats": {
       "slack": 6,
       "shared": 3,
-      "planets": 12
+      "objectives": 12
     },
     "world": "mars",
     "length": "medium",
@@ -296,7 +296,7 @@
     "stats": {
       "slack": 6,
       "shared": 5,
-      "planets": 12
+      "objectives": 12
     },
     "world": "phobos",
     "length": "long",
@@ -337,7 +337,7 @@
     "stats": {
       "slack": 3,
       "shared": 6,
-      "planets": 9
+      "objectives": 9
     },
     "world": "deimos",
     "length": "long",
@@ -390,7 +390,7 @@
     "stats": {
       "slack": 6,
       "shared": 2,
-      "planets": 10
+      "objectives": 10
     },
     "world": "deimos",
     "length": "short",
@@ -434,7 +434,7 @@
     "stats": {
       "slack": 2,
       "shared": 4,
-      "planets": 6
+      "objectives": 6
     },
     "world": "phobos",
     "length": "medium",
@@ -468,7 +468,7 @@
     "stats": {
       "slack": 4,
       "shared": 4,
-      "planets": 10
+      "objectives": 10
     },
     "world": "deimos",
     "length": "medium",
@@ -504,7 +504,7 @@
     "stats": {
       "slack": 6,
       "shared": 5,
-      "planets": 12
+      "objectives": 12
     },
     "world": "phobos",
     "length": "long",
@@ -545,7 +545,7 @@
     "stats": {
       "slack": 2,
       "shared": 4,
-      "planets": 8
+      "objectives": 8
     },
     "world": "mars",
     "length": "medium",
@@ -592,7 +592,7 @@
     "stats": {
       "slack": 6,
       "shared": 4,
-      "planets": 10
+      "objectives": 10
     },
     "world": "mars",
     "length": "medium",
@@ -637,7 +637,7 @@
     "stats": {
       "slack": 3,
       "shared": 3,
-      "planets": 9
+      "objectives": 9
     },
     "world": "phobos",
     "length": "long",
@@ -696,7 +696,7 @@
     "stats": {
       "slack": 4,
       "shared": 4,
-      "planets": 10
+      "objectives": 10
     },
     "world": "mars",
     "length": "long",
@@ -752,7 +752,7 @@
     "stats": {
       "slack": 6,
       "shared": 4,
-      "planets": 14
+      "objectives": 14
     },
     "world": "mars",
     "length": "long",
@@ -813,7 +813,7 @@
     "stats": {
       "slack": 6,
       "shared": 4,
-      "planets": 14
+      "objectives": 14
     },
     "world": "phobos",
     "length": "long",
@@ -865,7 +865,7 @@
     "stats": {
       "slack": 5,
       "shared": 1,
-      "planets": 13
+      "objectives": 13
     },
     "world": "mars",
     "length": "short",
@@ -911,7 +911,7 @@
     "stats": {
       "slack": 3,
       "shared": 3,
-      "planets": 12
+      "objectives": 12
     },
     "world": "deimos",
     "length": "short",
@@ -955,7 +955,7 @@
     "stats": {
       "slack": 4,
       "shared": 4,
-      "planets": 12
+      "objectives": 12
     },
     "world": "phobos",
     "length": "medium",
@@ -997,7 +997,7 @@
     "stats": {
       "slack": 6,
       "shared": 3,
-      "planets": 9
+      "objectives": 9
     },
     "world": "mars",
     "length": "medium",
@@ -1024,7 +1024,7 @@
     "stats": {
       "slack": 2,
       "shared": 5,
-      "planets": 10
+      "objectives": 10
     },
     "world": "phobos",
     "length": "long",
@@ -1060,7 +1060,7 @@
     "stats": {
       "slack": 3,
       "shared": 6,
-      "planets": 13
+      "objectives": 13
     },
     "world": "deimos",
     "length": "long",
@@ -1113,7 +1113,7 @@
     "stats": {
       "slack": 4,
       "shared": 4,
-      "planets": 12
+      "objectives": 12
     },
     "world": "mars",
     "length": "long",
@@ -1160,7 +1160,7 @@
     "stats": {
       "slack": 5,
       "shared": 5,
-      "planets": 12
+      "objectives": 12
     },
     "world": "deimos",
     "length": "medium",
@@ -1207,7 +1207,7 @@
     "stats": {
       "slack": 2,
       "shared": 6,
-      "planets": 12
+      "objectives": 12
     },
     "world": "phobos",
     "length": "medium",
@@ -1254,7 +1254,7 @@
     "stats": {
       "slack": 6,
       "shared": 1,
-      "planets": 9
+      "objectives": 9
     },
     "world": "mars",
     "length": "short",
@@ -1301,7 +1301,7 @@
     "stats": {
       "slack": 6,
       "shared": 2,
-      "planets": 9
+      "objectives": 9
     },
     "world": "phobos",
     "length": "short",
@@ -1337,7 +1337,7 @@
     "stats": {
       "slack": 2,
       "shared": 4,
-      "planets": 10
+      "objectives": 10
     },
     "world": "mars",
     "length": "medium",
@@ -1380,7 +1380,7 @@
     "stats": {
       "slack": 3,
       "shared": 3,
-      "planets": 7
+      "objectives": 7
     },
     "world": "mars",
     "length": "medium",
@@ -1405,7 +1405,7 @@
     "stats": {
       "slack": 6,
       "shared": 1,
-      "planets": 13
+      "objectives": 13
     },
     "world": "deimos",
     "length": "short",
@@ -1449,7 +1449,7 @@
     "stats": {
       "slack": 0,
       "shared": 7,
-      "planets": 11
+      "objectives": 11
     },
     "world": "phobos",
     "length": "long",
@@ -1488,7 +1488,7 @@
     "stats": {
       "slack": 6,
       "shared": 3,
-      "planets": 7
+      "objectives": 7
     },
     "world": "deimos",
     "length": "medium",
@@ -1521,7 +1521,7 @@
     "stats": {
       "slack": 6,
       "shared": 2,
-      "planets": 9
+      "objectives": 9
     },
     "world": "mars",
     "length": "medium",
@@ -1570,7 +1570,7 @@
     "stats": {
       "slack": 2,
       "shared": 2,
-      "planets": 4
+      "objectives": 4
     },
     "world": "phobos",
     "length": "short",
@@ -1610,7 +1610,7 @@
     "stats": {
       "slack": 6,
       "shared": 1,
-      "planets": 9
+      "objectives": 9
     },
     "world": "mars",
     "length": "short",
@@ -1671,7 +1671,7 @@
     "stats": {
       "slack": 5,
       "shared": 3,
-      "planets": 10
+      "objectives": 10
     },
     "world": "phobos",
     "length": "medium",
@@ -1720,7 +1720,7 @@
     "stats": {
       "slack": 0,
       "shared": 1,
-      "planets": 7
+      "objectives": 7
     },
     "world": "deimos",
     "length": "short",
@@ -1765,7 +1765,7 @@
     "stats": {
       "slack": 0,
       "shared": 6,
-      "planets": 8
+      "objectives": 8
     },
     "world": "deimos",
     "length": "long",

@@ -1,6 +1,6 @@
 /** Turn structure: start of turn, the end-of-turn card phase, and passing the turn on. */
 import { checkInfamy, emptyTurn, gainResearch, log, name, type PendingOf } from './core';
-import { cellOf, scrapyard, shipsOnBoard } from './lookups';
+import { cellOf, salvageYard, mechsOnBoard } from './lookups';
 import { breakthroughAt, canProfiteer, canShunt, canTakeAnyCard, infamyTargets, startSlots } from './queries';
 import { next } from './rng';
 import { rulesOf } from './rules';
@@ -9,10 +9,10 @@ import type { GameState, OwnedSkill, Pending, PlayerId } from './types';
 
 /** The start-of-turn bonuses of the player's skills, added up. */
 function startOfTurnBonus(s: GameState, player: PlayerId): Required<TurnBonus> {
-  const total = { freeDeploys: 0, research: 0 };
+  const total = { freeDrops: 0, research: 0 };
   for (const { rule } of activeSkills(s, player)) {
     const b = rule.startOfTurn?.(s, player) ?? {};
-    total.freeDeploys += b.freeDeploys ?? 0;
+    total.freeDrops += b.freeDrops ?? 0;
     total.research += b.research ?? 0;
   }
   return total;
@@ -29,7 +29,7 @@ function startTurn(s: GameState, player: PlayerId, actions: number, bonus: boole
   }
   const extra = startOfTurnBonus(s, player);
   s.turn.actionsLeft = Math.max(0, n);
-  s.turn.freeDeploys = extra.freeDeploys;
+  s.turn.freeDrops = extra.freeDrops;
   for (const d of s.dice) if (d.owner === player) s.turn.seen[d.id] = [d.value];
 
   // Skills a Ruthless player disabled come back at the start of that player's next regular turn,
@@ -37,19 +37,19 @@ function startTurn(s: GameState, player: PlayerId, actions: number, bonus: boole
   if (!bonus) for (const o of s.players) activateSkills(s, o.id, (sk) => sk.disabledUntil === player);
 
   if (extra.research) gainResearch(s, player, extra.research);
-  // Void tiles: +1 research per own ship on one.
-  const onVoid = shipsOnBoard(s, player).filter((d) => {
+  // Alien Artefact tiles: +1 research per own mech on one.
+  const onArtefact = mechsOnBoard(s, player).filter((d) => {
     const c = cellOf(d)!;
-    return s.board.cells[c.r][c.c].void;
+    return s.board.cells[c.r][c.c].artefact;
   }).length;
-  if (onVoid) gainResearch(s, player, onVoid);
+  if (onArtefact) gainResearch(s, player, onArtefact);
   log(s, bonus ? `${pl.name} takes a bonus turn.` : `${pl.name}'s turn.`, player);
   s.log[s.log.length - 1].turn = true;
 }
 
-/** Lowest mech total goes first (ties: random); then everyone picks a starting planet in turn order. */
-function startDeployment(s: GameState) {
-  const sums = s.players.map((p) => scrapyard(s, p.id).reduce((a, d) => a + d.value, 0));
+/** Lowest mech total goes first (ties: random); then everyone picks a starting objective in turn order. */
+function startDrop(s: GameState) {
+  const sums = s.players.map((p) => salvageYard(s, p.id).reduce((a, d) => a + d.value, 0));
   const low = Math.min(...sums);
   const tied = s.players.filter((p) => sums[p.id] === low);
   const first = tied[Math.floor(next(s) * tied.length)].id;
@@ -68,16 +68,16 @@ export function beginPlay(s: GameState) {
 }
 
 /**
- * Queues a player's card picks for this card phase: `count` earned this turn (`conquer` of them by
- * Conquer actions) plus any carried over by Momentum (see carryPicks in cards.ts).
+ * Queues a player's card picks for this card phase: `count` earned this turn (`claim` of them by
+ * Claim actions) plus any carried over by Momentum (see carryPicks in cards.ts).
  */
-function queuePicks(s: GameState, player: PlayerId, count: number, conquer: number) {
+function queuePicks(s: GameState, player: PlayerId, count: number, claim: number) {
   const pl = s.players[player];
   count += pl.carriedPicks ?? 0;
-  conquer += pl.carriedConquerPicks ?? 0;
+  claim += pl.carriedClaimPicks ?? 0;
   delete pl.carriedPicks;
-  delete pl.carriedConquerPicks;
-  if (count > 0) s.pending.push({ kind: 'takeCard', player, count, ...(conquer && { conquer }) });
+  delete pl.carriedClaimPicks;
+  if (count > 0) s.pending.push({ kind: 'takeCard', player, count, ...(claim && { claim }) });
 }
 
 /** Phase 2: one card per cube placed this turn, plus one for a research breakthrough. */
@@ -86,13 +86,13 @@ export function endTurn(s: GameState) {
   const pl = s.players[p];
   s.turn.phase = 'cards';
   if (!rulesOf(s).cards) return;
-  let cards = s.turn.conquests;
+  let cards = s.turn.claims;
   if (pl.research >= breakthroughAt(s, p)) {
     pl.research = 1;
     cards++;
     log(s, `${pl.name} makes a research breakthrough.`, p, 'breakthrough');
   }
-  queuePicks(s, p, cards, s.turn.conquered ?? 0);
+  queuePicks(s, p, cards, s.turn.claimed ?? 0);
   // A cube placed on someone else's turn earns its card in this card phase, after the active
   // player, in turn order (designer, BGG thread 1087563).
   const off = s.turn.offTurnCubes ?? [];
@@ -126,7 +126,7 @@ function finishTurn(s: GameState) {
 
 /**
  * Puts the player's inactive skills that pass `which` into effect. A Prideful taking effect can
- * make the player's Dominance already enough for Take Over (RULES.md ruling 3).
+ * make the player's Power already enough for Take Over (RULES.md ruling 3).
  */
 function activateSkills(s: GameState, player: PlayerId, which: (sk: OwnedSkill) => boolean) {
   let threshold = false;
@@ -144,10 +144,10 @@ function activateSkills(s: GameState, player: PlayerId, which: (sk: OwnedSkill) 
  * decision from the queue (usually because there is no legal choice).
  */
 const AUTO_RESOLVE: { [K in Pending['kind']]?: (s: GameState, head: PendingOf<K>) => boolean } = {
-  placeShips(s, head) {
-    if (scrapyard(s, head.player).length && startSlots(s, head.planet).length) return false;
-    log(s, `${name(s, head.player)} drops around objective ${s.board.planets[head.planet].number}.`, head.player, 'startPlanet', [
-      head.planet,
+  placeMechs(s, head) {
+    if (salvageYard(s, head.player).length && startSlots(s, head.objective).length) return false;
+    log(s, `${name(s, head.player)} drops around objective ${s.board.objectives[head.objective].number}.`, head.player, 'startObjective', [
+      head.objective,
     ]);
     s.pending.shift();
     if (!s.pending.length) beginPlay(s);
@@ -160,7 +160,7 @@ const AUTO_RESOLVE: { [K in Pending['kind']]?: (s: GameState, head: PendingOf<K>
     return true;
   },
   showOfForce(s) {
-    if (shipsOnBoard(s).length) return false;
+    if (mechsOnBoard(s).length) return false;
     s.pending.shift();
     return true;
   },
@@ -199,7 +199,7 @@ export function settle(s: GameState) {
     const auto = head && (AUTO_RESOLVE[head.kind] as ((s: GameState, h: Pending) => boolean) | undefined);
     if (auto?.(s, head)) continue;
     if (!head && s.phase === 'setup') {
-      startDeployment(s);
+      startDrop(s);
       continue;
     }
     if (!head && s.phase === 'play' && s.turn.phase === 'cards') {

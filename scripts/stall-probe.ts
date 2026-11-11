@@ -1,14 +1,14 @@
 /**
- * Stalls and shutouts in Regolith self-play: how often barriers wall players off from every planet they
+ * Stalls and shutouts in Regolith self-play: how often barriers wall players off from every objective they
  * could still claim, how long that lasts and what ends it, against games without the Wisp's barriers and
  * with a cap on them.
  *
- * At the start of every turn each player is open (a planet they can still claim on the board), locked
+ * At the start of every turn each player is open (an objective they can still claim on the board), locked
  * (none, but an enemy mech they can reach, so combat can still earn Take Over) or sealed (neither: only
  * cards help, research breakthroughs to Ice Tunnel, Power Grab, Orbital Cannon or Infiltration). What a
- * player can reach is a flood fill over spaces, walled by barriers, planets and the board's edge, through
- * the Ice Tunnel pair, from their mechs and the orbits they can drop into; mechs don't wall (they move).
- * A planet is live if it has room and the open orbit spaces they reach can make its number (Martial Law,
+ * player can reach is a flood fill over spaces, walled by barriers, objectives and the board's edge, through
+ * the Ice Tunnel pair, from their mechs and the perimeters they can drop into; mechs don't wall (they move).
+ * An objective is live if it has room and the open perimeter spaces they reach can make its number (Martial Law,
  * Science and Hacking counted). A stall is the longest stretch without a cube placed, in rounds.
  *
  *   npm run selfplay:stalls -- [games=60] [players=2,3,4] [variants=on,off,cap3] [level=3] [jobs=fast cores] [seed=0] [out=test-results/stalls.jsonl] [fresh=0]
@@ -34,8 +34,8 @@ import {
   linked,
   MAPS,
   mulberry32,
-  orbitals,
-  planetFreeSlots,
+  perimeterSpaces,
+  objectiveFreeSlots,
   RULESETS,
   skillRules,
   spaces,
@@ -72,8 +72,8 @@ interface Shutout {
   turns: number;
   /** Every player sealed at some point in it. */
   sealed: boolean;
-  /** What ended it: a cube by conquest or Take Over, an Ice Tunnel opening a way, a mech destroyed, or the game cut off. */
-  end: 'conquer' | 'infamy' | 'tunnel' | 'other' | 'unfinished';
+  /** What ended it: a cube by claim or Take Over, an Ice Tunnel opening a way, a mech destroyed, or the game cut off. */
+  end: 'claim' | 'infamy' | 'tunnel' | 'other' | 'unfinished';
 }
 
 interface GameResult extends Task {
@@ -89,14 +89,14 @@ interface GameResult extends Task {
   brokenEnemy?: number;
   tunnels: number;
   infamy: number;
-  conquests: number;
+  claims: number;
   /** Player-turns locked or sealed (any player), and sealed. */
   lockedTurns: number;
   sealedTurns: number;
   /** Turns with at least one player locked or sealed, of all turns. */
   anyLockedTurns: number;
   turns: number;
-  /** Stretches when no player had a live planet. */
+  /** Stretches when no player had a live objective. */
   shutouts: Shutout[];
   /** With `abwalls`: whether side A, the seat with PLANNING.walls, won. */
   sideAWon?: boolean;
@@ -105,7 +105,7 @@ interface GameResult extends Task {
   seed?: string;
 }
 
-/** The spaces `p` can reach: from their mechs and drop orbits, through spaces and the Ice Tunnel, not barriers. */
+/** The spaces `p` can reach: from their mechs and drop perimeters, through spaces and the Ice Tunnel, not barriers. */
 function reach(s: GameState, p: PlayerId): Set<string> {
   const k = (c: Cell) => `${c.r},${c.c}`;
   const seen = new Set<string>();
@@ -116,8 +116,8 @@ function reach(s: GameState, p: PlayerId): Set<string> {
     queue.push(c);
   };
   for (const d of s.dice) if (d.owner === p && d.loc.zone === 'board') add({ r: d.loc.r, c: d.loc.c });
-  for (const planet of s.board.planets) if (planet.cubes.includes(p)) for (const c of orbitals(s.board, planet)) add(c);
-  if (skillRules(s, p).some((r) => r.deployIsolated)) for (const c of spaces(s.board)) add(c);
+  for (const objective of s.board.objectives) if (objective.cubes.includes(p)) for (const c of perimeterSpaces(s.board, objective)) add(c);
+  if (skillRules(s, p).some((r) => r.dropIsolated)) for (const c of spaces(s.board)) add(c);
   while (queue.length) for (const n of linked(s, queue.pop()!)) add(n);
   return seen;
 }
@@ -125,26 +125,26 @@ function reach(s: GameState, p: PlayerId): Set<string> {
 function standing(s: GameState, p: PlayerId): Standing {
   const area = reach(s, p);
   const pl = s.players[p];
-  const rules = skillRules(s, p).flatMap((r) => (r.conquer ? [r.conquer] : []));
-  // How far past six a ship the claim's skills reach: Hacking's tolerance, Science's research, Martial Law's Power.
+  const rules = skillRules(s, p).flatMap((r) => (r.claim ? [r.claim] : []));
+  // How far past six a mech the claim's skills reach: Hacking's tolerance, Science's research, Martial Law's Power.
   const bonus =
     Math.max(0, ...rules.map((r) => r.tolerance ?? 0)) +
     (rules.some((r) => r.spendResearch) ? pl.research - 1 : 0) +
-    Math.max(0, ...rules.flatMap((r) => r.sums?.({ sum: 0, ships: [], dominance: pl.dominance, research: pl.research }) ?? []));
-  const roomy = s.board.planets.filter((q) => planetFreeSlots(q) > 0);
-  const live = roomy.some((planet) => {
-    const own = planet.cubes.filter((x) => x === p).length;
-    // Entanglement: a second cube only once you hold every planet with room.
+    Math.max(0, ...rules.flatMap((r) => r.sums?.({ sum: 0, mechs: [], power: pl.power, research: pl.research }) ?? []));
+  const roomy = s.board.objectives.filter((q) => objectiveFreeSlots(q) > 0);
+  const live = roomy.some((objective) => {
+    const own = objective.cubes.filter((x) => x === p).length;
+    // Entanglement: a second cube only once you hold every objective with room.
     if (own && roomy.some((q) => !q.cubes.includes(p))) return false;
-    const open = orbitals(s.board, planet).filter((c) => area.has(`${c.r},${c.c}`)).length;
-    return open > 0 && 6 * open + bonus >= planet.number + 3 * own;
+    const open = perimeterSpaces(s.board, objective).filter((c) => area.has(`${c.r},${c.c}`)).length;
+    return open > 0 && 6 * open + bonus >= objective.number + 3 * own;
   });
   if (live) return 'open';
   const enemy = s.dice.some((d) => d.owner !== p && d.loc.zone === 'board' && area.has(`${d.loc.r},${d.loc.c}`));
   return enemy ? 'locked' : 'sealed';
 }
 
-const cubesOnBoard = (s: GameState) => s.board.planets.reduce((n, q) => n + q.cubes.length, 0);
+const cubesOnBoard = (s: GameState) => s.board.objectives.reduce((n, q) => n + q.cubes.length, 0);
 
 /** The state the turn player chooses from: with `off`, their Wisps' barrier already used this turn. */
 function chooser(s: GameState, variant: string): GameState {
@@ -185,7 +185,7 @@ function play({ variant, players, game }: Task): GameResult {
     brokenEnemy: 0,
     tunnels: 0,
     infamy: 0,
-    conquests: 0,
+    claims: 0,
     lockedTurns: 0,
     sealedTurns: 0,
     anyLockedTurns: 0,
@@ -221,7 +221,7 @@ function play({ variant, players, game }: Task): GameResult {
     if (s.pending[0]?.kind === 'combat') for (const p of s.players) action ??= chooseCombatResponse(s, p.id, { level, random });
     action ??= chooseAction(chooser(s, variant), { level, random });
     if (!action) throw new Error(`no action, ${variant} game ${game}`);
-    const before = { cubes: cubesOnBoard(s), barriers: s.barriers?.length ?? 0, gates: JSON.stringify(s.gates) };
+    const before = { cubes: cubesOnBoard(s), barriers: s.barriers?.length ?? 0, tunnels: JSON.stringify(s.tunnels) };
     if (action.type === 'breakBarrier') {
       r.broken!++;
       const b = barrierAt(s, action.cell);
@@ -233,8 +233,8 @@ function play({ variant, players, game }: Task): GameResult {
       r.longestDrought = Math.max(r.longestDrought, (s.turn.number - lastCubeTurn) / players);
       lastCubeTurn = s.turn.number;
       if (action.type === 'infamy') r.infamy++;
-      else r.conquests++;
-      if (shutout && shutout.end === 'unfinished') shutout.end = action.type === 'infamy' ? 'infamy' : 'conquer';
+      else r.claims++;
+      if (shutout && shutout.end === 'unfinished') shutout.end = action.type === 'infamy' ? 'infamy' : 'claim';
     }
     const added = (s.barriers?.length ?? 0) - before.barriers;
     if (added > 0) {
@@ -246,7 +246,7 @@ function play({ variant, players, game }: Task): GameResult {
         s = { ...s, barriers: kept.reverse() };
       }
     }
-    if (JSON.stringify(s.gates) !== before.gates && s.gates.length === 2) {
+    if (JSON.stringify(s.tunnels) !== before.tunnels && s.tunnels.length === 2) {
       r.tunnels++;
       if (shutout && shutout.end === 'unfinished') shutout.end = 'tunnel';
     }
@@ -310,7 +310,7 @@ function report() {
   const pct = (n: number, d: number) => `${d ? Math.round((100 * n) / d) : 0}%`;
   const avg = (xs: number[]) => (xs.length ? (xs.reduce((a, b) => a + b, 0) / xs.length).toFixed(1) : '–');
   console.log(
-    '| Players | Variant | Games | Unfinished | Rounds | Barriers | Broken (enemy) | Longest drought | Drought ≥ 5 rounds | Any player locked out | Full shutout | Full seal | Shutout ends (conquer/infamy/tunnel/other/unfinished) | Side A wins |',
+    '| Players | Variant | Games | Unfinished | Rounds | Barriers | Broken (enemy) | Longest drought | Drought ≥ 5 rounds | Any player locked out | Full shutout | Full seal | Shutout ends (claim/infamy/tunnel/other/unfinished) | Side A wins |',
   );
   console.log('|--:|---|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|---|--:|');
   for (const players of o.players.split(',').map(Number))
@@ -319,7 +319,7 @@ function report() {
         (r) => r.players === players && r.variant === variant && keyOf(r) === keyOf({ ...r, level: o.level, seed: o.seed }),
       );
       const shut = rs.filter((r) => r.shutouts.length);
-      const ends = { conquer: 0, infamy: 0, tunnel: 0, other: 0, unfinished: 0 };
+      const ends = { claim: 0, infamy: 0, tunnel: 0, other: 0, unfinished: 0 };
       for (const r of rs) for (const x of r.shutouts) ends[x.end]++;
       console.log(
         `| ${players} | ${variant} | ${rs.length} | ${rs.filter((r) => !r.finished).length} | ${avg(rs.filter((r) => r.finished).map((r) => r.rounds))} | ${avg(rs.map((r) => r.barriers))} | ${avg(rs.map((r) => r.broken ?? 0))} (${avg(rs.map((r) => r.brokenEnemy ?? 0))}) | ${avg(rs.map((r) => r.longestDrought))} | ${pct(rs.filter((r) => r.longestDrought >= 5).length, rs.length)} | ${pct(

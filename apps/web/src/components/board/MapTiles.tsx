@@ -1,6 +1,6 @@
 import { Fragment, memo, type ReactNode } from 'react';
 import type { Board } from '@regolith/engine';
-import { GROUND_BASE, HEX_EDGE, RASTER_AREA, TILE, TILE_LAYERS, hexEdge, voidFlask, type RasterLayer } from '@regolith/art';
+import { GROUND_BASE, HEX_EDGE, RASTER_AREA, TILE, TILE_LAYERS, hexEdge, artefactFlask, type RasterLayer } from '@regolith/art';
 import { useTileImages } from '../../art/tileImages';
 import type { TileArt } from '../../art/boardTiles';
 import { hexCorners, hexFlower, hexSeams, placement } from './geometry';
@@ -10,27 +10,27 @@ const points = (list: number[][]) => list.map(([x, y]) => `${x.toFixed(2)},${y.t
 const line = (list: number[][]) => `M${list.map(([x, y]) => `${x.toFixed(2)} ${y.toFixed(2)}`).join(' L')}`;
 
 /**
- * The spaces' outlines on the map, in millimetres, with a faint flask on a Void's (ships there gain Research), and
- * a group per space for the board's tests and checks to find. Worked out from the board, so an orbit reaching onto
+ * The spaces' outlines on the map, in millimetres, with a faint flask on an Alien Artefact's (mechs there gain Research), and
+ * a group per space for the board's tests and checks to find. Worked out from the board, so a perimeter reaching onto
  * another tile is marked there too. The outlines (`edges`) are apart, to fade with the map's seams.
  */
 function wells(board: Board): { edges: string; wells: string } {
   const { mid } = placement(board, TILE.cell);
   let out = '';
   let edges = '';
-  for (const { p, orbits, void: isVoid } of spaceRoles(board)) {
+  for (const { p, perimeters, artefact: isArtefact } of spaceRoles(board)) {
     const { x, y } = mid(p);
-    const role = orbits > 1 ? 'shared' : orbits ? 'orbit' : 'space';
-    out += `<g class="well" data-r="${p.r}" data-c="${p.c}" data-role="${role}${isVoid ? ' void' : ''}">`;
+    const role = perimeters > 1 ? 'shared' : perimeters ? 'perimeter' : 'space';
+    out += `<g class="well" data-r="${p.r}" data-c="${p.c}" data-role="${role}${isArtefact ? ' artefact' : ''}">`;
     edges += hexEdge(x, y);
-    if (isVoid) out += voidFlask(x, y);
+    if (isArtefact) out += artefactFlask(x, y);
     out += '</g>';
   }
   return { edges, wells: out };
 }
 
 /**
- * The spaces of a map, in millimetres, by map: they follow from where its planets are, not from the cubes on
+ * The spaces of a map, in millimetres, by map: they follow from where its objectives are, not from the cubes on
  * them, so a move (a new board) doesn't redraw them.
  */
 const marksByMap = new Map<string, { edges: string; wells: string }>();
@@ -42,10 +42,10 @@ function marksOf(board: Board) {
 
 /**
  * A map's tiles in SVG, in their layers (art `TILE_LAYERS`), as a printed tile has them: each tile's ground on its
- * world with its building on the planet's space, and what stands on it drawn again over the spaces, so the
+ * world with its building on the objective's space, and what stands on it drawn again over the spaces, so the
  * outlines are etched into the ground and not across the buildings. The images are the layers drawn with filters
- * (tileImages); the spaces are drawn live, from the board, the seams between tiles under them. The planets'
- * numbers and cubes, their layer, go on top, with the gates and ships (BoardArt).
+ * (tileImages); the spaces are drawn live, from the board, the seams between tiles under them. The objectives'
+ * numbers and cubes, their layer, go on top, with the tunnels and mechs (BoardArt).
  */
 export const MapTiles = memo(function MapTiles({ board, tiles, cell }: { board: Board; tiles: TileArt[]; cell: number }) {
   const images: Record<RasterLayer, Record<string, string>> = {
@@ -107,7 +107,7 @@ export const MapTiles = memo(function MapTiles({ board, tiles, cell }: { board: 
       </>
     ),
     // Live: they change in play (BoardArt).
-    planet: () => null,
+    objective: () => null,
   };
   return (
     <>

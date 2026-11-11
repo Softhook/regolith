@@ -128,7 +128,7 @@ export function pressTestSvg(o: PressTestOptions = {}): string {
   // The aid's own pads, on its ground.
   const aidX = M + 84;
   body += rect(aidX, strip, M + WIDTH - aidX, h, GROUND);
-  body += diePad(aidX + 18, cy, TRACK_INK.dominance, 'dominance') + label(aidX + 18, 'aid die pad');
+  body += diePad(aidX + 18, cy, TRACK_INK.power, 'power') + label(aidX + 18, 'aid die pad');
   body += cubePad(aidX + 36, cy - CUBE_PAD.size / 2) + label(aidX + 36 + CUBE_PAD.size / 2, 'aid cube pad');
 
   // Type: the sizes the pieces use, on the light and the dark card paper.
@@ -146,7 +146,7 @@ export function pressTestSvg(o: PressTestOptions = {}): string {
     let ty = panelY + 3;
     for (const s of sizes) {
       ty += s * 1.25 + 1;
-      body += text(x + 3, ty, `${s} mm · ${(s / 0.3528).toFixed(1)} pt  Move up to the ship’s value`, s, ink);
+      body += text(x + 3, ty, `${s} mm · ${(s / 0.3528).toFixed(1)} pt  Move up to the mech’s value`, s, ink);
     }
     ty += 4;
     body += text(x + 3, ty, '1.5 mm muted · 7/35 C', 1.5, muted, 'font-weight="600" letter-spacing=".1"');

@@ -9,8 +9,8 @@
  *   npm run mobile:play -- --url https://…/      # a running dev server
  *
  * The human seat (Commander) plays a random but purposeful game: it takes every decision put to it
- * (popups, card picks, battles, advances), and on its turn selects its ships and taps a highlighted
- * target (preferring planets and attacks), then ends the turn. The AI plays everyone else. Each tap
+ * (popups, card picks, battles, advances), and on its turn selects its mechs and taps a highlighted
+ * target (preferring objectives and attacks), then ends the turn. The AI plays everyone else. Each tap
  * is a real touch at the element's centre; when the element is off screen or covered, that is
  * reported and the script clicks it through the page so the game goes on. A game that stops moving,
  * a page error or an engine error is reported too. Screenshots go to test-results/mobile-play/: the
@@ -21,7 +21,7 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { type Page } from 'playwright';
 import { chooseAction } from '../packages/ai/src';
-import { scrapyard, type Action, type Cell, type GameState } from '../packages/engine/src';
+import { salvageYard, type Action, type Cell, type GameState } from '../packages/engine/src';
 import { PHONES, arg, devServer, finish, launchChrome, playUrl } from './mobile-common';
 
 const GAMES: Record<string, { play: string; players: number; map?: string }> = {
@@ -53,16 +53,16 @@ interface Look {
   winner: string | null;
   /** A `want` was given but nothing on screen matches it. */
   missed: boolean;
-  /** The `want` is a ship that is already selected (a tap would deselect it). */
+  /** The `want` is a mech that is already selected (a tap would deselect it). */
   already: boolean;
 }
 
-/** One tap of a planned action: a ship, highlighted space or planet by its place on the map, a scrapyard ship, or a button. */
-type Want = { ship: Cell } | { space: Cell } | { planet: Cell } | { scrap: number } | { button: string };
+/** One tap of a planned action: a mech, highlighted space or objective by its place on the map, a salvage yard mech, or a button. */
+type Want = { mech: Cell } | { space: Cell } | { objective: Cell } | { salvage: number } | { button: string };
 
 /**
  * Picks the human's next tap: `want` when given and on the page (outside popups), otherwise a random one.
- * `tapsThisTurn` and `tried` (ships already selected this turn) steer the random taps towards ending the turn.
+ * `tapsThisTurn` and `tried` (mechs already selected this turn) steer the random taps towards ending the turn.
  */
 function look(page: Page, tapsThisTurn: number, tried: string[], want: Want | null): Promise<Look> {
   return page.evaluate(
@@ -95,16 +95,16 @@ function look(page: Page, tapsThisTurn: number, tried: string[], want: Want | nu
       let missed = false;
       const box = document.querySelector('.overlay .modal, .overlay .combat-card');
       if (want && !box && s.phase !== 'over') {
-        // Ships, spaces and planets carry their place on the map as data-r / data-c.
+        // Mechs, spaces and objectives carry their place on the map as data-r / data-c.
         const at = (sel: string, { r, c }: { r: number; c: number }) => all(`${sel}[data-r="${r}"][data-c="${c}"]`)[0];
-        if ('ship' in want) el = at('.ship', want.ship);
+        if ('mech' in want) el = at('.mech', want.mech);
         else if ('space' in want) el = at('.hl', want.space);
-        else if ('planet' in want) el = at('.planet-hit', want.planet);
-        else if ('scrap' in want) el = all('.turn-scrap .scrap-die')[want.scrap];
+        else if ('objective' in want) el = at('.objective-hit', want.objective);
+        else if ('salvage' in want) el = all('.turn-salvage .salvage-die')[want.salvage];
         else el = all('.turn-panel button').find((b) => b.textContent!.includes(want.button));
         missed = !el;
       }
-      const already = !!want && 'ship' in want && !!el?.classList.contains('selected');
+      const already = !!want && 'mech' in want && !!el?.classList.contains('selected');
       if (el) {
         // planned
       } else if (s.phase === 'over') {
@@ -118,23 +118,23 @@ function look(page: Page, tapsThisTurn: number, tried: string[], want: Want | nu
       } else {
         const takeable = all('.market.picking .takeable, .sheet.open .market .takeable');
         const decision = all('.turn-panel .turn-actions .btn').filter(
-          (b) => !b.closest('.ship-panel') && !/End turn|Undo/.test(b.textContent!),
+          (b) => !b.closest('.mech-panel') && !/End turn|Undo/.test(b.textContent!),
         );
-        const planets = all('.planet-hit.planet-conquer, .planet-hit.planet-start, .planet-hit.planet-infamy');
-        const attacks = all('.ship.ship-attack, .ship.ship-target, .ship.ship-swap, .ship.ship-passenger');
+        const objectives = all('.objective-hit.objective-claim, .objective-hit.objective-start, .objective-hit.objective-infamy');
+        const attacks = all('.mech.mech-attack, .mech.mech-target, .mech.mech-swap, .mech.mech-passenger');
         const cells = all('.hl');
-        const scrap = all('.turn-scrap .scrap-die.clickable');
+        const salvage = all('.turn-salvage .salvage-die.clickable');
         const endTurn = all('.turn-panel .turn-actions .btn-primary').find((b) => b.textContent!.includes('End turn'));
         const actionPhase = s.phase === 'play' && !head && !s.players[s.turn.player].ai;
         if (takeable.length) el = pick(takeable);
-        else if (planets.length) el = pick(planets);
+        else if (objectives.length) el = pick(objectives);
         else if (attacks.length && Math.random() < 0.7) el = pick(attacks);
         else if (head && decision.length) el = pick(decision);
-        else if (scrap.length && !document.querySelector('.scrap-die.selected')) el = pick(scrap);
+        else if (salvage.length && !document.querySelector('.salvage-die.selected')) el = pick(salvage);
         else if (cells.length && (!actionPhase || tapsThisTurn < TAPS_PER_TURN)) el = pick(cells);
         else if (attacks.length) el = pick(attacks);
         else if (actionPhase && s.turn.actionsLeft > 0 && tapsThisTurn < TAPS_PER_TURN) {
-          const own = all('.ship.own').filter((x) => !x.classList.contains('selected'));
+          const own = all('.mech.own').filter((x) => !x.classList.contains('selected'));
           const fresh = own.filter((x) => !tried.includes(x.getAttribute('aria-label')!));
           el = fresh[0] ?? endTurn;
         } else el = endTurn;
@@ -158,16 +158,16 @@ function look(page: Page, tapsThisTurn: number, tried: string[], want: Want | nu
         let problem: string | null = null;
         if (r.top < -1 || r.left < -1 || r.bottom > innerHeight + 1 || r.right > innerWidth + 1) problem = 'off screen';
         else {
-          // On the map the tap must reach the ship, space or planet itself (a neighbouring die once took taps
-          // meant for a planet); panels take them anywhere inside; a popup's own dice may overlap a little.
+          // On the map the tap must reach the mech, space or objective itself (a neighbouring die once took taps
+          // meant for an objective); panels take them anywhere inside; a popup's own dice may overlap a little.
           const hit = document.elementFromPoint(x, y);
           const home = el.closest('.overlay .modal, .combat-card, .panel, .sheet') ?? el;
-          // A ship covers its own space to attack from, and a tap on it attacks from there (the controller's rule).
-          const ship = hit?.closest('.ship.selected');
+          // A mech covers its own space to attack from, and a tap on it attacks from there (the controller's rule).
+          const mech = hit?.closest('.mech.selected');
           const same = (a: Element, b: Element) =>
             a.getAttribute('data-r') === b.getAttribute('data-r') && a.getAttribute('data-c') === b.getAttribute('data-c');
-          const onShip = !!ship && el.classList.contains('hl') && same(ship, el);
-          if (!onShip && (!hit || !home.contains(hit))) problem = `covered by .${(hit?.getAttribute('class') ?? '').split(' ').join('.')}`;
+          const onMech = !!mech && el.classList.contains('hl') && same(mech, el);
+          if (!onMech && (!hit || !home.contains(hit))) problem = `covered by .${(hit?.getAttribute('class') ?? '').split(' ').join('.')}`;
         }
         target = { label, x, y, problem };
       }
@@ -175,7 +175,7 @@ function look(page: Page, tapsThisTurn: number, tried: string[], want: Want | nu
         phase: s.phase,
         turn: s.turn.number,
         kind,
-        // A battle between others still waits for you when you could fire a missile into it.
+        // A battle between others still waits for you when you could fire an atomic into it.
         mine: box ? !!el : !s.players[actor].ai,
         sig,
         target,
@@ -193,23 +193,23 @@ function look(page: Page, tapsThisTurn: number, tried: string[], want: Want | nu
  * then taps at random).
  */
 function tapsFor(s: GameState, a: Action): Want[] | null {
-  const shipAt = (id: string): Want | null => {
+  const mechAt = (id: string): Want | null => {
     const loc = s.dice.find((d) => d.id === id)!.loc;
-    return loc.zone === 'board' ? { ship: { r: loc.r, c: loc.c } } : null;
+    return loc.zone === 'board' ? { mech: { r: loc.r, c: loc.c } } : null;
   };
   const steps = (...xs: (Want | null)[]) => (xs.every(Boolean) ? (xs as Want[]) : null);
   switch (a.type) {
     case 'move':
-      return steps(shipAt(a.die), { space: a.to });
-    case 'deploy':
-      return steps({ scrap: scrapyard(s, s.turn.player).findIndex((d) => d.id === a.die) }, { space: a.to });
+      return steps(mechAt(a.die), { space: a.to });
+    case 'drop':
+      return steps({ salvage: salvageYard(s, s.turn.player).findIndex((d) => d.id === a.die) }, { space: a.to });
     case 'attack':
-      return steps(shipAt(a.die), shipAt(a.target));
-    case 'reconfigure':
-      return steps(shipAt(a.die), { button: 'Reconfigure' });
-    case 'conquer': {
-      const p = s.board.planets[a.planet];
-      return [{ planet: { r: p.r, c: p.c } }];
+      return steps(mechAt(a.die), mechAt(a.target));
+    case 'refit':
+      return steps(mechAt(a.die), { button: 'Refit' });
+    case 'claim': {
+      const p = s.board.objectives[a.objective];
+      return [{ objective: { r: p.r, c: p.c } }];
     }
     case 'research':
       return [{ button: 'Research' }];
@@ -248,7 +248,7 @@ async function playGame(page: Page, name: string, players: number): Promise<{ is
   for (;;) {
     const l = await look(page, tapsThisTurn, tried, plan[0] ?? null);
     // On the human's turn, the AI (level 1, fast) chooses the action and the script taps it out, so that the human
-    // conquers, researches and takes cards like a player would. Unknown actions and missed taps fall back to random.
+    // claims, researches and takes cards like a player would. Unknown actions and missed taps fall back to random.
     if (l.mine && l.kind === 'turn' && !plan.length && plannedAt !== l.sig && !process.argv.includes('--random')) {
       plannedAt = l.sig;
       const state = await page.evaluate(() => window.__game.state());
@@ -289,7 +289,7 @@ async function playGame(page: Page, name: string, players: number): Promise<{ is
     if (l.turn > MAX_ROUNDS * players)
       return { issues: [...issues, `still going after ${MAX_ROUNDS} rounds`], summary: `stopped at turn ${l.turn}` };
 
-    // A new turn of the human's: forget the ships tried.
+    // A new turn of the human's: forget the mechs tried.
     const key = `${l.turn}:${l.kind === 'turn'}`;
     if (key !== turnKey) {
       turnKey = key;
@@ -328,13 +328,13 @@ async function playGame(page: Page, name: string, players: number): Promise<{ is
       await page.evaluate(() => (document.querySelector('[data-play]') as HTMLElement | null)?.click());
     } else await page.touchscreen.tap(t.x, t.y);
     if (plan.length && !l.missed) plan.shift();
-    const what = l.kind !== 'turn' ? l.kind : /'s /.test(t.label) ? 'ship' : t.label === 'End turn' ? 'end turn' : t.label;
+    const what = l.kind !== 'turn' ? l.kind : /'s /.test(t.label) ? 'mech' : t.label === 'End turn' ? 'end turn' : t.label;
     taps.set(what, (taps.get(what) ?? 0) + 1);
     if (l.kind === 'turn') {
       tapsThisTurn++;
       if (/'s /.test(t.label)) tried.push(t.label);
     }
-    // A tap that leaves the state as it was (selecting a ship) is fine; repeated ones are caught as stuck.
+    // A tap that leaves the state as it was (selecting a mech) is fine; repeated ones are caught as stuck.
     await page.waitForTimeout(350);
   }
 }

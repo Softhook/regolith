@@ -4,7 +4,7 @@ import { lastLogId } from './steps';
 /** The decisions a Tactic leaves its player, where it lands: each step that settles one is the card's doing. */
 const LANDING = new Set([
   'showOfForce',
-  'warpGate',
+  'iceTunnel',
   'placeBarrier',
   'kineticShunt',
   'shuntBarrier',
@@ -34,7 +34,7 @@ export function castOf(before: GameState, game: GameState): LogEntry | undefined
   return game.log.find((e) => e.id > last && e.card && e.event !== 'cardTaken');
 }
 
-/** Whether the game waits for a Tactic to land (its target, its gates…): until then the card has done nothing. */
+/** Whether the game waits for a Tactic to land (its target, its tunnels…): until then the card has done nothing. */
 export const landing = (s: GameState) => s.pending.some((p) => LANDING.has(p.kind));
 
 /** Whether the AI is about to settle a Tactic it has just played: it waits a little, so the card is read first. */

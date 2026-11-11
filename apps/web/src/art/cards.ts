@@ -141,5 +141,5 @@ export const cardFontCss = embeddedFonts(
   cardFontsReady,
 );
 
-/** The tile fonts: Inter ExtraBold for the planet number, JetBrains Mono for the flavour label. */
+/** The tile fonts: Inter ExtraBold for the objective number, JetBrains Mono for the flavour label. */
 export const tileFontCss = embeddedFonts('family=Inter:wght@800&family=JetBrains+Mono:wght@400;700', async () => {});

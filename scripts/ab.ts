@@ -18,7 +18,7 @@ import { addPair, FALSE_ALARM, noPairs, splitShare, sprt, type Verdict } from '.
 export interface AbOptions {
   /** The calling script's `import.meta.url`: its workers run it again. */
   script: string;
-  /** What each variant is called in its JSON line (`skill`, `ship`). */
+  /** What each variant is called in its JSON line (`skill`, `mech`). */
   name: string;
   variants: readonly string[];
   games: number;

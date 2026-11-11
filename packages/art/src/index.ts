@@ -10,12 +10,12 @@ export {
   WELL,
   HEX_EDGE,
   NUMBER_TEXT,
-  PLANET_CAPACITY,
-  PLANET_DIAMETER,
-  PLANET_FAMILY,
+  OBJECTIVE_CAPACITY,
+  OBJECTIVE_DIAMETER,
+  OBJECTIVE_FAMILY,
   SPACE_BASE,
   TILE,
-  type PlanetType,
+  type ObjectiveType,
 } from './tokens';
 export { ICONS, icon } from './icons';
 export { GROUND_BASE, REGOLITH_GROUND_PX, REGOLITH_SHADOW } from './regolith';
@@ -39,7 +39,7 @@ export {
   type Spot,
 } from './tile/geometry';
 export { OBJECTIVE_NAMES, WORLD_NAMES, type World } from './tile/look';
-export { hexEdges, hexEdge, voidFlask, well } from './tile/markings';
+export { hexEdges, hexEdge, artefactFlask, well } from './tile/markings';
 export {
   editableTileSvg,
   RASTER_AREA,
@@ -75,5 +75,5 @@ export { SKY, SP_FONTS } from './screenprint/kit';
 export { AID, MIN_TEXT, playerAidSvg, type AidOptions } from './aid';
 export { MAP_SHEET, mapSheetSvg, type MapSheetMark, type MapSheetOptions, type MapSheetTile } from './mapSheet';
 export { PRESS_TEST, pressTestSvg } from './proof';
-export { missile } from './kit/effects';
+export { atomic } from './kit/effects';
 export { fighterMuzzle, mechDie, mechDieSvg, mechFighterSvg, type FighterStance } from './screenprint/die';

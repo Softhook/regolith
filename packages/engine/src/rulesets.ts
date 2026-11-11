@@ -1,13 +1,13 @@
 /**
  * The rule sets, by mode: Regolith (docs/regolith/PROTOTYPING.md, REGOLITH.md), and Basic, Regolith without its
- * cards. Kept apart from rules.ts because building them needs the mechs' abilities (ships.ts), which use the whole
+ * cards. Kept apart from rules.ts because building them needs the mechs' abilities (mechs.ts), which use the whole
  * engine: engine modules ask rulesOf (rules.ts), which imports none of this, so the engine loads the same
  * whichever of its modules is imported first.
  */
 import cardsJson from './data/cards.json';
 import type { CardDef, GameMode } from './data';
 import { defineRuleSets, type RuleSet } from './rules';
-import { SHIPS } from './ships';
+import { MECHS } from './mechs';
 
 /**
  * Regolith's decks (data/regolith.yaml, built into data/cards.json): each card started as a Community card
@@ -16,13 +16,13 @@ import { SHIPS } from './ships';
 export const REGOLITH_DECKS: { skills: CardDef[]; tactics: CardDef[]; expansion: CardDef[] } = cardsJson;
 
 /**
- * Over-conquest (PROTOTYPING.md §6.10): an orbit of exactly 12 displaces an opponent's cube. Off since
- * 2026-10-21, when contested orbit came in; flip it to try both together.
+ * Over-claim (PROTOTYPING.md §6.10): a perimeter of exactly 12 displaces an opponent's cube. Off since
+ * 2026-10-21, when contested perimeter came in; flip it to try both together.
  */
-export const REGOLITH_OVER_CONQUEST = false;
+export const REGOLITH_OVER_CLAIM = false;
 
 /**
- * Regolith (docs/regolith/REGOLITH.md): missiles, a starting skill drafted from its own decks (REGOLITH_DECKS) and
+ * Regolith (docs/regolith/REGOLITH.md): atomics, a starting skill drafted from its own decks (REGOLITH_DECKS) and
  * a card market with peeking. It plays the hex maps only, the hex, open-ground and off-centre (drift) ones, on
  * Phobos's, Deimos's and Mars's ground.
  */
@@ -43,13 +43,13 @@ const REGOLITH: RuleSet = {
     terms: { skill: 'skill', skills: 'skills', skillDeck: 'Skills', tacticDeck: 'Tactics' },
   },
   mapGroups: ['hex', 'open', 'drift', 'prepared'],
-  ships: SHIPS,
-  overConquest: REGOLITH_OVER_CONQUEST,
+  mechs: MECHS,
+  overClaim: REGOLITH_OVER_CLAIM,
 };
 
 /**
- * Basic: Regolith without cards, for learning. The same mechs, abilities, missiles, zones of control, contested
- * orbits and maps, with no research, market or starting skill, so what a player learns carries over unchanged.
+ * Basic: Regolith without cards, for learning. The same mechs, abilities, atomics, zones of control, contested
+ * perimeters and maps, with no research, market or starting skill, so what a player learns carries over unchanged.
  */
 const BASIC: RuleSet = {
   ...REGOLITH,

@@ -8,7 +8,7 @@ import { Canvas, DieFace, type Who } from './diagrams';
  * line. The animations are in rulebook.css (`sp-`), which fades them out and back in to start over.
  */
 
-const NAME = (v: number) => RULESETS.regolith.ships[v].name;
+const NAME = (v: number) => RULESETS.regolith.mechs[v].name;
 
 /** Pointy hexes in a row, sharing sides: the radius, a space's width and the row's top and middle. */
 const R = 18;
@@ -61,7 +61,7 @@ function Shot({ from, to, play }: { from: number; to: number; play?: string }) {
 
 /** What the mech's ability does, in a few seconds: the Breacher hits, the Behemoth carries, and so on. */
 export function AbilityFigure({ v }: { v: number }) {
-  const label = `${NAME(v)}: ${RULESETS.regolith.ships[v].ability.name}`;
+  const label = `${NAME(v)}: ${RULESETS.regolith.mechs[v].ability.name}`;
   switch (v) {
     case 1:
       return (

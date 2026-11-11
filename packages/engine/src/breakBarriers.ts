@@ -8,7 +8,7 @@
  *   first barrier in a straight line. The mech ends on the space it broke it from.
  */
 import { adjacent, same, straightLines } from './board';
-import { fail, logTo, markMoved, name, ownShip, requireActionPhase, shipName, spend, type Handlers } from './core';
+import { fail, logTo, markMoved, name, ownMech, requireActionPhase, mechName, spend, type Handlers } from './core';
 import { barrierAt, boardLoc, cellOf, isEmptySpace } from './lookups';
 import { shoot } from './abilities/shoot';
 import { canMoveDie, moveOptions } from './queries';
@@ -51,7 +51,7 @@ export function barrierBreaks(s: GameState, d: Die): BarrierBreak[] {
 export const barrierBreakHandlers = {
   breakBarrier(s, a) {
     requireActionPhase(s);
-    const d = ownShip(s, a.die, 'board');
+    const d = ownMech(s, a.die, 'board');
     const opt = barrierBreaks(s, d).find((x) => same(x.cell, a.cell));
     if (!opt) fail('No barrier this mech can break there');
     spend(s, 1);
@@ -59,6 +59,6 @@ export const barrierBreakHandlers = {
     d.loc = boardLoc(opt.from);
     // A new list, never the old one changed: queries cache by it (core.ts addBarrier).
     s.barriers = s.barriers!.filter((b) => !same(b, a.cell));
-    logTo(s, d.owner, `${name(s, d.owner)}'s ${shipName(s, d)} breaks a barrier`, a.cell);
+    logTo(s, d.owner, `${name(s, d.owner)}'s ${mechName(s, d)} breaks a barrier`, a.cell);
   },
 } satisfies Partial<Handlers>;

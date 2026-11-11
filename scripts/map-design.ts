@@ -4,13 +4,13 @@
  *
  *   npm run map:design -- <map id> --spin=<2|3>@<row:col> [--mode=barriers|tunnel] [--count=3] [--keep=<spaces>] [--ban=<spaces>]
  *
- * `barriers`: adds the orbit of spaces (the space and its turns) that most lengthens the shortest walk between
+ * `barriers`: adds the perimeter of spaces (the space and its turns) that most lengthens the shortest walk between
  * the nearest pair of homes, `count` times, never walling a start in or cutting an objective off. `tunnel`: the
  * pair of spaces (a space and its half turn) that shortens the walks most evenly, so no pair of seats gets a
  * lane the others lack. `--keep` starts from some barriers.
  * Prints the spaces as `row:col:side`, and the walks before and after.
  */
-import { MAPS, createGame, cellAt, key, linked, orbitals, spaces, type Cell, type GameState } from '../packages/engine/src';
+import { MAPS, createGame, cellAt, key, linked, perimeterSpaces, spaces, type Cell, type GameState } from '../packages/engine/src';
 import { startSpace } from '../packages/engine/src/board';
 import { args } from './args';
 
@@ -39,7 +39,7 @@ let mid: number[] | undefined;
 board.cells.forEach((row, r) => row.forEach((_, c) => inTile(r, c) && NB.every(([dr, dc]) => inTile(r + dr, c + dc)) && (mid = [r, c])));
 if (!mid) throw new Error('no such tile');
 const sixth = (p: Cell): Cell => ({ r: p.c - mid![1] + (p.r - mid![0]) + mid![0], c: -(p.r - mid![0]) + mid![1] });
-const orbit = (p: Cell): Cell[] => {
+const perimeter = (p: Cell): Cell[] => {
   const out = [p];
   let cur = p;
   for (let i = 1; i < Number(fold); i++) {
@@ -63,16 +63,16 @@ map.layout.forEach((row, rr) =>
   }),
 );
 
-const homes = board.planets.filter((p) => p.start);
+const homes = board.objectives.filter((p) => p.start);
 const barrierKeys = (cells: Cell[]) => new Set(cells.map(key));
 /** The walks between each pair of homes (fewest steps from one's perimeter to the other's), or 99 when cut off. */
-function walks(barriers: Cell[], gates: Cell[]): number[] {
-  const s = { ...base, barriers: barriers.map((c) => ({ ...c, owner: null })), gates };
+function walks(barriers: Cell[], tunnels: Cell[]): number[] {
+  const s = { ...base, barriers: barriers.map((c) => ({ ...c, owner: null })), tunnels };
   const wall = barrierKeys(barriers);
   const out: number[] = [];
   for (let i = 0; i < homes.length; i++) {
     const d = new Map<string, number>();
-    const q = orbitals(board, homes[i]).filter((c) => !wall.has(key(c)));
+    const q = perimeterSpaces(board, homes[i]).filter((c) => !wall.has(key(c)));
     q.forEach((c) => d.set(key(c), 0));
     for (let h = 0; h < q.length; h++)
       for (const n of linked(s, q[h])) {
@@ -80,18 +80,18 @@ function walks(barriers: Cell[], gates: Cell[]): number[] {
         d.set(key(n), d.get(key(q[h]))! + 1);
         q.push(n);
       }
-    for (let j = i + 1; j < homes.length; j++) out.push(Math.min(99, ...orbitals(board, homes[j]).map((c) => d.get(key(c)) ?? 99)));
+    for (let j = i + 1; j < homes.length; j++) out.push(Math.min(99, ...perimeterSpaces(board, homes[j]).map((c) => d.get(key(c)) ?? 99)));
   }
   return out;
 }
 /** Whether every objective can still be reached from every home, and each home keeps its room. */
-function sound(barriers: Cell[], gates: Cell[]): boolean {
-  const s = { ...base, barriers: barriers.map((c) => ({ ...c, owner: null })), gates };
+function sound(barriers: Cell[], tunnels: Cell[]): boolean {
+  const s = { ...base, barriers: barriers.map((c) => ({ ...c, owner: null })), tunnels };
   const wall = barrierKeys(barriers);
-  const startsPerim = new Set(homes.flatMap((h) => orbitals(board, h).map(key)));
+  const startsPerim = new Set(homes.flatMap((h) => perimeterSpaces(board, h).map(key)));
   if (barriers.some((c) => startsPerim.has(key(c)))) return false;
   const seen = new Set<string>();
-  const q = orbitals(board, homes[0]).filter((c) => !wall.has(key(c)));
+  const q = perimeterSpaces(board, homes[0]).filter((c) => !wall.has(key(c)));
   q.forEach((c) => seen.add(key(c)));
   for (let h = 0; h < q.length; h++)
     for (const n of linked(s, q[h])) {
@@ -99,7 +99,7 @@ function sound(barriers: Cell[], gates: Cell[]): boolean {
       seen.add(key(n));
       q.push(n);
     }
-  return board.planets.every((p) => orbitals(board, p).some((c) => seen.has(key(c))));
+  return board.objectives.every((p) => perimeterSpaces(board, p).some((c) => seen.has(key(c))));
 }
 
 const cand = spaces(board).filter((c) => label.has(key(c)) && !o.ban.split(',').includes(label.get(key(c))!));
@@ -113,7 +113,7 @@ if (o.mode === 'barriers') {
   for (let step = 0; step < Number(o.count); step++) {
     let best: { cells: Cell[]; score: number } | undefined;
     for (const c of cand) {
-      const cells = orbit(c);
+      const cells = perimeter(c);
       if (cells.some((x) => !label.has(key(x)) || cellAt(board, x)?.kind !== 'space' || bars.some((b) => key(b) === key(x)))) continue;
       const next = [...bars, ...cells];
       if (!sound(next, [])) continue;
@@ -130,7 +130,7 @@ if (o.mode === 'barriers') {
 } else {
   let best: { pair: Cell[]; score: number; w: number[] } | undefined;
   for (const c of cand) {
-    const pair = orbit(c);
+    const pair = perimeter(c);
     if (pair.length !== 2 || !label.has(key(pair[1])) || key(pair[0]) === key(pair[1])) continue;
     const w = walks([], pair);
     if (!sound([], pair)) continue;

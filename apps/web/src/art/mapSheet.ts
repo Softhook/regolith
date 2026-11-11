@@ -14,10 +14,10 @@ export function mapSheet(map: MapDef): Omit<MapSheetOptions, 'bleed' | 'fontCss'
     const p = at(cell);
     return { x: p.c + 0.5, y: p.r + 0.5 };
   };
-  const starts = new Set(board.planets.filter((p) => p.start).map((p) => board.cells[p.r][p.c].tile));
+  const starts = new Set(board.objectives.filter((p) => p.start).map((p) => board.cells[p.r][p.c].tile));
   const tiles = tileArt(board).map((t) => ({ ...middle(t), number: tileSpec(t.id).number, at: t.at, start: starts.has(t.tile) }));
   const ground = startingGround(map);
   const mark = (kind: MapSheetMark['kind']) => (cell: Cell) => ({ kind, ...middle(cell) });
-  const marks = [...ground.gates.map(mark('tunnel')), ...ground.wormhole.map(mark('wormhole')), ...ground.barriers.map(mark('barrier'))];
+  const marks = [...ground.tunnels.map(mark('tunnel')), ...ground.wormhole.map(mark('wormhole')), ...ground.barriers.map(mark('barrier'))];
   return { name: map.name, players: map.players, cubes: map.cubes, world: board.world, cols, rows, tiles, marks };
 }

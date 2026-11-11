@@ -3,9 +3,9 @@ import {
   apply,
   canRespondToCombat,
   combatOutcome,
-  conquerCheck,
+  claimCheck,
   createGame,
-  deployTargets,
+  dropTargets,
   legalActions,
   isUndoable,
   moveOptions,
@@ -16,17 +16,17 @@ import { arrange, players, quickStart } from './helpers';
 
 /*
  * Regolith on Alpha Sector (hex), the 2-player map, in axial cells (docs/HEX.md): a space's sides are a row
- * or column away, or (-1, +1) and (+1, -1). The top start planet, a 7, is at (1,5), with the spaces (0,5) and
- * (0,6) above it; the middle 8 is at (6,4), orbited by (5,4), (5,5), (6,3), (6,5), (7,3) and (7,4); row 7 runs
+ * or column away, or (-1, +1) and (+1, -1). The top start objective, a 7, is at (1,5), with the spaces (0,5) and
+ * (0,6) above it; the middle 8 is at (6,4), ringed by (5,4), (5,5), (6,3), (6,5), (7,3) and (7,4); row 7 runs
  * clear from (7,2) to (7,6), and the far corner is (12,2) beside (12,3).
  */
 
 describe('setup', () => {
-  it('ends with every player on a starting planet with 3 ships', () => {
+  it('ends with every player on a starting objective with 3 mechs', () => {
     const s = quickStart(3, 7);
     expect(s.phase).toBe('play');
     for (const p of s.players) {
-      expect(s.board.planets.filter((pl) => pl.cubes.includes(p.id))).toHaveLength(1);
+      expect(s.board.objectives.filter((pl) => pl.cubes.includes(p.id))).toHaveLength(1);
       expect(s.dice.filter((d) => d.owner === p.id && d.loc.zone === 'board')).toHaveLength(3);
       expect(p.skills).toHaveLength(1);
       expect(p.cubesLeft).toBe(4);
@@ -42,7 +42,7 @@ describe('setup', () => {
 
   it('chooses the player with the lowest starting fleet total', () => {
     const game = createGame({ players: players(2), seed: 7, mode: 'basic' });
-    for (const d of game.dice) if (d.loc.zone === 'scrapyard') d.value = d.owner === 0 ? 6 : 1;
+    for (const d of game.dice) if (d.loc.zone === 'salvageYard') d.value = d.owner === 0 ? 6 : 1;
 
     let state = game;
     while (state.phase === 'setup') state = apply(state, legalActions(state)[0]);
@@ -52,8 +52,8 @@ describe('setup', () => {
 });
 
 describe('movement', () => {
-  it('moves across sides up to the ship value, blocked by planets and ships', () => {
-    // From (0,5), past the start planet at (1,5), with an own ship on (0,6).
+  it('moves across sides up to the mech value, blocked by objectives and mechs', () => {
+    // From (0,5), past the start objective at (1,5), with an own mech on (0,6).
     const s = arrange(quickStart(), { p0d0: [0, 5, 2], p0d1: [0, 6, 3] });
     const opts = moveOptions(s, 'p0d0');
     const keys = [...opts.moves.keys()].sort();
@@ -66,30 +66,30 @@ describe('movement', () => {
   });
 });
 
-describe('conquer', () => {
-  it('needs orbital ships summing exactly to the planet number', () => {
+describe('claim', () => {
+  it('needs perimeter mechs summing exactly to the objective number', () => {
     let s = quickStart();
-    const centre = s.board.planets.find((p) => p.number === 8)!; // (6,4)
+    const centre = s.board.objectives.find((p) => p.number === 8)!; // (6,4)
     s = arrange(s, { p0d0: [5, 4, 3], p0d1: [7, 4, 5] });
-    expect(conquerCheck(s, 0, centre.id).ok).toBe(true);
+    expect(claimCheck(s, 0, centre.id).ok).toBe(true);
     s = arrange(s, { p0d0: [5, 4, 3], p0d1: [7, 4, 4] });
-    expect(conquerCheck(s, 0, centre.id).ok).toBe(false);
+    expect(claimCheck(s, 0, centre.id).ok).toBe(false);
   });
 
   it('costs 2 actions and places a cube', () => {
     let s = quickStart();
     s.turn.player = 0;
-    const centre = s.board.planets.find((p) => p.number === 8)!;
+    const centre = s.board.objectives.find((p) => p.number === 8)!;
     s = arrange(s, { p0d0: [5, 4, 3], p0d1: [7, 4, 5] });
-    s = apply(s, { type: 'conquer', planet: centre.id });
-    expect(s.board.planets[centre.id].cubes).toContain(0);
+    s = apply(s, { type: 'claim', objective: centre.id });
+    expect(s.board.objectives[centre.id].cubes).toContain(0);
     expect(s.turn.actionsLeft).toBe(1);
     expect(s.players[0].cubesLeft).toBe(3);
   });
 });
 
 describe('combat', () => {
-  it('attacker wins ties, gains dominance, defender goes to the scrapyard', () => {
+  it('attacker wins ties, gains power, defender goes to the salvage yard', () => {
     let s = quickStart();
     s.turn.player = 0;
     s = arrange(s, { p0d0: [0, 5, 2], p1d0: [0, 6, 2] });
@@ -100,14 +100,14 @@ describe('combat', () => {
     combat.attacker.dice = [4];
     combat.defender.dice = [4];
     s = apply(s, { type: 'resolveCombat' });
-    expect(s.dice.find((d) => d.id === 'p1d0')!.loc.zone).toBe('scrapyard');
-    expect(s.players[0].dominance).toBe(2);
+    expect(s.dice.find((d) => d.id === 'p1d0')!.loc.zone).toBe('salvageYard');
+    expect(s.players[0].power).toBe(2);
     expect(s.pending[0].kind).toBe('advance');
     s = apply(s, { type: 'advance', move: true });
     expect(s.dice.find((d) => d.id === 'p0d0')!.loc).toEqual({ zone: 'board', r: 0, c: 6 });
   });
 
-  it('a missile sets a combat roll to 1', () => {
+  it('an atomic sets a combat roll to 1', () => {
     let s = quickStart();
     s.turn.player = 0;
     s = arrange(s, { p0d0: [0, 5, 2], p1d0: [0, 6, 6] });
@@ -115,14 +115,14 @@ describe('combat', () => {
     if (s.pending[0].kind !== 'combat') throw new Error();
     s.pending[0].attacker.dice = [6];
     s.pending[0].defender.dice = [1];
-    s = apply(s, { type: 'missile', by: 0, side: 'attacker' }); // 2+1=3 vs 6+1=7: turns a loss (8 vs 7) into a win
-    expect(s.players[0].missiles).toBe(0);
+    s = apply(s, { type: 'atomic', by: 0, side: 'attacker' }); // 2+1=3 vs 6+1=7: turns a loss (8 vs 7) into a win
+    expect(s.players[0].atomics).toBe(0);
     s = apply(s, { type: 'resolveCombat' });
-    expect(s.dice.find((d) => d.id === 'p1d0')!.loc.zone).toBe('scrapyard');
+    expect(s.dice.find((d) => d.id === 'p1d0')!.loc.zone).toBe('salvageYard');
   });
 });
 
-describe('missiles', () => {
+describe('atomics', () => {
   function battle(defender: { skills?: string[]; planAhead?: number }, rolls: [number, number], playerCount = 2) {
     let s = quickStart(playerCount);
     s.turn.player = 1;
@@ -146,38 +146,38 @@ describe('missiles', () => {
   it('sets the roll to 1 before modifiers (the logged 8 vs 5 battle)', () => {
     const s = battle({ skills: ['r-ferocious'] }, [6, 4]);
     expect(totals(s)).toEqual([8, 8]);
-    const fired = apply(s, { type: 'missile', by: 0, side: 'defender' });
+    const fired = apply(s, { type: 'atomic', by: 0, side: 'defender' });
     expect(totals(fired)).toEqual([8, 5]);
-    expect(fired.players[0].missiles).toBe(0);
+    expect(fired.players[0].atomics).toBe(0);
   });
 
   it('cannot be wasted on a roll that is already 1', () => {
-    expect(() => apply(battle({ planAhead: 1 }, [1, 4]), { type: 'missile', by: 0, side: 'defender' })).toThrow(/already 1/);
-    expect(() => apply(battle({}, [1, 1]), { type: 'missile', by: 0, side: 'defender' })).toThrow(/already 1/);
+    expect(() => apply(battle({ planAhead: 1 }, [1, 4]), { type: 'atomic', by: 0, side: 'defender' })).toThrow(/already 1/);
+    expect(() => apply(battle({}, [1, 1]), { type: 'atomic', by: 0, side: 'defender' })).toThrow(/already 1/);
   });
 
   it('is offered to a combatant only on their own roll, and only while losing', () => {
-    const missiles = (s: GameState) => legalActions(s).filter((a) => a.type === 'missile');
+    const atomics = (s: GameState) => legalActions(s).filter((a) => a.type === 'atomic');
     // Attacker 6+2=8 vs defender 4+5=9: the attacker (player 1) is winning.
-    expect(missiles(battle({}, [6, 4]))).toEqual([{ type: 'missile', by: 0, side: 'defender' }]);
+    expect(atomics(battle({}, [6, 4]))).toEqual([{ type: 'atomic', by: 0, side: 'defender' }]);
     // Attacker 6+2=8 vs defender 1+5=6: the defender (player 0) is winning.
-    expect(missiles(battle({}, [6, 1]))).toEqual([{ type: 'missile', by: 1, side: 'attacker' }]);
+    expect(atomics(battle({}, [6, 1]))).toEqual([{ type: 'atomic', by: 1, side: 'attacker' }]);
   });
 
   it('may not be fired by a player not in the battle', () => {
     // Attacker 6+2=8 vs defender 4+5=9: neither roll is 1 yet.
     const s = battle({}, [6, 4], 3);
-    expect(s.players[2].missiles).toBeGreaterThan(0);
-    expect(legalActions(s).filter((a) => a.type === 'missile' && a.by === 2)).toEqual([]);
+    expect(s.players[2].atomics).toBeGreaterThan(0);
+    expect(legalActions(s).filter((a) => a.type === 'atomic' && a.by === 2)).toEqual([]);
     expect(canRespondToCombat(s, s.pending[0] as CombatPending, 2)).toBe(false);
     for (const side of ['attacker', 'defender'] as const)
-      expect(() => apply(s, { type: 'missile', by: 2, side })).toThrow(/Only the attacker and defender/);
+      expect(() => apply(s, { type: 'atomic', by: 2, side })).toThrow(/Only the attacker and defender/);
   });
 
   it('overrides Rational', () => {
     const s = battle({ skills: ['r-rational'] }, [6, 6]);
     expect(totals(s)).toEqual([8, 8]);
-    expect(totals(apply(s, { type: 'missile', by: 0, side: 'defender' }))).toEqual([8, 6]);
+    expect(totals(apply(s, { type: 'atomic', by: 0, side: 'defender' }))).toEqual([8, 6]);
   });
 });
 
@@ -197,21 +197,21 @@ describe('plan ahead', () => {
 });
 
 describe('modes', () => {
-  it('basic: no cards or research, and the missiles, mechs and maps of Regolith', () => {
+  it('basic: no cards or research, and the atomics, mechs and maps of Regolith', () => {
     const s = quickStart(2, 3, 'basic');
     expect(s.market.skillRow).toHaveLength(0);
     expect(s.market.tacticRow).toHaveLength(0);
     expect(s.market.expansions).toBe(0);
-    expect(s.players.every((p) => p.missiles === 1 && p.skills.length === 0)).toBe(true);
+    expect(s.players.every((p) => p.atomics === 1 && p.skills.length === 0)).toBe(true);
     expect(() => apply(s, { type: 'research' })).toThrow(/no research/);
     expect(legalActions(s).some((a) => a.type === 'research')).toBe(false);
     expect(s.board.mapId).toBe(quickStart(2, 3, 'regolith').board.mapId);
   });
 });
 
-describe('void tiles (The Void maps; BGA rules help)', () => {
-  // The Great Plan (hex): the void tile is the middle one, (7,5) and the six spaces round it.
-  const VOID: [number, number][] = [
+describe('void tiles (The Alien Artefact maps; BGA rules help)', () => {
+  // The Great Plan (hex): the Alien Artefacts tile is the middle one, (7,5) and the six spaces round it.
+  const ARTEFACT: [number, number][] = [
     [6, 5],
     [6, 6],
     [7, 4],
@@ -226,20 +226,20 @@ describe('void tiles (The Void maps; BGA rules help)', () => {
     return s;
   };
 
-  it('is a tile of empty spaces with no planet', () => {
+  it('is a tile of empty spaces with no objective', () => {
     const s = start();
-    for (const [r, c] of VOID) expect(s.board.cells[r][c]).toMatchObject({ kind: 'space', void: true });
-    expect(s.board.planets.some((p) => VOID.some(([r, c]) => p.r === r && p.c === c))).toBe(false);
+    for (const [r, c] of ARTEFACT) expect(s.board.cells[r][c]).toMatchObject({ kind: 'space', artefact: true });
+    expect(s.board.objectives.some((p) => ARTEFACT.some(([r, c]) => p.r === r && p.c === c))).toBe(false);
   });
 
-  it('+1 research per own ship on it at the start of your turn', () => {
+  it('+1 research per own mech on it at the start of your turn', () => {
     const s0 = start();
     const me = s0.turn.player;
     const next = 1 - me;
     let s = arrange(s0, {
       [`p${next}d0`]: [6, 5, 4],
       [`p${next}d1`]: [8, 4, 4],
-      [`p${next}d2`]: [9, 4, 4], // next to the void, not on it
+      [`p${next}d2`]: [9, 4, 4], // next to the Alien Artefacts, not on it
       [`p${me}d0`]: [7, 5, 4],
     });
     s.players[me].research = 1;
@@ -283,7 +283,7 @@ describe('undo', () => {
     const moved = apply(s, { type: 'move', die: `p${me}d0`, to: moveTo });
     expect(isUndoable(s, { type: 'move', die: `p${me}d0`, to: moveTo }, moved)).toBe(true);
 
-    const reroll = { type: 'reconfigure', die: `p${me}d0` } as const;
+    const reroll = { type: 'refit', die: `p${me}d0` } as const;
     expect(isUndoable(s, reroll, apply(s, reroll))).toBe(false);
 
     const attack = { type: 'attack', die: `p${me}d0`, target: `p${1 - me}d0` } as const;
@@ -301,8 +301,8 @@ describe('Stubborn (Entrenched; 2013 card text and CE card sheet)', () => {
     s.turn.player = 0;
     s = arrange(s, { p0d0: [0, 5, 6], p1d0: [0, 6, 1] });
     s.players[1].skills = [{ id: 'r-stubborn', active: true }];
-    s.players[0].dominance = 3;
-    s.players[1].dominance = 3;
+    s.players[0].power = 3;
+    s.players[1].power = 3;
     s = apply(s, { type: 'attack', die: 'p0d0', target: 'p1d0' });
     if (s.pending[0].kind !== 'combat') throw new Error();
     s.pending[0].attacker.dice = [attackRoll];
@@ -312,14 +312,14 @@ describe('Stubborn (Entrenched; 2013 card text and CE card sheet)', () => {
 
   it('destroys the attacker when the defender wins outright', () => {
     const s = stubbornCombat(6, 1); // 12 vs 2
-    expect(s.dice.find((d) => d.id === 'p0d0')!.loc.zone).toBe('scrapyard');
-    expect(s.players[1].dominance).toBe(4);
-    expect(s.players[0].dominance).toBe(2);
+    expect(s.dice.find((d) => d.id === 'p0d0')!.loc.zone).toBe('salvageYard');
+    expect(s.players[1].power).toBe(4);
+    expect(s.players[0].power).toBe(2);
   });
 
   it('wins ties and destroys the attacker', () => {
     const s = stubbornCombat(1, 6); // 7 vs 7
-    expect(s.dice.find((d) => d.id === 'p0d0')!.loc.zone).toBe('scrapyard');
+    expect(s.dice.find((d) => d.id === 'p0d0')!.loc.zone).toBe('salvageYard');
     expect(s.dice.find((d) => d.id === 'p1d0')!.loc.zone).toBe('board');
   });
 
@@ -333,16 +333,16 @@ describe('Stubborn (Entrenched; 2013 card text and CE card sheet)', () => {
     s.pending[0].attacker.dice = [1];
     s.pending[0].defender.dice = [1];
     s = apply(s, { type: 'resolveCombat' });
-    expect(s.dice.find((d) => d.id === 'p1d0')!.loc.zone).toBe('scrapyard');
+    expect(s.dice.find((d) => d.id === 'p1d0')!.loc.zone).toBe('salvageYard');
   });
 });
 
 describe('Composed (Stand Down)', () => {
-  it('needs dominance to lose ("reduce your dominance by 1")', () => {
+  it('needs power to lose ("reduce your power by 1")', () => {
     const s = quickStart(2, 3);
     const me = s.turn.player;
     s.players[me].skills = [{ id: 'r-composed', active: true }];
-    s.players[me].dominance = 1;
+    s.players[me].power = 1;
     expect(legalActions(s).some((a) => a.type === 'composed')).toBe(false);
     expect(() => apply(s, { type: 'composed' })).toThrow('No power to lose');
   });
@@ -356,9 +356,9 @@ describe('card market', () => {
     return s;
   }
 
-  it('an Expansion cannot be taken once both expansion ships are in the game', () => {
+  it('an Expansion cannot be taken once both expansion mechs are in the game', () => {
     const s = picking();
-    for (const d of s.dice) if (d.owner === s.turn.player && d.loc.zone === 'reserve') d.loc = { zone: 'scrapyard' };
+    for (const d of s.dice) if (d.owner === s.turn.player && d.loc.zone === 'reserve') d.loc = { zone: 'salvageYard' };
     expect(legalActions(s).some((a) => a.type === 'takeCard' && a.deck === 'expansion')).toBe(false);
     expect(() => apply(s, { type: 'takeCard', deck: 'expansion', index: 0 })).toThrow('Your reserve is empty');
   });
@@ -391,14 +391,14 @@ describe('RULES.md rulings 10–13', () => {
     expect(s.pending[0]).toMatchObject({ kind: 'discardSkill', player: me });
   });
 
-  it('11: the two Warp Gate spaces are adjacent for Strategic support', () => {
-    const attackerTotal = (gates: boolean) => {
+  it('11: the two Ice Tunnel spaces are adjacent for Strategic support', () => {
+    const attackerTotal = (tunnels: boolean) => {
       let s = quickStart();
       s.turn.player = 0;
-      // The supporting ship sits on the far gate, adjacent to the attacker's space only through the link.
+      // The supporting mech sits on the far tunnel, adjacent to the attacker's space only through the link.
       s = arrange(s, { p0d0: [0, 5, 3], p1d0: [0, 6, 3], p0d1: [12, 2, 2] });
       s.players[0].skills = [{ id: 'r-strategic', active: true }];
-      s.gates = gates
+      s.tunnels = tunnels
         ? [
             { r: 0, c: 5 },
             { r: 12, c: 2 },
@@ -413,18 +413,18 @@ describe('RULES.md rulings 10–13', () => {
     expect(attackerTotal(true)).toBe(attackerTotal(false) - 2);
   });
 
-  it('11: the two Warp Gate spaces are adjacent for Stealthy deploys', () => {
-    const isolated = (gates: boolean) => {
+  it('11: the two Ice Tunnel spaces are adjacent for Stealthy drops', () => {
+    const isolated = (tunnels: boolean) => {
       let s = quickStart();
       s = arrange(s, { p1d0: [12, 2, 3] });
       s.players[0].skills = [{ id: 'r-stealthy', active: true }];
-      s.gates = gates
+      s.tunnels = tunnels
         ? [
             { r: 5, c: 4 },
             { r: 12, c: 2 },
           ]
         : [];
-      return deployTargets(s, 0).some((c) => c.r === 5 && c.c === 4);
+      return dropTargets(s, 0).some((c) => c.r === 5 && c.c === 4);
     };
     expect(isolated(false)).toBe(true);
     expect(isolated(true)).toBe(false);
@@ -434,54 +434,54 @@ describe('RULES.md rulings 10–13', () => {
     const s = quickStart(2, 3);
     const me = s.turn.player;
     s.players[me].skills = ['r-composed', 'r-righteous'].map((id) => ({ id, active: true }));
-    s.players[me].dominance = 3;
+    s.players[me].power = 3;
     expect(legalActions(s).some((a) => a.type === 'composed')).toBe(false);
     expect(() => apply(s, { type: 'composed' })).toThrow('You cannot gain research');
   });
 
-  describe('10: Show of Force fires "destroy" skills, with no dominance loss for the victim', () => {
+  describe('10: Show of Force fires "destroy" skills, with no power loss for the victim', () => {
     function showOfForce(target: 'enemy' | 'own'): { s: GameState; me: number; foe: number } {
       let s = quickStart(2, 3);
       const me = s.turn.player;
       const foe = 1 - me;
       s = arrange(s, { [`p${me}d0`]: [0, 5, 3], [`p${foe}d0`]: [12, 2, 3] });
       s.players[me].skills = ['r-plundering', 'r-ravenous'].map((id) => ({ id, active: true }));
-      s.players[me].dominance = 3;
+      s.players[me].power = 3;
       s.players[me].research = 1;
-      s.players[foe].dominance = 3;
+      s.players[foe].power = 3;
       s.pending = [{ kind: 'showOfForce', player: me }];
       s = apply(s, { type: 'showOfForce', die: target === 'enemy' ? `p${foe}d0` : `p${me}d0` });
       return { s, me, foe };
     }
 
-    it('on an enemy ship: Plundering and Ravenous trigger; the victim keeps their dominance', () => {
+    it('on an enemy mech: Plundering and Ravenous trigger; the victim keeps their power', () => {
       const { s, me, foe } = showOfForce('enemy');
       expect(s.players[me].research).toBe(4);
-      expect(s.players[me].dominance).toBe(5); // +1 card text, +1 Ravenous
-      expect(s.players[foe].dominance).toBe(3);
+      expect(s.players[me].power).toBe(5); // +1 card text, +1 Ravenous
+      expect(s.players[foe].power).toBe(3);
     });
 
-    it('on your own ship: only the card text applies', () => {
+    it('on your own mech: only the card text applies', () => {
       const { s, me } = showOfForce('own');
       expect(s.players[me].research).toBe(1);
-      expect(s.players[me].dominance).toBe(4);
+      expect(s.players[me].power).toBe(4);
     });
   });
 });
 
-describe('Clever (CE): after reconfiguring, ±1 (RULES.md ruling 6)', () => {
-  function reconfigured(start: number): GameState {
+describe('Clever (CE): after refitting, ±1 (RULES.md ruling 6)', () => {
+  function refitted(start: number): GameState {
     let s = quickStart(2, 3);
     const me = s.turn.player;
     s = arrange(s, { [`p${me}d0`]: [0, 5, start] });
     s.players[me].skills = [{ id: 'r-clever', active: true }];
     s.turn.actionsLeft = 3;
-    return apply(s, { type: 'reconfigure', die: `p${me}d0` });
+    return apply(s, { type: 'refit', die: `p${me}d0` });
   }
 
   it('offers the new number and its neighbours, without wrapping, even a number already shown', () => {
     for (let start = 1; start <= 6; start++) {
-      const s = reconfigured(start);
+      const s = refitted(start);
       const head = s.pending[0];
       if (head?.kind !== 'clever') throw new Error('no Clever prompt');
       const v = s.dice.find((d) => d.id === head.die)!.value;
@@ -493,7 +493,7 @@ describe('Clever (CE): after reconfiguring, ±1 (RULES.md ruling 6)', () => {
   });
 
   it('refuses a change of more than 1', () => {
-    const s = reconfigured(3);
+    const s = refitted(3);
     const head = s.pending[0];
     if (head?.kind !== 'clever') throw new Error();
     const v = s.dice.find((d) => d.id === head.die)!.value;
@@ -502,7 +502,7 @@ describe('Clever (CE): after reconfiguring, ±1 (RULES.md ruling 6)', () => {
   });
 });
 
-describe('Devious: through enemy ships, normal moves only (RULES.md ruling 8)', () => {
+describe('Devious: through enemy mechs, normal moves only (RULES.md ruling 8)', () => {
   function devious(skill: boolean, blockers: 'enemy' | 'own' = 'enemy'): GameState {
     let s = quickStart();
     s.turn.player = 0;
@@ -512,7 +512,7 @@ describe('Devious: through enemy ships, normal moves only (RULES.md ruling 8)', 
     return s;
   }
 
-  it('passes through enemy ships at no cost, but can’t stop on them', () => {
+  it('passes through enemy mechs at no cost, but can’t stop on them', () => {
     const moves = moveOptions(devious(true), 'p0d0').moves;
     expect(moves.has('7,5')).toBe(true); // 2 enemy spaces free + 1 step
     expect(moves.has('7,3')).toBe(false);
@@ -520,7 +520,7 @@ describe('Devious: through enemy ships, normal moves only (RULES.md ruling 8)', 
     expect(moveOptions(devious(false), 'p0d0').moves.has('7,5')).toBe(false);
   });
 
-  it('does not pass through your own ships', () => {
+  it('does not pass through your own mechs', () => {
     expect(moveOptions(devious(true, 'own'), 'p0d0').moves.has('7,5')).toBe(false);
   });
 
@@ -533,38 +533,38 @@ describe('Devious: through enemy ships, normal moves only (RULES.md ruling 8)', 
   });
 });
 
-describe('Profiteering: a card for a Conquer action may be 1 missile (RULES.md ruling 7)', () => {
-  /** Ends a turn with `conquered` Conquer actions and `infamy` Take Over cubes; `breakthrough` adds a research pick. */
-  function cardPhase(opts: { conquered: number; infamy?: number; breakthrough?: boolean; skill?: boolean }): GameState {
+describe('Profiteering: a card for a Claim action may be 1 atomic (RULES.md ruling 7)', () => {
+  /** Ends a turn with `claimed` Claim actions and `infamy` Take Over cubes; `breakthrough` adds a research pick. */
+  function cardPhase(opts: { claimed: number; infamy?: number; breakthrough?: boolean; skill?: boolean }): GameState {
     const s = quickStart(2, 3);
     const me = s.turn.player;
     s.players[me].skills = opts.skill === false ? [] : [{ id: 'r-profiteering', active: true }];
-    s.turn.conquered = opts.conquered;
-    s.turn.conquests = opts.conquered + (opts.infamy ?? 0);
+    s.turn.claimed = opts.claimed;
+    s.turn.claims = opts.claimed + (opts.infamy ?? 0);
     if (opts.breakthrough) s.players[me].research = 6;
     return apply(s, { type: 'endTurn' });
   }
   const offered = (s: GameState) => legalActions(s).some((a) => a.type === 'profiteer');
 
-  it('trades a conquest pick for a missile', () => {
-    const s = cardPhase({ conquered: 1 });
+  it('trades a claim pick for an atomic', () => {
+    const s = cardPhase({ claimed: 1 });
     const me = s.turn.player;
     expect(offered(s)).toBe(true);
     const next = apply(s, { type: 'profiteer' });
-    expect(next.players[me].missiles).toBe(s.players[me].missiles + 1);
+    expect(next.players[me].atomics).toBe(s.players[me].atomics + 1);
     expect(next.pending.some((x) => x.kind === 'takeCard' && x.player === me)).toBe(false);
   });
 
   it('not for an Take Over cube, or without the skill', () => {
-    expect(offered(cardPhase({ conquered: 0, infamy: 1 }))).toBe(false);
-    expect(offered(cardPhase({ conquered: 1, skill: false }))).toBe(false);
+    expect(offered(cardPhase({ claimed: 0, infamy: 1 }))).toBe(false);
+    expect(offered(cardPhase({ claimed: 1, skill: false }))).toBe(false);
   });
 
-  it('a card taken first uses the breakthrough pick, keeping the conquest pick tradeable', () => {
-    let s = cardPhase({ conquered: 1, breakthrough: true });
-    expect(s.pending[0]).toMatchObject({ kind: 'takeCard', count: 2, conquer: 1 });
+  it('a card taken first uses the breakthrough pick, keeping the claim pick tradeable', () => {
+    let s = cardPhase({ claimed: 1, breakthrough: true });
+    expect(s.pending[0]).toMatchObject({ kind: 'takeCard', count: 2, claim: 1 });
     s = apply(s, { type: 'takeCard', deck: 'skill', index: 0 });
-    expect(s.pending[0]).toMatchObject({ kind: 'takeCard', count: 1, conquer: 1 });
+    expect(s.pending[0]).toMatchObject({ kind: 'takeCard', count: 1, claim: 1 });
     expect(offered(s)).toBe(true);
     s = apply(s, { type: 'profiteer' });
     expect(offered(s)).toBe(false);

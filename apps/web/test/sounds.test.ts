@@ -28,11 +28,11 @@ const victory = (s: GameState) => {
 };
 
 describe('soundsFor', () => {
-  it('hears a ship fly', () => {
+  it('hears a mech fly', () => {
     expect(step((s) => void (die(s, 'p0d0').loc = { zone: 'board', r: 1, c: 0 })).first).toEqual(['fly']);
   });
 
-  it('hears a ship warp in from the reserve', () => {
+  it('hears a mech warp in from the reserve', () => {
     const { first, lands } = step(
       (s) => void (die(s, 'p0d1').loc = { zone: 'board', r: 2, c: 2 }),
       (s) => void (die(s, 'p0d1').loc = { zone: 'reserve' }),
@@ -41,7 +41,7 @@ describe('soundsFor', () => {
     expect(lands).toBeUndefined();
   });
 
-  it('hears an expansion ship land as its lance brings it', () => {
+  it('hears an expansion mech land as its lance brings it', () => {
     const { first, lands } = step(
       (s) => void (die(s, 'p0d1').loc = { zone: 'board', r: 2, c: 2 }),
       (s) => {
@@ -53,7 +53,7 @@ describe('soundsFor', () => {
     expect(lands).toBe(EXPANSION.strike);
   });
 
-  it('hears two ships trade places as a swap', () => {
+  it('hears two mechs trade places as a swap', () => {
     const { first } = step((s) => {
       die(s, 'p0d0').loc = { zone: 'board', r: 4, c: 4 };
       die(s, 'p0d1').loc = { zone: 'board', r: 0, c: 0 };
@@ -61,18 +61,18 @@ describe('soundsFor', () => {
     expect(first).toEqual(['swap']);
   });
 
-  it('hears ships destroyed, counting them', () => {
+  it('hears mechs destroyed, counting them', () => {
     const { first, destroyed } = step((s) => {
-      die(s, 'p0d0').loc = { zone: 'scrapyard' };
-      die(s, 'p1d0').loc = { zone: 'scrapyard' };
+      die(s, 'p0d0').loc = { zone: 'salvageYard' };
+      die(s, 'p1d0').loc = { zone: 'salvageYard' };
     });
     expect(first).toEqual(['explode']);
     expect(destroyed).toBe(2);
   });
 
-  it('hears no explosion for a ship Unveil the Fleet or Resourceful takes off the map', () => {
+  it('hears no explosion for a mech Unveil the Fleet or Resourceful takes off the map', () => {
     const unveil = step((s) => {
-      die(s, 'p0d0').loc = { zone: 'scrapyard' };
+      die(s, 'p0d0').loc = { zone: 'salvageYard' };
       const e: LogEntry = { id: ++s.logCounter, player: 0, text: '', event: 'cardPlayed', card: 'r-unveil-the-fleet' };
       s.log.push(e);
       return [e];
@@ -82,7 +82,7 @@ describe('soundsFor', () => {
     expect(unveil.destroyed).toBe(0);
 
     const resourceful = step((s) => {
-      die(s, 'p0d0').loc = { zone: 'scrapyard' };
+      die(s, 'p0d0').loc = { zone: 'salvageYard' };
       s.turn.oncePerTurn.push('resourceful');
       const e: LogEntry = { id: ++s.logCounter, player: 0, text: '', card: 'r-resourceful' };
       s.log.push(e);
@@ -104,7 +104,7 @@ describe('soundsFor', () => {
     expect(step((s) => [{ ...entry(s, 'cardPlayed'), card: 'r-kinetic-shunt' }]).first).toEqual(['shunt']);
   });
 
-  it('hears Kinetic Shunt push a ship or a barrier as a shove rather than a flight', () => {
+  it('hears Kinetic Shunt push a mech or a barrier as a shove rather than a flight', () => {
     const shunting = (s: GameState) => void s.pending.unshift({ kind: 'kineticShunt', player: 0 });
     expect(step((s) => void (die(s, 'p0d0').loc = { zone: 'board', r: 1, c: 0 }), shunting).first).toEqual(['shunt']);
     const barrier = step(
@@ -117,23 +117,23 @@ describe('soundsFor', () => {
     expect(barrier.first).toEqual(['shunt']);
   });
 
-  it('hears a new pair of gates, even one replacing the old pair, under which a gate closing is silent', () => {
-    const gates =
+  it('hears a new pair of tunnels, even one replacing the old pair, under which a tunnel closing is silent', () => {
+    const tunnels =
       (...cells: Cell[]) =>
       (s: GameState) =>
-        void (s.gates = cells);
-    const open = gates({ r: 1, c: 1 }, { r: 3, c: 3 });
+        void (s.tunnels = cells);
+    const open = tunnels({ r: 1, c: 1 }, { r: 3, c: 3 });
     expect(step(open).first).toEqual(['portal']);
-    expect(step(gates({ r: 2, c: 2 }, { r: 3, c: 3 }), open).first).toEqual(['portal']);
+    expect(step(tunnels({ r: 2, c: 2 }, { r: 3, c: 3 }), open).first).toEqual(['portal']);
     expect(step(() => {}, open).first).toEqual([]);
   });
 
-  it('hears a card’s blow before the ships it destroys', () => {
+  it('hears a card’s blow before the mechs it destroys', () => {
     const blow = (pending: Partial<GameState['pending'][number]>) =>
       step(
         (s) => {
-          die(s, 'p0d0').loc = { zone: 'scrapyard' };
-          die(s, 'p1d0').loc = { zone: 'scrapyard' };
+          die(s, 'p0d0').loc = { zone: 'salvageYard' };
+          die(s, 'p1d0').loc = { zone: 'salvageYard' };
         },
         (s) => void s.pending.unshift({ player: 0, ...pending } as GameState['pending'][number]),
       ).first;
@@ -141,23 +141,23 @@ describe('soundsFor', () => {
     expect(blow({ kind: 'dangerous', attacker: 'p0d0', defender: 'p1d0' })).toEqual(['arc', 'explode']);
   });
 
-  it('hears a ship renumbered without a roll', () => {
+  it('hears a mech renumbered without a roll', () => {
     expect(step((s) => void (die(s, 'p0d0').value = 5)).first).toEqual(['retune']);
   });
 
   it('plays a Tactic’s own sound first, then its effect', () => {
     const { first, then } = step((s) => {
-      s.players[0].missiles += 2;
+      s.players[0].atomics += 2;
       return [{ ...entry(s, 'cardPlayed'), card: 'r-black-market' }];
     });
     expect(first).toEqual(['coins']);
-    expect(then).toEqual(['missileLoad']);
+    expect(then).toEqual(['atomicLoad']);
   });
 
   it('hears a cube placed, from the state rather than the log', () => {
     expect(
       step((s) => {
-        s.board.planets[0].cubes.push(0);
+        s.board.objectives[0].cubes.push(0);
         s.players[0].cubesLeft--;
       }).first,
     ).toEqual(['cube']);
@@ -166,12 +166,12 @@ describe('soundsFor', () => {
   it('hears a cube displaced as another takes its place', () => {
     const { first } = step(
       (s) => {
-        s.board.planets[0].cubes = [0];
+        s.board.objectives[0].cubes = [0];
         s.players[1].cubesLeft++;
         s.players[0].cubesLeft--;
       },
       (s) => {
-        s.board.planets[0].cubes = [1];
+        s.board.objectives[0].cubes = [1];
         s.players[1].cubesLeft--;
       },
     );
@@ -181,26 +181,26 @@ describe('soundsFor', () => {
   it('hears a cube relocated', () => {
     const { first } = step(
       (s) => {
-        s.board.planets[0].cubes = [];
-        s.board.planets[1].cubes.push(1);
+        s.board.objectives[0].cubes = [];
+        s.board.objectives[1].cubes.push(1);
       },
-      (s) => void s.board.planets[0].cubes.push(1),
+      (s) => void s.board.objectives[0].cubes.push(1),
     );
     expect(first).toEqual(['relocate']);
   });
 
-  it('hears research and dominance gained', () => {
+  it('hears research and power gained', () => {
     const { first } = step((s) => {
       s.players[0].research++;
-      s.players[0].dominance++;
+      s.players[0].power++;
     });
-    expect(first).toEqual(['research', 'dominance']);
+    expect(first).toEqual(['research', 'power']);
   });
 
   it('hears a Take Over after the kill that earned it', () => {
     const { first, then } = step((s) => {
-      die(s, 'p1d0').loc = { zone: 'scrapyard' };
-      s.players[0].dominance++;
+      die(s, 'p1d0').loc = { zone: 'salvageYard' };
+      s.players[0].power++;
       return [entry(s, 'infamy')];
     });
     expect(first).toEqual(['explode']);
@@ -208,10 +208,10 @@ describe('soundsFor', () => {
     expect(step((s) => [entry(s, 'infamy')]).first).toEqual(['infamy']);
   });
 
-  it('hears no dominance chime under a kill’s explosion', () => {
+  it('hears no power chime under a kill’s explosion', () => {
     const { first } = step((s) => {
-      die(s, 'p1d0').loc = { zone: 'scrapyard' };
-      s.players[0].dominance++;
+      die(s, 'p1d0').loc = { zone: 'salvageYard' };
+      s.players[0].power++;
     });
     expect(first).toEqual(['explode']);
   });
@@ -226,7 +226,7 @@ describe('soundsFor', () => {
   });
 
   it('hears an atomic as an atomic, and a repelled battle only as its result showed', () => {
-    expect(step((s) => [entry(s, 'missile')]).first).toEqual(['atomic']);
+    expect(step((s) => [entry(s, 'atomic')]).first).toEqual(['atomic']);
     expect(step((s) => [entry(s, 'repelled')]).first).toEqual([]);
   });
 });

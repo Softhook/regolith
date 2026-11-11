@@ -41,12 +41,12 @@ describe('tile layers', () => {
   it.each(WORLDS)('leave out of their raster part only what an editor keeps as vectors (%s)', (world) => {
     // The outlines are under what stands, so drawn with it.
     const o = { world, markings: true, bleed: true };
-    expect(tileSvg(seven, { ...o, raster: true })).toBe(tileSvg(seven, o).replace(body(world, 'planet'), ''));
+    expect(tileSvg(seven, { ...o, raster: true })).toBe(tileSvg(seven, o).replace(body(world, 'objective'), ''));
   });
 
   it('go into an editor as a bitmap and, over it, the vector layers in their group', () => {
     const editable = editableTileSvg(seven, 'x', { world: 'phobos', markings: true, bleed: true });
-    expect(editable).toContain(`<g id="markings">${body('phobos', 'planet')}</g>`);
+    expect(editable).toContain(`<g id="markings">${body('phobos', 'objective')}</g>`);
   });
 });
 
@@ -58,7 +58,7 @@ describe('raster layers alone, for the map', () => {
     expect(viewBox(standingMaskSvg(seven))).toBe(box(RASTER_AREA.standing));
   });
 
-  it('have the ground built where the planet sits', () => {
+  it('have the ground built where the objective sits', () => {
     expect(rasterLayerSvg(seven, 'phobos', { x: 0, y: -1 })).not.toBe(rasterLayerSvg(seven, 'phobos'));
   });
 });
@@ -67,10 +67,10 @@ describe('a blank tile', () => {
   const layer = (spec: typeof seven, world: World, name: string) =>
     tileLayers(spec, { world, markings: true }).find((l) => l.name === name)?.art.body;
 
-  it('is open ground: seven outlines, without a Void’s research flask, and nothing on it', () => {
-    expect(layer(blank, 'mars', 'planet')).toBe('');
+  it('is open ground: seven outlines, without an Alien Artefact’s research flask, and nothing on it', () => {
+    expect(layer(blank, 'mars', 'objective')).toBe('');
     expect(layer(blank, 'mars', 'spaces')!.match(/<polygon/g)).toHaveLength(7);
-    // The flask's faint stroke, which a Void's spaces have.
+    // The flask's faint stroke, which an Alien Artefact's spaces have.
     expect(layer(tileSpec('void'), 'mars', 'spaces')).toContain('stroke-opacity=".15"');
     expect(layer(blank, 'mars', 'spaces')).not.toContain('stroke-opacity=".15"');
   });

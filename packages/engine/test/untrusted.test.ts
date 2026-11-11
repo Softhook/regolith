@@ -2,7 +2,7 @@
  * Online, actions come from other browsers, so apply() must refuse a malformed one with a RuleError,
  * never crash on it. Fuzzed over the states of AI games, for every action type:
  *
- * - random actions: each field drawn from the game's own ids, cells, planets and players, mixed with
+ * - random actions: each field drawn from the game's own ids, cells, objectives and players, mixed with
  *   values of the wrong type. Many pass the shape check (actionShape.ts) and reach a handler with
  *   well-formed nonsense, which the handler must refuse too;
  * - corrupted legal actions: one legal action of each type offered, each field in turn replaced by a
@@ -63,7 +63,7 @@ function pool(s: GameState, random: () => number): unknown[] {
     5,
     6,
     7,
-    s.board.planets.length - 1,
+    s.board.objectives.length - 1,
     true,
     false,
     'attacker',

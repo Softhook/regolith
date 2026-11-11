@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { RULESETS } from '@regolith/engine';
-import { CubeIcon, Diagram, DieIcon, PlanetMarks, Tile, cubeSpot, flower, type At, type Who } from './diagrams';
+import { CubeIcon, Diagram, DieIcon, ObjectiveMarks, Tile, cubeSpot, flower, type At, type Who } from './diagrams';
 import { AbilityFigure } from './abilities';
 
 /**
@@ -9,7 +9,7 @@ import { AbilityFigure } from './abilities';
  * manual shows afterwards. New concepts go here, one at a time.
  */
 
-const SHIPS = RULESETS.regolith.ships;
+const MECHS = RULESETS.regolith.mechs;
 /** How far a mech's number takes it: never more than 3 spaces. */
 const MOVE_CAP = 3;
 
@@ -19,18 +19,18 @@ const MOVE_CAP = 3;
  */
 export function MechKey({ v, who = 'you', size = 64 }: { v: number; who?: Who; size?: number }) {
   return (
-    <figure className="mn-mech" aria-label={`Die ${v} is the ${SHIPS[v].name}`}>
+    <figure className="mn-mech" aria-label={`Die ${v} is the ${MECHS[v].name}`}>
       <div className="mn-mech-pair">
         <DieIcon v={v} kind={who} size={size} />
         <span className="mn-mech-eq" aria-hidden="true">
           =
         </span>
         <span className="mn-mech-art">
-          <DieIcon v={v} size={size} shipIllustration portrait />
+          <DieIcon v={v} size={size} mechIllustration portrait />
         </span>
       </div>
       <figcaption>
-        <b>{SHIPS[v].name}</b>
+        <b>{MECHS[v].name}</b>
       </figcaption>
     </figure>
   );
@@ -175,7 +175,7 @@ export function GoalAnimation() {
             <Tile key={at.join()} id="p7-01" at={at} />
           ))}
           {GOAL_SITES.map((at, k) => (
-            <PlanetMarks key={at.join()} at={at} n={7} cubes={k < done ? ['you'] : []} />
+            <ObjectiveMarks key={at.join()} at={at} n={7} cubes={k < done ? ['you'] : []} />
           ))}
         </Diagram>
         <div className="mn-goalanim-win" aria-live="polite">
@@ -213,7 +213,7 @@ export function MechProfile({ v, part }: { v: number; part: 'who' | 'ability' })
           <figure className="mn-profile-die">
             <DieIcon v={v} size={72} />
             <figcaption>
-              <b>{SHIPS[v].name}</b>
+              <b>{MECHS[v].name}</b>
             </figcaption>
           </figure>
           <p className="mn-profile-move">
@@ -222,14 +222,14 @@ export function MechProfile({ v, part }: { v: number; part: 'who' | 'ability' })
         </div>
       ) : (
         <div className="mn-profile-ability">
-          <small>{SHIPS[v].name}’s ability</small>
-          <span className="mn-ability">{SHIPS[v].ability.name}</span>
+          <small>{MECHS[v].name}’s ability</small>
+          <span className="mn-ability">{MECHS[v].ability.name}</span>
           <p>{ABILITY_LINE[v]}</p>
           <AbilityFigure v={v} />
         </div>
       )}
       <span className="mn-profile-art mn-mech-art" aria-hidden="true">
-        <DieIcon v={v} size={340} shipIllustration portrait />
+        <DieIcon v={v} size={340} mechIllustration portrait />
       </span>
     </div>
   );

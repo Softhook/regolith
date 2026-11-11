@@ -47,7 +47,7 @@ const HOVER_MS = 350;
 /**
  * Text that explains something which isn't a control (a stat, a track, a badge). Opens on hover with a
  * mouse and on tap with a finger; replaces `title=`, which touch screens never show. `onClick` may
- * claim the tap by returning true (e.g. a scrapyard die you can deploy right now).
+ * claim the tap by returning true (e.g. a salvage yard die you can drop right now).
  */
 export function Tip({
   tip,

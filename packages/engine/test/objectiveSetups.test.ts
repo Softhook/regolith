@@ -51,7 +51,7 @@ describe('objective setups (scripts/objective-probe.ts)', () => {
       for (const cap of [1, setup.players]) {
         const s = game(setup, hub, cap, setup.cubes[0]);
         const tiles = new Set(hubTiles(setup));
-        const hubs = s.board.planets.filter((p) => tiles.has(s.board.cells[p.r][p.c].tile));
+        const hubs = s.board.objectives.filter((p) => tiles.has(s.board.cells[p.r][p.c].tile));
         expect(hubs.map((p) => [p.number, p.capacity])).toEqual([...tiles].map(() => [hub, cap]));
         expect(hubs.every((p) => !p.start)).toBe(true);
       }
@@ -62,7 +62,7 @@ describe('objective setups (scripts/objective-probe.ts)', () => {
     const setup = OBJECTIVE_SETUPS[0];
     const race = game(setup, 14, 1, 4);
     game(setup, 14, 2, 4);
-    expect(race.board.planets.find((p) => p.number === 14)!.capacity).toBe(1);
+    expect(race.board.objectives.find((p) => p.number === 14)!.capacity).toBe(1);
     restore();
   });
 

@@ -2,7 +2,7 @@ import type { Rng } from '../rng';
 import { n } from '../svg';
 import { OUTER } from './inks';
 import { cubePadCentres, numberCorner, type Spot } from '../tile/geometry';
-import { PLANET_CAPACITY } from '../tokens';
+import { OBJECTIVE_CAPACITY } from '../tokens';
 import { SPACE, SCALE, SIZE, inside, polar, toward } from './core';
 import { H, type Part, placed, type Drawn, merged, disc, box, glow, pipe, run } from './parts';
 import {
@@ -25,10 +25,10 @@ import { landingPad, rover, crates, beacon, probe, tyreTracks } from './craft';
 import { BIG, LANDMARKS, annex, type Annex, type Taken } from './landmarks';
 import { CORES } from './cores';
 
-/** How a base is laid out round its planet's space: its hub, outbuildings out along the ways to the next hexes, and small things round them. */
+/** How a base is laid out round its objective's space: its hub, outbuildings out along the ways to the next hexes, and small things round them. */
 
 /**
- * The ways a base may spread from its planet's space, best first in a random order: towards the neighbouring
+ * The ways a base may spread from its objective's space, best first in a random order: towards the neighbouring
  * hexes (flat-topped, so they meet it at 30° + k·60°) that are on the tile, and not past the number's corner.
  */
 function exits(r: Rng, at: Spot, numbered: boolean): number[] {
@@ -60,7 +60,7 @@ function gap(p: Spot, a: Spot, b: Spot): number {
 
 /**
  * Small things round a base, and out past it: a rover or two with their tracks, crates by the buildings,
- * survey beacons, now and then an old probe. Each placed on the tile (the planet's space at `centre`),
+ * survey beacons, now and then an old probe. Each placed on the tile (the objective's space at `centre`),
  * clear of what's `taken` and the `links`, or left out.
  */
 function incidentals(r: Rng, centre: Spot, taken: Taken[], links: [Spot, Spot][], hub: number, light: string): Part[] {
@@ -100,8 +100,8 @@ function incidentals(r: Rng, centre: Spot, taken: Taken[], links: [Spot, Spot][]
 /**
  * A base's outbuildings, one each way out (`ways`) for as many as it has: picked by weight, none twice
  * until each has stood once, each a little nearer or further out and larger or smaller. Each stands
- * clear of the hub (`hub` across from the planet's space), of the others and their links, and on the
- * tile (the planet's space at `centre` on it): moved further out, or made smaller, until it is, or left
+ * clear of the hub (`hub` across from the objective's space), of the others and their links, and on the
+ * tile (the objective's space at `centre` on it): moved further out, or made smaller, until it is, or left
  * out if it can't be. Where each stands, and its link, go in `taken` and `links`.
  */
 function outskirts(
@@ -228,21 +228,21 @@ function elbow(s: Spot, out: Spot, p: Spot, w: number, colour: string): Part {
 const SPREAD = [1, 1, 2, 2, 2, 3, 3, 3, 4];
 
 /**
- * The base on a planet's space, after the planets' own colours: a hub round its cube sockets (one per cube
- * the planet holds), and a few outbuildings out in the hexes round it, joined to it, a different few on
+ * The base on an objective's space, after the objectives' own colours: a hub round its cube sockets (one per cube
+ * the objective holds), and a few outbuildings out in the hexes round it, joined to it, a different few on
  * each tile: for a 7 a habitat under a great green dome, with blue domes and solar panels;
  * for an 8 a refinery, gold tanks and burning flare stacks; for a 9 an ice mine in a ring of frost,
  * its pit glowing blue; for a 10 a black reactor with red-hot cooling towers; any of them with a landing
- * pad, containers or a dish; on a Void tile a sinkhole ringed by violet crystals, its cracks glowing; and for
+ * pad, containers or a dish; on an Alien Artefact tile a sinkhole ringed by violet crystals, its cracks glowing; and for
  * an 11, 12 or 13 its landmark (landmarks.ts). A 7 to 10 tile's `design` (set.ts `DESIGN_TILES`) changes its
  * middle, keeping its colours and what's round it: the Habitat's great dome, a warren of domes or a greenhouse
  * ring; the Refinery's plain deck, distillation columns or storage spheres; the Ice Mine's frost and tower, an
  * open pit it bridges or a boring machine; the Reactor's octagon, a containment building or a fusion ring.
- * Centred on the planet's space, in board units. `at` is where the planet sits on its tile (in spaces from
+ * Centred on the objective's space, in board units. `at` is where the objective sits on its tile (in spaces from
  * the middle).
  */
 export function base(number: number, at: Spot, r: Rng, design?: string): Drawn | undefined {
-  const pads = cubePadCentres(PLANET_CAPACITY[number] ?? 0, 0, 0).map((p) => ({ x: p.x / SCALE, y: p.y / SCALE }));
+  const pads = cubePadCentres(OBJECTIVE_CAPACITY[number] ?? 0, 0, 0).map((p) => ({ x: p.x / SCALE, y: p.y / SCALE }));
   const ways = exits(r, at, number > 0);
   const count = r.pick(SPREAD);
   const centre = { x: SIZE / 2 + at.x * SPACE, y: SIZE / 2 + at.y * SPACE };

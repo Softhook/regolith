@@ -1,6 +1,6 @@
 import { useEffect, useState, type CSSProperties } from 'react';
 import { CARD_CATEGORIES } from '@regolith/art';
-import { cardName, shipOf, card, die, rulesOf, scrapyard, type Action, type ActionOf, type GameState } from '@regolith/engine';
+import { cardName, mechOf, card, die, rulesOf, salvageYard, type Action, type ActionOf, type GameState } from '@regolith/engine';
 import { SHORT, useMediaQuery } from '../game/useMediaQuery';
 import type { Dispatch } from '../game/useGame';
 import { useWarmCardImages } from '../art/useCardImages';
@@ -89,7 +89,7 @@ export function DecisionOverlay({ game, dispatch, human }: { game: GameState; di
       return (
         <Modal
           title={cardName('dangerous')}
-          subtitle={`${game.players[att.owner].name}'s ${shipOf(game, att.value).name} attacks your ${shipOf(game, def.value).name}. Before the dice are rolled, you may destroy both mechs (no power change).`}
+          subtitle={`${game.players[att.owner].name}'s ${mechOf(game, att.value).name} attacks your ${mechOf(game, def.value).name}. Before the dice are rolled, you may destroy both mechs (no power change).`}
           pc={p.color}
         >
           <div className="modal-actions">
@@ -117,11 +117,11 @@ export function DecisionOverlay({ game, dispatch, human }: { game: GameState; di
             {(head.options ?? [1, 2, 3, 4, 5, 6]).map((value) => (
               <button key={value} className="fleet-die clever-choice" onClick={() => dispatch({ type: 'clever', value })}>
                 <Die3D value={value} size={54} color={p.color} sound={false} />
-                <span className="show">{shipOf(game, value).name}</span>
+                <span className="show">{mechOf(game, value).name}</span>
               </button>
             ))}
           </div>
-          {d.loc.zone === 'scrapyard' && <p className="modal-sub">{'The mech goes to your salvage yard.'}</p>}
+          {d.loc.zone === 'salvageYard' && <p className="modal-sub">{'The mech goes to your salvage yard.'}</p>}
         </Modal>
       );
     }
@@ -234,7 +234,7 @@ function CardPick({ id, className, onClick }: { id: string; className?: string; 
 
 function SetupRoll({ game, dispatch, player, rerolled }: { game: GameState; dispatch: Dispatch; player: number; rerolled: boolean }) {
   const p = game.players[player];
-  const dice = scrapyard(game, player);
+  const dice = salvageYard(game, player);
   const sum = dice.reduce((a, d) => a + d.value, 0);
   const [landed, setLanded] = useState(false);
   // Smaller dice on short screens (phone landscape), so Keep mechs stays on screen. Matches styles.css.
@@ -259,7 +259,7 @@ function SetupRoll({ game, dispatch, player, rerolled }: { game: GameState; disp
         {dice.map((d, i) => (
           <div key={d.id} className="fleet-die">
             <Die3D value={d.value} rolls={d.rolls} size={dieSize} color={p.color} tumbleOnMount delay={i * 0.12} sound={i === 0} />
-            <span className={landed ? 'show' : ''}>{shipOf(game, d.value).name}</span>
+            <span className={landed ? 'show' : ''}>{mechOf(game, d.value).name}</span>
           </div>
         ))}
       </div>
@@ -284,28 +284,28 @@ function SetupRoll({ game, dispatch, player, rerolled }: { game: GameState; disp
 }
 
 /**
- * How to conquer a planet that offers more than one way: an empty place, or over-conquest displacing
- * one opponent's cube (the conqueror chooses whose). `options` are the legal `conquer` actions for it.
+ * How to claim an objective that offers more than one way: an empty place, or over-claim displacing
+ * one opponent's cube (the claimer chooses whose). `options` are the legal `claim` actions for it.
  */
-export function ConquerChoice({
+export function ClaimChoice({
   game,
   options,
   dispatch,
   onClose,
 }: {
   game: GameState;
-  options: ActionOf<'conquer'>[];
+  options: ActionOf<'claim'>[];
   dispatch: Dispatch;
   onClose: () => void;
 }) {
-  const planet = game.board.planets[options[0].planet];
+  const objective = game.board.objectives[options[0].objective];
   const plain = options.some((a) => a.replace === undefined);
   const pick = (a: Action) => {
     if (dispatch(a)) onClose();
   };
   return (
     <Dialog
-      title={`Claim objective ${planet.number}`}
+      title={`Claim objective ${objective.number}`}
       subtitle={plain ? 'Take an empty place, or displace an opponent’s cube.' : 'The objective is full: choose whose cube to displace.'}
       onClose={onClose}
     >
@@ -385,7 +385,7 @@ export function GameOver({
  * shows the cubes alone.
  */
 function GameStats({ game }: { game: GameState }) {
-  const cubes = game.players.map((p) => game.board.planets.reduce((n, pl) => n + cubeCount(pl.cubes, p.id), 0));
+  const cubes = game.players.map((p) => game.board.objectives.reduce((n, pl) => n + cubeCount(pl.cubes, p.id), 0));
   const players = [...game.players].sort(
     (a, b) => Number(b.id === game.winner) - Number(a.id === game.winner) || cubes[b.id] - cubes[a.id],
   );
@@ -420,12 +420,12 @@ function GameStats({ game }: { game: GameState }) {
               <td>{cubes[id]}</td>
               {kept && (
                 <>
-                  <td>{st!.planetsTaken}</td>
+                  <td>{st!.objectivesTaken}</td>
                   <td>
                     {st!.battlesWon}–{st!.battlesLost}
                   </td>
                   <td>
-                    {st!.shipsDestroyed}–{st!.shipsLost}
+                    {st!.mechsDestroyed}–{st!.mechsLost}
                   </td>
                 </>
               )}

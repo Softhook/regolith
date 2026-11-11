@@ -8,9 +8,9 @@ import {
   drawing,
   key,
   moveOptions,
-  orbitals,
+  perimeterSpaces,
   same,
-  shipOf,
+  mechOf,
   type GameState,
 } from '@regolith/engine';
 import type { Controller } from '../game/controller';
@@ -22,7 +22,7 @@ import { Explosions } from './board/Explosions';
 import { Routes } from './board/Routes';
 import { Shots } from './board/Shots';
 import { Zones } from './board/Zones';
-import { shipSpots, type ShipSpots } from '../game/shipSpots';
+import { mechSpots, type MechSpots } from '../game/mechSpots';
 import { useStaging, type Staging } from '../game/staging';
 import { hexMapPath, placement, spotBox } from './board/geometry';
 import { useBoardZoom } from './board/useBoardZoom';
@@ -30,21 +30,21 @@ import { OffscreenHints, ZoomControls, useFollowMoves, useFollowTurn, useZoomInt
 import { Die3D, DieShadow } from './Die3D';
 import { pieceShadowOpacity } from './board/shadows';
 import { REGOLITH_SHADOW, TILE } from '@regolith/art';
-import { SHIP } from '../beats';
-import { planetNames } from '../art/boardTiles';
+import { MECH } from '../beats';
+import { objectiveNames } from '../art/boardTiles';
 import { InfoPop, useAnchorName } from './InfoPop';
 
-/** A ship or planet whose info is showing, after a tap that had nothing else to do. */
-type Inspect = { ship: string } | { planet: number };
-const inspectKey = (i: Inspect) => ('ship' in i ? `ship:${i.ship}` : `planet:${i.planet}`);
+/** A mech or objective whose info is showing, after a tap that had nothing else to do. */
+type Inspect = { mech: string } | { objective: number };
+const inspectKey = (i: Inspect) => ('mech' in i ? `mech:${i.mech}` : `objective:${i.objective}`);
 
 /**
- * The map: artwork underneath (SVG), then clickable layers for highlighted spaces, planets and
- * ships, then the effects of each move, explosions and the effects of cards. What is clickable comes from the controller's highlights; a tap on a ship
- * or planet that isn't shows its info instead. It fits its box, and zooms and pans (useBoardZoom).
+ * The map: artwork underneath (SVG), then clickable layers for highlighted spaces, objectives and
+ * mechs, then the effects of each move, explosions and the effects of cards. What is clickable comes from the controller's highlights; a tap on a mech
+ * or objective that isn't shows its info instead. It fits its box, and zooms and pans (useBoardZoom).
  * `children` float over the map (positioned in percent of its size). `introduce` (the start of a game)
  * shows that it zooms. `scene` changes when the map jumps to another position instead of following a
- * move (looking back at the game, and back again): ships glide to where they are then, but don't roll,
+ * move (looking back at the game, and back again): mechs glide to where they are then, but don't roll,
  * blow up or bring the map to them.
  */
 export function Board({
@@ -62,14 +62,14 @@ export function Board({
 }) {
   const wrap = useRef<HTMLDivElement>(null);
   const boardRef = useRef<HTMLDivElement>(null);
-  const { planets } = game.board;
+  const { objectives } = game.board;
   const { rows, cols } = drawing(game.board);
   const zoom = useBoardZoom(wrap, boardRef, rows, cols);
   const { cell } = zoom;
   const { box } = placement(game.board, cell);
   // On the ground the dice cast hard shadows, as its buildings do: blurred as much, in pixels.
   const cast = REGOLITH_SHADOW.blur * (cell / TILE.cell);
-  const spots = shipSpots(game);
+  const spots = mechSpots(game);
   const cubes = cubeSpots(game, cell);
   const staging = useStaging(game, scene);
   useLayoutEffect(() => glideAlong(boardRef.current, staging.paths), [staging]);
@@ -77,10 +77,10 @@ export function Board({
   useFollowMoves(game, ctl, spots, zoom, scene);
   useFollowTurn(game, ctl, spots, zoom, scene);
   const [inspect, setInspect] = useState<Inspect | null>(null);
-  if (inspect && 'ship' in inspect && !spots.has(inspect.ship)) setInspect(null);
+  if (inspect && 'mech' in inspect && !spots.has(inspect.mech)) setInspect(null);
   // The info closes itself on a tap elsewhere; a tap on the same thing again closes it too.
   const show = (what: Inspect) => setInspect((cur) => (cur && inspectKey(cur) === inspectKey(what) ? null : what));
-  // Another player's ship shows how far it can move: while a finger is on it, or while a mouse click's info is open.
+  // Another player's mech shows how far it can move: while a finger is on it, or while a mouse click's info is open.
   const [held, setHeld] = useState<string | null>(null);
   const viaMouse = useRef(false);
   useEffect(() => {
@@ -94,7 +94,7 @@ export function Board({
     };
   }, [held]);
   const reachOf =
-    held ?? (inspect && 'ship' in inspect && viaMouse.current && !yoursOf(game, ctl)(die(game, inspect.ship).owner) ? inspect.ship : null);
+    held ?? (inspect && 'mech' in inspect && viaMouse.current && !yoursOf(game, ctl)(die(game, inspect.mech).owner) ? inspect.mech : null);
 
   // A click on empty board (no highlight there) still reaches the controller, to clear a selection.
   const onBoardClick = (e: MouseEvent<HTMLDivElement>) => {
@@ -113,7 +113,7 @@ export function Board({
       >
         <BoardArt game={game} cell={cell} />
 
-        {/* The player acting: their colour marks the spaces they can pick and the ways their ships would fly. */}
+        {/* The player acting: their colour marks the spaces they can pick and the ways their mechs would fly. */}
         <div className="board-layer" style={{ '--pc': game.players[actor(game)].color } as CSSProperties} onClick={onBoardClick}>
           {ctl.highlights.zones.length > 0 && <Zones board={game.board} cells={ctl.highlights.zones} cell={cell} />}
           {[...ctl.highlights.cells.values()].map(({ cell: c, tone }) => {
@@ -143,25 +143,25 @@ export function Board({
             onPick={ctl.onCell}
           />
 
-          {planets.map((p) => {
-            const hl = ctl.highlights.planets.get(p.id);
+          {objectives.map((p) => {
+            const hl = ctl.highlights.objectives.get(p.id);
             const free = p.capacity - p.cubes.length;
             return (
               <button
                 key={p.id}
-                className={`planet-hit ${hl ? `planet-${hl.tone}` : ''}`}
+                className={`objective-hit ${hl ? `objective-${hl.tone}` : ''}`}
                 data-r={p.r}
                 data-c={p.c}
                 style={box(p)}
-                onClick={() => ctl.onPlanet(p.id) === false && show({ planet: p.id })}
-                title={`${planetLabel(game, p.id)} · ${free} of ${p.capacity} cube location${p.capacity > 1 ? 's' : ''} free`}
+                onClick={() => ctl.onObjective(p.id) === false && show({ objective: p.id })}
+                title={`${objectiveLabel(game, p.id)} · ${free} of ${p.capacity} cube location${p.capacity > 1 ? 's' : ''} free`}
               />
             );
           })}
 
           {reachOf && <Reach game={game} id={reachOf} cell={cell} spots={spots} />}
 
-          <ShipShadows game={game} scene={scene} staging={staging} spots={spots} cubes={cubes} cell={cell} blur={cast} />
+          <MechShadows game={game} scene={scene} staging={staging} spots={spots} cubes={cubes} cell={cell} blur={cast} />
           <Cubes
             game={game}
             cubes={cubes}
@@ -174,8 +174,8 @@ export function Board({
               return [{ x: (at.c + 0.5) * cell - size / 2, y: (at.r + 0.5) * cell - size / 2, size, color: game.players[d.owner].color }];
             })}
           />
-          {/* Mouse users also get `title=` on ships and planets; touch screens get the tap. */}
-          <Ships
+          {/* Mouse users also get `title=` on mechs and objectives; touch screens get the tap. */}
+          <Mechs
             game={game}
             scene={scene}
             staging={staging}
@@ -184,19 +184,19 @@ export function Board({
             spots={spots}
             cell={cell}
             shadowless
-            onInfo={(id) => show({ ship: id })}
+            onInfo={(id) => show({ mech: id })}
             onPress={(id, touch) => {
               viaMouse.current = !touch;
               if (touch) setHeld(id);
             }}
           />
-          {/* A planet's label, over the ships in its orbit. */}
-          {planets.map((p) => {
-            const hl = ctl.highlights.planets.get(p.id);
+          {/* An objective's label, over the mechs in its perimeter. */}
+          {objectives.map((p) => {
+            const hl = ctl.highlights.objectives.get(p.id);
             return (
               hl && (
-                <span key={p.id} className={`planet-tag ${hl.tone}`} style={box(p)}>
-                  <span className="planet-label">{hl.label}</span>
+                <span key={p.id} className={`objective-tag ${hl.tone}`} style={box(p)}>
+                  <span className="objective-label">{hl.label}</span>
                 </span>
               )
             );
@@ -222,16 +222,16 @@ export function Board({
   );
 }
 
-/** Your ships: those of the seats this screen plays; sharing a screen, those of whoever's turn it is. */
+/** Your mechs: those of the seats this screen plays; sharing a screen, those of whoever's turn it is. */
 const yoursOf = (game: GameState, ctl: Controller) => (owner: number) =>
   ctl.mine(owner) && (owner === game.turn.player || !ctl.mine(game.turn.player));
 
 /**
- * The spaces another player's ship could move to with a plain move: its movement (with its owner's
- * skills). Every ship it could reach to attack
- * gets a ring, above the ships. Only shown, not clickable.
+ * The spaces another player's mech could move to with a plain move: its movement (with its owner's
+ * skills). Every mech it could reach to attack
+ * gets a ring, above the mechs. Only shown, not clickable.
  */
-function Reach({ game, id, cell, spots }: { game: GameState; id: string; cell: number; spots: ShipSpots }) {
+function Reach({ game, id, cell, spots }: { game: GameState; id: string; cell: number; spots: MechSpots }) {
   const d = game.dice.find((x) => x.id === id);
   if (d?.loc.zone !== 'board') return null;
   const { moves, attacks } = moveOptions(game, id);
@@ -258,11 +258,11 @@ function Reach({ game, id, cell, spots }: { game: GameState; id: string; cell: n
   );
 }
 
-/** How a ship flies its way (glideAlong): eased in a little and out, so it doesn't rush the first space. */
+/** How a mech flies its way (glideAlong): eased in a little and out, so it doesn't rush the first space. */
 const PATH_EASING = 'cubic-bezier(.45,.1,.25,1)';
 
 /**
- * Flies each ship in `paths` (staging) along its way, and its shadow and odds with it, in the time of a
+ * Flies each mech in `paths` (staging) along its way, and its shadow and odds with it, in the time of a
  * straight glide (beats.ts): they're `.pathed`, without the glide.
  */
 function glideAlong(board: HTMLElement | null, paths: Staging['paths']) {
@@ -272,23 +272,23 @@ function glideAlong(board: HTMLElement | null, paths: Staging['paths']) {
     // A jump leaves the space before it and lands at once.
     const frames = way.flatMap((p, i) => (i && p.at === way[i - 1].at ? [to(way[i - 1], p.at), to(p, p.at)] : [to(p, p.at)]));
     for (const el of board.querySelectorAll<HTMLElement>(`[data-glide="${CSS.escape(id)}"]`))
-      el.animate(frames, { duration: SHIP.glide, easing: PATH_EASING });
+      el.animate(frames, { duration: MECH.glide, easing: PATH_EASING });
   }
 }
 
-/** A ship's die, as a part of its space: the shadows it casts (ShipShadows) are made for the same size. */
+/** A mech's die, as a part of its space: the shadows it casts (MechShadows) are made for the same size. */
 const DIE_SIZE = 0.56;
 
 /** A piece on space (r, c), `cell` px: placed in percent of its own size (one space), so a zoom or resize doesn't count as a move and glide. */
 const placeAt = (r: number, c: number, cell: number) => ({ transform: `translate(${c * 100}%, ${r * 100}%)`, width: cell, height: cell });
 
 /**
- * On a world's ground, the hard shadows every ship's die (DieShadow) and cube (CubeShadows) casts, blurred `blur` px with a hint of
+ * On a world's ground, the hard shadows every mech's die (DieShadow) and cube (CubeShadows) casts, blurred `blur` px with a hint of
  * its colour: all in one layer under the dice and cubes, as a die's top stands as high as the die beside it, so is lit, and as dark
- * where they meet as apart. Each is placed, glides, comes and goes as its ship does (`staging`, Ships). Cut to the map's tiles, so
+ * where they meet as apart. Each is placed, glides, comes and goes as its mech does (`staging`, Mechs). Cut to the map's tiles, so
  * none falls off its edge.
  */
-function ShipShadows({
+function MechShadows({
   game,
   scene,
   staging,
@@ -300,7 +300,7 @@ function ShipShadows({
   game: GameState;
   scene?: string;
   staging: Staging;
-  spots: ShipSpots;
+  spots: MechSpots;
   cubes: CubeSpot[];
   cell: number;
   blur: number;
@@ -309,7 +309,7 @@ function ShipShadows({
   const size = cell * DIE_SIZE;
   const edge = hexMapPath(game.board, cell, tileArtOf(game.board));
   const struck = staging.struck.map(({ die: d, r, c, ms }) => (
-    <div key={`struck:${d.id}`} className="ship-shadow struck" style={{ ...placeAt(r, c, cell), '--late': `${ms}ms` } as CSSProperties}>
+    <div key={`struck:${d.id}`} className="mech-shadow struck" style={{ ...placeAt(r, c, cell), '--late': `${ms}ms` } as CSSProperties}>
       <DieShadow size={size} world={world} blur={blur} color={game.players[d.owner].color} />
     </div>
   ));
@@ -320,7 +320,7 @@ function ShipShadows({
     return (
       <div
         key={d.id}
-        className={['ship-shadow', late !== undefined && 'late', staging.paths.has(d.id) && 'pathed'].filter(Boolean).join(' ')}
+        className={['mech-shadow', late !== undefined && 'late', staging.paths.has(d.id) && 'pathed'].filter(Boolean).join(' ')}
         data-glide={d.id}
         style={{ ...placeAt(at.r, at.c, cell), '--late': `${late ?? 0}ms` } as CSSProperties}
       >
@@ -329,7 +329,7 @@ function ShipShadows({
     );
   });
   return (
-    <div className="ship-shadows" style={{ opacity: pieceShadowOpacity(world), clipPath: edge && `path('${edge}')` }} aria-hidden>
+    <div className="mech-shadows" style={{ opacity: pieceShadowOpacity(world), clipPath: edge && `path('${edge}')` }} aria-hidden>
       <CubeShadows cubes={cubes} world={world} mm={cell / TILE.cell} late={staging.cube} />
       {shadows}
       {struck}
@@ -338,10 +338,10 @@ function ShipShadows({
 }
 
 /**
- * Every ship on the map, as a die; selected, highlighted, spent or in combat. `onPress`: a pointer went down on another player's ship.
- * `staging`: ships a card brings appear as its effect gets there, and ships it destroys stay until its blow lands.
+ * Every mech on the map, as a die; selected, highlighted, spent or in combat. `onPress`: a pointer went down on another player's mech.
+ * `staging`: mechs a card brings appear as its effect gets there, and mechs it destroys stay until its blow lands.
  */
-function Ships({
+function Mechs({
   game,
   staging,
   ctl,
@@ -358,9 +358,9 @@ function Ships({
   staging: Staging;
   ctl: Controller;
   zoomed: boolean;
-  spots: ShipSpots;
+  spots: MechSpots;
   cell: number;
-  /** The dice's shadows are drawn under them all (ShipShadows), not each under its own. */
+  /** The dice's shadows are drawn under them all (MechShadows), not each under its own. */
   shadowless: boolean;
   onInfo: (id: string) => void;
   onPress: (id: string, touch: boolean) => void;
@@ -372,7 +372,7 @@ function Ships({
   const struck = staging.struck.map(({ die: d, r, c, ms }) => (
     <div
       key={`struck:${d.id}`}
-      className="ship struck"
+      className="mech struck"
       style={
         {
           ...placeAt(r, c, cell),
@@ -392,7 +392,7 @@ function Ships({
       />
     </div>
   ));
-  const ships = game.dice.map((d) => {
+  const mechs = game.dice.map((d) => {
     const at = spots.get(d.id);
     if (!at) return null;
     const { r, c } = at;
@@ -403,9 +403,9 @@ function Ships({
     const abilityUsed = mine && game.turn.abilityUsed[d.id];
     const fighting = combat && (combat.attacker.die === d.id || combat.defender.die === d.id);
     // An attack target shows the chance to win on the map itself: no hover on a touch screen, and
-    // a tap attacks. The cards behind it are in the title and the ship panel.
+    // a tap attacks. The cards behind it are in the title and the mech panel.
     const attack = ctl.attacks.get(d.id);
-    const { ability, name } = shipOf(game, d.value);
+    const { ability, name } = mechOf(game, d.value);
     const who = `${game.players[d.owner].name} · ${name} (${d.value})`;
     const place = placeAt(r, c, cell);
     const late = staging.late.get(d.id);
@@ -413,9 +413,9 @@ function Ships({
       <Fragment key={d.id}>
         <div
           className={[
-            'ship',
+            'mech',
             selected && 'selected',
-            tone && `ship-${tone}`,
+            tone && `mech-${tone}`,
             spent && 'spent',
             fighting && 'fighting',
             ctl.actionPhase && d.owner === me && 'own',
@@ -443,7 +443,7 @@ function Ships({
               : `${who}\n${ability.name}: ${ability.text}`
           }
         >
-          <div className="ship-ring" />
+          <div className="mech-ring" />
           <Die3D
             value={d.value}
             rolls={d.rolls}
@@ -453,24 +453,24 @@ function Ships({
             shadowless={shadowless}
           />
           {abilityUsed && (
-            <span className="ship-badge" aria-label="Ability used this turn">
+            <span className="mech-badge" aria-label="Ability used this turn">
               ✦
             </span>
           )}
         </div>
-        {/* Over the ship, in a layer of its own, so no other ship's die covers it where it sticks out. */}
+        {/* Over the mech, in a layer of its own, so no other mech's die covers it where it sticks out. */}
         {attack && (
-          <div className={`ship-odds-spot${staging.paths.has(d.id) ? ' pathed' : ''}`} data-glide={d.id} style={place}>
+          <div className={`mech-odds-spot${staging.paths.has(d.id) ? ' pathed' : ''}`} data-glide={d.id} style={place}>
             <OddsBadge chance={attack.chance} cell={cell} zoomed={zoomed} />
           </div>
         )}
       </Fragment>
     );
   });
-  return [...ships, ...struck];
+  return [...mechs, ...struck];
 }
 
-/** The info bubble for a ship or planet, anchored to its space on the map. */
+/** The info bubble for a mech or objective, anchored to its space on the map. */
 function BoardInfo({
   game,
   spots,
@@ -479,29 +479,29 @@ function BoardInfo({
   onClose,
 }: {
   game: GameState;
-  spots: ShipSpots;
+  spots: MechSpots;
   what: Inspect;
   cell: number;
   onClose: () => void;
 }) {
   const anchor = useAnchorName();
-  const planet = 'planet' in what ? game.board.planets.find((p) => p.id === what.planet) : undefined;
-  const spot = 'ship' in what ? spots.get(what.ship) : planet && drawing(game.board).at(planet);
-  if (!spot) return null; // the ship left the map
+  const objective = 'objective' in what ? game.board.objectives.find((p) => p.id === what.objective) : undefined;
+  const spot = 'mech' in what ? spots.get(what.mech) : objective && drawing(game.board).at(objective);
+  if (!spot) return null; // the mech left the map
   return (
     <>
       <div className="info-anchor" style={{ ...spotBox(spot, cell), '--anchor': anchor } as CSSProperties} />
       <InfoPop anchor={anchor} onClose={onClose}>
-        {'ship' in what ? <ShipInfo game={game} id={what.ship} /> : <PlanetInfo game={game} id={what.planet} />}
+        {'mech' in what ? <MechInfo game={game} id={what.mech} /> : <ObjectiveInfo game={game} id={what.objective} />}
       </InfoPop>
     </>
   );
 }
 
-/** What a ship is: whose, which, and its ability. */
-function ShipInfo({ game, id }: { game: GameState; id: string }) {
+/** What a mech is: whose, which, and its ability. */
+function MechInfo({ game, id }: { game: GameState; id: string }) {
   const d = die(game, id);
-  const { ability, name } = shipOf(game, d.value);
+  const { ability, name } = mechOf(game, d.value);
   const p = game.players[d.owner];
   return (
     <>
@@ -516,23 +516,23 @@ function ShipInfo({ game, id }: { game: GameState; id: string }) {
   );
 }
 
-/** A planet's name and number, as the log shows it: "Thalassa Prime (9)". */
-function planetLabel(game: GameState, id: number): string {
-  const p = game.board.planets.find((x) => x.id === id)!;
-  const name = planetNames(game.board).get(id);
+/** An objective's name and number, as the log shows it: "Thalassa Prime (9)". */
+function objectiveLabel(game: GameState, id: number): string {
+  const p = game.board.objectives.find((x) => x.id === id)!;
+  const name = objectiveNames(game.board).get(id);
   return name ? `${name} (${p.number})` : `Objective ${p.number}`;
 }
 
-/** A planet's name, its free cube spaces, whose cubes are on it, and who its orbit blocks (contested orbit). */
-function PlanetInfo({ game, id }: { game: GameState; id: number }) {
-  const p = game.board.planets.find((x) => x.id === id)!;
+/** An objective's name, its free cube spaces, whose cubes are on it, and who its perimeter blocks (contested perimeter). */
+function ObjectiveInfo({ game, id }: { game: GameState; id: number }) {
+  const p = game.board.objectives.find((x) => x.id === id)!;
   const free = p.capacity - p.cubes.length;
   const homeOf = game.players.find((pl) => pl.home === id);
-  const holders = [...new Set(orbitals(game.board, p).flatMap((c) => dieAt(game, c)?.owner ?? []))].map((o) => game.players[o].name);
+  const holders = [...new Set(perimeterSpaces(game.board, p).flatMap((c) => dieAt(game, c)?.owner ?? []))].map((o) => game.players[o].name);
   const blocked = 'claim it or drop to it';
   return (
     <>
-      <div className="info-title">{planetLabel(game, id)}</div>
+      <div className="info-title">{objectiveLabel(game, id)}</div>
       <div>
         {free} of {p.capacity} cube space{p.capacity > 1 ? 's' : ''} free.
       </div>
@@ -565,10 +565,10 @@ function OddsBadge({ chance, cell, zoomed }: { chance: number; cell: number; zoo
   const [flip, setFlip] = useState({ below: false, left: false });
   useEffect(() => {
     const badge = ref.current!;
-    const ship = badge.parentElement!;
+    const mech = badge.parentElement!;
     // Not zoomed in, only the screen's edge can cut it off.
-    const root = zoomed ? ship.closest('.stage') : null;
-    // How far the badge sticks out of the space (see .ship-odds): the ship must be this far inside.
+    const root = zoomed ? mech.closest('.stage') : null;
+    // How far the badge sticks out of the space (see .mech-odds): the mech must be this far inside.
     const { width, height } = badge.getBoundingClientRect();
     const up = Math.ceil(height * 0.3);
     const right = Math.ceil(width * 0.3);
@@ -579,12 +579,12 @@ function OddsBadge({ chance, cell, zoomed }: { chance: number; cell: number; zoo
       },
       { root, rootMargin: `-${up}px -${right}px 0px 0px`, threshold: 1 },
     );
-    io.observe(ship);
+    io.observe(mech);
     return () => io.disconnect();
   }, [cell, zoomed]);
   const tone = oddsTone(chance);
   return (
-    <span ref={ref} className={['ship-odds', tone, flip.below && 'below', flip.left && 'left'].filter(Boolean).join(' ')} aria-hidden>
+    <span ref={ref} className={['mech-odds', tone, flip.below && 'below', flip.left && 'left'].filter(Boolean).join(' ')} aria-hidden>
       {/* The % sign smaller: a narrower badge. */}
       {percent(chance).replace('%', '')}
       <small>%</small>
@@ -592,7 +592,7 @@ function OddsBadge({ chance, cell, zoomed }: { chance: number; cell: number; zoo
   );
 }
 
-/** Green when the attack is likely to win, red when likely to lose, gold in between (see .ship-odds). */
+/** Green when the attack is likely to win, red when likely to lose, gold in between (see .mech-odds). */
 function oddsTone(chance: number): string {
   return chance >= 0.6 ? 'good' : chance <= 0.4 ? 'bad' : '';
 }
