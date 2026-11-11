@@ -93,7 +93,7 @@ function settle(before: GameState, after: GameState, action: Action): number {
     case 'resolveCombat':
       return before.pending[0]?.kind === 'combat' && combatOutcome(before, before.pending[0]).attackerWins ? 2200 : 1800;
     case 'claim':
-    case 'infamy':
+    case 'takeOver':
       return 2600;
     case 'ability':
       return 1800;

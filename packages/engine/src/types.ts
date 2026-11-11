@@ -82,7 +82,7 @@ export interface PlayerState extends PlayerConfig {
    */
   home?: number;
   skills: OwnedSkill[];
-  ambitionTokens: number;
+  finalPushTokens: number;
   /** Actions lost on the next turn (Sabotage). */
   actionPenalty: number;
   /** Kill Zone: counts down at the end of each of the owner's turns while > 0. */
@@ -203,7 +203,7 @@ export type Pending =
    */
   | { kind: 'engineering'; player: PlayerId; die: string; options?: number[]; source?: 'remodel' | 'engineering' }
   | { kind: 'advance'; player: PlayerId; die: string; to: Cell }
-  | { kind: 'infamy'; player: PlayerId }
+  | { kind: 'takeOver'; player: PlayerId }
   /** `claim`: how many of the picks were earned by Claim actions (Arms Deal may take an atomic instead). */
   | { kind: 'takeCard'; player: PlayerId; count: number; claim?: number }
   | { kind: 'peek'; player: PlayerId; deck: DeckKind; top: string; store?: boolean }
@@ -227,7 +227,7 @@ export type Pending =
 /** What a log entry reports, so the UI can react (sounds, toasts) without parsing its text. */
 export type LogEvent =
   | 'victory'
-  | 'infamy'
+  | 'takeOver'
   | 'seize'
   | 'claim'
   | 'startObjective'
@@ -239,7 +239,7 @@ export type LogEvent =
   | 'cardPlayed'
   | 'reinforcement'
   | 'discard'
-  | 'breakthrough';
+  | 'researchCard';
 
 /** A skill's bonus, as actually gained (after the research and power limits). */
 export interface Gains {
@@ -338,7 +338,7 @@ export type Action =
   | { type: 'engineering'; value: number }
   | { type: 'resolveCombat' }
   | { type: 'advance'; move: boolean }
-  | { type: 'infamy'; objective: number }
+  | { type: 'takeOver'; objective: number }
   | { type: 'takeCard'; deck: DeckKind | 'reinforcement'; index: number; store?: boolean }
   | { type: 'peekChoice'; takeTop: boolean }
   /** Arms Deal: take 1 atomic instead of a card earned by claiming. */

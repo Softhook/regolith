@@ -32,7 +32,7 @@ export function checkInvariants(s: GameState): string[] {
     check(p.research >= 1 && p.research <= researchLimit, `${name}: research ${p.research} outside 1–${researchLimit}`);
     check(p.atomics >= 0, `${name}: ${p.atomics} atomics`);
     check(p.actionPenalty >= 0 && p.killZone >= 0, `${name}: negative penalty or Kill Zone`);
-    check(p.ambitionTokens >= 0 && p.ambitionTokens < 3, `${name}: ${p.ambitionTokens} ambition tokens`);
+    check(p.finalPushTokens >= 0 && p.finalPushTokens < 3, `${name}: ${p.finalPushTokens} Final Push tokens`);
     const placed = s.board.objectives.reduce((n, pl) => n + pl.cubes.filter((x) => x === p.id).length, 0);
     if (map) check(placed + p.cubesLeft === map.cubes, `${name}: ${placed} cubes placed + ${p.cubesLeft} left ≠ ${map.cubes}`);
   }

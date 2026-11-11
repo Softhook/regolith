@@ -139,7 +139,7 @@ function play(t: Task): Result {
     const fights = s.combatCounter;
     const standing = onPerimeter(s);
     const mover = s.turn.player;
-    const target = action.type === 'claim' || action.type === 'infamy' ? action.objective : -1;
+    const target = action.type === 'claim' || action.type === 'takeOver' ? action.objective : -1;
     const ownThere = target >= 0 ? s.board.objectives[target].cubes.includes(mover) : false;
     const mechs = target >= 0 ? onPerimeter(s).filter((d) => d.owner === mover).length : 0;
     s = apply(s, action);
@@ -149,7 +149,7 @@ function play(t: Task): Result {
       lastObjective = target;
       if (action.type === 'claim' && ownThere) r.backToOwn++;
       if (hubIds.has(target)) {
-        if (action.type === 'infamy') r.hubTakeOvers++;
+        if (action.type === 'takeOver') r.hubTakeOvers++;
         else {
           r.hubClaims++;
           r.hubMechs.push(mechs);

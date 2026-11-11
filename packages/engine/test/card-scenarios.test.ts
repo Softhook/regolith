@@ -187,7 +187,7 @@ describe('activated skills', () => {
     const actions = s.turn.actionsLeft;
     s = apply(s, { type: 'finalPush' });
     expect(s.turn.actionsLeft).toBe(actions + 1);
-    expect(s.players[p].ambitionTokens).toBe(1);
+    expect(s.players[p].finalPushTokens).toBe(1);
   });
 
   cardCase(['r-field-refit'], 'Field Refit', () => {

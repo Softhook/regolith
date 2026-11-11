@@ -65,10 +65,10 @@ export interface SkillRule {
   abilityTwice?: boolean;
   /** How many skills the player may hold. */
   skillLimit?: number;
-  /** Research needed for a breakthrough. */
-  breakthroughAt?: number;
+  /** Research that earns a card at the end of the turn (Rush Research). */
+  researchCardAt?: number;
   /** Power needed for a Take Over cube (Stolen Flag). */
-  infamyAt?: number;
+  takeOverAt?: number;
   /** When a mech is placed in your salvage yard, choose its number instead (Remodel). */
   chooseSalvageYardNumber?: boolean;
   /** One more Move or Research once the actions are spent, on a turn without Attack or Claim. */
@@ -144,7 +144,7 @@ export const SKILL_RULES: Record<SkillEffect, SkillRule> = {
   'free-drop': { startOfTurn: () => ({ freeDrops: 1 }) },
   hacking: { claim: { tolerance: 1 } },
   exploit: { onDestroy: (c) => (c.first ? { research: 3 } : {}) },
-  'rush-research': { breakthroughAt: 4 },
+  'rush-research': { researchCardAt: 4 },
   'arms-deal': { atomicForClaim: true },
   'drill-sergeant': { combat: { roll: 3 } },
   'trophy-hunters': { onDestroy: (c) => (c.first ? { power: 1 } : {}) },
@@ -170,7 +170,7 @@ export const SKILL_RULES: Record<SkillEffect, SkillRule> = {
   remodel: { chooseSalvageYardNumber: true },
   prospectors: { peacefulExtraAction: true },
   'strategic-plan': { storeTactics: true },
-  'stolen-flag': { infamyAt: 4, stolenOnDestroy: true },
+  'stolen-flag': { takeOverAt: 4, stolenOnDestroy: true },
   'signal-jammer': { disableSkillOnDestroy: true },
   // Regolith's own Science, in Science's place
   science: { claim: { spendResearch: true } },

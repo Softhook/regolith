@@ -18,7 +18,7 @@ import {
   carryOptions,
   claimCheck,
   createGame,
-  infamyTargets,
+  takeOverTargets,
   legalActions,
   moveOptions,
   type Action,
@@ -454,8 +454,8 @@ describe('mech abilities (p.8)', () => {
   });
 });
 
-describe('power and infamy (p.9)', () => {
-  function infamous() {
+describe('power and Take Over (p.9)', () => {
+  function atTakeOver() {
     let s = scenario({ p0d0: [7, 2, 1], p1d0: [7, 3, 6] });
     s.players[0].power = 5;
     s = resolve(attack(s, { type: 'attack', die: 'p0d0', target: 'p1d0' }, 1, 6));
@@ -463,12 +463,12 @@ describe('power and infamy (p.9)', () => {
   }
 
   it('places a cube immediately at 6 — on any objective without your cube, no mech needed — then resets to 1', () => {
-    let s = infamous();
-    expect(s.pending[0]).toMatchObject({ kind: 'infamy', player: 0 });
+    let s = atTakeOver();
+    expect(s.pending[0]).toMatchObject({ kind: 'takeOver', player: 0 });
     expect(s.players[0].power).toBe(6);
-    expect(infamyTargets(s, 0).map((p) => p.id)).toEqual([0, 1, 3, 4, 5, 7, 8]); // objective 6 is a full 7
-    expect(() => apply(s, { type: 'infamy', objective: 2 })).toThrow(/without your cube/);
-    s = apply(s, { type: 'infamy', objective: 8 });
+    expect(takeOverTargets(s, 0).map((p) => p.id)).toEqual([0, 1, 3, 4, 5, 7, 8]); // objective 6 is a full 7
+    expect(() => apply(s, { type: 'takeOver', objective: 2 })).toThrow(/without your cube/);
+    s = apply(s, { type: 'takeOver', objective: 8 });
     expect(s.board.objectives[8].cubes).toEqual([0]);
     expect(s.players[0].cubesLeft).toBe(3);
     expect(s.players[0].power).toBe(1);
@@ -486,9 +486,9 @@ describe('power and infamy (p.9)', () => {
   });
 
   it('cannot place on a full objective', () => {
-    const s = infamous();
+    const s = atTakeOver();
     s.board.objectives[8].cubes = [1];
-    expect(() => apply(s, { type: 'infamy', objective: 8 })).toThrow(/without your cube/);
+    expect(() => apply(s, { type: 'takeOver', objective: 8 })).toThrow(/without your cube/);
   });
 });
 
@@ -504,7 +504,7 @@ describe('entanglement (designer errata, BGG thread 1087563)', () => {
   });
 
   it('applies to Take Over too', () => {
-    expect(infamyTargets(scenario({}, full), 0).map((p) => p.id)).toEqual([4]);
+    expect(takeOverTargets(scenario({}, full), 0).map((p) => p.id)).toEqual([4]);
   });
 });
 
@@ -523,7 +523,7 @@ describe('winning (p.2, p.9)', () => {
     let s = scenario({ p0d0: [7, 2, 1], p1d0: [7, 3, 6] }, four);
     s.players[0].power = 5;
     s = apply(resolve(attack(s, { type: 'attack', die: 'p0d0', target: 'p1d0' }, 1, 6)), { type: 'advance', move: true });
-    s = apply(s, { type: 'infamy', objective: 8 });
+    s = apply(s, { type: 'takeOver', objective: 8 });
     expect(s).toMatchObject({ phase: 'over', winner: 0 });
   });
 });

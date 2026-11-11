@@ -28,7 +28,7 @@ import {
   createGame,
   effectOf,
   reinforcementCard,
-  infamyTargets,
+  takeOverTargets,
   isEmptySpace,
   legalActions,
   reserve,
@@ -312,7 +312,7 @@ export function cardTaken(before: GameState, action: Action, after: GameState): 
   }
 }
 
-/** The Tactic, Gambit or Reinforcements played in this step, and by whom. */
+/** The Tactic or Reinforcements played in this step, and by whom. */
 function playedCard(c: Step): { id: string; p: PlayerId } | undefined {
   if (c.action.type === 'strategicPlanPlay') return { id: c.action.card, p: c.before.turn.player };
   const taken = cardTaken(c.before, c.action, c.after);
@@ -372,8 +372,8 @@ const ORACLES: ((c: Step) => void)[] = [
       if (!r || !held(c.after, p.id, 'fanatics')) continue;
       const was = c.before.players[p.id];
       if (p.research > was.research) c.fail(r, `research rose ${was.research} → ${p.research}`);
-      const infamy = c.action.type === 'infamy' && decider(c.before) === p.id;
-      if (p.power < was.power && !infamy) c.fail(r, `Power fell ${was.power} → ${p.power}`);
+      const takeOver = c.action.type === 'takeOver' && decider(c.before) === p.id;
+      if (p.power < was.power && !takeOver) c.fail(r, `Power fell ${was.power} → ${p.power}`);
     }
   },
 
@@ -407,7 +407,7 @@ const ORACLES: ((c: Step) => void)[] = [
       }
   },
 
-  // Research breakthrough at the end of the turn: at 6, or 4 with Rush Research; research resets to 1.
+  // Research earns a card at the end of the turn: at 6, or 4 with Rush Research; research resets to 1.
   (c) => {
     if (c.action.type !== 'endTurn' || turnChanged(c)) return;
     const p = c.before.turn.player;
@@ -419,7 +419,7 @@ const ORACLES: ((c: Step) => void)[] = [
     else if (rushResearch && was >= 4 && was < 6) c.fire(rushResearch);
   },
 
-  // Tactics, Gambits and Reinforcements: the effect of the card played.
+  // Tactics and Reinforcements: the effect of the card played.
   (c) => {
     const { before, after } = c;
     const played = playedCard(c);
@@ -564,8 +564,8 @@ const ORACLES: ((c: Step) => void)[] = [
       const at = stolenFlag ? 4 : 6;
       const wasAt = held(c.before, p.id, 'stolen-flag') ? 4 : 6;
       const crossed = p.power >= at && (p.power > c.before.players[p.id].power || at < wasAt);
-      if (!crossed || !infamyTargets(c.after, p.id).length) continue;
-      if (!c.after.pending.some((x) => x.kind === 'infamy' && x.player === p.id))
+      if (!crossed || !takeOverTargets(c.after, p.id).length) continue;
+      if (!c.after.pending.some((x) => x.kind === 'takeOver' && x.player === p.id))
         c.fail(stolenFlag, `${p.name} at ${p.power} Power without Take Over`);
       else if (stolenFlag && p.power < 6) c.fire(stolenFlag);
     }
@@ -575,7 +575,7 @@ const ORACLES: ((c: Step) => void)[] = [
   (c) => {
     for (const p of c.after.players) {
       const finalPush = held(c.after, p.id, 'final-push');
-      if (finalPush && p.ambitionTokens >= 3) c.fail(finalPush, 'still held with three tokens');
+      if (finalPush && p.finalPushTokens >= 3) c.fail(finalPush, 'still held with three tokens');
     }
     if (c.action.type === 'finalPush') c.fire(held(c.before, c.before.turn.player, 'final-push'));
     const head = c.before.pending[0];

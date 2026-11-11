@@ -201,11 +201,11 @@ describe('soundsFor', () => {
     const { first, then } = step((s) => {
       die(s, 'p1d0').loc = { zone: 'salvageYard' };
       s.players[0].power++;
-      return [entry(s, 'infamy')];
+      return [entry(s, 'takeOver')];
     });
     expect(first).toEqual(['explode']);
-    expect(then).toEqual(['infamy']);
-    expect(step((s) => [entry(s, 'infamy')]).first).toEqual(['infamy']);
+    expect(then).toEqual(['takeOver']);
+    expect(step((s) => [entry(s, 'takeOver')]).first).toEqual(['takeOver']);
   });
 
   it('hears no power chime under a kill’s explosion', () => {

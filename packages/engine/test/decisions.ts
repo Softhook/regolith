@@ -45,7 +45,7 @@ const DECISION_BRUTE_FORCE: { [K in Pending['kind']]: (s: GameState) => Action[]
     { type: 'advance', move: true },
     { type: 'advance', move: false },
   ],
-  infamy: (s) => s.board.objectives.map((p) => ({ type: 'infamy', objective: p.id })),
+  takeOver: (s) => s.board.objectives.map((p) => ({ type: 'takeOver', objective: p.id })),
   takeCard: () => [
     { type: 'armsDeal' },
     ...(['skill', 'tactic', 'reinforcement'] as const).flatMap((deck) =>

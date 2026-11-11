@@ -17,7 +17,7 @@ import {
   claimCheck,
   dropTargets,
   homeObjective,
-  infamyTargets,
+  takeOverTargets,
   objectivesAround,
   grid,
   attackLaunches,
@@ -661,7 +661,7 @@ describe('contested perimeter', () => {
   it('never blocks a player’s own mechs, nor Take Over', () => {
     const { s, objective } = siege();
     expect(claimCheck(s, 1, objective)).not.toMatchObject({ blocked: true });
-    expect(infamyTargets(s, 0).map((p) => p.id)).toContain(objective);
+    expect(takeOverTargets(s, 0).map((p) => p.id)).toContain(objective);
   });
 
   it('names the blockade when the sum is short too', () => {

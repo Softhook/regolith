@@ -50,7 +50,7 @@ export function createGame(opts: NewGameOptions): GameState {
       atomics: STARTING_ATOMICS,
       cubesLeft: map.cubes,
       skills: [],
-      ambitionTokens: 0,
+      finalPushTokens: 0,
       actionPenalty: 0,
       killZone: 0,
       bonusTurns: [],

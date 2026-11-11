@@ -67,7 +67,7 @@ export function apply(prev: GameState, action: Action): GameState {
  * card; an action that logged nothing for them (Stand Down…) logs that they used it.
  */
 function showSkill(s: GameState, before: number, player: PlayerId, id: string) {
-  const entry = s.log.find((e) => e.id > before && e.player === player && !e.card && e.event !== 'infamy');
+  const entry = s.log.find((e) => e.id > before && e.player === player && !e.card && e.event !== 'takeOver');
   if (entry) entry.card = id;
   else {
     log(s, `${name(s, player)} uses ${card(id).name}.`, player);

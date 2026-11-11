@@ -116,7 +116,7 @@ describe('Stolen Flag', () => {
 
     // Power reached 4, which triggers Take Over
     expect(s.players[me].power).toBe(4);
-    expect(s.pending.some((p) => p.kind === 'infamy')).toBe(true);
+    expect(s.pending.some((p) => p.kind === 'takeOver')).toBe(true);
   });
 
   it('allows the destroyer to take Stolen Flag when destroying its owner’s mech', () => {
@@ -148,11 +148,11 @@ describe('Stolen Flag', () => {
     s.pending = [{ kind: 'takeCard', player: me, count: 1 }];
     s = apply(s, { type: 'takeCard', deck: 'skill', index: 0 });
     // Not in effect yet while the turn lasts.
-    expect(s.pending.some((p) => p.kind === 'infamy')).toBe(false);
+    expect(s.pending.some((p) => p.kind === 'takeOver')).toBe(false);
 
     s = apply(s, { type: 'endTurn' });
     expect(s.turn.player).toBe(1 - me);
-    expect(s.pending[0]).toMatchObject({ kind: 'infamy', player: me });
+    expect(s.pending[0]).toMatchObject({ kind: 'takeOver', player: me });
   });
 
   it('triggers Take Over when a Stolen Flag disabled by Signal Jammer comes back', () => {
@@ -162,10 +162,10 @@ describe('Stolen Flag', () => {
     s.players[foe].skills = [{ id: 'r-stolen-flag', active: false, disabledUntil: me }];
     s.players[foe].power = 4;
     s = apply(s, { type: 'endTurn' });
-    expect(s.pending.some((p) => p.kind === 'infamy')).toBe(false);
+    expect(s.pending.some((p) => p.kind === 'takeOver')).toBe(false);
     s = apply(s, { type: 'endTurn' });
     expect(s.turn.player).toBe(me);
-    expect(s.pending[0]).toMatchObject({ kind: 'infamy', player: foe });
+    expect(s.pending[0]).toMatchObject({ kind: 'takeOver', player: foe });
   });
 
   it('does not trigger Take Over at the start of a turn without a lowered threshold', () => {
@@ -176,7 +176,7 @@ describe('Stolen Flag', () => {
     s = apply(s, { type: 'endTurn' });
     s = apply(s, { type: 'endTurn' });
     expect(s.turn.player).toBe(me);
-    expect(s.pending.some((p) => p.kind === 'infamy')).toBe(false);
+    expect(s.pending.some((p) => p.kind === 'takeOver')).toBe(false);
   });
 });
 
@@ -404,14 +404,14 @@ describe('Stolen Flag edge cases', () => {
     s = apply(s, { type: 'resolveCombat' });
     if (s.pending[0]?.kind === 'advance') s = apply(s, { type: 'advance', move: false });
 
-    // At this moment power is 4, but threshold without Stolen Flag was 6, so no infamy yet
+    // At this moment power is 4, but threshold without Stolen Flag was 6, so no Take Over yet
     expect(s.players[me].power).toBe(4);
-    expect(s.pending.some((p) => p.kind === 'infamy')).toBe(false);
+    expect(s.pending.some((p) => p.kind === 'takeOver')).toBe(false);
 
     // Steal Stolen Flag
     s = apply(s, { type: 'stolenFlag', take: true });
     // Take Over should now be queued!
-    expect(s.pending.some((p) => p.kind === 'infamy' && p.player === me)).toBe(true);
+    expect(s.pending.some((p) => p.kind === 'takeOver' && p.player === me)).toBe(true);
   });
 });
 

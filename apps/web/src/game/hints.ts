@@ -23,8 +23,8 @@ export function hintFor(game: GameState, sel: Sel): string {
         return 'Choose a glowing starting objective for your first cube.';
       case 'placeMechs':
         return 'Place your mechs on the perimeter of your starting objective: pick a mech in your salvage yard (or take the next one), then a glowing space.';
-      case 'infamy':
-        return 'Take Over! Seize any objective that does not have your cube yet.';
+      case 'takeOver':
+        return 'Take Over! Seize any objective with room that does not have your cube yet.';
       case 'takeCard':
         return `Take ${head.count} card${head.count > 1 ? 's' : ''} from the market below${canArmsDeal(game) ? `, or take an atomic instead of a card earned by claiming (${cardName('arms-deal')})` : ''}.`;
       case 'strategicPlanTactic':

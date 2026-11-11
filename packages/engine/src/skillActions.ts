@@ -1,4 +1,4 @@
-/** Skills / Command cards used as an action of their own. What every skill does is in skillRules.ts. */
+/** Skills used as an action of their own. What every skill does is in skillRules.ts. */
 import { carryMech } from './abilities';
 import { same } from './board';
 import { startCombat } from './combat';
@@ -46,12 +46,12 @@ export const skillHandlers = {
     oncePerTurn(s, 'final-push');
     const pl = s.players[t.player];
     t.actionsLeft++;
-    pl.ambitionTokens++;
-    if (pl.ambitionTokens >= 3) {
+    pl.finalPushTokens++;
+    if (pl.finalPushTokens >= 3) {
       // The card held, which another edition's or mode's deck may name differently.
       const id = skillCard(s, t.player, 'final-push')!;
       pl.skills = pl.skills.filter((x) => x.id !== id);
-      pl.ambitionTokens = 0;
+      pl.finalPushTokens = 0;
       s.market.skillDiscard.push(id);
       log(s, `${pl.name}'s ${card(id).name} skill is exhausted.`, t.player);
     }

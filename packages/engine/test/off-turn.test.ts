@@ -98,10 +98,10 @@ describe('card edge cases', () => {
     let s = quickStart();
     const me = s.turn.player;
     s.players[me].skills.push({ id: 'r-final-push', active: true });
-    s.players[me].ambitionTokens = 2;
+    s.players[me].finalPushTokens = 2;
     s.pending = [{ kind: 'discardSkill', player: me, reason: 'limit' }];
     s = apply(s, { type: 'discardSkill', skill: 'r-final-push' });
-    expect(s.players[me].ambitionTokens).toBe(0);
+    expect(s.players[me].finalPushTokens).toBe(0);
   });
 
   it('is played by 2 to 5 players, and 6 are refused', () => {

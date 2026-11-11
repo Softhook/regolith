@@ -24,7 +24,7 @@ export interface RuleSet {
   /** Full name for the game log. */
   title: string;
   summary: string;
-  /** Advance cards; null means the mode has no cards, and so no research either. */
+  /** The mode's cards; null means the mode has no cards, and so no research either. */
   cards: CardRules | null;
   /** Actions available on each regular turn. */
   actionsPerTurn: number;
@@ -44,9 +44,9 @@ export interface RuleSet {
 export type BarrierBreakRule = 'smash' | 'attack';
 
 export interface CardRules {
-  /** Permanent cards (Skill / Command). */
+  /** Permanent cards (Skills). */
   skills: CardDef[];
-  /** One-shot cards (Tactic / Gambit). */
+  /** One-shot cards (Tactics). */
   tactics: CardDef[];
   /** Each player drafts a starting skill: draw 2, keep 1. */
   startingSkillDraft: boolean;

@@ -1,6 +1,6 @@
 /** Combat: starting an attack, atomics, resolution, advancing, and Take Over. */
 import {
-  checkInfamy,
+  checkTakeOver,
   destroyedEnemyMech,
   destroyMech,
   fail,
@@ -17,7 +17,7 @@ import {
 } from './core';
 import { cardName, card } from './data';
 import { boardLoc, cellOf, die, dieAt } from './lookups';
-import { combatDice, combatOutcome, infamyTargets, atomicRefusal, skillLimit } from './queries';
+import { combatDice, combatOutcome, takeOverTargets, atomicRefusal, skillLimit } from './queries';
 import { d6 } from './rng';
 import { rulesOf } from './rules';
 import { anySkill, stealableSkill } from './skillRules';
@@ -135,9 +135,9 @@ export const combatHandlers = {
       logTo(s, head.player, `${name(s, head.player)}'s ${mechName(s, d)} advances`, head.to);
     }
   },
-  infamy(s, a) {
-    const head = headOf(s, 'infamy', 'No Take Over to resolve');
-    if (!infamyTargets(s, head.player).some((p) => p.id === a.objective)) fail('Choose an objective without your cube');
+  takeOver(s, a) {
+    const head = headOf(s, 'takeOver', 'No Take Over to resolve');
+    if (!takeOverTargets(s, head.player).some((p) => p.id === a.objective)) fail('Choose an objective without your cube');
     s.pending.shift();
     s.players[head.player].power = 1;
     log(
@@ -182,7 +182,7 @@ export const combatHandlers = {
       if (winnerPl.skills.length > skillLimit(s, head.player)) {
         s.pending.unshift({ kind: 'discardSkill', player: head.player, reason: 'limit', cannotDiscard: stolen.id });
       }
-      checkInfamy(s, head.player);
+      checkTakeOver(s, head.player);
     }
   },
   signalJammer(s, a) {

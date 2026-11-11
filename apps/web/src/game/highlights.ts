@@ -16,7 +16,7 @@ import type { Legal } from './legal';
 
 type CellTone = 'move' | 'drop' | 'tunnel' | 'setDown' | 'launch' | 'barrier';
 type DieTone = 'attack' | 'swap' | 'target' | 'passenger';
-type ObjectiveTone = 'claim' | 'infamy' | 'start' | 'blocked';
+type ObjectiveTone = 'claim' | 'takeOver' | 'start' | 'blocked';
 
 export interface Highlights {
   cells: Map<string, { cell: Cell; tone: CellTone }>;
@@ -50,8 +50,8 @@ export function highlightsFor(game: GameState, sel: Sel, legal: Legal, actionPha
         );
         break;
       }
-      case 'infamy':
-        for (const a of legal.of('infamy')) h.objectives.set(a.objective, { tone: 'infamy', label: 'Seize' });
+      case 'takeOver':
+        for (const a of legal.of('takeOver')) h.objectives.set(a.objective, { tone: 'takeOver', label: 'Seize' });
         break;
       case 'reinforcements':
         addCells(

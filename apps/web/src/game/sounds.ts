@@ -31,15 +31,15 @@ const CARD_THEN = 350;
  */
 const EVENT_SOUNDS: Partial<Record<LogEvent, Sound>> = {
   victory: 'win',
-  infamy: 'infamy',
+  takeOver: 'takeOver',
   atomic: 'atomic',
   cardTaken: 'card',
   reinforcement: 'launch',
   discard: 'discard',
-  breakthrough: 'breakthrough',
+  researchCard: 'researchCard',
 };
 
-/** Each Tactic or Gambit effect's signature sound; a card played that the log doesn't name sounds like a card. */
+/** Each Tactic effect's signature sound; a card played that the log doesn't name sounds like a card. */
 const TACTIC_SOUNDS: Record<TacticEffect, Sound> = {
   'power-grab': 'drums',
   contraband: 'coins',
@@ -77,7 +77,7 @@ export function soundsFor(
     const s =
       e.event === 'cardPlayed' ? (e.card ? TACTIC_SOUNDS[effectOf(e.card) as TacticEffect] : 'card') : e.event && EVENT_SOUNDS[e.event];
     // A Take Over a kill earned follows the kill.
-    if (s === 'infamy' && destroyed) then.add(s);
+    if (s === 'takeOver' && destroyed) then.add(s);
     else if (s) first.add(s === 'win' && lost(next, mine) ? 'lose' : s);
   }
   // Cubes: placed, knocked off, or relocated (an objective's cubes changed with none placed or taken back). Heard as they drop.
@@ -128,10 +128,10 @@ export function soundsFor(
   if (next.players.some((pl, i) => pl.atomics > prev.players[i].atomics)) effects.add('atomicLoad');
   if ((next.barriers?.length ?? 0) > (prev.barriers?.length ?? 0)) effects.add('barrier');
 
-  // The tracks, unless a louder sound already says so: a breakthrough (research), Take Over or a kill (power).
+  // The tracks, unless a louder sound already says so: a card for Research, Take Over or a kill (power).
   const rose = (k: 'research' | 'power') => next.players.some((pl, i) => pl[k] > prev.players[i][k]);
-  if (rose('research') && !first.has('breakthrough')) effects.add('research');
-  if (rose('power') && !destroyed && !first.has('infamy')) effects.add('power');
+  if (rose('research') && !first.has('researchCard')) effects.add('research');
+  if (rose('power') && !destroyed && !first.has('takeOver')) effects.add('power');
 
   // Once-per-turn skills used this step, or a skill disabled by Signal Jammer.
   const sameTurn = prev.turn.number === next.turn.number && prev.turn.player === next.turn.player;

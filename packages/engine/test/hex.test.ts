@@ -168,15 +168,15 @@ describe('hex maps', () => {
     expect(carryPassengers(scenario({ p0d0: [from, 2], p0d1: [diagonal, 3] }), 'p0d0')).toEqual([]);
   });
 
-  it('leaves Ingenious (claim from the corners) out of the deck, as hex tiles have no corners', () => {
-    const cards = (mapId: string) => {
-      const s = createGame({ players: players(2), seed: 1, mode: 'regolith', mapId });
-      expect(checkInvariants(s)).toEqual([]);
-      const { skillDeck, skillRow } = s.market;
-      const drafts = s.pending.flatMap((x) => (x.kind === 'skillDraft' ? x.options : []));
-      return [...skillDeck, ...skillRow, ...drafts].map(effectOf);
-    };
-    expect(cards('alpha-hex')).not.toContain('ingenious');
+  it('deals every Skill on a hex map, none of them Ingenious (claim from the corners: hex tiles have none)', () => {
+    const s = createGame({ players: players(2), seed: 1, mode: 'regolith', mapId: 'alpha-hex' });
+    expect(checkInvariants(s)).toEqual([]);
+    const { skillDeck, skillRow } = s.market;
+    const drafts = s.pending.flatMap((x) => (x.kind === 'skillDraft' ? x.options : []));
+    const dealt = [...skillDeck, ...skillRow, ...drafts].map(effectOf).sort();
+    const skills = RULESETS.regolith.cards!.skills;
+    expect(dealt).toEqual(skills.map((c) => effectOf(c.id)).sort());
+    expect(skills.filter((c) => c.from === 'ingenious')).toEqual([]);
   });
 
   for (const m of HEX_MAPS)

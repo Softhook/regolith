@@ -80,7 +80,7 @@ function play({ map: mapId, game }: Task): Result {
     r.destroyed += s.players.reduce((n, p) => n + (p.stats?.mechsLost ?? 0), 0) - lost;
     r.barriers += (s.barriers?.length ?? 0) - barriers;
     if (s.phase !== 'setup' && cubes(s) > before && s.turn.number > 0) {
-      if (action.type === 'infamy') r.takeOvers++;
+      if (action.type === 'takeOver') r.takeOvers++;
       else r.claims++;
       r.drought = Math.max(r.drought, (s.turn.number - lastCube) / map.players);
       lastCube = s.turn.number;

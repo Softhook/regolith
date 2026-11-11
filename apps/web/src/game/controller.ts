@@ -192,7 +192,7 @@ export function useController(game: GameState, dispatch: Dispatch, mine: (p: Pla
       // A blocked objective (contested perimeter) shows its info, which says why.
       if (!hl || hl.tone === 'blocked') return false;
       if (hl.tone === 'start') dispatch({ type: 'placeStart', objective: id });
-      else if (hl.tone === 'infamy') dispatch({ type: 'infamy', objective: id });
+      else if (hl.tone === 'takeOver') dispatch({ type: 'takeOver', objective: id });
       else if (hl.tone === 'claim') {
         const tap = claimTap(legal, id);
         if (tap === 'choose') select({ kind: 'claim', objective: id });

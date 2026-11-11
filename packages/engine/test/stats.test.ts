@@ -87,8 +87,8 @@ describe('game stats', () => {
     expect(gained(before, s)).toEqual([{ objectivesTaken: 1 }, {}]);
 
     const free = s.board.objectives.find((p) => !p.cubes.includes(1))!;
-    s.pending.unshift({ kind: 'infamy', player: 1 });
-    expect(gained(s, apply(s, { type: 'infamy', objective: free.id }))).toEqual([{}, { objectivesTaken: 1 }]);
+    s.pending.unshift({ kind: 'takeOver', player: 1 });
+    expect(gained(s, apply(s, { type: 'takeOver', objective: free.id }))).toEqual([{}, { objectivesTaken: 1 }]);
   });
 
   it('count every card gained: taken, stored with Strategic Plan, a Reinforcements card, or drawn by Headhunter', () => {

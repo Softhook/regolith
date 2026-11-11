@@ -1,7 +1,7 @@
 /** Turn structure: start of turn, the end-of-turn card phase, and passing the turn on. */
-import { checkInfamy, emptyTurn, gainResearch, log, name, type PendingOf } from './core';
+import { checkTakeOver, emptyTurn, gainResearch, log, name, type PendingOf } from './core';
 import { cellOf, salvageYard, mechsOnBoard } from './lookups';
-import { breakthroughAt, canArmsDeal, canShunt, canTakeAnyCard, infamyTargets, startSlots } from './queries';
+import { researchCardAt, canArmsDeal, canShunt, canTakeAnyCard, takeOverTargets, startSlots } from './queries';
 import { next } from './rng';
 import { rulesOf } from './rules';
 import { activeSkills, ruleOf, stealableSkill, type TurnBonus } from './skillRules';
@@ -80,17 +80,17 @@ function queuePicks(s: GameState, player: PlayerId, count: number, claim: number
   if (count > 0) s.pending.push({ kind: 'takeCard', player, count, ...(claim && { claim }) });
 }
 
-/** Phase 2: one card per cube placed this turn, plus one for a research breakthrough. */
+/** Phase 2: one card per cube placed this turn, plus one for Research at 6 (4 with Rush Research). */
 export function endTurn(s: GameState) {
   const p = s.turn.player;
   const pl = s.players[p];
   s.turn.phase = 'cards';
   if (!rulesOf(s).cards) return;
   let cards = s.turn.claims;
-  if (pl.research >= breakthroughAt(s, p)) {
+  if (pl.research >= researchCardAt(s, p)) {
     pl.research = 1;
     cards++;
-    log(s, `${pl.name} makes a research breakthrough.`, p, 'breakthrough');
+    log(s, `${pl.name} turns Research into a card.`, p, 'researchCard');
   }
   queuePicks(s, p, cards, s.turn.claimed ?? 0);
   // A cube placed on someone else's turn earns its card in this card phase, after the active
@@ -134,9 +134,9 @@ function activateSkills(s: GameState, player: PlayerId, which: (sk: OwnedSkill) 
     if (sk.active || !which(sk)) continue;
     sk.active = true;
     delete sk.disabledUntil;
-    if (ruleOf(sk.id).infamyAt) threshold = true;
+    if (ruleOf(sk.id).takeOverAt) threshold = true;
   }
-  if (threshold) checkInfamy(s, player);
+  if (threshold) checkTakeOver(s, player);
 }
 
 /**
@@ -153,9 +153,9 @@ const AUTO_RESOLVE: { [K in Pending['kind']]?: (s: GameState, head: PendingOf<K>
     if (!s.pending.length) beginPlay(s);
     return true;
   },
-  infamy(s, head) {
-    if (infamyTargets(s, head.player).length) return false;
-    log(s, `${name(s, head.player)} has nowhere to place a Take Over cube.`, head.player, 'infamy');
+  takeOver(s, head) {
+    if (takeOverTargets(s, head.player).length) return false;
+    log(s, `${name(s, head.player)} has nowhere to place a Take Over cube.`, head.player, 'takeOver');
     s.pending.shift();
     return true;
   },

@@ -67,7 +67,7 @@ const BY_TYPE: Partial<Record<Action['type'], Cat>> = {
   placeMech: 'other',
 };
 /** Follow-ups of a battle, credited to whatever started it. */
-const FOLLOW = new Set<Action['type']>(['resolveCombat', 'advance', 'infamy']);
+const FOLLOW = new Set<Action['type']>(['resolveCombat', 'advance', 'takeOver']);
 /** Every other action is research, a card pick, a skill or a tactic. */
 const category = (x: Action): Cat => BY_TYPE[x.type] ?? 'card';
 

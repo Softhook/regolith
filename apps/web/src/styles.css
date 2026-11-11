@@ -521,8 +521,8 @@ svg.zones polygon {
   background: transparent;
   cursor: default;
 }
-.objective-claim, .objective-infamy, .objective-start { cursor: pointer; z-index: 2; }
-.objective-claim::before, .objective-infamy::before, .objective-start::before {
+.objective-claim, .objective-takeOver, .objective-start { cursor: pointer; z-index: 2; }
+.objective-claim::before, .objective-takeOver::before, .objective-start::before {
   content: '';
   position: absolute;
   inset: 2%;
@@ -531,7 +531,7 @@ svg.zones polygon {
   box-shadow: 0 0 18px var(--mark), inset 0 0 14px color-mix(in srgb, var(--mark) 40%, transparent);
   animation: ring 1.4s ease-in-out infinite;
 }
-.objective-infamy::before { border-color: var(--gold); box-shadow: 0 0 18px var(--gold), inset 0 0 14px rgba(242,178,51,.4); }
+.objective-takeOver::before { border-color: var(--gold); box-shadow: 0 0 18px var(--gold), inset 0 0 14px rgba(242,178,51,.4); }
 .objective-start::before { border-color: #fff; box-shadow: 0 0 16px rgba(255,255,255,.7); }
 @keyframes ring { 0%, 100% { transform: scale(1); opacity: .9; } 50% { transform: scale(1.1); opacity: .55; } }
 .objective-tag { position: absolute; z-index: 4; pointer-events: none; }
@@ -551,7 +551,7 @@ svg.zones polygon {
   box-shadow: 0 4px 14px rgba(0,0,0,.5);
   pointer-events: none;
 }
-.objective-tag.infamy .objective-label { background: var(--gold); color: #1c1300; }
+.objective-tag.takeOver .objective-label { background: var(--gold); color: #1c1300; }
 .objective-tag.start .objective-label { background: #fff; color: #0a0f1e; }
 /* Contested perimeter: the sum is made, but enemy mechs on the perimeter block the claim. A still ring: nothing to do here yet. */
 .objective-blocked { cursor: help; z-index: 2; }
@@ -1159,7 +1159,7 @@ svg.zones polygon {
 /* --cat, the category's accent, is set per card from @regolith/art (categoryStyle in Card.tsx). */
 .qcard-top { display: flex; align-items: center; justify-content: space-between; gap: 4px; }
 .qcard-cat { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--cat-ink, var(--cat)); }
-/* A one-shot card's deck (Tactic, Gambit) beside its category, where there's room: not in the market, whose rows are labelled. */
+/* A one-shot card's deck (Tactic) beside its category, where there's room: not in the market, whose rows are labelled. */
 .qcard-kind { font-size: 9.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; opacity: .6; white-space: nowrap; }
 .qcard-badge { flex: none; align-self: flex-end; margin-top: 4px; font-size: 9.5px; font-weight: 700; padding: 1px 6px; border-radius: 999px; background: var(--cat); color: #fff; }
 /* The art band: the middle of the printed card's illustration, edge to edge, its category's colour under it

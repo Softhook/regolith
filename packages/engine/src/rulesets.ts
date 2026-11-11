@@ -11,7 +11,7 @@ import { MECHS } from './mechs';
 
 /**
  * Regolith's decks (data/regolith.yaml, built into data/cards.json): each card started as a Community card
- * (`from`) and plays by its rules (`effect`) until it is reworked. Ingenious isn't among them: hexes have no corners.
+ * (`from`) and plays by the rule named after it (its id without the `r-`). Ingenious isn't among them: hexes have no corners.
  */
 export const REGOLITH_DECKS: { skills: CardDef[]; tactics: CardDef[]; reinforcements: CardDef[] } = cardsJson;
 

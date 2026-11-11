@@ -8,7 +8,7 @@ const NUMBERS = {
   atomics: (p) => p.atomics,
   killZone: (p) => p.killZone,
   penalty: (p) => p.actionPenalty,
-  ambition: (p) => p.ambitionTokens,
+  finalPush: (p) => p.finalPushTokens,
 } satisfies Record<string, (p: PlayerState) => number>;
 
 type PanelNumber = keyof typeof NUMBERS;

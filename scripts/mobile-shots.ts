@@ -130,7 +130,7 @@ async function playToMyTurn(page: Page) {
       }
       if (document.querySelector('.turn-actions .btn-primary:not([disabled])')) return 'mine';
       const target =
-        document.querySelector('.objective-start, .objective-claim, .objective-infamy') ??
+        document.querySelector('.objective-start, .objective-claim, .objective-takeOver') ??
         document.querySelector('.hl') ??
         document.querySelector('.turn-salvage .salvage-die.clickable');
       (target as HTMLElement | null)?.click();

@@ -59,7 +59,7 @@ export const SHAPES: { [K in Action['type']]: Shape<K> } = {
   engineering: { value: int },
   resolveCombat: {},
   advance: { move: bool },
-  infamy: { objective },
+  takeOver: { objective },
   takeCard: { deck: oneOf('skill', 'tactic', 'reinforcement'), index, store: opt(bool) },
   peekChoice: { takeTop: bool },
   armsDeal: {},

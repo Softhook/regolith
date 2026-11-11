@@ -126,10 +126,10 @@ function PlayerCard({
             <Flash e={effectAt(fx, 'penalty')} />
           </Tip>
         )}
-        {p.ambitionTokens > 0 && (
-          <Tip className="stat" data-fx="ambition" tip="Ambition tokens">
-            Ambition {p.ambitionTokens}/3
-            <Flash e={effectAt(fx, 'ambition')} />
+        {p.finalPushTokens > 0 && (
+          <Tip className="stat" data-fx="finalPush" tip="Final Push tokens">
+            Final Push {p.finalPushTokens}/3
+            <Flash e={effectAt(fx, 'finalPush')} />
           </Tip>
         )}
       </div>

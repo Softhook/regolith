@@ -19,7 +19,7 @@ import {
   claimCheck,
   dropTargets,
   freeAttackTargets,
-  infamyTargets,
+  takeOverTargets,
   atomicOffered,
   moveOptions,
   shuntTargets,
@@ -60,7 +60,7 @@ const DECISION_CANDIDATES: { [K in Pending['kind']]: (s: GameState, head: Pendin
     { type: 'advance', move: true },
     { type: 'advance', move: false },
   ],
-  infamy: (s, head) => infamyTargets(s, head.player).map((p) => ({ type: 'infamy', objective: p.id })),
+  takeOver: (s, head) => takeOverTargets(s, head.player).map((p) => ({ type: 'takeOver', objective: p.id })),
   takeCard: (s, head) => {
     const m = s.market;
     const out: Action[] = [];

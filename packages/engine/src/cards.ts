@@ -62,7 +62,7 @@ const TACTIC_EFFECTS: Record<TacticEffect, TacticEffectFn> = {
   },
   'forced-march': (s, p) => {
     s.players[p].bonusTurns.push(2);
-    // Gambits resolve at once (designer, BGG thread 1068669): the bonus turn comes before any
+    // Tactics resolve at once (designer, BGG thread 1068669): the bonus turn comes before any
     // picks still owed, which are taken in its card phase (as on Board Game Arena).
     // On the player's own turn, other players' off-turn picks still come after all of theirs
     // (designer, BGG thread 1087563), so they move to the bonus turn's card phase too. Taken on
@@ -249,7 +249,7 @@ export const cardHandlers = {
     const i = pl.skills.findIndex((x) => x.id === a.skill);
     if (i < 0) fail('You do not have that skill');
     pl.skills.splice(i, 1);
-    if (effectOf(a.skill) === 'final-push') pl.ambitionTokens = 0;
+    if (effectOf(a.skill) === 'final-push') pl.finalPushTokens = 0;
     if (ruleOf(a.skill).storeTactics && pl.storedTactics?.length) {
       s.market.tacticDiscard.push(...pl.storedTactics);
       pl.storedTactics.length = 0;

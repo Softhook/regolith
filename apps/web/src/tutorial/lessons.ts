@@ -167,7 +167,7 @@ const takeover: LessonDef = {
     },
     {
       say: '…makes **6**: **Take Over**. We place a cube on the Refinery, free.',
-      play: [resolve, advance, { type: 'infamy', objective: REFINERY }],
+      play: [resolve, advance, { type: 'takeOver', objective: REFINERY }],
       then: { objectives: { [REFINERY]: 'Our cube, free' } },
     },
   ],

@@ -67,7 +67,7 @@ export function card(id: string): CardDef {
   return c;
 }
 
-/** The rules a card plays by (effects.ts), named after it: its id without the r- (build-data.mjs checks every id has one). */
+/** The rules a card plays by (effects.ts), named after it: its id without the r- (data.test.ts checks every card has one). */
 export function effectOf(id: string): string {
   return card(id).id.slice(2);
 }

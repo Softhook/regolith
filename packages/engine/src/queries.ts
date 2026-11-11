@@ -56,15 +56,15 @@ export function skillLimit(state: GameState, player: PlayerId): number {
   return Math.max(3, ...state.players[player].skills.map((s) => ruleOf(s.id).skillLimit ?? 0));
 }
 
-/** Research needed for a breakthrough at the end of the turn. */
-export function breakthroughAt(state: GameState, player: PlayerId): number {
+/** Research that earns a card at the end of the turn (and resets to 1). */
+export function researchCardAt(state: GameState, player: PlayerId): number {
   const limit = rulesOf(state).researchLimit;
-  return Math.min(limit, ...skillRules(state, player).map((r) => r.breakthroughAt ?? limit));
+  return Math.min(limit, ...skillRules(state, player).map((r) => r.researchCardAt ?? limit));
 }
 
 /** Power needed for Take Over (normally 6, or 4 with Stolen Flag). */
-export function infamyAt(state: GameState, player: PlayerId): number {
-  return Math.min(6, ...skillRules(state, player).map((r) => r.infamyAt ?? 6));
+export function takeOverAt(state: GameState, player: PlayerId): number {
+  return Math.min(6, ...skillRules(state, player).map((r) => r.takeOverAt ?? 6));
 }
 
 /**
@@ -692,7 +692,7 @@ export function claimCheck(state: GameState, player: PlayerId, objectiveId: numb
 }
 
 /** Any objective without your cube; if none has room, Entanglement allows your own objectives. */
-export function infamyTargets(state: GameState, player: PlayerId): Objective[] {
+export function takeOverTargets(state: GameState, player: PlayerId): Objective[] {
   const open = state.board.objectives.filter((p) => objectiveFreeSlots(p) > 0);
   const fresh = open.filter((p) => !p.cubes.includes(player));
   return fresh.length ? fresh : open;

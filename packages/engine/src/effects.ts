@@ -1,6 +1,6 @@
 /**
- * The card effects the engine implements. A card's effect is its `effect` field in data/regolith.yaml:
- * the card's name without the `r-` (`from` keeps the card it started as). Cards whose effect is not
+ * The card effects the engine implements. A card's effect is its id without the `r-` (data.ts, `effectOf`);
+ * `from` in data/regolith.yaml keeps the card it started as. Cards whose effect is not
  * listed here are left out of the decks.
  *
  * Effect names are types, so `hasSkill(s, p, 'fanatcs')` is a compile error rather than a
@@ -41,7 +41,7 @@ export const SKILL_EFFECTS = [
   'strategic-plan',
   'stolen-flag',
   'signal-jammer',
-  // Regolith's own Science, in Science's place
+  // Regolith's own Science, in Pioneering's place
   'science',
   'unstable-reactor',
 ] as const;

@@ -5,7 +5,7 @@
  *
  * At the start of every turn each player is open (an objective they can still claim on the board), locked
  * (none, but an enemy mech they can reach, so combat can still earn Take Over) or sealed (neither: only
- * cards help, research breakthroughs to Ice Tunnel, Power Grab, Orbital Cannon or Infiltration). What a
+ * cards help, cards for Research to Ice Tunnel, Power Grab, Orbital Cannon or Infiltration). What a
  * player can reach is a flood fill over spaces, walled by barriers, objectives and the board's edge, through
  * the Ice Tunnel pair, from their mechs and the perimeters they can drop into; mechs don't wall (they move).
  * An objective is live if it has room and the open perimeter spaces they reach can make its number (Martial Law,
@@ -73,7 +73,7 @@ interface Shutout {
   /** Every player sealed at some point in it. */
   sealed: boolean;
   /** What ended it: a cube by claim or Take Over, an Ice Tunnel opening a way, a mech destroyed, or the game cut off. */
-  end: 'claim' | 'infamy' | 'tunnel' | 'other' | 'unfinished';
+  end: 'claim' | 'takeOver' | 'tunnel' | 'other' | 'unfinished';
 }
 
 interface GameResult extends Task {
@@ -88,7 +88,7 @@ interface GameResult extends Task {
   broken?: number;
   brokenEnemy?: number;
   tunnels: number;
-  infamy: number;
+  takeOver: number;
   claims: number;
   /** Player-turns locked or sealed (any player), and sealed. */
   lockedTurns: number;
@@ -184,7 +184,7 @@ function play({ variant, players, game }: Task): GameResult {
     broken: 0,
     brokenEnemy: 0,
     tunnels: 0,
-    infamy: 0,
+    takeOver: 0,
     claims: 0,
     lockedTurns: 0,
     sealedTurns: 0,
@@ -232,9 +232,9 @@ function play({ variant, players, game }: Task): GameResult {
     if (placed && s.turn.number > 0) {
       r.longestDrought = Math.max(r.longestDrought, (s.turn.number - lastCubeTurn) / players);
       lastCubeTurn = s.turn.number;
-      if (action.type === 'infamy') r.infamy++;
+      if (action.type === 'takeOver') r.takeOver++;
       else r.claims++;
-      if (shutout && shutout.end === 'unfinished') shutout.end = action.type === 'infamy' ? 'infamy' : 'claim';
+      if (shutout && shutout.end === 'unfinished') shutout.end = action.type === 'takeOver' ? 'takeOver' : 'claim';
     }
     const added = (s.barriers?.length ?? 0) - before.barriers;
     if (added > 0) {
@@ -310,7 +310,7 @@ function report() {
   const pct = (n: number, d: number) => `${d ? Math.round((100 * n) / d) : 0}%`;
   const avg = (xs: number[]) => (xs.length ? (xs.reduce((a, b) => a + b, 0) / xs.length).toFixed(1) : '–');
   console.log(
-    '| Players | Variant | Games | Unfinished | Rounds | Barriers | Broken (enemy) | Longest drought | Drought ≥ 5 rounds | Any player locked out | Full shutout | Full seal | Shutout ends (claim/infamy/tunnel/other/unfinished) | Side A wins |',
+    '| Players | Variant | Games | Unfinished | Rounds | Barriers | Broken (enemy) | Longest drought | Drought ≥ 5 rounds | Any player locked out | Full shutout | Full seal | Shutout ends (claim/takeOver/tunnel/other/unfinished) | Side A wins |',
   );
   console.log('|--:|---|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|---|--:|');
   for (const players of o.players.split(',').map(Number))
@@ -319,7 +319,7 @@ function report() {
         (r) => r.players === players && r.variant === variant && keyOf(r) === keyOf({ ...r, level: o.level, seed: o.seed }),
       );
       const shut = rs.filter((r) => r.shutouts.length);
-      const ends = { claim: 0, infamy: 0, tunnel: 0, other: 0, unfinished: 0 };
+      const ends = { claim: 0, takeOver: 0, tunnel: 0, other: 0, unfinished: 0 };
       for (const r of rs) for (const x of r.shutouts) ends[x.end]++;
       console.log(
         `| ${players} | ${variant} | ${rs.length} | ${rs.filter((r) => !r.finished).length} | ${avg(rs.filter((r) => r.finished).map((r) => r.rounds))} | ${avg(rs.map((r) => r.barriers))} | ${avg(rs.map((r) => r.broken ?? 0))} (${avg(rs.map((r) => r.brokenEnemy ?? 0))}) | ${avg(rs.map((r) => r.longestDrought))} | ${pct(rs.filter((r) => r.longestDrought >= 5).length, rs.length)} | ${pct(

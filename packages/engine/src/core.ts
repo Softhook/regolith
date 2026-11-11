@@ -6,7 +6,7 @@ import { diagonals, objectivesAround, same } from './board';
 import { cardName, card, cardWithEffect } from './data';
 import type { SkillEffect } from './effects';
 import { die } from './lookups';
-import { actionsClosed, canProspectors, canGainResearch, canUseAbility, infamyAt, usedThisTurn } from './queries';
+import { actionsClosed, canProspectors, canGainResearch, canUseAbility, takeOverAt, usedThisTurn } from './queries';
 import { d6 } from './rng';
 import { rulesOf, mechOf } from './rules';
 import { activeSkills, anySkill, hasSkill, stealableSkill } from './skillRules';
@@ -246,18 +246,18 @@ export function gainResearch(s: GameState, p: PlayerId, n: number) {
 export function gainPower(s: GameState, p: PlayerId, n: number) {
   const pl = s.players[p];
   pl.power = Math.min(6, pl.power + n);
-  checkInfamy(s, p);
+  checkTakeOver(s, p);
 }
 
 /**
  * Take Over: Power at the player's threshold (6, or 4 with Stolen Flag) earns a Take Over cube. Checked
  * when Power rises and when Stolen Flag takes effect (RULES.md ruling 3).
  */
-export function checkInfamy(s: GameState, p: PlayerId) {
+export function checkTakeOver(s: GameState, p: PlayerId) {
   const pl = s.players[p];
-  if (pl.power < infamyAt(s, p) || s.pending.some((x) => x.kind === 'infamy' && x.player === p)) return;
-  log(s, `${pl.name} takes over!`, p, 'infamy');
-  s.pending.push({ kind: 'infamy', player: p });
+  if (pl.power < takeOverAt(s, p) || s.pending.some((x) => x.kind === 'takeOver' && x.player === p)) return;
+  log(s, `${pl.name} takes over!`, p, 'takeOver');
+  s.pending.push({ kind: 'takeOver', player: p });
 }
 
 /**

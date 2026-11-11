@@ -63,6 +63,10 @@ keep the words they were written in, and old commits name code that has since mo
 | Prototyping (the mode) | Regolith |
 | a card's Community name as its id (`r-agile`, `curious`, `curiousUsed`) | its Regolith name (`r-tune-up`, `prospectors`, `prospectorsUsed`); `from` in data/regolith.yaml maps them |
 | Expansion (card, deck), expansion mechs | Reinforcements, reserve mechs |
+| infamy (`infamy`, `infamyAt`, `infamyTargets`) | Take Over (`takeOver`, `takeOverAt`, `takeOverTargets`) |
+| research breakthrough (`breakthroughAt`, the `breakthrough` log event) | a card for Research (`researchCardAt`, `researchCard`); Breakthrough is only the card |
+| ambition tokens (`ambitionTokens`) | Final Push tokens (`finalPushTokens`) |
+| Command, Gambit (Classic's decks) | Skill, Tactic |
 
 ## Components
 

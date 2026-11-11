@@ -15,7 +15,7 @@ export interface Toast {
 /** The toast tone for each logged event (none: no toast). Sounds are in sounds.ts. */
 const TONES: Record<LogEvent, Toast['tone'] | undefined> = {
   victory: 'gold',
-  infamy: 'gold',
+  takeOver: 'gold',
   seize: 'gold',
   claim: 'good',
   startObjective: undefined,
@@ -27,7 +27,7 @@ const TONES: Record<LogEvent, Toast['tone'] | undefined> = {
   cardPlayed: 'info',
   reinforcement: 'info',
   discard: 'info',
-  breakthrough: 'info',
+  researchCard: 'info',
 };
 
 const MAX_TOASTS = 4;

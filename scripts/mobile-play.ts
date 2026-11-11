@@ -120,7 +120,7 @@ function look(page: Page, tapsThisTurn: number, tried: string[], want: Want | nu
         const decision = all('.turn-panel .turn-actions .btn').filter(
           (b) => !b.closest('.mech-panel') && !/End turn|Undo/.test(b.textContent!),
         );
-        const objectives = all('.objective-hit.objective-claim, .objective-hit.objective-start, .objective-hit.objective-infamy');
+        const objectives = all('.objective-hit.objective-claim, .objective-hit.objective-start, .objective-hit.objective-takeOver');
         const attacks = all('.mech.mech-attack, .mech.mech-target, .mech.mech-swap, .mech.mech-passenger');
         const cells = all('.hl');
         const salvage = all('.turn-salvage .salvage-die.clickable');
