@@ -1,24 +1,24 @@
 import { describe, expect, it } from 'vitest';
 import { BLANK, TILE_SET, type World } from '@regolith/art';
 import { MAPS } from '@regolith/engine';
-import { kitKey, mapTiles, tileKit, tileSetPlayers, tileSide } from '../src/lab/tileSets';
+import { mapTiles, tileKit, tileSetPlayers, tileSide } from '../src/lab/tileSets';
 
 /** A kit's tiles by key: `p7-01`, `p7-01-se`. */
-const keysOf = (worlds: World[], players?: number) => new Set(tileKit(worlds, players).map(kitKey));
+const keysOf = (worlds: World[], players?: number) => new Set(tileKit(worlds, players).map((t) => t.id));
 
 describe('physical tile kits', () => {
   it('lays every map for its player count and world, each objective where the map puts it, without needing the full set', () => {
     for (const map of MAPS) {
       const kit = keysOf([map.world ?? 'mars'], map.players);
-      for (const k of mapTiles(map)) expect(kit, `${map.id}: ${kitKey(k)}`).toContain(kitKey(k));
+      for (const k of mapTiles(map)) expect(kit, `${map.id}: ${k.id}`).toContain(k.id);
     }
     expect(tileKit(['mars'], 2).length).toBeLessThan(TILE_SET.length);
   });
 
   it('gives a world only the tiles its maps lay, without a player count too', () => {
     // No Mars map lays a Mass Driver or a Deep Space Array, which stand on Phobos and Deimos only.
-    expect(tileKit(['mars']).some((k) => k.tile.number === 11 || k.tile.number === 12)).toBe(false);
-    expect(tileKit(['phobos']).some((k) => k.tile.number === 11)).toBe(true);
+    expect(tileKit(['mars']).some((k) => k.number === 11 || k.number === 12)).toBe(false);
+    expect(tileKit(['phobos']).some((k) => k.number === 11)).toBe(true);
     for (const world of ['mars', 'phobos', 'deimos'] as World[]) {
       const all = keysOf([world]);
       for (const players of tileSetPlayers([world]))
@@ -46,11 +46,11 @@ describe('physical tile kits', () => {
     for (const players of [2, 3, 4, 5, undefined]) {
       const kit = keysOf(worlds, players);
       for (const map of MAPS.filter((m) => worlds.includes(m.world ?? 'mars') && (players === undefined || m.players === players)))
-        for (const k of mapTiles(map)) expect(kit, `${map.id}: ${kitKey(k)}`).toContain(kitKey(k));
+        for (const k of mapTiles(map)) expect(kit, `${map.id}: ${k.id}`).toContain(k.id);
       // No bigger than either side's own kit needs.
       expect(kit).toEqual(new Set(worlds.flatMap((w) => [...keysOf([w], players)])));
     }
     // No Mars or Phobos map lays a Deep Space Array.
-    expect(tileKit(worlds).some((k) => k.tile.number === 12)).toBe(false);
+    expect(tileKit(worlds).some((k) => k.number === 12)).toBe(false);
   });
 });

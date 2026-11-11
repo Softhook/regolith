@@ -2,8 +2,8 @@
  * Shared building blocks for the rule modules: errors, the log, dice, actions and the
  * power / research / cube bookkeeping that many rules touch.
  */
-import { diagonals, objectivesAround, same } from './board';
-import { cardName, card, cardWithEffect } from './data';
+import { diagonals, objectiveAround, same } from './board';
+import { cardName, card } from './data';
 import type { SkillEffect } from './effects';
 import { die } from './lookups';
 import { actionsClosed, canProspectors, canGainResearch, canUseAbility, takeOverAt, usedThisTurn } from './queries';
@@ -78,8 +78,8 @@ export function addBarrier(s: GameState, p: Cell, owner: PlayerId) {
  */
 export function logTo(s: GameState, player: PlayerId, text: string, to: Cell, after = '') {
   // The objective whose perimeter it is on; else every one it's diagonal to.
-  const ringed = objectivesAround(s.board, to);
-  const objectives = ringed.length ? ringed : s.board.objectives.filter((p) => diagonals(s.board, p).some((q) => same(q, to)));
+  const ringed = objectiveAround(s.board, to);
+  const objectives = ringed ? [ringed] : s.board.objectives.filter((p) => diagonals(s.board, p).some((q) => same(q, to)));
   const names = objectives.map((p) => `objective ${p.number}`).join(' and ');
   if (objectives.length)
     note(
@@ -227,7 +227,7 @@ export function oncePerTurn(s: GameState, tag: OncePerTurn) {
 }
 
 export function requireSkill(s: GameState, p: PlayerId, skill: SkillEffect) {
-  if (!hasSkill(s, p, skill)) fail(`Requires the ${cardWithEffect(skill)?.name ?? skill} card`);
+  if (!hasSkill(s, p, skill)) fail(`Requires the ${cardName(skill)} card`);
 }
 
 // ---------------------------------------------------------------------------

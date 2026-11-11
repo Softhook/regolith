@@ -3,7 +3,7 @@ import { blur, document, n, region, type Fragment } from '../svg';
 import { BLED } from '../tile/geometry';
 import type { World } from '../tile/look';
 import type { TileSpec } from '../tile/set';
-import { SCALE, SIZE, LIT, DRAWN } from './core';
+import { MIDDLE, SCALE, LIT, DRAWN } from './core';
 import { ground, built, cast, dust, SHADOW } from './light';
 export { GROUND_BASE } from './light';
 import { GRADIENTS, CRATERS, BURIED, RIDGE, DUNES, terrain, weathering } from './terrain';
@@ -44,11 +44,10 @@ function scene(spec: TileSpec, world: World): Scene {
   const mars = world === 'mars';
   const r = rng(spec.seed).fork('regolith');
   const site = base(spec.number, r.fork('base'), spec.design);
-  const [bx, by] = [SIZE / 2, SIZE / 2];
   // A drawing's clip paths, drawn once with the defs, as what stands is drawn more than once (`groundArt`).
   const CLIP = /<clipPath[\s\S]*?<\/clipPath>/g;
   const clips = [...new Set(site?.paint.match(CLIP) ?? [])];
-  const place = (f: string) => `<g transform="translate(${n(bx)},${n(by)})">${f}</g>`;
+  const place = (f: string) => `<g transform="translate(${n(MIDDLE.x)},${n(MIDDLE.y)})">${f}</g>`;
   const heights =
     terrain(r, world) +
     // The ground is levelled round a base, smoothing over any crater there, then it's built.

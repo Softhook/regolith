@@ -17,18 +17,13 @@ const testMap = (layout: string[][]): MapDef => ({
 });
 
 describe('space roles', () => {
-  it('puts each space on one perimeter at most, and every space of a map of objective tiles on one', () => {
-    for (const m of MAPS)
-      expect(
-        spaceRoles(buildBoard(m)).every((s) => s.perimeters <= 1),
-        m.id,
-      ).toBe(true);
-    expect(spaceRoles(board('lagado-planitia')).every((s) => s.perimeters === 1)).toBe(true);
+  it('puts every space of a map of objective tiles on a perimeter', () => {
+    expect(spaceRoles(board('lagado-planitia')).every((s) => s.perimeter)).toBe(true);
   });
 
   it('marks a blank tile’s spaces as open ground: no perimeter, no Alien Artefact', () => {
     const roles = spaceRoles(buildBoard(testMap([['7*', '-', '7*']])));
-    expect(roles.filter((s) => s.perimeters === 0 && !s.artefact)).toHaveLength(7);
+    expect(roles.filter((s) => !s.perimeter && !s.artefact)).toHaveLength(7);
   });
 });
 

@@ -17,9 +17,9 @@ function wells(board: Board): { edges: string; wells: string } {
   const { mid } = placement(board, TILE.cell);
   let out = '';
   let edges = '';
-  for (const { p, perimeters, artefact: isArtefact } of spaceRoles(board)) {
+  for (const { p, perimeter, artefact: isArtefact } of spaceRoles(board)) {
     const { x, y } = mid(p);
-    const role = perimeters ? 'perimeter' : 'space';
+    const role = perimeter ? 'perimeter' : 'space';
     out += `<g class="well" data-r="${p.r}" data-c="${p.c}" data-role="${role}${isArtefact ? ' artefact' : ''}">`;
     edges += hexEdge(x, y);
     if (isArtefact) out += artefactFlask(x, y);

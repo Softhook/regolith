@@ -1,7 +1,7 @@
 import { isRaster, type RasterLayer, type TileLayerName } from '@regolith/art';
-import { cellAt, objectivesAround, spaces, type Board, type Cell } from '@regolith/engine';
+import { cellAt, objectiveAround, spaces, type Board, type Cell } from '@regolith/engine';
 
-/* What the map's live layers show (MapTiles), worked out from the board rather than from the tiles. */
+/* What the map's live layers show (MapTiles), worked out from the board. */
 
 /** A tile layer the map draws from the board, or live (not an image). */
 export type BoardLayer = Exclude<TileLayerName, RasterLayer>;
@@ -22,13 +22,13 @@ export function mapStack(layers: readonly TileLayerName[]): (RasterLayer[] | Boa
   return out;
 }
 
-/** A space as the map marks it: how many perimeters it is on (0 or 1) and whether it's on an Alien Artefact. */
+/** A space as the map marks it: whether it's on a perimeter, and whether it's on an Alien Artefact. */
 export interface SpaceRole {
   p: Cell;
-  perimeters: number;
+  perimeter: boolean;
   artefact: boolean;
 }
 
 export function spaceRoles(board: Board): SpaceRole[] {
-  return spaces(board).map((p) => ({ p, perimeters: objectivesAround(board, p).length, artefact: !!cellAt(board, p)?.artefact }));
+  return spaces(board).map((p) => ({ p, perimeter: !!objectiveAround(board, p), artefact: !!cellAt(board, p)?.artefact }));
 }

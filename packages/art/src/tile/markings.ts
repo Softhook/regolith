@@ -71,15 +71,15 @@ export function markings(spec: TileSpec, part: 'spaces' | 'objective'): Fragment
   const hasObjective = spec.number > 0;
   let body = '';
   let edges = '';
-  for (const spot of part === 'spaces' ? Object.values(TILE_SPOTS) : []) {
-    if (hasObjective && spot.x === 0 && spot.y === 0) continue;
+  for (const [key, spot] of part === 'spaces' ? Object.entries(TILE_SPOTS) : []) {
+    if (hasObjective && key === '') continue;
     const { x, y } = mm(spot);
     edges += hexEdge(x, y);
     // Mechs on the Alien Artefact gain Research: a faint flask on each space.
     if (spec.number === 0) body += artefactFlask(x, y);
   }
   if (hasObjective && part === 'objective') {
-    const p = mm({ x: 0, y: 0 });
+    const p = { x: MID, y: MID };
     for (const q of cubePadCentres(OBJECTIVE_CAPACITY[spec.number], p.x, p.y))
       body += well(q.x, q.y, CUBE_PAD.size, CUBE_PAD.corner, WELL.cube);
     const num = numberPlacement(spec.number);

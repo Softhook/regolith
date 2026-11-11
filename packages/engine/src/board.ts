@@ -82,19 +82,6 @@ function checkWorldObjectives(board: Board) {
   }
 }
 
-/** Checks that each starting objective has room for the starting mechs, in perimeter spaces no other start shares. */
-function checkStarts(board: Board) {
-  const starts = board.objectives.filter((p) => p.start);
-  for (const p of starts) {
-    const others = starts.filter((q) => q !== p).flatMap((q) => perimeterSpaces(board, q));
-    const own = perimeterSpaces(board, p).filter((x) => !others.some((y) => same(x, y)));
-    if (own.length < STARTING_MECHS)
-      throw new Error(
-        `${board.mapId}: starting objective ${p.number} has ${own.length} perimeter spaces of its own, needs ${STARTING_MECHS}`,
-      );
-  }
-}
-
 /** A board's cells, all off it till tiles are laid. */
 const offCells = (rows: number, cols: number): BoardCell[][] =>
   Array.from({ length: rows }, () => Array.from({ length: cols }, () => ({ kind: 'off' as const, tile: -1 })));
@@ -116,7 +103,6 @@ function layTile(cells: BoardCell[][], objectives: Objective[], t: TileToken, ti
 export function buildBoard(map: MapDef): Board {
   const board = buildHexBoard(map);
   checkWorldObjectives(board);
-  checkStarts(board);
   return board;
 }
 
@@ -407,9 +393,12 @@ export function perimeterSpaces(board: Board, objective: Objective): readonly Ce
   return (perimeters[objective.id] ??= Object.freeze(adjacent(board, objective).filter((q) => isSpace(board, q))));
 }
 
-/** The objectives whose perimeter a space is on: none or one, as each tile's outer hexes are its own objective's. */
-export function objectivesAround(board: Board, p: Cell): Objective[] {
-  return board.objectives.filter((objective) => perimeterSpaces(board, objective).some((q) => same(q, p)));
+/** The objective whose perimeter a space is on, if any: its own tile's, as a tile's outer hexes are its objective's perimeter. */
+export function objectiveAround(board: Board, p: Cell): Objective | undefined {
+  const cell = cellAt(board, p);
+  const middle = cell?.kind === 'space' ? tileCentres(board).get(cell.tile) : undefined;
+  const id = middle && cellAt(board, middle)?.objective;
+  return id === undefined ? undefined : board.objectives[id];
 }
 
 /** The spaces two hexes from an objective between two of its sides: near it, but not in its perimeter (core.ts `logTo`). */

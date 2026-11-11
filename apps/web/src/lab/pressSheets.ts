@@ -5,7 +5,7 @@ import { mapSheet } from '../art/mapSheet';
 import type { PressSheets } from '../print/exports';
 import { PIECES, slugOf, type Printable } from '../print/pieces';
 import { printedTileSvg, type TileView } from './tileDrawing';
-import { tileKit, tileSide, type KitTile } from './tileSets';
+import { tileKit, tileSide } from './tileSets';
 
 /** Fonts for press sheets, which can't go out in system fonts: a failed load stops the export. */
 async function fontsFor(load: () => Promise<string>): Promise<string> {
@@ -88,7 +88,7 @@ export const tileSheets = ({ world, back, players }: TileKit): PressSheets => {
   const kit = tileKit(back ? [world, back] : [world], players);
   const worlds = back ? `${WORLD_NAMES[world]} / ${WORLD_NAMES[back]}` : WORLD_NAMES[world];
   const maps = players === undefined ? 'every map' : `the ${players}-player maps`;
-  const side = (k: KitTile, on: World, fontCss: string) => printableTile(tileSide(k.tile, on), fontCss, true, { world: on });
+  const side = (t: TileSpec, on: World, fontCss: string) => printableTile(tileSide(t, on), fontCss, true, { world: on });
   return {
     name: `tiles-${world}${back ? `-${back}` : ''}${players === undefined ? '' : `-${players}p`}`,
     label: `${worlds} tiles${players === undefined ? '' : ` · ${players} players`}`,

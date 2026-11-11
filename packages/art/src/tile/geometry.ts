@@ -30,7 +30,7 @@ export const TILE_SPOTS: Readonly<Record<string, Spot>> = {
  * Where the spaces meet at an objective's bottom right, in spaces from its middle: the vertex three hexes share
  * (its own, the one below and the one below right). Clear of dice, so the number goes there.
  */
-const MEET: Spot = { x: 0.5 / Math.sqrt(3), y: 0.5 };
+export const MEET: Spot = { x: 0.5 / Math.sqrt(3), y: 0.5 };
 
 /** The corners of a flat-topped hex `size` tall centred on (cx, cy) (mm), from the right going clockwise. */
 export const hexCorners = (cx: number, cy: number, size: number) =>

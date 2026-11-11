@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { WORLD_NAMES, dataUrl, editableTileSvg, tileSvg, type TileSpec, type World } from '@regolith/art';
 import { blobToDataUrl, download } from '../files';
 import { svgToPng } from '../print/exports';
@@ -8,7 +8,7 @@ import { tileFontCss } from '../art/cards';
 import { useFontCss, useSvgUrl } from './hooks';
 import { LabHeader } from './LabHeader';
 import { printableTile, tileSheets, type TileKit } from './pressSheets';
-import { kitKey, tileKit, tileSetPlayers, tileSide, type KitTile } from './tileSets';
+import { tileKit, tileSetPlayers, tileSide } from './tileSets';
 import { groundDrawn, latestThumbnail, litGround, printedTileSvg, printedTileSvgNow, thumbnail, type TileView } from './tileDrawing';
 
 /**
@@ -45,30 +45,25 @@ export function TileLab() {
   // The number font, embedded in the detail view and the print files (thumbnails use the system's).
   const fonts = useFontCss(tileFontCss);
 
-  const tiles = useMemo(
-    () => tileKit(worlds, players).map((k) => ({ ...k, tile: { ...k.tile, ...overrides[k.tile.id] } })),
-    [overrides, players, worlds],
-  );
-  /** How a kit tile is shown on a world. */
-  const viewOf = useCallback((_: KitTile, on: World): TileView => ({ world: on }), []);
+  const tiles = useMemo(() => tileKit(worlds, players).map((t) => ({ ...t, ...overrides[t.id] })), [overrides, players, worlds]);
   // Drawn live where there's no thumbnail as it prints yet (below), till its ground is drawn.
   const thumbs = useMemo(
     () =>
-      tiles.map((k) => {
-        const face = tileSide(k.tile, shown);
-        const view = viewOf(k, shown);
+      tiles.map((tile) => {
+        const face = tileSide(tile, shown);
+        const view: TileView = { world: shown };
         return {
-          k,
-          key: kitKey(k),
+          tile,
+          key: tile.id,
           face,
           view,
           url: latestThumbnail(face, view) ? '' : dataUrl(tileSvg(face, { ...view, markings, rounded: true })),
         };
       }),
-    [tiles, markings, viewOf, shown],
+    [tiles, markings, shown],
   );
   const current = thumbs.find((t) => t.key === selected) ?? thumbs[0];
-  const spec = current.k.tile;
+  const spec = current.tile;
   // The selected tile's side shown, which is drawn: open ground where its objective can't stand (`tileSide`).
   const { face, view } = current;
 
@@ -116,14 +111,14 @@ export function TileLab() {
   const set = (o: Override) => setOverrides((all) => ({ ...all, [spec.id]: { ...all[spec.id], ...o } }));
 
   // Prints the set as shown: seeds being explored, the markings setting, and each side's world.
-  const printable = (k: KitTile, side: World) => printableTile(tileSide(k.tile, side), fonts ?? '', markings, viewOf(k, side));
+  const printable = (t: TileSpec, side: World) => printableTile(tileSide(t, side), fonts ?? '', markings, { world: side });
   const piece = PIECES.tile;
   const cmyk = tileSheets(kit);
-  const item = printable(current.k, shown);
+  const item = printable(current.tile, shown);
   // The ZIP's name and heading: its worlds and player count.
   const part = [WORLD_NAMES[world], back && WORLD_NAMES[back], players && `${players}p`].filter(Boolean).join('-');
-  const fronts = tiles.map((k) => printable(k, world));
-  const backs = back ? tiles.map((k) => printable(k, back)) : [];
+  const fronts = tiles.map((t) => printable(t, world));
+  const backs = back ? tiles.map((t) => printable(t, back)) : [];
   // Each front's back, by file: names carry their world, and a side that can't hold its objective is a blank.
   const pairs = back ? fronts.map((f, i) => `  ${f.name}.png  →  ${backs[i].name}.png\n`).join('') : '';
 

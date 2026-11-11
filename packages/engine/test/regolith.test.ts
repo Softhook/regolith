@@ -18,7 +18,7 @@ import {
   dropTargets,
   homeObjective,
   takeOverTargets,
-  objectivesAround,
+  objectiveAround,
   grid,
   attackLaunches,
   cardKind,
@@ -552,7 +552,7 @@ describe('Barrier (6 Wisp)', () => {
       }
     expect(found).toBeDefined();
     const [s0, p] = found!;
-    expect(objectivesAround(s0.board, p).length).toBeGreaterThan(0);
+    expect(objectiveAround(s0.board, p)).toBeDefined();
     const s = fire(s0, p.r, p.c);
     expect(cells(dropTargets(s, 0))).not.toContain(`${p.r},${p.c}`);
   });

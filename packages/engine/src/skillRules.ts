@@ -216,7 +216,11 @@ function skillSet(state: GameState, player: PlayerId): SkillSet {
   let set = SKILL_SETS.get(key);
   if (set) return set;
   const owned = new Map<string, string>();
-  for (const s of skills) if (s.active && !owned.has(effectOf(s.id))) owned.set(effectOf(s.id), s.id);
+  for (const s of skills) {
+    if (!s.active) continue;
+    const effect = effectOf(s.id);
+    if (!owned.has(effect)) owned.set(effect, s.id);
+  }
   const active = Object.freeze(
     SKILL_EFFECTS.filter((e) => owned.has(e)).map((effect) =>
       Object.freeze({ effect, card: owned.get(effect)!, rule: SKILL_RULES[effect] }),

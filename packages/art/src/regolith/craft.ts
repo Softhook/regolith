@@ -1,7 +1,7 @@
 import type { Rng } from '../rng';
 import { n } from '../svg';
 import type { Spot } from '../tile/geometry';
-import { polar, inside, toward } from './core';
+import { polar, insideFromMiddle, toward } from './core';
 import { H, type Part, placed, merged, disc, square, box, graded, glow, lamp } from './parts';
 
 /** Rockets, landers, rovers and the small things round a base: landing pads and what stands on them, crates, beacons, an old probe. */
@@ -147,10 +147,10 @@ export function probe(r: Rng): Part {
 }
 
 /** Tyre tracks behind a rover at p facing `turn`: two treads wandering back the way it came, sunk and darkened, until they leave the tile. */
-export function tyreTracks(r: Rng, p: Spot, turn: number, centre: Spot): Part {
+export function tyreTracks(r: Rng, p: Spot, turn: number): Part {
   const pts: Spot[] = [];
   let [x, y, a] = [p.x, p.y, ((turn + 180) * Math.PI) / 180];
-  for (let i = r.int(6, 14); i > 0 && inside(centre.x + x, centre.y + y) > 2; i--) {
+  for (let i = r.int(6, 14); i > 0 && insideFromMiddle({ x, y }) > 2; i--) {
     pts.push({ x, y });
     a += r.range(-0.35, 0.35);
     [x, y] = [x + 6 * Math.cos(a), y + 6 * Math.sin(a)];

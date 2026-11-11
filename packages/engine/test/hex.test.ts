@@ -21,6 +21,7 @@ import {
   mapStats,
   moveOptions,
   parseToken,
+  objectiveAround,
   perimeterSpaces,
   same,
   startingGround,
@@ -74,11 +75,16 @@ describe('hex maps', () => {
       for (const p of b.objectives) {
         expect(perimeterSpaces(b, p)).toHaveLength(6);
         // Each perimeter space is next to its own objective only.
-        for (const q of perimeterSpaces(b, p)) expect(b.objectives.filter((x) => distance(x, q) === 1)).toEqual([p]);
+        for (const q of perimeterSpaces(b, p)) {
+          expect(b.objectives.filter((x) => distance(x, q) === 1)).toEqual([p]);
+          expect(objectiveAround(b, q)).toBe(p);
+        }
       }
       // A void or blank tile is 7 spaces and no objective.
       const empty = m.layout.flat().filter((t) => t === '0' || t === '-').length;
       expect(spaces(b)).toHaveLength(b.objectives.length * 6 + empty * 7);
+      // And a space on a void or blank tile is on no perimeter.
+      expect(spaces(b).filter((q) => objectiveAround(b, q))).toHaveLength(b.objectives.length * 6);
     }
     const b = BASE.board;
     expect(b.objectives.filter((p) => distance(p, CENTRE) === 3)).toHaveLength(6);

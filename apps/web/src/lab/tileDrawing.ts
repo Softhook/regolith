@@ -1,7 +1,7 @@
 import { REGOLITH_GROUND_PX, tileGroundSvg, tileSvg, type TileOptions, type TileSpec } from '@regolith/art';
 import { blobToDataUrl, rasterise } from '../files';
 
-/** How a tile is shown and printed: its world, and where its objective sits (art `TileOptions`). */
+/** How a tile is shown and printed: its world (art `TileOptions`). */
 export type TileView = Pick<TileOptions, 'world'>;
 
 /**
@@ -53,7 +53,7 @@ export function litGround(t: TileSpec, o: TileView): Promise<string> {
 
 /** Thumbnails of tiles as they print, as image URLs, by the tile and how it's shown (`thumbnail`). */
 const thumbnails = new Map<string, Promise<string>>();
-/** A tile's latest thumbnail on each world and objective spot, to show while its next is drawn (a reroll, markings on or off). */
+/** A tile's latest thumbnail on each world, to show while its next is drawn (a reroll, markings on or off). */
 const latestThumbnails = new Map<string, string>();
 const latestKey = (t: TileSpec, o: TileView) => `${t.id}:${o.world}`;
 

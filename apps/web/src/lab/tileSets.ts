@@ -8,22 +8,14 @@ const mapsOn = (worlds: readonly World[], players?: number) =>
 /** The player counts the maps on these worlds are made for, for the Tiles page's kit choice. */
 export const tileSetPlayers = (worlds: readonly World[]) => [...new Set(mapsOn(worlds).map((map) => map.players))].sort((a, b) => a - b);
 
-/** One physical tile of a kit: the tile (art `TILE_SET`). */
-export interface KitTile {
-  tile: TileSpec;
-}
-
-/** A kit tile's key, unique in its kit: `p7-01`. */
-export const kitKey = (k: KitTile) => k.tile.id;
-
 /** The tiles a map lays, as the board assigns them (art `assignTiles`). */
-export function mapTiles(map: MapDef): KitTile[] {
+export function mapTiles(map: MapDef): TileSpec[] {
   const tokens = map.layout
     .flat()
     .filter((token) => token !== '.')
     .map((token) => parseToken(token));
   const ids = assignTiles(tokens.map((t, index) => ({ index, number: t.blank ? BLANK : t.number })));
-  return tokens.map((_, index) => ({ tile: TILE_SET.find((s) => s.id === ids.get(index))! }));
+  return tokens.map((_, index) => TILE_SET.find((s) => s.id === ids.get(index))!);
 }
 
 /**
@@ -31,11 +23,10 @@ export function mapTiles(map: MapDef): KitTile[] {
  * (art `assignTiles`). Without a player count, every map on its worlds. A two-sided kit has a world on each
  * side, so it takes its maps from both. Empty when no map fits. In set order.
  */
-export function tileKit(worlds: readonly World[], players?: number): KitTile[] {
-  const kit = new Map<string, KitTile>();
-  for (const map of mapsOn(worlds, players)) for (const k of mapTiles(map)) kit.set(kitKey(k), k);
-  const order = (k: KitTile) => TILE_SET.indexOf(k.tile);
-  return [...kit.values()].sort((a, b) => order(a) - order(b));
+export function tileKit(worlds: readonly World[], players?: number): TileSpec[] {
+  const kit = new Set<TileSpec>();
+  for (const map of mapsOn(worlds, players)) for (const t of mapTiles(map)) kit.add(t);
+  return TILE_SET.filter((t) => kit.has(t));
 }
 
 /**

@@ -1,9 +1,9 @@
 import type { Rng } from '../rng';
 import { n } from '../svg';
 import { OUTER } from './inks';
-import { cubePadCentres, type Spot } from '../tile/geometry';
+import { MEET, cubePadCentres, type Spot } from '../tile/geometry';
 import { OBJECTIVE_CAPACITY } from '../tokens';
-import { SPACE, SCALE, SIZE, inside, polar, toward } from './core';
+import { MIDDLE, SPACE, SCALE, SIZE, insideFromMiddle, polar, toward } from './core';
 import { H, type Part, placed, type Drawn, merged, disc, box, glow, pipe, run } from './parts';
 import {
   domelets,
@@ -28,7 +28,7 @@ import { CORES } from './cores';
 /** How a base is laid out round its objective's space: its hub, outbuildings out along the ways to the next hexes, and small things round them. */
 
 /** Which way the objective's number lies from its middle, in degrees: its bottom right, where three hexes meet. */
-const NUMBER_CORNER = (Math.atan2(0.5, 0.5 / Math.sqrt(3)) * 180) / Math.PI;
+const NUMBER_CORNER = (Math.atan2(MEET.y, MEET.x) * 180) / Math.PI;
 
 /**
  * The ways a base may spread from its objective's space, best first in a random order: towards the neighbouring
@@ -57,16 +57,16 @@ function gap(p: Spot, a: Spot, b: Spot): number {
 
 /**
  * Small things round a base, and out past it: a rover or two with their tracks, crates by the buildings,
- * survey beacons, now and then an old probe. Each placed on the tile (the objective's space at `centre`),
+ * survey beacons, now and then an old probe. Each placed on the tile,
  * clear of what's `taken` and the `links`, or left out.
  */
-function incidentals(r: Rng, centre: Spot, taken: Taken[], links: [Spot, Spot][], hub: number, light: string): Part[] {
+function incidentals(r: Rng, taken: Taken[], links: [Spot, Spot][], hub: number, light: string): Part[] {
   const spot = (reach: number, near?: [number, number]): Spot | undefined => {
     for (let i = 0; i < 60; i++) {
       const p = near
         ? toward(r.range(0, 360), r.range(...near) / SPACE)
-        : { x: r.range(0, SIZE) - centre.x, y: r.range(0, SIZE) - centre.y };
-      if (inside(centre.x + p.x, centre.y + p.y) < reach + 2) continue;
+        : { x: r.range(0, SIZE) - MIDDLE.x, y: r.range(0, SIZE) - MIDDLE.y };
+      if (insideFromMiddle(p) < reach + 2) continue;
       if (taken.some((f) => Math.hypot(p.x - f.x, p.y - f.y) < reach + f.r + GAP)) continue;
       if (links.some(([s, t]) => gap(p, s, t) < reach + GAP + 2)) continue;
       taken.push({ ...p, r: reach });
@@ -85,7 +85,7 @@ function incidentals(r: Rng, centre: Spot, taken: Taken[], links: [Spot, Spot][]
     const p = spot(8.5, near);
     if (!p) continue;
     const turn = r.range(0, 360);
-    tracks.push(tyreTracks(r, p, turn, centre));
+    tracks.push(tyreTracks(r, p, turn));
     add(p, rover(), turn, 1.4);
   }
   for (let i = r.int(1, 3); i > 0; i--) add(spot(7, [hub + 5, hub + 18]), crates(r), 0, 1.4);
@@ -98,7 +98,7 @@ function incidentals(r: Rng, centre: Spot, taken: Taken[], links: [Spot, Spot][]
  * A base's outbuildings, one each way out (`ways`) for as many as it has: picked by weight, none twice
  * until each has stood once, each a little nearer or further out and larger or smaller. Each stands
  * clear of the hub (`hub` across from the objective's space), of the others and their links, and on the
- * tile (the objective's space at `centre` on it): moved further out, or made smaller, until it is, or left
+ * tile: moved further out, or made smaller, until it is, or left
  * out if it can't be. Where each stands, and its link, go in `taken` and `links`.
  */
 function outskirts(
@@ -106,7 +106,6 @@ function outskirts(
   ways: readonly number[],
   count: number,
   pool: readonly Annex[],
-  centre: Spot,
   hub: number,
   taken: Taken[],
   links: [Spot, Spot][],
@@ -130,7 +129,7 @@ function outskirts(
           const e = (part.extent ?? 15) * grow * k;
           if (Math.hypot(p.x, p.y) < hub + e + GAP) continue;
           // Further out is only nearer the tile's edge.
-          if (inside(centre.x + p.x, centre.y + p.y) < e + 1) break;
+          if (insideFromMiddle(p) < e + 1) break;
           if (taken.some((f) => Math.hypot(p.x - f.x, p.y - f.y) < e + f.r + GAP)) continue;
           if (links.some(([s, t]) => gap(p, s, t) < e + GAP)) continue;
           if (taken.some((f) => gap(f, from, p) < f.r + GAP)) continue;
@@ -241,18 +240,17 @@ export function base(number: number, r: Rng, design?: string): Drawn | undefined
   const pads = cubePadCentres(OBJECTIVE_CAPACITY[number] ?? 0, 0, 0).map((p) => ({ x: p.x / SCALE, y: p.y / SCALE }));
   const ways = exits(r, number > 0);
   const count = r.pick(SPREAD);
-  const centre = { x: SIZE / 2, y: SIZE / 2 };
   const taken: Taken[] = [];
   const links: [Spot, Spot][] = [];
   const outskirtsOf = (hubReach: number, pool: Annex[], blocked: number[] = []) => {
     const off = (a: number, b: number) => Math.abs(((((a - b) % 360) + 540) % 360) - 180);
     const open = ways.filter((a) => blocked.every((b) => off(a, b) > 40));
-    return outer(outskirts(r, open, count, pool, centre, hubReach, taken, links));
+    return outer(outskirts(r, open, count, pool, hubReach, taken, links));
   };
   // The hub (or the sinkhole) is taken, then the small things go round what stands.
   const around = (hubReach: number, light: string) => {
     taken.push({ x: 0, y: 0, r: hubReach });
-    return outer(incidentals(r.fork('incidentals'), centre, taken, links, hubReach, light));
+    return outer(incidentals(r.fork('incidentals'), taken, links, hubReach, light));
   };
   // Pipes run in under the hub (drawn over them): out of a hub's side square on, through a collar (drawn
   // over the hub, in `collars`), curving round to what they feed; or, where it has no sides (a dome or a

@@ -35,6 +35,12 @@ export const radial = (id: string, list: [number, string, number?][]) => `<radia
 /** The hex flower's outline (its cut), in board units. */
 const OUTLINE = HEX_TILE_CUT.map((side) => side.map((v) => v / SCALE));
 
+/** The tile's middle, its objective's space, in board units. */
+export const MIDDLE: Spot = Object.freeze({ x: SIZE / 2, y: SIZE / 2 });
+
+/** How far `p`, from the tile's middle, is inside the hex flower, in board units: negative outside it. */
+export const insideFromMiddle = (p: Spot): number => inside(MIDDLE.x + p.x, MIDDLE.y + p.y);
+
 /** How far (x, y) is inside the hex flower, in board units: negative outside it. */
 export function inside(x: number, y: number): number {
   let d = Infinity;
@@ -60,7 +66,7 @@ const OVER_EDGE = 0.15;
  */
 export function anywhere(r: Rng, reach: number): Spot {
   const clear = r.chance(OVER_EDGE) ? 0 : reach;
-  let p = { x: SIZE / 2, y: SIZE / 2 };
+  let p = { ...MIDDLE };
   for (let i = 0; i < 80; i++) {
     const q = { x: r.range(0, SIZE), y: r.range(0, SIZE) };
     const d = inside(q.x, q.y);

@@ -47,6 +47,10 @@ export function defaultMap(players: number): MapDef | undefined {
 export const ALL_CARDS: CardDef[] = [];
 
 const byId = new Map<string, CardDef>();
+/** A card's effect by its id, worked out once: effectOf is on the AI's hot paths. */
+const effects = new Map<string, string>();
+/** What a card's id adds to its effect. */
+const CARD_PREFIX = 'r-';
 const skillIds = new Set<string>();
 const reinforcementIds = new Set<string>();
 
@@ -55,6 +59,7 @@ export function addCards(defs: readonly CardDef[], kind: 'skill' | 'tactic' | 'r
   for (const c of defs) {
     if (byId.has(c.id)) continue;
     byId.set(c.id, c);
+    effects.set(c.id, c.id.slice(CARD_PREFIX.length));
     ALL_CARDS.push(c);
     if (kind === 'skill') skillIds.add(c.id);
     if (kind === 'reinforcement') reinforcementIds.add(c.id);
@@ -69,16 +74,13 @@ export function card(id: string): CardDef {
 
 /** The rules a card plays by (effects.ts), named after it: its id without the r- (data.test.ts checks every card has one). */
 export function effectOf(id: string): string {
-  return card(id).id.slice(2);
-}
-
-/** A card with this effect, for naming it. */
-export function cardWithEffect(effect: string): CardDef | undefined {
-  return byId.get(`r-${effect}`);
+  const effect = effects.get(id);
+  if (effect === undefined) throw new Error(`Unknown card ${id}`);
+  return effect;
 }
 
 /** The name of the card with this effect, as printed (Arms Deal's is Arms Deal). */
-export const cardName = (effect: string): string => cardWithEffect(effect)?.name ?? effect;
+export const cardName = (effect: string): string => byId.get(CARD_PREFIX + effect)?.name ?? effect;
 
 /** Skills are permanent; everything else is one-shot. */
 export function cardKind(id: string): 'skill' | 'tactic' | 'reinforcement' {

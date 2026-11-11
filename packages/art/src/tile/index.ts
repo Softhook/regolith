@@ -114,16 +114,14 @@ export function tileSvg(spec: TileSpec, o: TileOptions = {}): string {
  * on the objective's space. What's standing on it isn't drawn again but cut out of the ground's image
  * (`standingMaskSvg`).
  */
-export function rasterLayerSvg(spec: TileSpec, world: World): string {
-  return regolithSvg(spec, world);
-}
+export const rasterLayerSvg = regolithSvg;
 
 /**
  * What stands on a tile's ground (`rasterLayerSvg`), as a mask over the
  * same area: white where it stands, clear elsewhere. Cheap to draw, with no lighting, so the map cuts what
  * stands out of the ground's image with it, to lay over the spaces' outlines, and the two match to the pixel.
  */
-export const standingMaskSvg = (spec: TileSpec): string => regolithMaskSvg(spec);
+export const standingMaskSvg = regolithMaskSvg;
 
 /** The tile's lit ground alone, to draw as a bitmap at `REGOLITH_GROUND_PX` and pass back to `tileSvg` as its `ground`. */
 export function tileGroundSvg(spec: TileSpec, o: Pick<TileOptions, 'world'>): string {
