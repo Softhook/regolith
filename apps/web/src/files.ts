@@ -1,5 +1,3 @@
-import { dataUrl } from '@regolith/art';
-
 /** Browser file helpers: saving downloads, and drawing SVG documents to bitmaps. */
 
 /** Saves a blob as a download. */
@@ -19,21 +17,45 @@ export const blobToDataUrl = (blob: Blob) =>
     r.readAsDataURL(blob);
   });
 
-export async function loadSvg(svg: string): Promise<HTMLImageElement> {
-  const img = new Image();
-  img.src = dataUrl(svg);
-  await img.decode();
-  return img;
+/**
+ * An SVG document as a decoded image, to draw, and `close` to call once it's drawn. From a blob URL, not a data URL:
+ * a card's SVG carries its font files, and percent-encoding all of it for a data URL took ~50 ms of main thread per
+ * card on a mid-range phone. A blob URL is same-origin, so drawing it doesn't taint a canvas; it holds the whole
+ * document (fonts and all) until it's revoked, hence `close`.
+ */
+async function openSvg(svg: string): Promise<{ img: HTMLImageElement; close: () => void }> {
+  const url = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' }));
+  const close = () => URL.revokeObjectURL(url);
+  try {
+    const img = new Image();
+    img.src = url;
+    await img.decode();
+    return { img, close };
+  } catch (error) {
+    close();
+    throw error;
+  }
+}
+
+/** `draw` an SVG document as a decoded image: its blob URL is let go once `draw` is done. */
+export async function withSvg<T>(svg: string, draw: (img: HTMLImageElement) => T | Promise<T>): Promise<T> {
+  const { img, close } = await openSvg(svg);
+  try {
+    return await draw(img);
+  } finally {
+    close();
+  }
 }
 
 /** Draws an SVG document to a `w` × `h` px transparent canvas. */
-async function drawSvg(svg: string, w: number, h: number): Promise<HTMLCanvasElement> {
-  const img = await loadSvg(svg);
-  const canvas = document.createElement('canvas');
-  canvas.width = w;
-  canvas.height = h;
-  canvas.getContext('2d')!.drawImage(img, 0, 0, w, h);
-  return canvas;
+function drawSvg(svg: string, w: number, h: number): Promise<HTMLCanvasElement> {
+  return withSvg(svg, (img) => {
+    const canvas = document.createElement('canvas');
+    canvas.width = w;
+    canvas.height = h;
+    canvas.getContext('2d')!.drawImage(img, 0, 0, w, h);
+    return canvas;
+  });
 }
 
 /** The most pixels one canvas holds here: under iOS Safari's limit (16.7 M px, 4096²), which an A4 page at 600 dpi (35 M) is over. */
@@ -57,7 +79,7 @@ export async function* drawBands(
   canvasPixels = CANVAS_PIXELS,
   oversample = 2,
 ) {
-  const img = await loadSvg(svg);
+  const { img, close } = await openSvg(svg);
   const k = oversample;
   const single = w * h * k * k <= canvasPixels;
   const pad = single ? 0 : overlap;
@@ -83,6 +105,7 @@ export async function* drawBands(
   } finally {
     // Safari frees a canvas's memory only once it's sized to nothing.
     big.width = big.height = canvas.width = canvas.height = 0;
+    close();
   }
 }
 
@@ -106,7 +129,7 @@ export async function rasteriseWithCutout(
   under: string,
   quality?: number,
 ): Promise<[Blob, Blob]> {
-  const [canvas, cutter] = await Promise.all([drawSvg(svg, w, h), loadSvg(mask)]);
+  const [canvas, cutter] = await Promise.all([drawSvg(svg, w, h), drawSvg(mask, w, h)]);
   const flat = document.createElement('canvas');
   try {
     [flat.width, flat.height] = [w, h];
@@ -120,7 +143,7 @@ export async function rasteriseWithCutout(
     ctx.drawImage(cutter, 0, 0, w, h);
     return [whole, await encode(canvas, 'image/png')];
   } finally {
-    canvas.width = canvas.height = flat.width = flat.height = 0;
+    canvas.width = canvas.height = flat.width = flat.height = cutter.width = cutter.height = 0;
   }
 }
 

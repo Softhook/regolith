@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react';
-import type { GameState } from '@regolith/engine';
-import { cardEffectsOf, type CardEffect } from '../../game/cardEffects';
-import { useStepEffects } from '../../game/useTransient';
+import type { Board } from '@regolith/engine';
+import type { CardEffect } from '../../game/cardEffects';
+import type { Step } from '../../game/staging';
+import { useMapEffects } from '../../game/useTransient';
 import { EffectBox } from './EffectBox';
 
 /** Longer than a plain action's effect: cards are rare, and worth a moment. */
@@ -60,13 +61,15 @@ const PARTS: Record<CardEffect['kind'], ReactNode> = {
   arc: <span className="cfx-ray" />,
 };
 
+const cardsOf = (step: Step): CardEffect[] => step.cards;
+
 /**
  * Over the mechs and explosions. Remounted for a jump to another position (`key`), so that shows none.
  * Ids are only unique per kind (a mech's id may mark two effects), hence the kind in each `key`.
  */
-export function CardEffects({ game, cell }: { game: GameState; cell: number }) {
-  return useStepEffects(game, CARD_EFFECT_MS, cardEffectsOf).map((e) => (
-    <EffectBox board={game.board} key={`${e.kind}:${e.id}`} e={e} cell={cell} className={`cfx cfx-${e.kind}`}>
+export function CardEffects({ step, board, cell }: { step: Step | null; board: Board; cell: number }) {
+  return useMapEffects(step, CARD_EFFECT_MS, cardsOf).map((e) => (
+    <EffectBox board={board} key={`${e.kind}:${e.id}`} e={e} cell={cell} className={`cfx cfx-${e.kind}`}>
       {PARTS[e.kind]}
     </EffectBox>
   ));

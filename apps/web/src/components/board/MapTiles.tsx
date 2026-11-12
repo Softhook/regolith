@@ -39,6 +39,23 @@ function marksOf(board: Board) {
   return marks;
 }
 
+interface MapTilesProps {
+  board: Board;
+  tiles: TileArt[];
+  cell: number;
+}
+
+/**
+ * Whether two renders draw the same: every move brings a new board (the engine copies it), but what's drawn here
+ * comes from its layout and world alone (its spaces, objectives and tiles), which a game never changes.
+ */
+const sameMap = (a: MapTilesProps, b: MapTilesProps) =>
+  a.cell === b.cell &&
+  a.tiles === b.tiles &&
+  a.board.cells === b.board.cells &&
+  a.board.mapId === b.board.mapId &&
+  a.board.world === b.board.world;
+
 /**
  * A map's tiles in SVG, in their layers (art `TILE_LAYERS`), as a printed tile has them: each tile's ground on its
  * world with its building on the objective's space, and what stands on it drawn again over the spaces, so the
@@ -46,7 +63,7 @@ function marksOf(board: Board) {
  * (tileImages); the spaces are drawn live, from the board, the seams between tiles under them. The objectives'
  * numbers and cubes, their layer, go on top, with the tunnels and mechs (BoardArt).
  */
-export const MapTiles = memo(function MapTiles({ board, tiles, cell }: { board: Board; tiles: TileArt[]; cell: number }) {
+export const MapTiles = memo(function MapTiles({ board, tiles, cell }: MapTilesProps) {
   const images: Record<RasterLayer, Record<string, string>> = {
     ground: useTileImages(tiles, board.world, 'ground'),
     standing: useTileImages(tiles, board.world, 'standing'),
@@ -135,4 +152,4 @@ export const MapTiles = memo(function MapTiles({ board, tiles, cell }: { board: 
       )}
     </>
   );
-});
+}, sameMap);

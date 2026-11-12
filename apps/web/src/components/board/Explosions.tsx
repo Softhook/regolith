@@ -1,10 +1,8 @@
-import { useEffect, useRef, type CSSProperties } from 'react';
-import type { GameState } from '@regolith/engine';
+import { useEffect, type CSSProperties } from 'react';
 import { boomAt } from '../../beats';
-import { isPlayStep } from '../../game/steps';
 import { useTransient } from '../../game/useTransient';
-import { reducedMotion } from '../../game/useMediaQuery';
 import { mechSpots } from '../../game/mechSpots';
+import type { Step } from '../../game/staging';
 import { destroyedOf, strikeOf } from '../../game/strike';
 
 interface Explosion {
@@ -17,15 +15,15 @@ interface Explosion {
 const EXPLOSION_MS = 1100;
 const SPARKS = 10;
 
-/** Mechs knocked off the map by a battle or a card blow up where they stood. None under reduced motion. */
-function useExplosions(game: GameState): Explosion[] {
+/**
+ * Mechs knocked off the map by a battle or a card blow up where they stood. Only in a step of play (`useStep`): undo
+ * also takes mechs off the map, but isn't one; nor is anything under reduced motion.
+ */
+function useExplosions(step: Step | null): Explosion[] {
   const [booms, show] = useTransient<Explosion>(EXPLOSION_MS);
-  const prev = useRef(game);
   useEffect(() => {
-    const before = prev.current;
-    prev.current = game;
-    // Only play: undo also takes mechs off the map, but never adds log entries.
-    if (!isPlayStep(before, game) || reducedMotion()) return;
+    if (!step) return;
+    const { before, game } = step;
     const spots = mechSpots(before);
     // A card's blow (Orbital Cannon, Unstable Reactor) lands a moment in: they blow up then. Several go one after
     // another, as heard (sounds) and as the staging keeps them till then.
@@ -34,7 +32,7 @@ function useExplosions(game: GameState): Explosion[] {
       const d = game.dice.find((x) => x.id === p.id)!;
       show([{ id: `${d.id}:${d.rolls}`, ...spots.get(d.id)!, color: game.players[d.owner].color }], strike + boomAt(i));
     });
-  }, [game, show]);
+  }, [step, show]);
   return booms;
 }
 
@@ -56,8 +54,8 @@ function Boom({ color, style }: { color: string; style: CSSProperties }) {
   );
 }
 
-export function Explosions({ game, cell }: { game: GameState; cell: number }) {
-  const booms = useExplosions(game);
+export function Explosions({ step, cell }: { step: Step | null; cell: number }) {
+  const booms = useExplosions(step);
   return booms.map((b) => (
     <Boom key={b.id} color={b.color} style={{ transform: `translate(${b.c * cell}px, ${b.r * cell}px)`, width: cell, height: cell }} />
   ));

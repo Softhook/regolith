@@ -606,6 +606,9 @@ svg.zones polygon {
 /* A faint ring marks your own mechs; others' only show one when they're highlighted or fighting. */
 .mech.yours .mech-ring { opacity: .28; }
 .mech.own { cursor: pointer; }
+/* Picked with the keyboard: its ring shows, as on a hover, and no box outline (the ring is the die's shape). */
+.mech:focus-visible { outline: none; }
+.mech:focus-visible .mech-ring { opacity: 1; --ring-glow: 0 0 calc(var(--u) * 6) var(--pc); }
 @media (hover: hover) {
   .mech.own:hover .mech-ring { opacity: .7; }
   /* In percent: px would stretch with a zoom, then snap back as it's redrawn. */

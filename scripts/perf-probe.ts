@@ -6,6 +6,8 @@
  * - a card pop-up: the first one on a device with nothing kept and nothing warmed yet, the same again, a whole deck,
  *   and the deck again after a reload (art kept in IndexedDB);
  * - a tap on a mech and on the space it moves to, until the next frame is painted;
+ * - the AIs playing their turns: frames and long tasks while their mechs glide, roll and blow up, with nobody
+ *   touching the page (when background work, such as drawing the cards, runs);
  * - the page doing nothing: main-thread time per second with nothing selected, with a mech selected, with Ice
  *   Tunnels on the map (looping animations that repaint show up here), and once the victory show has burnt out.
  *
@@ -25,6 +27,11 @@ const TAP_MS = 100;
 /** Main-thread time per second a page doing nothing may use. */
 const IDLE_MS = 20;
 const POPUP_MS = { cold: 1500, again: 300, deck: 4000, kept: 1000 };
+/** While the AIs play, the slowest frame (95th percentile), and the longest task the main thread may run: a long task is one over 50 ms, so none. */
+const AI_FRAME_MS = 34;
+const AI_TASK_MS = 50;
+/** The longest the AIs' turns may take before the probe gives up on them. */
+const AI_TURNS_MS = 120000;
 /** When the victory show has burnt out: its 40 s of rockets (fireworks/show.ts), and the last to fade. */
 const SHOW_MS = 50000;
 
@@ -88,9 +95,59 @@ async function timeTaps(page: Page) {
   budget('slowest tap', Math.max(0, ...times), TAP_MS);
 }
 
+/**
+ * Ends the human's turn and watches the AIs play theirs, until it's the human's again: every frame's length, and every
+ * long task. Only while they play: idle frames after they're done would dilute the 95th percentile.
+ */
+async function timeAiTurns(page: Page) {
+  const { frames, tasks, ended, done } = await page.evaluate(async (ms) => {
+    const frames: number[] = [];
+    const tasks: number[] = [];
+    const lt = new PerformanceObserver((list) => list.getEntries().forEach((e) => tasks.push(e.duration)));
+    lt.observe({ type: 'longtask' });
+    const humansTurn = () => {
+      const s = window.__game.state();
+      return !s.players[s.turn.player].ai && !s.pending.length;
+    };
+    const ended = window.__game.dispatch({ type: 'endTurn' });
+    const start = performance.now();
+    let last = start;
+    // The last mech's glide and blasts play out after the state is the human's: a second more is watched.
+    let doneAt: number | null = null;
+    const done = await new Promise<boolean>((resolve) => {
+      const tick = (t: number) => {
+        frames.push(t - last);
+        last = t;
+        if (doneAt === null && humansTurn()) doneAt = t;
+        if (doneAt !== null && t - doneAt > 1000) return resolve(true);
+        if (t - start > ms) return resolve(false);
+        requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    });
+    lt.disconnect();
+    return { frames, tasks, ended, done };
+  }, AI_TURNS_MS);
+  if (!ended) problem('the turn could not be ended for the AIs to play');
+  if (!done) problem(`the AIs' turns took over ${AI_TURNS_MS / 1000} s`);
+  const sorted = [...frames].sort((a, b) => a - b);
+  const p95 = sorted[Math.floor(sorted.length * 0.95)] ?? 0;
+  const longest = Math.max(0, ...tasks);
+  console.log(
+    `${'AI turns'.padEnd(28)} ${frames.length} frames, p95 ${p95.toFixed(0)} ms, max ${(sorted.at(-1) ?? 0).toFixed(0)} ms · ${tasks.length} long tasks, longest ${longest.toFixed(0)} ms`,
+  );
+  budget('AI turns, p95 frame', p95, AI_FRAME_MS);
+  budget('AI turns, longest task', longest, AI_TASK_MS);
+}
+
 async function idleCost(page: Page, cdp: CDPSession, over: string) {
   const measure = async (what: string) => {
     await page.waitForTimeout(1000);
+    // What a reload left behind is collected first: this measures what keeps running, not the page's start (which
+    // replays the game's past, and after the AIs' turns leaves garbage enough for a major collection mid-measure).
+    await cdp.send('HeapProfiler.enable');
+    await cdp.send('HeapProfiler.collectGarbage');
+    await cdp.send('HeapProfiler.disable');
     const a = await busy(cdp);
     await page.waitForTimeout(4000);
     const ms = ((await busy(cdp)) - a) / 4;
@@ -141,6 +198,14 @@ async function main() {
   await timeCards(page, cdp);
   await timeTaps(page);
   await idleCost(page, cdp, playUrl(server.base, { ...game, scene: 'over' }));
+  // The AIs' turns on a device that has kept nothing (a browser of its own): the cards are still being drawn in the
+  // background as the first turns play, which the pop-ups above had already drawn.
+  const fresh = await browser.newPage(DESKTOP);
+  fresh.on('pageerror', (e) => problem(`page error: ${e.message}`));
+  await (await fresh.context().newCDPSession(fresh)).send('Emulation.setCPUThrottlingRate', { rate: THROTTLE });
+  await fresh.goto(playUrl(server.base, { ...game, scene: 'turn' }));
+  await fresh.waitForSelector('.mech');
+  await timeAiTurns(fresh);
   await browser.close();
   await server.close();
 }

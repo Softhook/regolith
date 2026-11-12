@@ -3,6 +3,7 @@ import type { GameState } from '@regolith/engine';
 import { isPlayStep } from './steps';
 import { useEffectEvent } from './useEffectEvent';
 import { reducedMotion } from './useMediaQuery';
+import type { Step } from './staging';
 
 /**
  * Things shown for a moment (an effect, an explosion, a flying card): `show` adds some (after `delay` ms,
@@ -52,8 +53,8 @@ export function usePlaySteps(game: GameState, scene: string | undefined, played:
 }
 
 /**
- * The effects `effectsOf` finds in each step of play (`usePlaySteps`), each gone after `ms`: on the map (board/)
- * and the player panels (PlayerList). None under reduced motion.
+ * The effects `effectsOf` finds in each step of play (`usePlaySteps`), each gone after `ms`: on the player panels
+ * (PlayerList). None under reduced motion. The map's layers share the Board's step instead (useMapEffects).
  */
 export function useStepEffects<T>(
   game: GameState,
@@ -65,5 +66,18 @@ export function useStepEffects<T>(
   usePlaySteps(game, scene, (before) => {
     if (!reducedMotion()) show(effectsOf(before, game));
   });
+  return effects;
+}
+
+/**
+ * The effects `effectsOf` finds in each step of play on the map (`useStep`, worked out once by the Board for all its
+ * layers), each gone after `ms`. A step is null when it shouldn't show (undo, a jump, reduced motion).
+ */
+export function useMapEffects<T>(step: Step | null, ms: number, effectsOf: (step: Step) => T[]): T[] {
+  const [effects, show] = useTransient<T>(ms);
+  const of = useEffectEvent(effectsOf);
+  useEffect(() => {
+    if (step) show(of(step));
+  }, [step, show, of]);
   return effects;
 }

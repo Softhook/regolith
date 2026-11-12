@@ -14,7 +14,7 @@ import {
 } from '@regolith/art';
 import { COARSE } from '../game/useMediaQuery';
 import { idle, storeImage, storedImage } from './imageStore';
-import { drawTile } from './tileRaster';
+import { drawTile } from './raster';
 import { tileArt } from './boardTiles';
 
 /**

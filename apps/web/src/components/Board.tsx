@@ -23,7 +23,7 @@ import { Routes } from './board/Routes';
 import { Shots } from './board/Shots';
 import { Zones } from './board/Zones';
 import { mechSpots, type MechSpots } from '../game/mechSpots';
-import { useStaging, type Staging } from '../game/staging';
+import { NO_STAGING, useStep, type Staging } from '../game/staging';
 import { hexMapPath, placement, spotBox } from './board/geometry';
 import { useBoardZoom } from './board/useBoardZoom';
 import { OffscreenHints, ZoomControls, useFollowMoves, useFollowTurn, useZoomIntro } from './board/ZoomUi';
@@ -71,7 +71,8 @@ export function Board({
   const cast = REGOLITH_SHADOW.blur * (cell / TILE.cell);
   const spots = mechSpots(game);
   const cubes = cubeSpots(game, cell);
-  const staging = useStaging(game, scene);
+  const step = useStep(game, scene);
+  const staging = step?.staging ?? NO_STAGING;
   useLayoutEffect(() => glideAlong(boardRef.current, staging.paths), [staging]);
   const tip = useZoomIntro(game, ctl, zoom, !!introduce);
   useFollowMoves(game, ctl, spots, zoom, scene);
@@ -188,6 +189,7 @@ export function Board({
               viaMouse.current = !touch;
               if (touch) setHeld(id);
             }}
+            onReveal={zoom.reveal}
           />
           {/* An objective's label, over the mechs in its perimeter. */}
           {objectives.map((p) => {
@@ -200,10 +202,11 @@ export function Board({
               )
             );
           })}
-          <ActionEffects key={`fx:${scene}`} game={game} cell={cell} />
-          <Explosions key={scene} game={game} cell={cell} />
-          <CardEffects key={`cfx:${scene}`} game={game} cell={cell} />
-          <Shots key={`shot:${scene}`} game={game} cell={cell} />
+          {/* One step for them all (useStep); remounted for a jump to another position (`key`), so none is left showing. */}
+          <ActionEffects key={`fx:${scene}`} step={step} board={game.board} cell={cell} />
+          <Explosions key={scene} step={step} cell={cell} />
+          <CardEffects key={`cfx:${scene}`} step={step} board={game.board} cell={cell} />
+          <Shots key={`shot:${scene}`} step={step} board={game.board} cell={cell} />
           {inspect && (
             <BoardInfo key={inspectKey(inspect)} game={game} spots={spots} what={inspect} cell={cell} onClose={() => setInspect(null)} />
           )}
@@ -281,6 +284,18 @@ const DIE_SIZE = 0.56;
 /** A piece on space (r, c), `cell` px: placed in percent of its own size (one space), so a zoom or resize doesn't count as a move and glide. */
 const placeAt = (r: number, c: number, cell: number) => ({ transform: `translate(${c * 100}%, ${r * 100}%)`, width: cell, height: cell });
 
+/** The map's outline at `cell` px a space (hexMapPath), worked out once per map and size: the board changes every move, its tiles never. */
+const edges = new Map<string, string>();
+function mapEdge(board: GameState['board'], cell: number): string {
+  const k = `${board.mapId}:${cell}`;
+  let edge = edges.get(k);
+  if (edge === undefined) {
+    if (edges.size > 32) edges.clear();
+    edges.set(k, (edge = hexMapPath(board, cell, tileArtOf(board))));
+  }
+  return edge;
+}
+
 /**
  * On a world's ground, the hard shadows every mech's die (DieShadow) and cube (CubeShadows) casts, blurred `blur` px with a hint of
  * its colour: all in one layer under the dice and cubes, as a die's top stands as high as the die beside it, so is lit, and as dark
@@ -306,7 +321,7 @@ function MechShadows({
 }) {
   const { world } = game.board;
   const size = cell * DIE_SIZE;
-  const edge = hexMapPath(game.board, cell, tileArtOf(game.board));
+  const edge = mapEdge(game.board, cell);
   const struck = staging.struck.map(({ die: d, r, c, ms }) => (
     <div key={`struck:${d.id}`} className="mech-shadow struck" style={{ ...placeAt(r, c, cell), '--late': `${ms}ms` } as CSSProperties}>
       <DieShadow size={size} world={world} blur={blur} color={game.players[d.owner].color} />
@@ -350,6 +365,7 @@ function Mechs({
   shadowless,
   onInfo,
   onPress,
+  onReveal,
   scene,
 }: {
   game: GameState;
@@ -363,6 +379,8 @@ function Mechs({
   shadowless: boolean;
   onInfo: (id: string) => void;
   onPress: (id: string, touch: boolean) => void;
+  /** Brings space (r, c) into view, when zoomed in (zoom.reveal). */
+  onReveal: (r: number, c: number) => void;
 }) {
   const head = game.pending[0];
   const combat = head?.kind === 'combat' ? head : null;
@@ -428,7 +446,18 @@ function Mechs({
           data-c={cellOf(d)!.c}
           data-glide={d.id}
           style={{ ...place, '--pc': game.players[d.owner].color, '--late': `${late ?? 0}ms` } as CSSProperties}
+          // A button to the keyboard and screen readers too (its die is drawn inside, so not a <button>): Enter or Space taps it.
+          role="button"
+          tabIndex={0}
           onClick={() => ctl.onDie(d.id) === false && onInfo(d.id)}
+          onKeyDown={(e) => {
+            if (e.key !== 'Enter' && e.key !== ' ') return;
+            e.preventDefault();
+            // A key held down taps once, not over and over (each tap would pick it, then drop it).
+            if (!e.repeat) e.currentTarget.click();
+          }}
+          // Reached with the keyboard off screen (zoomed in), the map brings it into view. Not for a click, which focuses it too.
+          onFocus={(e) => e.currentTarget.matches(':focus-visible') && onReveal(cellOf(d)!.r, cellOf(d)!.c)}
           onPointerDown={yours(d.owner) ? undefined : (e) => onPress(d.id, e.pointerType !== 'mouse')}
           onContextMenu={(e) => e.preventDefault()}
           aria-label={`${game.players[d.owner].name}'s ${name} (${d.value})${attack ? `, ${percent(attack.chance)} chance to win an attack` : ''}`}

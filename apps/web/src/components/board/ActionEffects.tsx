@@ -1,9 +1,9 @@
-import { cellOf, same, type Cell, type GameState } from '@regolith/engine';
+import { cellOf, same, type Board, type Cell } from '@regolith/engine';
 import { MECH } from '../../beats';
-import { cardEffectsOf, type MapEffect } from '../../game/cardEffects';
-import { flightOf } from '../../game/staging';
+import type { MapEffect } from '../../game/cardEffects';
+import type { Step, Waypoint } from '../../game/staging';
 import { lastLogId } from '../../game/steps';
-import { useStepEffects } from '../../game/useTransient';
+import { useMapEffects } from '../../game/useTransient';
 import { EffectBox, cubeCount } from './EffectBox';
 
 /**
@@ -15,13 +15,13 @@ type Effect = MapEffect & ({ kind: 'drop' | 'claim' } | { kind: 'trail'; to: Cel
 /** Every effect is over by then (a trail's last part starts within a glide), so none slows play down. */
 const EFFECT_MS = 500 + MECH.glide;
 
-/** What the step from `before` to `game` did on the map, as effects. */
-function effectsOf(before: GameState, game: GameState): Effect[] {
+/** What the step did on the map, as effects. */
+function effectsOf({ before, game, cards, staging }: Step): Effect[] {
   const step = lastLogId(game);
   const out: Effect[] = [];
   // A card's own effect (CardEffects) stands in for these on a mech it marks: one placed by Reinforcements or
   // Invasion.
-  const replaced = new Set(cardEffectsOf(before, game).flatMap((e) => e.replaces ?? []));
+  const replaced = new Set(cards.flatMap((e) => e.replaces ?? []));
   const was = new Map(before.dice.map((d) => [d.id, d]));
   for (const d of game.dice) {
     const p = was.get(d.id);
@@ -30,7 +30,8 @@ function effectsOf(before: GameState, game: GameState): Effect[] {
     const from = cellOf(p);
     const fx = { id: `${d.id}:${step}`, at: to, color: game.players[d.owner].color };
     if (!from) out.push({ kind: 'drop', ...fx });
-    else if (!same(from, to)) out.push(...trails(before, game, d.id, from, to).map((t, i) => ({ ...fx, ...t, id: `${fx.id}:${i}` })));
+    else if (!same(from, to))
+      out.push(...trails(staging.paths.get(d.id) ?? [], from, to).map((t, i) => ({ ...fx, ...t, id: `${fx.id}:${i}` })));
   }
   for (const pl of game.board.objectives) {
     const old = before.board.objectives.find((x) => x.id === pl.id)?.cubes ?? [];
@@ -42,11 +43,10 @@ function effectsOf(before: GameState, game: GameState): Effect[] {
 }
 
 /**
- * The trail of mech `id` flying from `from` to `to`: straight, or a part for each space it crosses (game/staging
- * flightOf), each as the mech gets there; none where it jumps.
+ * The trail of a mech flying from `from` to `to`: straight, or a part for each space it crosses on its `way` (the
+ * step's staging, flightOf), each as the mech gets there; none where it jumps.
  */
-function trails(before: GameState, game: GameState, id: string, from: Cell, to: Cell) {
-  const way = flightOf(before, game, id);
+function trails(way: Waypoint[], from: Cell, to: Cell) {
   if (!way.length) return [{ kind: 'trail' as const, at: from, to, ms: 0 }];
   return way
     .slice(1)
@@ -54,9 +54,9 @@ function trails(before: GameState, game: GameState, id: string, from: Cell, to: 
 }
 
 /** Over the mechs, under explosions. Remounted for a jump to another position (`key`), so that shows none. */
-export function ActionEffects({ game, cell }: { game: GameState; cell: number }) {
-  return useStepEffects(game, EFFECT_MS, effectsOf).map((e) => (
-    <EffectBox board={game.board} key={e.id} e={e} cell={cell} className={`fx fx-${e.kind}`}>
+export function ActionEffects({ step, board, cell }: { step: Step | null; board: Board; cell: number }) {
+  return useMapEffects(step, EFFECT_MS, effectsOf).map((e) => (
+    <EffectBox board={board} key={e.id} e={e} cell={cell} className={`fx fx-${e.kind}`}>
       <span style={e.kind === 'trail' ? { animationDelay: `${e.ms}ms` } : undefined} />
       {/* Each effect but the trail is two parts (a flash and a ring, a shockwave and a glow). */}
       {e.kind !== 'trail' && <span />}

@@ -1,5 +1,5 @@
 import { CARD, cardBackSvg, cardSvg, dataUrl, hash, type CardDeck } from '@regolith/art';
-import { rasterise } from '../files';
+import { drawImage } from './raster';
 import { cardFontCss, cardFontsReady, faceOf, measure } from './cards';
 import { idle, storeImage, storedImage } from './imageStore';
 
@@ -70,9 +70,10 @@ function drawnOnce<K>(draw: (key: K) => Promise<string>) {
 
 /**
  * Cards are drawn a few at a time, in the order asked for, so a deck's pop-up fills in from its first
- * card instead of showing them all at the end.
+ * card instead of showing them all at the end. Four: each is a round trip to the raster worker, so with two a deck
+ * waited on the trips (2.5 s against 2.1 s, emulated); how many decode on the page at once is raster.ts's to cap.
  */
-const AT_ONCE = 2;
+const AT_ONCE = 4;
 let drawing = 0;
 const waiting: (() => void)[] = [];
 const slot = () => (drawing < AT_ONCE ? (drawing++, Promise.resolve()) : new Promise<void>((resolve) => waiting.push(resolve)));
@@ -99,7 +100,7 @@ async function drawKept(
   const art = await svg();
   await slot();
   try {
-    const blob = await rasterise(art.svg, width, height, 'image/webp', 0.92);
+    const blob = await drawImage(art.svg, width, height, 'image/webp', 0.92);
     if (art.keep) storeImage('cards', id, `${key}:${width}`, blob).catch(() => {});
     return { url: URL.createObjectURL(blob), kept: art.keep };
   } catch {
