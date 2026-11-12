@@ -64,7 +64,7 @@ export function Tip({
   style?: CSSProperties;
   onClick?: () => boolean;
   children: ReactNode;
-  /** The spot a moment's effect marks (see CardCasts). */
+  /** The spot a moment's effect marks (see PanelEffects). */
   'data-fx'?: string;
 }) {
   const anchor = useAnchorName();

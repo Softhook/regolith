@@ -4,6 +4,7 @@ import type { Toast } from '../game/toasts';
 import { CardArt } from './CardViewer';
 import { useCardCasts } from './CardCast';
 import { repeatsLastTurn } from '../game/cast';
+import { useSaid } from '../game/aim';
 
 /** The game's news. `now`: the screen shows an earlier position (looking back), so it says the news is of the game now. */
 export function Toasts({ toasts, game, now }: { toasts: Toast[]; game: GameState; now?: boolean }) {
@@ -51,7 +52,8 @@ const shownFor = (e: LogEntry) => (e.event === 'cardTaken' ? TAKEN_MS : PLAYED_M
  * `review`: the entries of the move being looked back at; the card among them, anyone's, is shown
  * instead, and the game's own wait until the review ends.
  * `hold`: something is in front of the map (a battle); the game's cards wait for it to go rather than cover it.
- * The card casts what it does: a flash, and beams to what it changes (useCardCasts).
+ * The card flashes as it casts what it does (useCardCasts); once it has hit the map, it steps aside, smaller,
+ * out of the way of what it hit, for the rest of its time.
  */
 export function PlayedCard({
   game,
@@ -70,6 +72,14 @@ export function PlayedCard({
   const seen = useRef(game.log.at(-1)?.id ?? 0);
   const jumped = useRef(jumps);
   const [queue, setQueue] = useState<LogEntry[]>([]);
+  // Cards shown ahead of their play (an AI's, see aim.ts): not shown again when played.
+  const ahead = useRef(new Set<number>());
+  const said = useSaid();
+  useEffect(() => {
+    if (said?.kind !== 'show' || ahead.current.has(said.entry.id)) return;
+    ahead.current.add(said.entry.id);
+    setQueue((q) => [...q, said.entry]);
+  }, [said]);
   useEffect(() => {
     const last = game.log.at(-1)?.id ?? 0;
     // An undo takes entries back; a playback jump skips over them.
@@ -81,34 +91,34 @@ export function PlayedCard({
     const fresh = game.log.filter((e) => e.id > seen.current);
     seen.current = last;
     // A start-of-turn bonus is news only the first turn it comes (Science Survey, every turn).
-    const played = fresh.filter((e) => e.card && e.player !== undefined && !mine(e.player) && !repeatsLastTurn(game.log, e));
+    const played = fresh.filter(
+      (e) => e.card && e.player !== undefined && !mine(e.player) && !ahead.current.has(e.id) && !repeatsLastTurn(game.log, e),
+    );
     if (played.length) setQueue((q) => [...q, ...played]);
   }, [game, mine, jumps]);
 
   const reviewed = review?.find((e) => e.card && e.player !== undefined);
   const shown = review ? reviewed : hold ? undefined : queue[0];
-  const art = useRef<HTMLDivElement>(null);
-  const { beams, flash, spent } = useCardCasts(game, mine, review ? undefined : shown, art, jumps);
+  const { flash, aside } = useCardCasts(game, mine, review ? undefined : shown, jumps);
   useEffect(() => {
     if (!shown || review) return;
     const t = window.setTimeout(() => setQueue((q) => q.slice(1)), shownFor(shown));
     return () => window.clearTimeout(t);
   }, [shown, review]);
-  if (!shown) return beams || null;
+  if (!shown) return null;
   const player = game.players[shown.player!];
   const style = { '--pc': player.color, '--pc-ms': `${shownFor(shown)}ms` } as CSSProperties;
   return (
-    <>
-      <div className="played-card" key={`${review ? 'r' : 'l'}${shown.id}`} style={style} aria-hidden>
+    <div className={`played-card ${aside ? `aside-${aside}` : ''}`} key={`${review ? 'r' : 'l'}${shown.id}`} style={style} aria-hidden>
+      <div className="played-card-body">
         <small>
           {player.name} {shown.event === 'cardPlayed' ? 'plays' : shown.event === 'cardTaken' ? 'takes' : 'uses'}
         </small>
-        <div className={`played-card-art ${spent ? 'spent' : ''}`} ref={art}>
+        <div className="played-card-art">
           <CardArt id={shown.card!} size="md" />
           {flash > 0 && <i key={flash} className="played-card-cast" />}
         </div>
       </div>
-      {beams}
-    </>
+    </div>
   );
 }

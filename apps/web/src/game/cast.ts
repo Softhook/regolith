@@ -19,18 +19,23 @@ const LANDING = new Set<Pending['kind']>([
  * (see `gains`). Not a card taken: it flies from the market instead (CardFlight).
  */
 export function castOf(before: GameState, game: GameState): LogEntry | undefined {
-  const head = before.pending[0];
-  if (head && LANDING.has(head.kind) && 'player' in head) {
-    for (let i = before.log.length - 1; i >= 0; i--) {
-      const e = before.log[i];
-      if (e.turn || e.event === 'reinforcement') break;
-      if (e.event !== 'cardPlayed') continue;
-      if (e.player === head.player) return e;
-      break;
-    }
-  }
+  const landed = landingCard(before);
+  if (landed) return landed;
   const last = lastLogId(before);
   return game.log.find((e) => e.id > last && e.card && e.event !== 'cardTaken');
+}
+
+/** The Tactic `s` waits on to land (its target, its tunnels…): its log entry. */
+function landingCard(s: GameState): LogEntry | undefined {
+  const head = s.pending[0];
+  if (!head || !LANDING.has(head.kind) || !('player' in head)) return undefined;
+  for (let i = s.log.length - 1; i >= 0; i--) {
+    const e = s.log[i];
+    if (e.turn || e.event === 'reinforcement') break;
+    if (e.event !== 'cardPlayed') continue;
+    return e.player === head.player ? e : undefined;
+  }
+  return undefined;
 }
 
 /** Whether the game waits for a Tactic to land (its target, its tunnels…): until then the card has done nothing. */

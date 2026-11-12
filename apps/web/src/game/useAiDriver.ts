@@ -2,7 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import { actor, canRespondToCombat, type CombatPending, type GameState, type PlayerId } from '@regolith/engine';
 import { combatStage } from '@regolith/online';
 import { aiLevelOf, combatResponse, think } from './aiClient';
+import { ASIDE_MS, aimCard, heraldOf, READ_MS, showCard } from './aim';
 import { landingNext } from './cast';
+import { reducedMotion } from './useMediaQuery';
 import { shotWait } from './strike';
 import type { Dispatch } from './useGame';
 
@@ -88,7 +90,18 @@ export function useAiDriver(game: GameState, dispatch: Dispatch, onError: (text:
       if (error) onError(error);
       if (!a) return;
       const wait = Math.max(0, aiDelay(game) - (performance.now() - started));
-      timer = window.setTimeout(() => dispatch(a), wait);
+      timer = window.setTimeout(() => {
+        // A card doing something on the map: it is shown first (if new) and read, then steps aside, out of
+        // the way of the effect, and only then is it played (aim.ts).
+        const h = reducedMotion() ? undefined : heraldOf(game, a);
+        if (!h) return void dispatch(a);
+        const land = () => {
+          if (!aimCard(game, h)) return void dispatch(a);
+          timer = window.setTimeout(() => dispatch(a), ASIDE_MS);
+        };
+        if (h.fresh && showCard(game, h)) timer = window.setTimeout(land, READ_MS);
+        else land();
+      }, wait);
     });
     return () => {
       cancelled = true;
