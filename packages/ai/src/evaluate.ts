@@ -7,6 +7,7 @@ import {
   cellOf,
   claimCheck,
   distance,
+  dropTargets,
   grid,
   hasSkill,
   hooksOf,
@@ -84,6 +85,8 @@ interface Ctx {
   /** The mechs on the map by board cell index, and by player. */
   at: (Die | undefined)[];
   byPlayer: Die[][];
+  /** Spaces each player's mechs could ever get to (walled), by player, worked out when first needed. */
+  areas: (Uint8Array | undefined)[];
 }
 
 /**
@@ -146,7 +149,7 @@ function context(s: GameState, mover: PlayerId): Ctx {
     const loss = MECH_ON_BOARD - MECH_IN_SALVAGE_YARD + powerStep(pl.power - 1) + powerGain(attacker);
     exposure[d.owner] += k * loss * (d.owner === mover ? 0.3 : 0.75);
   }
-  return { s, mover, reach, kill, exposure, at, byPlayer };
+  return { s, mover, reach, kill, exposure, at, byPlayer, areas: [] };
 }
 
 /** Value lost by dropping from `to + 1` to `to` power. */
@@ -243,7 +246,8 @@ function clearing(ctx: Ctx, p: PlayerId, blockers: Die[], perimeter: Die[]): { o
       odds *= best;
       actions += 1;
     } else {
-      odds *= UNREACHED_BLOCKER;
+      // With PLANNING.sealed, a blocker walled off from all my mechs for good is never cleared.
+      odds *= PLANNING.sealed && !areaOf(ctx, p)[index(b)] ? 0 : UNREACHED_BLOCKER;
       actions += 2;
     }
   }
@@ -274,8 +278,14 @@ function objectivePotential(ctx: Ctx, p: PlayerId, objective: Objective): number
   // The others move first: any perimeter mech they destroy breaks the sum.
   const safe = () => check.mechs.reduce((a, d) => a * (1 - (ctx.kill.get(d.id) ?? 0)), 1);
   const clear = clearing(ctx, p, perimeterBlockers(s, p, objective), check.mechs);
+  // With PLANNING.sealed, a blocker none of my mechs can ever get to (clearing's odds 0) shuts the objective for
+  // good: no presence or progress either, or Research to a Discovery (the way out) would score below sitting still.
+  if (PLANNING.sealed && clear.odds === 0) return 0;
   if (check.blocked) {
-    const value = CUBE * (PROGRESS[2 + clear.actions] ?? 0) * clear.odds;
+    // The perimeter makes the sum, so it counts as progress like one short of it does (with PLANNING.sealed),
+    // or reaching the sum with a blocker there (Science's Research) would score below falling short of it.
+    const progress = PLANNING.sealed ? PERIMETER_PROGRESS : 0;
+    const value = CUBE * ((PROGRESS[2 + clear.actions] ?? 0) * clear.odds + progress);
     return mover ? value : value * (0.35 + 0.55 * safe());
   }
 
@@ -361,8 +371,11 @@ function objectivePotential(ctx: Ctx, p: PlayerId, objective: Objective): number
   return mover ? value : value * 0.8;
 }
 
-/** Whether planning counts barriers (stepsTo) and keeps heading for half-filled perimeters. Mutable for the self-play tests. */
-export const PLANNING = { walls: true };
+/**
+ * Whether planning counts barriers (stepsTo) and keeps heading for half-filled perimeters (walls), and whether it
+ * writes off objectives behind blockers walled off for good (sealed). Mutable for the self-play tests.
+ */
+export const PLANNING = { walls: true, sealed: true };
 
 /** stepsTo's results, by board, then by where the barriers and tunnels are, then by objective id. */
 const STEPS = new WeakMap<object, Map<string, Int16Array[]>>();
@@ -403,6 +416,40 @@ function stepsTo(s: GameState, objective: Objective): Int16Array {
     }
   }
   return (fields[objective.id] = steps);
+}
+
+/**
+ * Every space player p's mechs could ever get to: a flood fill from their mechs and drop spaces, walled by
+ * barriers, objectives and the board's edge, through Ice Tunnels. Mechs don't wall: they move or are destroyed.
+ */
+function areaOf(ctx: Ctx, p: PlayerId): Uint8Array {
+  const cached = ctx.areas[p];
+  if (cached) return cached;
+  const { s } = ctx;
+  const g = grid(s.board);
+  const area = new Uint8Array(g.size);
+  const blocked = new Uint8Array(g.size);
+  for (const b of s.barriers ?? []) blocked[b.r * g.cols + b.c] = 1;
+  const partner = new Map<number, number>();
+  for (const [a, b] of tunnelPairs(s).map((q) => q.map((c) => c.r * g.cols + c.c))) partner.set(a, b).set(b, a);
+  const queue: number[] = [];
+  const add = (i: number) => {
+    if (area[i] || !g.space[i] || blocked[i]) return;
+    area[i] = 1;
+    queue.push(i);
+  };
+  for (const d of ctx.byPlayer[p]) {
+    const c = cellOf(d)!;
+    add(c.r * g.cols + c.c);
+  }
+  for (const c of dropTargets(s, p)) add(c.r * g.cols + c.c);
+  for (let head = 0; head < queue.length; head++) {
+    const cur = queue[head];
+    for (const nb of g.ortho[cur]) add(nb);
+    const through = partner.get(cur);
+    if (through !== undefined) add(through);
+  }
+  return (ctx.areas[p] = area);
 }
 
 /** Player p's own value, without the rivals', scored as if p moves next (scripts/interaction.ts). */

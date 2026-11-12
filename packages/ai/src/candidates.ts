@@ -55,8 +55,19 @@ export function candidates(s: GameState, opts?: { includeCarry?: boolean }): Act
     const ranked = new Map(all.map((a) => [a, rank(a)]));
     all.sort((a, b) => ranked.get(b)! - ranked.get(a)!);
   }
-  const options = nearestAttacks(all);
+  const options = nearestAttacks(all).filter((a) => !idleCarry(s, a));
   return s.turn.actionsLeft > 0 ? options.filter((a) => a.type !== 'strategicPlanPlay') : options;
+}
+
+/**
+ * A Behemoth carry that flies out and back and sets its passenger down where it was: it changes nothing but
+ * the spent ability, so the search would only waste its budget on it (and a tie could pick it over ending the turn).
+ */
+function idleCarry(s: GameState, a: Action): boolean {
+  if (a.type !== 'carry') return false;
+  const from = cellOf(die(s, a.die));
+  const at = cellOf(die(s, a.passenger));
+  return !!from && !!at && same(from, a.to) && same(at, a.setDown);
 }
 
 /**
