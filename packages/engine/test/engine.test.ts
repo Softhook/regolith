@@ -52,12 +52,12 @@ describe('setup', () => {
 });
 
 describe('movement', () => {
-  it('moves across sides up to the mech value, blocked by objectives and mechs', () => {
+  it('moves across sides up to 3 spaces, blocked by objectives and mechs', () => {
     // From (0,5), past the start objective at (1,5), with an own mech on (0,6).
     const s = arrange(quickStart(), { p0d0: [0, 5, 2], p0d1: [0, 6, 3] });
     const opts = moveOptions(s, 'p0d0');
     const keys = [...opts.moves.keys()].sort();
-    expect(keys).toEqual(['1,4', '2,4'].sort());
+    expect(keys).toEqual(['1,4', '2,4', '2,5', '3,3', '3,4']);
   });
 
   it('finds attacks on adjacent enemies within range', () => {

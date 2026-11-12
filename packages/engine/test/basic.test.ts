@@ -239,18 +239,19 @@ describe('drop (p.5)', () => {
 describe('move (p.6)', () => {
   const dests = (s: GameState, id: string) => [...moveOptions(s, id).moves.keys()].sort();
 
-  it('moves across a hex’s sides up to the die number, turning as often as needed', () => {
-    const s = scenario({ p0d0: [8, 3, 2] });
+  it('moves across a hex’s sides up to 3 spaces (a 1 only 1), turning as often as needed', () => {
     const near = ['7,3', '7,4', '8,2', '8,4', '9,3'];
     const far = ['6,3', '7,2', '6,5', '7,5', '8,1', '9,1', '9,4', '10,2', '10,3'];
-    expect(dests(s, 'p0d0')).toEqual([...near, ...far].sort());
+    expect(dests(scenario({ p0d0: [8, 3, 1] }), 'p0d0')).toEqual(near.sort());
+    const s = scenario({ p0d0: [8, 3, 2] });
+    expect(dests(s, 'p0d0')).toEqual(expect.arrayContaining([...near, ...far]));
     expect(moveOptions(s, 'p0d0').moves.get('6,3')?.steps).toBe(2);
+    expect(Math.max(...[...moveOptions(s, 'p0d0').moves.values()].map((m) => m.steps))).toBe(3);
   });
 
   it('treats objectives as obstacles to move around', () => {
     // (1,4) → (1,6) is blocked by objective (1,5); the way around takes 3 steps.
-    expect(dests(scenario({ p0d0: [1, 4, 2] }, {}), 'p0d0')).not.toContain('1,6');
-    expect(dests(scenario({ p0d0: [1, 4, 3] }, {}), 'p0d0')).toContain('1,6');
+    expect(moveOptions(scenario({ p0d0: [1, 4, 2] }, {}), 'p0d0').moves.get('1,6')?.steps).toBe(3);
   });
 
   it('cannot pass through or land on mechs, friendly or enemy', () => {
@@ -407,10 +408,11 @@ describe('mech abilities (p.8)', () => {
     expect(() => apply(s, { type: 'freeAttack', die: 'p0d0', target: 'p1d0' })).toThrow(/adjacent/);
   });
 
-  it('2 Behemoth — Carry & Move: carry a mech from a surrounding space, move 1–2, drop it in a surrounding space', () => {
+  it('2 Behemoth — Carry & Move: carry a mech from a surrounding space, move 1–3, drop it in a surrounding space', () => {
     const base = scenario({ p0d0: [7, 3, 2], p0d1: [7, 2, 5] });
     const carry = (to: Cell, setDown: Cell): Action => ({ type: 'carry', die: 'p0d0', passenger: 'p0d1', to, setDown });
-    expect(() => apply(base, carry({ r: 7, c: 6 }, { r: 7, c: 5 }))).toThrow(/Invalid carry/); // 3 spaces
+    expect(() => apply(base, carry({ r: 7, c: 7 }, { r: 7, c: 6 }))).toThrow(/Invalid carry/); // 4 spaces
+    expect(apply(base, carry({ r: 7, c: 6 }, { r: 7, c: 5 })).phase).toBe('play'); // 3 spaces
     expect(() => apply(base, carry({ r: 7, c: 5 }, { r: 9, c: 5 }))).toThrow(/Invalid carry/); // too far to set down
     let s = apply(base, carry({ r: 7, c: 5 }, { r: 7, c: 6 }));
     expect(loc(s, 'p0d0')).toEqual(board(7, 5));

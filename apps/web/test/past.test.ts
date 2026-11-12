@@ -18,8 +18,8 @@ function people(): GameState {
 
 describe('past', () => {
   it('rebuilds a whole game from its start and moves, kept to what the log can show', () => {
-    // Long enough (274 entries) for the log to drop its oldest.
-    const opts = { mode: 'regolith', players: 4, seed: 4, aiSeed: 4 } as const;
+    // Long enough (345 actions) for the log to drop its oldest.
+    const opts = { mode: 'regolith', players: 4, seed: 6, aiSeed: 6 } as const;
     const { actions } = playAiGame(opts);
     let past = begin(createGame({ players: players(4), seed: opts.seed, mode: opts.mode }));
     for (const a of actions) past = play(past, a);

@@ -115,12 +115,17 @@ export function canGainResearch(state: GameState, player: PlayerId): boolean {
 // ---------------------------------------------------------------------------
 // Movement
 
-/** The most a mech's die value counts for movement; skill bonuses add to it (ruling 2026-10-08, PROTOTYPING.md §2). */
+/** How far a mech moves: the 1 moves 1, every other mech MAX_MOVEMENT (ruling 2026-11-12, from 2026-10-08's cap of 3, PROTOTYPING.md §2). */
 export const MAX_MOVEMENT = 3;
 
-/** The die value counts up to MAX_MOVEMENT; skill bonuses add to that. */
+/** A mech's movement before skills: 1 for the 1, MAX_MOVEMENT for the rest (the 2 too, since 2026-11-12). */
+export function baseMovement(value: number): number {
+  return value === 1 ? 1 : MAX_MOVEMENT;
+}
+
+/** baseMovement, plus skill bonuses. */
 export function movementRange(state: GameState, d: Die): number {
-  const base = Math.min(MAX_MOVEMENT, d.value);
+  const base = baseMovement(d.value);
   return base + skillRules(state, d.owner).reduce((n, r) => n + (r.movement ?? 0), 0);
 }
 

@@ -131,7 +131,6 @@ body.rb-standalone { margin: 0; padding: 24px 12px; background: #e8ebf3; }
 .mn-scale-dice small { display: block; font-size: 11px; margin-top: 2px; }
 .mn-scale-bar { font: 700 11px Inter, sans-serif; text-transform: uppercase; letter-spacing: .08em; padding: 3px 10px; border-radius: 999px; }
 .mn-strong { background: linear-gradient(90deg, var(--mn-you), transparent 85%); color: var(--mn-ink); }
-.mn-fast { background: linear-gradient(270deg, var(--mn-you), transparent 85%); text-align: right; color: var(--mn-ink); }
 /* Each mech's ability: an even grid of cards, the mech's key above what its ability does. */
 .mn-abilities { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 12px 0; }
 .mn-ability-card { display: grid; grid-template-rows: auto 1fr; justify-items: center; gap: 8px; padding: 12px 14px; border-radius: 12px; background: var(--mn-panel); text-align: center; break-inside: avoid; }

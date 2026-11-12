@@ -292,18 +292,18 @@ const WALK = [HERE, at(0, 1), at(0, 2), at(0, 3)];
 const REACH = picture(
   [
     { hold: 0, say: 'A mech moves **one space** at a time…' },
-    { hold: 0, say: '…up to its **number**: this 2 goes **2**. The whole move is **1 action**.' },
-    { hold: 0, say: 'But **never more than 3**: a 5 or a 6 goes 3.' },
+    { hold: 0, say: '…up to **3** spaces: this 2 goes 3. The whole move is **1 action**.' },
+    { hold: 0, say: 'Only the **1** is slow: it goes **1**.' },
     ...under('Pick a space and it walks there. Each mech moves **once** a turn.', [900, 900, 1500]),
   ],
   (s) => {
-    // A 2 shows a mech's number; a 5, the cap of 3, and then it walks along WALK, one space a step.
-    const v = s < 2 ? 2 : 5;
+    // A 2 reaches 3 and a 1 reaches 1; then the 2 walks along WALK, one space a step.
+    const v = s === 2 ? 1 : 2;
     const walked = Math.max(0, s - 2);
     return (
-      <Diagram cells={FIELD} scale={1.9} label="A 2 reaches 2 spaces; a 5 reaches 3, never more.">
+      <Diagram cells={FIELD} scale={1.9} label="A 2 reaches 3 spaces; a 1 reaches only 1.">
         <Glow cells={FIELD} tone="plain" />
-        {s < 3 && <Dots cells={within(s + 1).filter((p) => p[0] || p[1])} />}
+        {s < 3 && <Dots cells={within(s === 1 ? 3 : 1).filter((p) => p[0] || p[1])} />}
         {walked > 0 && (
           <>
             <Mech at={HERE} v={v} ghost />

@@ -49,7 +49,9 @@ describe.each(LEVELS)('level %i', (level) => {
     expect(s.board.objectives[1].cubes).toContain(0);
   });
 
-  it('attacks a perimeter that would give the opponent their last cube', () => {
+  // Not level 1: it has no idea of the opponent's next turn (greedy.ts), so it attacked here only while nothing
+  // else scored higher; since the 2 moves 3 (2026-11-12), a move to another perimeter does.
+  it.skipIf(level === 1)('attacks a perimeter that would give the opponent their last cube', () => {
     // Player 1 has one cube left, and 3 + 4 around objective 5 (a 7).
     const cubes = { 0: [0], 1: [1], 6: [1], 7: [1], 8: [1] };
     const start = scenario({ p0d0: [4, 5, 2], p0d1: [12, 2, 1], p1d0: [4, 7, 3], p1d1: [6, 7, 4] }, cubes);

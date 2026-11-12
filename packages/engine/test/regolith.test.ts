@@ -1,5 +1,5 @@
 /**
- * Regolith mode (docs/regolith/PROTOTYPING.md; rulesets.ts, mechs.ts, abilities/): Community Edition with movement capped at 3,
+ * Regolith mode (docs/regolith/PROTOTYPING.md; rulesets.ts, mechs.ts, abilities/): Community Edition with every mech moving 3 (the 1 only 1),
  * zones of control (every mech pickets the spaces around it), a new ability for the 5 (Shoot), which
  * replaces Manoeuvre, a 6 that fires barriers, contested perimeters, and over-claim (a perimeter of 12) when
  * REGOLITH_OVER_CLAIM is on. The first block checks the two modes, Basic and Regolith.
@@ -30,6 +30,7 @@ import {
   moveIndexes,
   movePath,
   moveOptions,
+  baseMovement,
   mulberry32,
   objectiveFreeSlots,
   rulesOf,
@@ -179,14 +180,14 @@ describe('Regolith mode', () => {
 });
 
 describe('movement cap', () => {
-  it('caps the die value at 3', () => {
-    for (const value of [3, 4, 5, 6]) expect(farthest(scenario({ p0d0: [7, 2, value] }), 'p0d0'), `a ${value}`).toBe(3);
-    expect(farthest(scenario({ p0d0: [7, 2, 2] }), 'p0d0')).toBe(2);
+  it('moves every mech 3, the 1 only 1 (ruling 2026-11-12)', () => {
+    for (const value of [2, 3, 4, 5, 6]) expect(farthest(scenario({ p0d0: [7, 2, value] }), 'p0d0'), `a ${value}`).toBe(3);
+    expect(farthest(scenario({ p0d0: [7, 2, 1] }), 'p0d0')).toBe(1);
   });
 
   it('applies before skill bonuses: a 6 with Tune Up moves 4 (ruling 2026-10-08)', () => {
     expect(farthest(scenario({ p0d0: [7, 2, 6] }, ['r-tune-up']), 'p0d0')).toBe(4);
-    expect(farthest(scenario({ p0d0: [7, 2, 2] }, ['r-tune-up']), 'p0d0')).toBe(3);
+    expect(farthest(scenario({ p0d0: [7, 2, 1] }, ['r-tune-up']), 'p0d0')).toBe(2);
   });
 });
 
@@ -225,7 +226,7 @@ describe('zones of control (Picket on every mech)', () => {
       'p1d0',
       'p1d1',
     ]);
-    expect(moveOptions(scenario({ p0d0: [7, 2, 2], p1d0: [7, 5, 6] }), 'p0d0').attacks.size).toBe(0);
+    expect(moveOptions(scenario({ p0d0: [7, 2, 1], p1d0: [7, 4, 6] }), 'p0d0').attacks.size).toBe(0);
   });
 
   it('doesn’t stop a player with Sneak, who may also pass through the mech', () => {
@@ -294,7 +295,7 @@ function referenceReach(s: GameState, id: string) {
   const me = at.find((d) => d?.id === id)!;
   const from = at.indexOf(me);
   const zone = new Set(at.flatMap((d, i) => (d && d.owner !== me.owner ? g.ortho[i] : [])));
-  const range = Math.min(3, me.value);
+  const range = baseMovement(me.value);
   const steps = new Map([[from, 0]]);
   const queue = [from];
   const attacks = new Set<string>();

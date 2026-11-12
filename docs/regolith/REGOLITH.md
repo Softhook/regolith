@@ -32,7 +32,7 @@ there: Regolith is a rename and a new identity, not new rules.
 | Lobby | "Regolith", with Basic as its cards-free form |
 | Maps | Hex maps only, each on Phobos, Deimos or Mars |
 | Tiles | Ground is the game's look |
-| Rules | Movement cap 3, zones of control, Shoot, contested orbit and deploy, the Wisp's Barrier; still changing |
+| Rules | Every mech moves 3 (the 1 moves 1), zones of control, Shoot, contested orbit and deploy, the Wisp's Barrier; still changing |
 | Cards | Regolith's own Skills and Tactics, starting as copies of Community's (no Ingenious: hexes have no corners) |
 | Card art | A screenprint card renderer and its own scenes |
 | Words | Mech, objective, control, intel (Vocabulary board) |

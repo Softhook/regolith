@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { RULESETS } from '@regolith/engine';
+import { baseMovement, RULESETS } from '@regolith/engine';
 import { CubeIcon, Diagram, DieIcon, ObjectiveMarks, Tile, cubeSpot, flower, type At, type Who } from './diagrams';
 import { AbilityFigure } from './abilities';
 
@@ -10,8 +10,6 @@ import { AbilityFigure } from './abilities';
  */
 
 const MECHS = RULESETS.regolith.mechs;
-/** How far a mech's number takes it: never more than 3 spaces. */
-const MOVE_CAP = 3;
 
 /**
  * "This die is this mech": the die face as it looks on the map (pips), equals the mech's drawing, with its name.
@@ -205,7 +203,7 @@ const ABILITY_LINE: Record<number, string> = {
  * can be compared.
  */
 export function MechProfile({ v, part }: { v: number; part: 'who' | 'ability' }) {
-  const steps = Math.min(v, MOVE_CAP);
+  const steps = baseMovement(v);
   return (
     <div className="mn-profile">
       {part === 'who' ? (

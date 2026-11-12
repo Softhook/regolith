@@ -103,7 +103,8 @@ Prototype ship powers use the same pattern: `ShipHooks` (§9).
 ## 2. Worked example: ships move at most 3
 
 *This is how the cap was first planned. It is now built: `MAX_MOVEMENT` in
-[queries.ts](../../packages/engine/src/queries.ts), read by `movementRange`. §9 details where
+[queries.ts](../../packages/engine/src/queries.ts), read by `movementRange`. Since 2026-11-12 the 2 moves 3 as
+well (`baseMovement`: the 1 moves 1, every other mech 3), so the rule reads simply. §9 details where
 the mode's code lives today.*
 
 A ship's movement is calculated in one place:

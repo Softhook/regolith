@@ -112,7 +112,7 @@ spaces are its perimeter.
 
 | Action | Cost | |
 |---|---|---|
-| Move | 1 | Up to the mech's number of spaces, **at most 3**. Turning is free; nothing is passed through. |
+| Move | 1 | Up to **3** spaces; a 1 only **1** (ruling 2026-11-12: the 2 moved 2 before). Turning is free; nothing is passed through. |
 | Attack | 1 | A move whose last step goes into an enemy mech; it needs the movement to get there. |
 | Claim | 2 | Your mechs on the perimeter sum to **exactly** the objective's number: place a cube on it. |
 | Drop | 1 | A mech from your salvage yard, as rolled, onto an empty perimeter space of an objective holding your cube. |

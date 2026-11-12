@@ -1,6 +1,6 @@
 import type { CSSProperties, MouseEvent, ReactNode } from 'react';
 import type { CardDeck } from '@regolith/art';
-import { MODES, RULESETS } from '@regolith/engine';
+import { baseMovement, MAX_MOVEMENT, MODES, RULESETS } from '@regolith/engine';
 import { GAME_NAME } from '../appId';
 import { ActionHex, AtomicIcon } from '../components/Card';
 import { PLAYER_COLORS } from '../theme';
@@ -39,8 +39,6 @@ import { MapList } from './maps';
 
 const REGOLITH = RULESETS.regolith;
 const MECHS = REGOLITH.mechs;
-/** How far a mech's number takes it: never more than 3 spaces. */
-const MOVE_CAP = 3;
 
 /** The manual's short form of each mech's ability; the game's tooltips keep the full text from RULESETS. */
 const ABILITY_TEXT: Record<number, string> = {
@@ -197,10 +195,10 @@ function MoveFigure() {
   const spaces = [...flower(HERE), ...flower(RIGHT)];
   const from: At = [1, -1];
   const friend: At = [-1, 1];
-  const reach = reachable(spaces, from, MOVE_CAP, [HERE, RIGHT, friend]);
+  const reach = reachable(spaces, from, MAX_MOVEMENT, [HERE, RIGHT, friend]);
   const route: At[] = [from, [1, 0], [0, 1], [0, 2]];
   return (
-    <Diagram cells={spaces} label="A 5 mech moves at most 3 spaces; the dots show where it can go.">
+    <Diagram cells={spaces} label="A 5 mech moves up to 3 spaces; the dots show where it can go.">
       <Tile id="p9-01" at={HERE} />
       <Tile id="p8-01" at={RIGHT} />
       <ObjectiveMarks at={HERE} n={9} />
@@ -455,7 +453,7 @@ export function Manual({ dark, drawMapsWhenNear }: { dark?: boolean; drawMapsWhe
         <h2>Your mechs</h2>
         <p>
           Each die is a mech, and its number tells you <b>how strong it is in a fight</b>. <b>Lower numbers win fights.</b> It also shows
-          how far it moves, but no mech moves more than {MOVE_CAP} spaces.
+          how far it moves: the 1 moves 1 space, every other mech up to {MAX_MOVEMENT}.
         </p>
         <div className="mn-scale">
           <div className="mn-scale-bar mn-strong">◀ stronger in a fight</div>
@@ -463,11 +461,10 @@ export function Manual({ dark, drawMapsWhenNear }: { dark?: boolean; drawMapsWhe
             {[1, 2, 3, 4, 5, 6].map((v) => (
               <div key={v}>
                 <DieIcon v={v} size={34} />
-                <small>moves {Math.min(v, MOVE_CAP)}</small>
+                <small>moves {baseMovement(v)}</small>
               </div>
             ))}
           </div>
-          <div className="mn-scale-bar mn-fast">faster ▶</div>
         </div>
         <p>Each mech also has an ability that can be used once per turn:</p>
         <div className="mn-abilities">
@@ -557,7 +554,7 @@ export function Manual({ dark, drawMapsWhenNear }: { dark?: boolean; drawMapsWhe
         <div className="mn-actions">
           <Action name="Move" cost={1} wide figure={<MoveFigure />}>
             <p>
-              Move a mech <b>up to its number</b> of spaces, <b>at most {MOVE_CAP}</b>, one step at a time out of a side of its space.
+              Move a mech <b>up to {MAX_MOVEMENT}</b> spaces (a 1 only <b>1</b>), one step at a time out of a side of its space.
             </p>
             <p className="mn-legend">The dots show where this 5 can go.</p>
           </Action>
