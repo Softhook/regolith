@@ -36,6 +36,8 @@ const COLUMN = (S * Math.sqrt(3)) / 2;
 const HALF_WIDTH = S / Math.sqrt(3);
 /** SVG units per printed millimetre: the tile art and board overlays use the printed geometry. */
 const MM = S / TILE.cell;
+/** A map cube's corner as a fraction of its side: the printed pad's (art CUBE_PAD), a touch squarer than a die's. */
+const CUBE_CORNER = CUBE_PAD.corner / CUBE_PAD.size;
 /** The manual's ground: Mars. */
 const WORLD: World = 'mars';
 
@@ -202,7 +204,7 @@ function Marks({ cx, cy, n, cubes, mm }: { cx: number; cy: number; n: number; cu
       <CubeWells cx={cx} cy={cy} mm={mm} capacity={n - 6} cubes={cubes.length} />
       {cubes.map((w, i) => (
         <g key={i} className="mn-die">
-          <DieBody x={cx + pads[i].x * mm} y={cy + pads[i].y * mm} size={size} face={COLOURS[w].face} />
+          <DieBody x={cx + pads[i].x * mm} y={cy + pads[i].y * mm} size={size} face={COLOURS[w].face} corner={CUBE_CORNER} />
         </g>
       ))}
     </>
@@ -256,11 +258,11 @@ export function Barrier({ at }: { at: At }) {
 /** A pip's position on a -1..1 square, from the 3D dice's 3 × 3 grid so the faces match the game's. */
 const pipAt = (i: number) => [(i % 3) - 1, Math.floor(i / 3) - 1] as const;
 
-/** A die's body centred on (x, y), without its pips (a cube is just this), shaded like the game's 3D dice. */
-function DieBody({ x, y, size, face }: { x: number; y: number; size: number; face: string }) {
+/** A die's body centred on (x, y), without its pips (a cube is just this, with the pad's corner), shaded like the game's 3D dice. */
+function DieBody({ x, y, size, face, corner = DIE_CORNER }: { x: number; y: number; size: number; face: string; corner?: number }) {
   const defs = useContext(Defs);
   const h = size / 2;
-  const rx = size * DIE_CORNER;
+  const rx = size * corner;
   return (
     <>
       {[face, `url(#${defs}-dk)`, `url(#${defs}-hi)`].map((fill) => (
@@ -354,11 +356,19 @@ export function DieIcon({
   );
 }
 
-/** A cube as the board shows it: a rounded square in the player's colour; `empty` is a free cube space. */
+/** A cube as the board shows it, on or off the map: the same shaded body the objectives draw (Marks); `empty` is a cube still to place. */
 export function CubeIcon({ empty, size = 22 }: { empty?: boolean; size?: number }) {
+  const id = useSvgId();
   return (
     <svg className={empty ? 'mn-cube-icon empty' : 'mn-cube-icon'} width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
-      <rect x={3} y={3} width={18} height={18} rx={4} fill={empty ? 'none' : COLOURS.you.face} />
+      <DieDefs id={id} />
+      <Defs.Provider value={id}>
+        {empty ? (
+          <rect x={3} y={3} width={18} height={18} rx={18 * CUBE_CORNER} fill="none" />
+        ) : (
+          <DieBody x={12} y={12} size={18} face={COLOURS.you.face} corner={CUBE_CORNER} />
+        )}
+      </Defs.Provider>
     </svg>
   );
 }

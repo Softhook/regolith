@@ -2387,7 +2387,7 @@ body:has(.sheet-layout) { overflow: hidden; }
 .demo-stat small { color: var(--muted); text-transform: uppercase; letter-spacing: .08em; font-size: 10px; }
 .demo-stat.track { width: 104px; }
 .demo-cubes, .demo-actions { display: flex; gap: 3px; }
-.demo-cubes i { width: 9px; height: 9px; border-radius: 2px; background: var(--pc); }
+.demo-cubes i { width: 10px; height: 10px; border-radius: 2.5px; border: 1.5px solid color-mix(in srgb, var(--pc) 60%, transparent); }
 .demo-actions i { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid var(--pc); transition: background .3s; }
 .demo-actions i.on { background: var(--pc); }
 

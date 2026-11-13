@@ -24,7 +24,6 @@ body.rb-standalone { margin: 0; padding: 24px 12px; background: #e8ebf3; }
   --mn-action: hsl(42 80% 52%);
   --mn-panel: #f1f4fb;
   --mn-panel-2: #e8ecf7;
-  --mn-cube-edge: rgba(10, 15, 30, .35);
   --mn-perimeter: #fff3d1;
   --mn-perimeter-edge: #e8b03a;
   --mn-ok: #1f9d63;
@@ -42,7 +41,6 @@ body.rb-standalone { margin: 0; padding: 24px 12px; background: #e8ebf3; }
   --mn-action: hsl(42 90% 62%);
   --mn-panel: rgba(255, 255, 255, 0.035);
   --mn-panel-2: rgba(255, 255, 255, 0.06);
-  --mn-cube-edge: #fff;
   --mn-perimeter: color-mix(in srgb, var(--gold) 8%, transparent);
   --mn-perimeter-edge: color-mix(in srgb, var(--gold) 70%, transparent);
   --mn-ok: var(--good);
@@ -100,9 +98,7 @@ body.rb-standalone { margin: 0; padding: 24px 12px; background: #e8ebf3; }
 .mn-yard { fill: var(--panel-solid); stroke: var(--line-2); }
 .mn-note { font: 700 7.5px Inter, sans-serif; fill: var(--text); opacity: .85; dominant-baseline: middle; letter-spacing: .06em; text-transform: uppercase; }
 .mn-die-icon, .mn-cube-icon, .mn-objective-icon, .mn-icon { display: inline-block; vertical-align: middle; flex: none; }
-.mn-cube-icon rect { stroke: var(--mn-cube-edge); stroke-width: 1.5; }
-.mn-cube-icon:not(.empty) { filter: drop-shadow(0 0 2px color-mix(in srgb, var(--mn-you) 55%, transparent)); }
-.mn-cube-icon.empty rect { stroke: var(--mn-muted); stroke-dasharray: 3 2.4; }
+.mn-cube-icon.empty rect { stroke: var(--mn-muted); stroke-width: 1.5; stroke-dasharray: 3 2.4; }
 .mn-objective-icon { overflow: visible; }
 
 /* ------------------------------------------------------------------ goal */
