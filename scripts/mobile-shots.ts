@@ -259,7 +259,9 @@ async function checkPopups(newPage: () => Promise<Page>, base: string, device: s
     await page.waitForSelector('.board', { timeout: 120000 });
     if (pop.name === 'rules') await page.locator('.topbar button', { hasText: 'Rules' }).evaluate((b: HTMLElement) => b.click());
     const box = page.locator(pop.box ?? '.overlay .modal, .overlay .combat-card').first();
-    if (!(await succeeds(box.waitFor({ timeout: 15000 })))) {
+    // The rules are a lazy chunk (the whole manual): on CI, the first window to open them waits for the cold dev
+    // server to transform it while every device loads at once.
+    if (!(await succeeds(box.waitFor({ timeout: pop.name === 'rules' ? 90000 : 15000 })))) {
       issues.push(`${pop.name}: never opened`);
       await page.context().close();
       continue;
