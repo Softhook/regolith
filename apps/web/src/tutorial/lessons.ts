@@ -49,19 +49,31 @@ const mechs: LessonDef = {
   ],
 };
 
-const map: LessonDef = {
-  id: 'map',
-  title: 'The map',
-  blurb: 'Spaces, objectives and cubes',
-  hud: ['cubes'],
+const objectives: LessonDef = {
+  id: 'objectives',
+  title: 'Objectives',
+  blurb: 'What they are, and how to claim them',
+  setup: {
+    you: [
+      [3, 2, 5],
+      [2, 2, 3],
+    ],
+  },
+  hud: ['actions', 'cubes'],
   beats: [
-    { picture: 'spaces' },
-    { picture: 'objective' },
     { picture: 'perimeter' },
+    { picture: 'objective' },
     { picture: 'home' },
     {
       say: 'The practice map: two homes, and the **Refinery**, an 8.',
       show: { objectives: { [HOME.you]: 'Your home', [HOME.foe]: 'Rival’s home', [REFINERY]: 'Refinery: an 8' } },
+    },
+    { picture: 'sum' },
+    {
+      say: 'On the board: the 3 joins the 5 to make 8, and we claim the Refinery.',
+      show: { objectives: { [REFINERY]: 'Needs 8' }, look: [you(0), you(1)] },
+      play: [move(you(1), 3, 3), { type: 'claim', objective: REFINERY }],
+      then: { objectives: { [REFINERY]: 'Our cube' } },
     },
   ],
 };
@@ -94,28 +106,6 @@ const moving: LessonDef = {
       say: 'On the board, the **dots** show where this 3 can go: around objectives and other mechs, never through. It walks to one.',
       play: [move(you(0), 4, 3)],
       show: { pick: you(0) },
-    },
-  ],
-};
-
-const claim: LessonDef = {
-  id: 'claim',
-  title: 'Claiming',
-  blurb: 'Make the numbers add up',
-  setup: {
-    you: [
-      [3, 2, 5],
-      [2, 2, 3],
-    ],
-  },
-  hud: ['actions', 'cubes'],
-  beats: [
-    { picture: 'sum' },
-    {
-      say: 'On the board: the 3 joins the 5 to make 8, and we claim the Refinery.',
-      show: { objectives: { [REFINERY]: 'Needs 8' }, look: [you(0), you(1)] },
-      play: [move(you(1), 3, 3), { type: 'claim', objective: REFINERY }],
-      then: { objectives: { [REFINERY]: 'Our cube' } },
     },
   ],
 };
@@ -180,7 +170,7 @@ const salvage: LessonDef = {
   beats: [{ picture: 'drop' }, { picture: 'refit' }],
 };
 
-const defs: LessonDef[] = [goal, mechs, map, turn, actions, moving, claim, fight, holding, takeover, salvage];
+const defs: LessonDef[] = [goal, mechs, objectives, turn, actions, moving, fight, holding, takeover, salvage];
 
 let built: Lesson[] | undefined;
 

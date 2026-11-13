@@ -113,22 +113,6 @@ const LINEUP = picture(
 
 // ------------------------------------------------------------------ the map
 
-const SPACES = picture(
-  [
-    { hold: 0, say: 'The map is made of **hexagon spaces**.' },
-    { hold: 0, say: 'A mech stands on a space.' },
-    { hold: 0, say: 'Each space holds **one mech**.' },
-  ],
-  (s) => (
-    <Diagram cells={flower(HERE)} scale={2.1} label="A map of hexagon spaces, with a mech on some of them.">
-      <Tile id="blank-01" at={HERE} />
-      <Glow cells={flower(HERE)} tone="plain" />
-      {s >= 1 && <Mech at={at(0, -1)} v={5} />}
-      {s >= 2 && <Mech at={at(0, 1)} v={3} />}
-    </Diagram>
-  ),
-);
-
 const OBJECTIVE = picture(
   [
     { hold: 0, say: 'An **objective** is a numbered building, from **7** to **10**.' },
@@ -656,7 +640,6 @@ const PICTURES = {
   ability5: ability(5),
   mech6: mech(6),
   ability6: ability(6),
-  spaces: SPACES,
   objective: OBJECTIVE,
   perimeter: PERIMETER,
   home: HOME,

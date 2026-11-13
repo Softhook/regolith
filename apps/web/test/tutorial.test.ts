@@ -8,11 +8,10 @@ describe('the learn-to-play lessons', () => {
     expect(all.map((l) => l.id)).toEqual([
       'goal',
       'mechs',
-      'map',
+      'objectives',
       'turn',
       'actions',
       'move',
-      'claim',
       'fight',
       'holding',
       'takeover',
@@ -29,7 +28,7 @@ describe('the learn-to-play lessons', () => {
 
   it('claim a cube, win a fight and take over where the lessons say', () => {
     const last = (id: string) => all.find((l) => l.id === id)!.frames.at(-1)!.game;
-    expect(last('claim').board.objectives[2].cubes).toEqual([0]);
+    expect(last('objectives').board.objectives[2].cubes).toEqual([0]);
     expect(last('fight').players[0].power).toBe(2);
     expect(last('takeover').board.objectives[2].cubes).toEqual([0]);
     expect(last('takeover').players[0].power).toBe(1);
