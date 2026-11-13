@@ -90,7 +90,7 @@ export function Market({
         <button type="button" className={`deck deck-${deck}`} title={deckTitle(deck)} onClick={() => setViewing(deck)}>
           {!list && <DeckBack cardId={(deck === 'skill' ? cardRules.skills : cardRules.tactics)[0].id} />}
           <span className="deck-label">{decks[deck].name}</span>
-          <span className="deck-count">{decks[deck].cards.length}</span>
+          {list && <span className="deck-count">{decks[deck].cards.length}</span>}
         </button>
         {rowCards.map(({ id, index, badge }) => (
           <CardView
@@ -217,7 +217,6 @@ export function Market({
           <CardView
             id={reinforcement.id}
             size="sm"
-            badge={`×${m.reinforcements}`}
             art={!list}
             onClick={
               canReinforce ? () => dispatch({ type: 'takeCard', deck: 'reinforcement', index: 0 }) : () => setViewingCard(reinforcement.id)

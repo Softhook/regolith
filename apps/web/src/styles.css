@@ -1267,6 +1267,9 @@ svg.zones polygon {
 }
 @media (hover: hover) { .market-card.clickable:not(.takeable):hover { transform: translateY(-3px); box-shadow: 0 10px 22px rgba(0,0,0,.45), 0 0 0 1px var(--cat); } }
 .market-refresh { align-self: center; max-width: 140px; font-size: 12px; white-space: normal; border-color: var(--line-2); color: var(--text); }
+/* One colour for the market's badges (Peek, ×n) whatever the card's category or deck: a dark orange, so their
+   white text reads (4.9:1; the category ambers gave about 2:1). */
+.market .qcard-badge { background: #b3560f; }
 .market .qcard-sub { display: none; } /* the name and rules text are what matter when choosing */
 .market-toggle {
   align-self: stretch; flex: none;
