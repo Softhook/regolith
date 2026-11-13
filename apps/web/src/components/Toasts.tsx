@@ -4,7 +4,7 @@ import type { Toast } from '../game/toasts';
 import { CardArt } from './CardViewer';
 import { useCardCasts } from './CardCast';
 import { repeatsLastTurn } from '../game/cast';
-import { useSaid } from '../game/aim';
+import { reportScreen, useSaid } from '../game/aim';
 
 /** The game's news. `now`: the screen shows an earlier position (looking back), so it says the news is of the game now. */
 export function Toasts({ toasts, game, now }: { toasts: Toast[]; game: GameState; now?: boolean }) {
@@ -75,8 +75,10 @@ export function PlayedCard({
   // Cards shown ahead of their play (an AI's, see aim.ts): not shown again when played.
   const ahead = useRef(new Set<number>());
   const said = useSaid();
+  // What was said before this mounted (another game's, or this one's before a return from the lobby) is old news.
+  const before = useRef(said);
   useEffect(() => {
-    if (said?.kind !== 'show' || ahead.current.has(said.entry.id)) return;
+    if (said === before.current || said?.kind !== 'show' || ahead.current.has(said.entry.id)) return;
     ahead.current.add(said.entry.id);
     setQueue((q) => [...q, said.entry]);
   }, [said]);
@@ -100,6 +102,12 @@ export function PlayedCard({
   const reviewed = review?.find((e) => e.card && e.player !== undefined);
   const shown = review ? reviewed : hold ? undefined : queue[0];
   const { flash, aside } = useCardCasts(game, mine, review ? undefined : shown, jumps);
+  // What is up and what waits, for an AI about to play a card to wait for it (aim.ts). Nothing is up while a review or
+  // a battle is in front.
+  const up = review || hold ? undefined : queue[0]?.id;
+  const queued = queue.map((e) => e.id).join();
+  useEffect(() => reportScreen(up, queued ? queued.split(',').map(Number) : []), [up, queued]);
+  useEffect(() => () => reportScreen(undefined, []), []);
   useEffect(() => {
     if (!shown || review) return;
     const t = window.setTimeout(() => setQueue((q) => q.slice(1)), shownFor(shown));

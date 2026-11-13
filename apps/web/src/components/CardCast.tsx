@@ -80,7 +80,9 @@ export function useCardCasts(game: GameState, mine: (p: PlayerId) => boolean, sh
 
   // Where it was said to land: it steps aside then, before it does.
   const said = useSaid();
-  const aim = said?.kind === 'aim' ? said : undefined;
+  // What was said before this mounted is old news (see PlayedCard).
+  const before = useRef(said);
+  const aim = said?.kind === 'aim' && said !== before.current ? said : undefined;
   const [aimed, setAimed] = useState<{ id: number; aside?: Aside }>();
   useEffect(() => {
     if (aim && aim.id === shownId && aimed?.id !== aim.id) setAimed({ id: aim.id, aside: asideFrom(now.current, aim.cells) });

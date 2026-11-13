@@ -128,8 +128,10 @@ function lane(name: 'card' | 'tile') {
 
   /** Runs the job `make` builds (decoding its bitmaps first) in the worker, a few at a time. */
   const inWorker = async (make: () => Promise<RasterJob>): Promise<Blob[]> => {
-    if (inFlight >= AT_ONCE) await new Promise<void>((resolve) => waiting.push(resolve));
-    inFlight++;
+    // A finished job hands its slot straight to the next waiting (it isn't let go and taken again), so a job asked for
+    // in between can't take it too and run one over AT_ONCE.
+    if (inFlight >= AT_ONCE || waiting.length) await new Promise<void>((resolve) => waiting.push(resolve));
+    else inFlight++;
     const id = ++nextJob;
     try {
       const w = start();
@@ -155,8 +157,9 @@ function lane(name: 'card' | 'tile') {
       if (worker && !(error instanceof Unmade)) drop(worker, error instanceof Error ? error.message : String(error));
       throw error;
     } finally {
-      inFlight--;
-      waiting.shift()?.();
+      const next = waiting.shift();
+      if (next) next();
+      else inFlight--;
     }
   };
 

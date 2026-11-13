@@ -62,11 +62,17 @@ type Said = { kind: 'show'; entry: LogEntry } | { kind: 'aim'; id: number; cells
 
 let current: Said | undefined;
 const listeners = new Set<() => void>();
-// What has been said already, by game and entry: each card is shown ahead and steps aside once.
+// What has been said already in the game being played (by its seed), by entry: each card is shown ahead and steps
+// aside once. Another game starts it afresh, so it holds one game's cards at most.
 const said = new Set<string>();
+let saidIn: unknown;
 
 function say(game: GameState, s: Said): boolean {
-  const key = `${game.seed}:${s.kind}:${s.kind === 'show' ? s.entry.id : s.id}`;
+  if (game.seed !== saidIn) {
+    said.clear();
+    saidIn = game.seed;
+  }
+  const key = `${s.kind}:${s.kind === 'show' ? s.entry.id : s.id}`;
   if (said.has(key)) return false;
   said.add(key);
   current = s;
@@ -86,3 +92,59 @@ const subscribe = (l: () => void) => {
 
 /** The last thing said. */
 export const useSaid = () => useSyncExternalStore(subscribe, () => current);
+
+/**
+ * The cards on screen (PlayedCard): the one up, since when, and those waiting behind it. The card an AI is about to
+ * play may wait there behind another (a Skill just taken stays up for seconds): its effect must wait for it too, or it
+ * plays on the map before the card is seen.
+ */
+interface Screen {
+  shown?: number;
+  since: number;
+  queued: readonly number[];
+}
+let screen: Screen = { since: 0, queued: [] };
+const watchers = new Set<() => void>();
+
+/** PlayedCard says what it shows (`shown`, undefined while nothing is or something is in front of the map) and what waits. */
+export function reportScreen(shown: number | undefined, queued: readonly number[]) {
+  screen = { shown, since: shown === screen.shown ? screen.since : performance.now(), queued };
+  [...watchers].forEach((w) => w());
+}
+
+/** Whether card entry `id` is up or waiting to be. */
+export const onScreen = (id: number) => screen.shown === id || screen.queued.includes(id);
+
+/** The longest an AI waits for its card to come up: the screen may not be showing cards at all. */
+export const WAIT_MS = 12_000;
+
+/**
+ * Calls `done` once card entry `id` has been up READ_MS (at once if it already has), or once it is no longer coming
+ * (seen waiting or up, then gone), or after WAIT_MS. A card just shown ahead may not be queued yet: it counts as
+ * coming until the screen has said otherwise once it was there. Returns a cancel.
+ */
+export function untilRead(id: number, done: () => void): () => void {
+  let seen = false;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const finish = () => {
+    stop();
+    done();
+  };
+  const check = () => {
+    if (screen.shown === id) {
+      watchers.delete(check);
+      clearTimeout(timer);
+      timer = setTimeout(finish, Math.max(0, Math.ceil(READ_MS - (performance.now() - screen.since))));
+    } else if (onScreen(id)) seen = true;
+    else if (seen) finish();
+  };
+  const stop = () => {
+    watchers.delete(check);
+    clearTimeout(timer);
+    clearTimeout(cap);
+  };
+  const cap = setTimeout(finish, WAIT_MS);
+  watchers.add(check);
+  check();
+  return stop;
+}

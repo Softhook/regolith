@@ -18,7 +18,7 @@ no gaps, and the objectives of touching tiles are 3 spaces apart.
 | Rule | On the hex board |
 |---|---|
 | Next to / adjacent (moving, attacking, dropping, the 1's free attack) | the 6 hexes sharing a side |
-| Movement | up to the die number (capped at 3), hex to hex |
+| Movement | up to 3 hexes (the 1 only 1), hex to hex |
 | Distance | hexes |
 | Claim | your mechs in the objective's 6 perimeter positions add up exactly to its number |
 | 2 Tactician: carry a nearby mech and drop it next to you | the 6 touching hexes |

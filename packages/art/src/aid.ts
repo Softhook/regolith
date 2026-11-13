@@ -56,7 +56,7 @@ const MECHS: { value: number; text: [string, string] }[] = [
 const ACTIONS: { name: string; cost: number; text: string }[] = [
   { name: 'Claim', cost: 2, text: 'Your perimeter mechs sum to exactly the objective' },
   { name: 'Drop', cost: 1, text: 'Salvage mech onto the perimeter of your cube' },
-  { name: 'Move / Attack', cost: 1, text: 'Up to its value, at most 3; attack ends it' },
+  { name: 'Move / Attack', cost: 1, text: 'Up to 3 (a 1 only 1); attack ends it' },
   { name: 'Refit', cost: 1, text: 'Re-roll to a value not seen this turn' },
   { name: 'Research', cost: 1, text: '+1 research' },
 ];

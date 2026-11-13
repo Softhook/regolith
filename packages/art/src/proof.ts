@@ -146,7 +146,7 @@ export function pressTestSvg(o: PressTestOptions = {}): string {
     let ty = panelY + 3;
     for (const s of sizes) {
       ty += s * 1.25 + 1;
-      body += text(x + 3, ty, `${s} mm · ${(s / 0.3528).toFixed(1)} pt  Move up to the mech’s value`, s, ink);
+      body += text(x + 3, ty, `${s} mm · ${(s / 0.3528).toFixed(1)} pt  Move up to 3 spaces`, s, ink);
     }
     ty += 4;
     body += text(x + 3, ty, '1.5 mm muted · 7/35 C', 1.5, muted, 'font-weight="600" letter-spacing=".1"');

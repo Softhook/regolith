@@ -246,7 +246,9 @@ function clearing(ctx: Ctx, p: PlayerId, blockers: Die[], perimeter: Die[]): { o
       odds *= best;
       actions += 1;
     } else {
-      // With PLANNING.sealed, a blocker walled off from all my mechs for good is never cleared.
+      // With PLANNING.sealed, a blocker walled off from all my mechs is never cleared. Walled off as the map stands: a
+      // card can still open a way (an Ice Tunnel, a barrier pushed by Kinetic Shunt), and is valued for it, as the
+      // position it leads to is scored afresh.
       odds *= PLANNING.sealed && !areaOf(ctx, p)[index(b)] ? 0 : UNREACHED_BLOCKER;
       actions += 2;
     }
@@ -278,8 +280,8 @@ function objectivePotential(ctx: Ctx, p: PlayerId, objective: Objective): number
   // The others move first: any perimeter mech they destroy breaks the sum.
   const safe = () => check.mechs.reduce((a, d) => a * (1 - (ctx.kill.get(d.id) ?? 0)), 1);
   const clear = clearing(ctx, p, perimeterBlockers(s, p, objective), check.mechs);
-  // With PLANNING.sealed, a blocker none of my mechs can ever get to (clearing's odds 0) shuts the objective for
-  // good: no presence or progress either, or Research to a Discovery (the way out) would score below sitting still.
+  // With PLANNING.sealed, a blocker none of my mechs can get to (clearing's odds 0) shuts the objective while the map
+  // stays as it is: no presence or progress either, or Research to a Discovery (the way out) would score below sitting still.
   if (PLANNING.sealed && clear.odds === 0) return 0;
   if (check.blocked) {
     // The perimeter makes the sum, so it counts as progress like one short of it does (with PLANNING.sealed),
@@ -373,7 +375,7 @@ function objectivePotential(ctx: Ctx, p: PlayerId, objective: Objective): number
 
 /**
  * Whether planning counts barriers (stepsTo) and keeps heading for half-filled perimeters (walls), and whether it
- * writes off objectives behind blockers walled off for good (sealed). Mutable for the self-play tests.
+ * writes off objectives behind blockers walled off from all its mechs as the map stands (sealed, see areaOf). Mutable for the self-play tests.
  */
 export const PLANNING = { walls: true, sealed: true };
 
@@ -419,7 +421,8 @@ function stepsTo(s: GameState, objective: Objective): Int16Array {
 }
 
 /**
- * Every space player p's mechs could ever get to: a flood fill from their mechs and drop spaces, walled by
+ * Every space player p's mechs could get to on this map, as it stands (cards that move barriers or open tunnels aside):
+ * a flood fill from their mechs and drop spaces, walled by
  * barriers, objectives and the board's edge, through Ice Tunnels. Mechs don't wall: they move or are destroyed.
  */
 function areaOf(ctx: Ctx, p: PlayerId): Uint8Array {
