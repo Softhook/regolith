@@ -85,8 +85,8 @@ IndexedDB), `lab/` (the Art Lab pages), `print/` (print exports and sheets, shar
   `Tutorial.tsx` step through them. It ends in a practice game of Basic against the Cadet.
 - **Sound** is synthesised with Web Audio, with no sound files. `audio.ts` holds the shared plumbing and the sound
   and music switches; `sound.ts` the game's effects; `openingSound.ts` and `gameOverSound.ts` the opening and
-  the end; `ambience.ts` the music, a drone score for each world, all rooted on D so the opening flows into any
-  of them.
+  the end; `ambience.ts` the music, a playlist of drone scores that crossfade every few minutes, all rooted on D so
+  the opening flows into the first and each into the next.
 
 ## Finding bugs
 

@@ -2,6 +2,7 @@
 // for a player who lost, a lament.
 
 import { contour, effects, envelope, filter, gain, glide, hz, jitter, kept, noiseSource, oscillator, out } from './audio';
+import { hushForEnding } from './ambience';
 import { pick } from './random';
 
 /** A big hall: a synthesized reverb tail the fanfare and fireworks send into, so they ring out. */
@@ -239,6 +240,7 @@ export const FANFARE_HITS = { pickups: [0.75, 0.89, 1.03], first: 1.17, second: 
 export function fanfare() {
   const o = orchestra({ brassWet: 0.45, percWet: 0.35, grit: 1.6 });
   if (!o) return;
+  hushForEnding();
   const H = FANFARE_HITS;
   /** One chord of the climb: a trumpet on top, horns and a trombone under it, and a drum stroke. */
   const hit = (at: number, dur: number, top: string, chord: string[], bass: string, drum: string, level = 0.06) => {
@@ -294,6 +296,7 @@ export function lament() {
   // Further off in the hall than the fanfare.
   const o = orchestra({ brassWet: 0.6, percWet: 0.5 });
   if (!o) return;
+  hushForEnding();
 
   // Power failing: a tone sinking to nothing through dying static.
   o.slide('sawtooth', 220, 30, 0, 1.3, 0.05, 600);
