@@ -82,7 +82,20 @@ interface Score {
    * A steady pulse of soft notes walking the chord in `pattern` (indexes into its voices), `shift` semitones up,
    * one every `step` seconds; its loudness swells and ebbs over about `swell` seconds, so it comes and goes.
    */
-  arp?: { pattern: number[]; shift: number; step: number; level: number; decay: number; bright: number; swell: number };
+  arp?: {
+    pattern: number[];
+    shift: number;
+    step: number;
+    level: number;
+    decay: number;
+    bright: number;
+    swell: number;
+    /**
+     * A slow second line against the pulse, swelling as the pulse ebbs and ebbing as it swells, so one hands over
+     * to the other: held notes from `scale` in `range`, moving at most twice a bar, landing on the chord each bar.
+     */
+    counter?: { scale: number[]; range: Range; level: number };
+  };
   /** A singing bowl struck now and then on a note of the chord, `shift` up: metal partials ringing and beating. */
   bowl?: { shift: number; level: number; ring: number; every: Range };
   /**
@@ -207,7 +220,8 @@ const PLAYLIST: Score[] = [
     breath: { range: [55, 74], level: 0.024, seconds: 6, every: [12, 20] },
   },
   // Loom: a machine humming in the dark. Hanging chords built of fourths and sevenths, a quick pulse of soft notes
-  // weaving through them and echoing on the off-beat, the pad throbbing in time. No plucks, no drum.
+  // weaving through them and echoing on the off-beat, the pad throbbing in time. As the pulse ebbs, a slow reedy
+  // line rises against it, stepping through D minor, and sinks again as the pulse comes back. No plucks, no drum.
   {
     name: 'loom',
     chords: [
@@ -225,7 +239,16 @@ const PLAYLIST: Score[] = [
     wind: { freq: 240, sweep: 90, level: 0.015, gust: 0.4 },
     reverb: 0.4,
     echo: { time: 0.72, feedback: 0.45 },
-    arp: { pattern: [0, 2, 1, 3, 2, 1, 3, 2], shift: 24, step: 0.24, level: 0.05, decay: 0.45, bright: 2600, swell: 40 },
+    arp: {
+      pattern: [0, 2, 1, 3, 2, 1, 3, 2],
+      shift: 24,
+      step: 0.24,
+      level: 0.05,
+      decay: 0.45,
+      bright: 2600,
+      swell: 40,
+      counter: { scale: [2, 4, 5, 7, 9, 10, 0], range: [57, 72], level: 0.04 },
+    },
   },
   // Bowls: still air and metal. A pure, quiet pad of stacked fourths, and singing bowls struck one at a time,
   // ringing a long while and beating slowly as they die away.
@@ -574,6 +597,29 @@ function moveOn(d: Drone) {
   drone = start(d.ac, PLAYLIST[next()], CROSSFADE, SETTLE, true);
 }
 
+/**
+ * In development, the number keys play the scores: 1 the first in PLAYLIST, and so on, coming in over a few
+ * seconds with all their parts at once, to hear each as wanted. The playlist goes on from there as usual.
+ */
+function audition(e: KeyboardEvent) {
+  if (e.metaKey || e.ctrlKey || e.altKey || e.repeat) return;
+  if (e.target instanceof HTMLElement && e.target.closest('input, textarea, select, [contenteditable]')) return;
+  const i = Number(e.key) - 1;
+  if (!Number.isInteger(i) || i < 0 || i >= PLAYLIST.length) return;
+  current = i;
+  toCome = [];
+  console.info(`Music: ${PLAYLIST[i].name}`);
+  if (!drone) return; // It starts on this score once the music is on.
+  const { ac } = drone;
+  hushedTill = 0;
+  stop(drone, 4);
+  drone = start(ac, PLAYLIST[i], 4);
+}
+if (import.meta.env.DEV) {
+  window.addEventListener('keydown', audition);
+  import.meta.hot?.dispose(() => window.removeEventListener('keydown', audition));
+}
+
 /** Runs `fn` after `first` seconds, then again and again, `every` seconds apart. */
 function repeat(d: Drone, first: Range, every: Range, fn: (d: Drone) => void) {
   const go = () => {
@@ -759,9 +805,11 @@ function breath(d: Drone) {
 /** A pulse of soft notes walking the chord, scheduled a little ahead on the audio clock so it keeps time. */
 function arp(d: Drone, a: NonNullable<Score['arp']>) {
   const { ac } = d;
-  // Fading in and out, from silence to full, over its swell.
+  // Fading in and out, from silence to full, over its swell; the counterpoint the other way about, on the same tide.
   const swell = keep(d, gain(ac, a.level / 2));
-  lfo(ac, d, swell.gain, 1 / a.swell, a.level / 2);
+  const tide = source(d, oscillator(ac, 'sine', 1 / a.swell, ac.currentTime, ac.currentTime + FOREVER));
+  tide.connect(keep(d, gain(ac, a.level / 2))).connect(swell.gain);
+  const line = a.counter && counterpoint(d, a.counter, tide);
   swell.connect(keep(d, filter(ac, 'lowpass', a.bright, 0.7))).connect(d.chimes);
   let step = 0;
   let at = ac.currentTime + 0.5;
@@ -770,6 +818,7 @@ function arp(d: Drone, a: NonNullable<Score['arp']>) {
     // A second and a bit ahead, woken once a second: few wake-ups, and a chord change is heard within a second.
     while (at < ac.currentTime + 1.2) {
       const note = d.score.chords[d.chord][a.pattern[step % a.pattern.length]] + a.shift;
+      if (line && step % 4 === 0) line(at, step % a.pattern.length === 0);
       // The first of each bar a touch stronger.
       const env = contour(ac, at, [
         [0.005, step % a.pattern.length ? 0.7 : 1],
@@ -786,6 +835,70 @@ function arp(d: Drone, a: NonNullable<Score['arp']>) {
     later(d, 1, tick);
   };
   tick();
+}
+
+/**
+ * The pulse's counterpoint: one reedy voice of held notes, against the pulse on its tide (`arp`). Returns the way
+ * to move it on, at each half bar: on the bar it goes to a note of the chord, a step or two on in the way it is
+ * going, now and then turning; on the half bar it sometimes passes on a step to the next, and otherwise holds.
+ */
+function counterpoint(d: Drone, c: NonNullable<NonNullable<Score['arp']>['counter']>, tide: AudioNode) {
+  const { ac } = d;
+  const t = ac.currentTime;
+  const swell = keep(d, gain(ac, c.level / 2));
+  tide.connect(keep(d, gain(ac, -c.level / 2))).connect(swell.gain);
+  const voice = keep(d, gain(ac, 0));
+  d.parts.push(voice.gain);
+  voice
+    .connect(swell)
+    .connect(keep(d, filter(ac, 'lowpass', 1500, 0.7)))
+    .connect(keep(d, panner(ac, 0.35)))
+    .connect(d.bus);
+
+  const notes: number[] = [];
+  for (let n = c.range[0]; n <= c.range[1]; n++) if (c.scale.includes(n % 12)) notes.push(n);
+  let i = Math.floor(notes.length / 2);
+  let dir = pick([-1, 1]);
+  // Two triangles a few cents apart, so it breathes a little, as a reed does.
+  const oscs = [-5, 5].map((cents) => {
+    const o = source(d, oscillator(ac, 'triangle', hz(notes[i]), t, t + FOREVER));
+    o.detune.value = cents;
+    o.connect(voice);
+    return o;
+  });
+  let singing = false;
+  const sing = (at: number) => {
+    for (const o of oscs) o.frequency.setTargetAtTime(hz(notes[i]), at, singing ? 0.03 : 0.001);
+    // Each new note leans in a little.
+    if (singing) voice.gain.setTargetAtTime(0.6, at - 0.05, 0.02);
+    voice.gain.setTargetAtTime(1, at, singing ? 0.06 : 0.3);
+    singing = true;
+  };
+
+  return (at: number, bar: boolean) => {
+    if (!bar) {
+      // Passing on a step, or holding.
+      if (Math.random() < 0.5 || !notes[i + dir]) return;
+      i += dir;
+      return sing(at);
+    }
+    if (Math.random() < 0.25) dir = -dir;
+    const chord = d.score.chords[d.chord].map((n) => n % 12);
+    // The nearest note of the chord, best a step or two on the way it is going; staying put only if nothing else.
+    let best = i;
+    let cost = Infinity;
+    for (let j = Math.max(0, i - 3); j <= Math.min(notes.length - 1, i + 3); j++) {
+      if (!chord.includes(notes[j] % 12)) continue;
+      const k = Math.abs(j - i) + (j === i ? 2 : Math.sign(j - i) !== dir ? 1.5 : 0);
+      if (k < cost) [best, cost] = [j, k];
+    }
+    if (best !== i) dir = Math.sign(best - i);
+    // Near the ends of its range it turns back.
+    if (best <= 1) dir = 1;
+    if (best >= notes.length - 2) dir = -1;
+    i = best;
+    sing(at);
+  };
 }
 
 /** The partials of a struck bowl, as [ratio to its note, level, how long it rings as a share of the whole]. */
