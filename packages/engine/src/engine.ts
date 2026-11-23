@@ -1,39 +1,31 @@
 /**
  * The rules engine's public API: a game is a pure `(state, action) → state` function.
  *
- * Every action type has exactly one handler (the Handlers type makes the compiler enforce it),
- * grouped by topic:
+ * Every action type has exactly one handler (the Handlers type makes the compiler enforce it), in the module of
+ * its topic:
  *
- *   setup.ts      game creation, mech roll, starting skill, starting objective and mechs
- *   actions.ts    Move/Attack, Drop, Refit, Research, Claim, end turn
- *   abilities/    mech abilities 1–6: the 1 to 4 in index.ts, Shoot and Barrier a file each
- *   combat.ts     attacks, atomics, advancing, Take Over
- *   cards.ts      the card market, Tactic effects and their decisions
- *   effects.ts    the implemented Skill and Tactic effects, as types
- *   skillRules.ts what every skill does, as hooks the rules read
- *   skillActions.ts skills used as an action of their own
- *   mechs.ts      the mechs, and MechHooks: how the abilities in abilities/ (one file each) plug in
- *   rulesets.ts   the rule sets: Regolith, and Basic, Regolith without its cards
- *   turn.ts       start / end of turn, and auto-resolving decisions after each action
- *   legal.ts      legal action enumeration (AI, UI hints)
- *   rules.ts      what differs between rule sets (Basic, Regolith)
- *   core.ts       shared helpers: errors, log, dice, tracks, cubes
- *   queries.ts    read-only questions about a state (movement, claiming, combat totals…)
- *   lookups.ts    where dice are and what is on a space (no rules)
- *   invariants.ts consistency checks every state must pass (tests, dev builds)
+ *   setup.ts          game creation, mech roll, starting skill, starting objective and mechs
+ *   actions.ts        Move/Attack, Drop, Refit, Research, Claim, end turn
+ *   abilities/        mech abilities 1–6: the 1 to 4 in index.ts, Shoot and Barrier a file each
+ *   breakBarriers.ts  breaking a barrier, a rule on trial (RuleSet.breakBarriers)
+ *   combat.ts         attacks, atomics, advancing, Take Over
+ *   cards.ts          the card market, Tactic effects and their decisions
+ *   skillActions.ts   skills used as an action of their own
+ *
+ * After each action, settle() (turn.ts) resolves what needs no one's choice and moves the turn on. Every other
+ * module, and how they fit together, is in docs/ARCHITECTURE.md.
  */
-import { abilityHandlers } from './abilities';
 // Sets the rule sets that rulesOf reads, for a state that didn't come from createGame (a saved game, a test).
 import './rulesets';
+import { abilityHandlers } from './abilities';
 import { isWellFormed } from './actionShape';
 import { actionHandlers } from './actions';
 import { barrierBreakHandlers } from './breakBarriers';
 import { cardHandlers } from './cards';
 import { combatHandlers } from './combat';
-import type { Handlers } from './core';
-import { setupHandlers } from './setup';
+import { log, name, type Handlers } from './core';
 import { card } from './data';
-import { log, name } from './core';
+import { setupHandlers } from './setup';
 import { prospectorsUsed, skillHandlers, skillUsed } from './skillActions';
 import { settle } from './turn';
 import { RuleError, type Action, type GameState, type PlayerId } from './types';

@@ -1,7 +1,7 @@
 import type { Rng } from '../rng';
 import { n } from '../svg';
 import type { Spot } from '../tile/geometry';
-import { polar } from './core';
+import { polar, pts } from './core';
 import { KEEP, LIT } from './inks';
 import { H, biohazard, nuclear, type Part, type Drawn, placed, merged, disc, square, box, graded, glow, lamp, run } from './parts';
 import { hub, dome, stack, tank, torus, column, cutter, hoop } from './buildings';
@@ -39,8 +39,6 @@ const rot = (p: Spot, turn: number): Spot => {
   const [c, s] = [Math.cos((turn * Math.PI) / 180), Math.sin((turn * Math.PI) / 180)];
   return { x: p.x * c - p.y * s, y: p.x * s + p.y * c };
 };
-
-const pts = (list: Spot[]) => list.map((p) => `${n(p.x)},${n(p.y)}`).join(' ');
 
 /** A flat-topped hexagon `R` across its corners round (x, y). */
 const hexagon = (x: number, y: number, R: number, fill: string, extra = '') =>
@@ -524,7 +522,7 @@ const smelter: Core = (k) => {
       merged([
         {
           ...run({ x: 10, y: 0 }, { x: D - R, y: 0 }, 8, '#8e8a86'),
-          paint: `<path d="M${30},0 H${n(D - R - 2)}" stroke="#1e1c1a" stroke-width="6" stroke-dasharray="1 3" opacity="0.4"/>`,
+          paint: `<path d="M30,0 H${n(D - R - 2)}" stroke="#1e1c1a" stroke-width="6" stroke-dasharray="1 3" opacity="0.4"/>`,
         },
         // The slag, heaped on the ground and lit with it, dark.
         {

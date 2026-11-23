@@ -141,7 +141,7 @@ export async function pool<T, R>(
         const i = take();
         if (i === undefined) return child.disconnect();
         busy.set(child, i);
-        child.send([i, tasks[i]] as unknown as object);
+        child.send([i, tasks[i]]);
       };
       child.on('message', ([i, r]: [number, R]) => {
         // Sent before it was stopped: the task is no longer needed.

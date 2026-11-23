@@ -48,7 +48,7 @@ export function SalvageYard({ game, p, ctl, dispatch }: { game: GameState; p: Pl
   };
   return (
     <div className="salvage-yard">
-      <span className="salvage-label">{'Salvage yard'}</span>
+      <span className="salvage-label">Salvage yard</span>
       {salvage.map((d) => (
         <span key={d.id} className="salvage-die-wrap">
           <Tip
@@ -60,7 +60,7 @@ export function SalvageYard({ game, p, ctl, dispatch }: { game: GameState; p: Pl
                   {mechOf(game, d.value).name} ({d.value})
                 </b>
                 <span>{abilityText(game, d.value)}</span>
-                <span className="muted">{'Waiting in the salvage yard to be dropped.'}</span>
+                <span className="muted">Waiting in the salvage yard to be dropped.</span>
               </>
             }
           >

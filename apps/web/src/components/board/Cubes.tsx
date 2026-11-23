@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react';
-import { type GameState } from '@regolith/engine';
+import type { GameState } from '@regolith/engine';
 import { CUBE_PAD, REGOLITH_SHADOW, TILE, cubePadCentres, type World } from '@regolith/art';
 import { DIE_CORNER } from '../../theme';
 import { placement } from './geometry';

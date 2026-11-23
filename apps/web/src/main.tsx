@@ -17,8 +17,6 @@ window.addEventListener('hashchange', () => {
 // The effects' timings, for their animations (beats.ts).
 setBeatVars();
 
-// Draw the map tiles in the background while the player is in the lobby.
-
 // Production builds only: in dev it would cache what the dev server serves.
 if (import.meta.env.PROD) startServiceWorker();
 

@@ -5,4 +5,5 @@ dist/
 test-results/
 scripts/.relay-check.json
 .cache/
-packages/engine/src/data/cards.json
+# Built from data/*.yaml by `npm run data`.
+packages/engine/src/data/

@@ -45,7 +45,7 @@ const SORTERS: Record<Sort, (a: CardFace, b: CardFace) => number> = {
 /** Where a card came from (its `from` and `status` in data/regolith.yaml), and the brief its art is drawn from. */
 function cardNote(face: CardFace): string {
   const def = card(face.id);
-  const from = def.from && def.from.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+  const from = def.from?.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
   const where = !from
     ? 'New in Regolith'
     : def.status === 'community'

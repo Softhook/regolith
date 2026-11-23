@@ -27,6 +27,9 @@ export const polar = (angle: number, d: number): Spot => ({
   y: d * Math.sin((angle * Math.PI) / 180),
 });
 
+/** Spots as an SVG `points` list: "x,y x,y …". */
+export const pts = (list: Spot[]) => list.map((p) => `${n(p.x)},${n(p.y)}`).join(' ');
+
 export const stops = (list: [number, string, number?][]) =>
   list.map(([o, c, a]) => `<stop offset="${o}" stop-color="${c}"${a === undefined ? '' : ` stop-opacity="${a}"`}/>`).join('');
 

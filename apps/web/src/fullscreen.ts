@@ -16,7 +16,10 @@ import { APPLE_TOUCH, FROM_HOME_SCREEN } from './platform';
 // Safari still only mechs the webkit-prefixed API; Keyboard Lock is Chrome and Edge only.
 type FsDocument = Document & { webkitFullscreenElement?: Element | null; webkitExitFullscreen?: () => Promise<void> };
 type FsElement = HTMLElement & { webkitRequestFullscreen?: () => Promise<void> };
-type KeyboardLock = { lock(codes: string[]): Promise<void>; unlock(): void };
+interface KeyboardLock {
+  lock(codes: string[]): Promise<void>;
+  unlock(): void;
+}
 
 const doc = document as FsDocument;
 const root = document.documentElement as FsElement;

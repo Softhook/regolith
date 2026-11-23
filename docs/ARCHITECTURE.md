@@ -23,6 +23,7 @@ How the code is organised, and where to make the common changes.
 | `actionShape.ts` | `isWellFormed()`: the shape of every action, checked by `apply` before any handler (actions from other browsers are untrusted) |
 | `setup.ts` | `createGame` and the setup decisions |
 | `actions.ts` | Move/Attack, Drop, Refit, Research, Claim, end turn |
+| `breakBarriers.ts` | Breaking a barrier: a rule on trial (`RuleSet.breakBarriers`, off in every mode) |
 | `mechs.ts`, `abilities/` | The mechs by die value, and the abilities: the 1 to 4's built in, the others plugged in through `MechHooks` (Shoot, Barrier, the zone of control) |
 | `combat.ts` | Attacks, atomics, advancing, Take Over |
 | `cards.ts` | Card market, Tactic effects, card decisions |
@@ -31,13 +32,13 @@ How the code is organised, and where to make the common changes.
 | `skillActions.ts` | Skills used as an action of their own |
 | `turn.ts` | Start/end of turn; `settle()` auto-resolves decisions after each action |
 | `legal.ts` | `legalActions()` |
-| `queries.ts` | Read-only questions: movement, claim check, combat totals… |
+| `queries/` | Read-only questions, by topic: `turn.ts` (turn limits, once-per-turn effects), `movement.ts`, `placement.ts` (setup and drops), `market.ts`, `claim.ts` (claiming, Take Over, the home objective), `combat.ts` (totals, atomics, odds), `barriers.ts` (and Kinetic Shunt) |
 | `lookups.ts` | Where dice are, what is on a space; no rules |
 | `core.ts` | Shared helpers: errors, log, dice, power/research, cubes |
 | `invariants.ts` | `checkInvariants()`: consistency checks every state must pass |
 | `board.ts`, `mapStats.ts`, `data.ts`, `rng.ts`, `types.ts`, `undo.ts` | Board geometry, map stats, card/map data, RNG, types, undo policy |
 
-Two ideas hold it together:
+Three ideas hold it together:
 
 - **Actions and decisions.** A player acts by sending an `Action`. When the rules need someone to
   choose (combat, Take Over, picking a card…), a `Pending` decision is queued in `state.pending`; the
@@ -83,10 +84,10 @@ IndexedDB), `lab/` (the Art Lab pages), `print/` (print exports and sheets, shar
   through the engine on a laid-out training ground (`stage.ts`, `script.ts`), so what it teaches is what the game
   does. Each rule is taught once, by a picture that carries its own words (`pictures.tsx`); `player.ts` and
   `Tutorial.tsx` step through them. It ends in a practice game of Basic against the Cadet.
-- **Sound** is synthesised with Web Audio, with no sound files. `audio.ts` holds the shared plumbing and the sound
-  and music switches; `sound.ts` the game's effects; `openingSound.ts` and `gameOverSound.ts` the opening and
-  the end; `ambience.ts` the music, a playlist of drone scores that crossfade every few minutes, all rooted on D so
-  the opening flows into the first and each into the next.
+- **`audio/`**: the sound, synthesised with Web Audio, with no sound files. `core.ts` holds the shared plumbing and
+  the sound and music switches; `effects.ts` the game's effects (`sfx`); `opening.ts` and `gameOver.ts` the opening
+  and the end; `music.ts` the music, a playlist of drone scores (`scores.ts`) that crossfade every few minutes, all
+  rooted on D so the opening flows into the first and each into the next.
 
 ## Finding bugs
 
@@ -160,5 +161,8 @@ or barriers (`start:` in the YAML, group `prepared`): `npm run map:show -- <id>`
 | [`words.test.ts`](../packages/engine/test/words.test.ts), [`skill-log.test.ts`](../packages/engine/test/skill-log.test.ts), [`stats.test.ts`](../packages/engine/test/stats.test.ts) | The log in Regolith's words; skills that fire by themselves named on it; the players' game stats |
 | [`abilityUsage.test.ts`](../packages/engine/test/abilityUsage.test.ts) | How often each mech's ability is offered and used (`npm run ability:usage` for real numbers) |
 
-Shared helpers (`quickStart`, `aiAction`, `playAiGame`…) are in [`test/helpers.ts`](../packages/engine/test/helpers.ts). `npm run selfplay:cards` (card win, pick and use rates over AI self-play) plays its games through the card audit too, with skills drafted rather than dealt. `npm run check` typechecks
-everything (tests included) and runs the tests.
+Shared helpers (`quickStart`, `resolveBattle`, `aiAction`, `playAiGame`…) are in
+[`test/helpers.ts`](../packages/engine/test/helpers.ts). `npm run selfplay:cards` (card win, pick and use rates over
+AI self-play) plays its games through the card audit too, with skills drafted rather than dealt. `npm run check`
+typechecks everything (tests included), lints, looks for import cycles (madge), dead code (knip) and unformatted
+files (Prettier), then runs the tests.

@@ -24,7 +24,7 @@ export interface NewGameOptions {
 
 export function createGame(opts: NewGameOptions): GameState {
   const n = opts.players.length;
-  // 5 players only on the CE print booklet's 5-player maps, which the mode's map groups decide.
+  // Each map is laid out for one number of players (MapDef.players), from 2 to 5.
   if (n < 2 || n > 5) throw new Error('A game needs 2–5 players');
   const mode = opts.mode ?? DEFAULT_MODE;
   if (!Object.hasOwn(RULESETS, mode)) throw new Error(`Unknown mode ${mode}`);

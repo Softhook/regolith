@@ -53,10 +53,9 @@ export function log(s: GameState, text: string, player?: PlayerId, event?: LogEv
   if (s.log.length > LOG_LIMIT) s.log.splice(0, s.log.length - LOG_LIMIT);
 }
 
-/** Adds to one of a player's game stats: none in a game saved before they were kept, which would only count part of it. */
+/** Adds to one of a player's game stats. */
 export function tally(s: GameState, p: PlayerId, stat: keyof PlayerStats, n = 1) {
-  const st = s.players[p].stats;
-  if (st) st[stat] += n;
+  s.players[p].stats[stat] += n;
 }
 
 /** Logs a routine action (a move, a refit…): no event, only the objectives it names. */
@@ -66,7 +65,7 @@ export function note(s: GameState, text: string, player: PlayerId, objectives?: 
 
 /**
  * Puts a barrier of `owner`'s on `p`, for good (GameState.barriers); the caller checks canHoldBarrier. A new list,
- * never the old one changed: queries cache what they work out from it (queries.ts barrierMask).
+ * never the old one changed: queries cache what they work out from it (queries/movement.ts barrierMask).
  */
 export function addBarrier(s: GameState, p: Cell, owner: PlayerId) {
   s.barriers = [...(s.barriers ?? []), { r: p.r, c: p.c, owner }];
@@ -127,7 +126,7 @@ export function rerollNew(s: GameState, d: Die) {
   while (seen.includes(d.value));
   seen.push(d.value);
   d.rolls++;
-  // CE Engineering: the result may be shifted by 1, even onto a number already shown this turn; no wrap
+  // Engineering: the result may be shifted by 1, even onto a number already shown this turn; no wrap
   // between 1 and 6, as with Field Refit (RULES.md ruling 6).
   if (anySkill(s, d.owner, (r) => r.adjustRefit)) {
     const options = [d.value - 1, d.value, d.value + 1].filter((v) => v >= 1 && v <= 6);
@@ -194,7 +193,7 @@ export function spend(s: GameState, n: number) {
   s.turn.acted = true;
 }
 
-/** Pays for a Move or Research: an action, or once they are spent the CE Prospectors extra action. */
+/** Pays for a Move or Research: an action, or once they are spent the Prospectors extra action. */
 export function spendPeaceful(s: GameState) {
   const t = s.turn;
   if (t.actionsLeft > 0) spend(s, 1);

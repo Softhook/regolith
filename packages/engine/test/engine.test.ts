@@ -12,7 +12,7 @@ import {
   type GameState,
   type CombatPending,
 } from '../src';
-import { arrange, players, quickStart } from './helpers';
+import { arrange, players, quickStart, resolveBattle } from './helpers';
 
 /*
  * Regolith on Lagado Planitia (hex), the 2-player map, in axial cells (docs/HEX.md): a space's sides are a row
@@ -94,12 +94,7 @@ describe('combat', () => {
     s.turn.player = 0;
     s = arrange(s, { p0d0: [0, 5, 2], p1d0: [0, 6, 2] });
     s = apply(s, { type: 'attack', die: 'p0d0', target: 'p1d0' });
-    const combat = s.pending[0];
-    expect(combat.kind).toBe('combat');
-    if (combat.kind !== 'combat') return;
-    combat.attacker.dice = [4];
-    combat.defender.dice = [4];
-    s = apply(s, { type: 'resolveCombat' });
+    s = resolveBattle(s, 4, 4);
     expect(s.dice.find((d) => d.id === 'p1d0')!.loc.zone).toBe('salvageYard');
     expect(s.players[0].power).toBe(2);
     expect(s.pending[0].kind).toBe('advance');
@@ -294,7 +289,7 @@ describe('undo', () => {
   });
 });
 
-describe('Entrenched (Entrenched; 2013 card text and CE card sheet)', () => {
+describe('Entrenched (2013 card text and CE card sheet)', () => {
   /** Player 0's Wisp attacks player 1's Breacher, which has Entrenched; the combat rolls are fixed. */
   function entrenchedCombat(attackRoll: number, defenceRoll: number): GameState {
     let s = quickStart();
@@ -329,15 +324,12 @@ describe('Entrenched (Entrenched; 2013 card text and CE card sheet)', () => {
     s = arrange(s, { p0d0: [0, 5, 1], p1d0: [0, 6, 6] });
     s.players[1].skills = [{ id: 'r-entrenched', active: true }];
     s = apply(s, { type: 'attack', die: 'p0d0', target: 'p1d0' });
-    if (s.pending[0].kind !== 'combat') throw new Error();
-    s.pending[0].attacker.dice = [1];
-    s.pending[0].defender.dice = [1];
-    s = apply(s, { type: 'resolveCombat' });
+    s = resolveBattle(s, 1, 1);
     expect(s.dice.find((d) => d.id === 'p1d0')!.loc.zone).toBe('salvageYard');
   });
 });
 
-describe('Stand Down (Stand Down)', () => {
+describe('Stand Down', () => {
   it('needs power to lose ("reduce your power by 1")', () => {
     const s = quickStart(2, 3);
     const me = s.turn.player;
@@ -558,7 +550,7 @@ describe('Arms Deal: a card for a Claim action may be 1 atomic (RULES.md ruling 
     expect(next.pending.some((x) => x.kind === 'takeCard' && x.player === me)).toBe(false);
   });
 
-  it('not for an Take Over cube, or without the skill', () => {
+  it('not for a Take Over cube, or without the skill', () => {
     expect(offered(cardPhase({ claimed: 0, takeOver: 1 }))).toBe(false);
     expect(offered(cardPhase({ claimed: 1, skill: false }))).toBe(false);
   });

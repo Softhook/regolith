@@ -1,7 +1,7 @@
 import type { Rng } from '../rng';
 import { n } from '../svg';
 import type { Spot } from '../tile/geometry';
-import { polar } from './core';
+import { polar, pts } from './core';
 import { KEEP } from './inks';
 import { H, type Part, type Drawn, placed, merged, disc, square, box, graded, glow, lamp, run } from './parts';
 import { hub, dish, tankFarm, containers, solar, silos } from './buildings';
@@ -54,8 +54,6 @@ export interface Kit {
 
 /** A landmark's own parts keep their colours (inks.ts `KEEP`); its hub is in its number's ink, what's round it faded. */
 const kept = (p: Part): Part => ({ ...p, tint: p.tint && KEEP(p.tint), paint: p.paint && KEEP(p.paint) });
-
-const pts = (list: Spot[]) => list.map((p) => `${n(p.x)},${n(p.y)}`).join(' ');
 
 /** A point turned `turn` degrees round the origin. */
 const turned = (p: Spot, turn: number): Spot => {

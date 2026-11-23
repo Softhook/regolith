@@ -86,9 +86,9 @@ function checkWorldObjectives(board: Board) {
 const offCells = (rows: number, cols: number): BoardCell[][] =>
   Array.from({ length: rows }, () => Array.from({ length: cols }, () => ({ kind: 'off' as const, tile: -1 })));
 
-/** Lays tile `tile` on the board: its `spaces` (an Alien Artefact's all void), and its objective, if it has one, on its `middle`. */
-function layTile(cells: BoardCell[][], objectives: Objective[], t: TileToken, tile: number, spaces: Cell[], middle: Cell) {
-  for (const p of spaces) {
+/** Lays tile `tile` on the board: its `tileSpaces` (an Alien Artefact's all void), and its objective, if it has one, on its `middle`. */
+function layTile(cells: BoardCell[][], objectives: Objective[], t: TileToken, tile: number, tileSpaces: Cell[], middle: Cell) {
+  for (const p of tileSpaces) {
     const cell: BoardCell = { kind: 'space', tile };
     if (t.number === 0 && !t.blank) cell.artefact = true;
     cells[p.r][p.c] = cell;
@@ -144,9 +144,9 @@ function buildHexBoard(map: MapDef): Board {
   const cells = offCells(rows, cols);
   const objectives: Objective[] = [];
   for (const t of tiles) {
-    const spaces = FLOWER.map((d) => ({ r: t.r - r0 + d.r, c: t.c - c0 + d.c }));
-    if (spaces.some((p) => cells[p.r][p.c].kind !== 'off')) throw new Error(`${map.id}: hex tiles overlap`);
-    layTile(cells, objectives, parseToken(t.token), t.tile, spaces, spaces[0]);
+    const tileSpaces = FLOWER.map((d) => ({ r: t.r - r0 + d.r, c: t.c - c0 + d.c }));
+    if (tileSpaces.some((p) => cells[p.r][p.c].kind !== 'off')) throw new Error(`${map.id}: hex tiles overlap`);
+    layTile(cells, objectives, parseToken(t.token), t.tile, tileSpaces, tileSpaces[0]);
   }
   return { mapId: map.id, mapName: map.name, rows, cols, cells, objectives, world: map.world ?? 'mars' };
 }

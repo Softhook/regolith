@@ -121,7 +121,7 @@ function Action({
   );
 }
 
-/** A 1–6 track coloured like the player panel's (Power red, Research violet), with a reward at 6. */
+/** A 1–6 track coloured like the player panel's (Power oxide orange, Research ice blue), with a reward at 6. */
 function Track({ at, next, end, tone }: { at: number; next?: boolean; end: ReactNode; tone: 'power' | 'res' }) {
   return (
     <div className={`mn-track mn-track-${tone}`}>

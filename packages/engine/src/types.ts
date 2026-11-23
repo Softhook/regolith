@@ -98,10 +98,10 @@ export interface PlayerState extends PlayerConfig {
   /** Turns in a row this player ended without spending an action (the AI uses it to avoid stalemates). */
   idleTurns?: number;
   /** What this player has done so far, for the game over (counted as it happens: the log keeps only the latest entries). */
-  stats?: PlayerStats;
+  stats: PlayerStats;
 }
 
-/** A player's tally over the game, from its start. Missing from a game saved before it was kept. */
+/** A player's tally over the game, from its start. */
 export interface PlayerStats {
   battlesWon: number;
   battlesLost: number;
@@ -153,7 +153,7 @@ export interface TurnState {
   resume?: PlayerId;
   /** Other players who placed a cube through Take Over during this turn (one entry per cube). */
   offTurnCubes?: PlayerId[];
-  /** CE Prospectors: whether the additional Move or Research action was used this turn. */
+  /** Prospectors: whether the additional Move or Research action was used this turn. */
   prospectorsUsed?: boolean;
   /** Strategic Plan: whether a stored Tactic was played this turn. */
   storedTacticPlayed?: boolean;

@@ -26,7 +26,7 @@ const problem = (what: string) => {
 
 // Every map, with Regolith's rules.
 for (const map of MAPS) {
-  console.log(`${map.name}`);
+  console.log(map.name);
   const page = await browser.newPage({ viewport: { width: 900, height: 900 } });
   page.on('pageerror', (e) => problem(`page error: ${e.message}`));
   page.on('console', (m) => m.type() === 'error' && problem(`console: ${m.text()}`));

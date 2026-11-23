@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type RefObject } from 'react';
-import { holdForTitle } from '../../ambience';
-import { audio } from '../../audio';
+import { holdForTitle } from '../../audio/music';
+import { audio } from '../../audio/core';
 import { resumeFullscreen } from '../../fullscreen';
 import { reducedMotion } from '../../game/useMediaQuery';
 

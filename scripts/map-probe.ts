@@ -74,10 +74,10 @@ function play({ map: mapId, game }: Task): Result {
     if (!action) throw new Error(`no action, ${mapId} game ${game}`);
     const before = cubes(s);
     const barriers = s.barriers?.length ?? 0;
-    const lost = s.players.reduce((n, p) => n + (p.stats?.mechsLost ?? 0), 0);
+    const lost = s.players.reduce((n, p) => n + p.stats.mechsLost, 0);
     s = apply(s, action);
     if (action.type === 'attack' || action.type === 'freeAttack') r.attacks++;
-    r.destroyed += s.players.reduce((n, p) => n + (p.stats?.mechsLost ?? 0), 0) - lost;
+    r.destroyed += s.players.reduce((n, p) => n + p.stats.mechsLost, 0) - lost;
     r.barriers += (s.barriers?.length ?? 0) - barriers;
     if (s.phase !== 'setup' && cubes(s) > before && s.turn.number > 0) {
       if (action.type === 'takeOver') r.takeOvers++;

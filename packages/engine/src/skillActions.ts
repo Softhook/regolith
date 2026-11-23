@@ -131,11 +131,11 @@ export const skillHandlers = {
   },
 } satisfies Partial<Handlers>;
 
-/** CE Prospectors, when the step from `prev` to `s` spent its extra Move or Research. */
+/** Prospectors, when the step from `prev` to `s` spent its extra Move or Research. */
 export function prospectorsUsed(prev: GameState, s: GameState): { player: PlayerId; card: string } | undefined {
   if (prev.turn.prospectorsUsed || !s.turn.prospectorsUsed) return undefined;
-  const card = skillCard(prev, prev.turn.player, 'prospectors');
-  return card ? { player: prev.turn.player, card } : undefined;
+  const id = skillCard(prev, prev.turn.player, 'prospectors');
+  return id ? { player: prev.turn.player, card: id } : undefined;
 }
 
 /**
@@ -145,8 +145,8 @@ export function prospectorsUsed(prev: GameState, s: GameState): { player: Player
 export function skillUsed(s: GameState, a: Action): { player: PlayerId; card: string } | undefined {
   const head = s.pending[0];
   const find = (player: PlayerId, test: (r: SkillRule) => unknown) => {
-    const card = s.players[player].skills.find((sk) => sk.active && test(ruleOf(sk.id)))?.id;
-    return card ? { player, card } : undefined;
+    const id = s.players[player].skills.find((sk) => sk.active && test(ruleOf(sk.id)))?.id;
+    return id ? { player, card: id } : undefined;
   };
   switch (a.type) {
     case 'engineering':

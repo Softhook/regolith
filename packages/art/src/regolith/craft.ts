@@ -1,7 +1,7 @@
 import type { Rng } from '../rng';
 import { n } from '../svg';
 import type { Spot } from '../tile/geometry';
-import { polar, insideFromMiddle, toward } from './core';
+import { polar, pts, insideFromMiddle, toward } from './core';
 import { H, type Part, placed, merged, disc, square, box, graded, glow, lamp } from './parts';
 
 /** Rockets, landers, rovers and the small things round a base: landing pads and what stands on them, crates, beacons, an old probe. */
@@ -52,7 +52,7 @@ const spaceplane = (): Part => {
 
 /** A squat lander, its body wrapped in gold foil, an aerial on top. */
 const lander = (): Part => {
-  const hex = [0, 60, 120, 180, 240, 300].map((a) => `${n(polar(a, 5).x)},${n(polar(a, 5).y)}`).join(' ');
+  const hex = pts([0, 60, 120, 180, 240, 300].map((a) => polar(a, 5)));
   return {
     heights: craftLegs(9) + `<polygon points="${hex}" fill="rgb(225,90,190)"/>` + disc(1.5, -1, 1.8, 'rgb(244,150,215)'),
     tint: `<polygon points="${hex}" fill="#d9a531" stroke="#d9a531" stroke-width="0.6"/>` + disc(1.5, -1, 2, '#e9ecee'),
@@ -148,18 +148,18 @@ export function probe(r: Rng): Part {
 
 /** Tyre tracks behind a rover at p facing `turn`: two treads wandering back the way it came, sunk and darkened, until they leave the tile. */
 export function tyreTracks(r: Rng, p: Spot, turn: number): Part {
-  const pts: Spot[] = [];
+  const trail: Spot[] = [];
   let [x, y, a] = [p.x, p.y, ((turn + 180) * Math.PI) / 180];
   for (let i = r.int(6, 14); i > 0 && insideFromMiddle({ x, y }) > 2; i--) {
-    pts.push({ x, y });
+    trail.push({ x, y });
     a += r.range(-0.35, 0.35);
     [x, y] = [x + 6 * Math.cos(a), y + 6 * Math.sin(a)];
   }
-  if (pts.length < 2) return {};
+  if (trail.length < 2) return {};
   const tread = (side: number) =>
-    pts
+    trail
       .map((q, i) => {
-        const [u, v] = [pts[Math.min(i + 1, pts.length - 1)], pts[Math.max(i - 1, 0)]];
+        const [u, v] = [trail[Math.min(i + 1, trail.length - 1)], trail[Math.max(i - 1, 0)]];
         const len = Math.hypot(u.x - v.x, u.y - v.y) || 1;
         return `${i ? 'L' : 'M'}${n(q.x - (side * (u.y - v.y)) / len)},${n(q.y + (side * (u.x - v.x)) / len)}`;
       })

@@ -81,7 +81,7 @@ Learn it in the app's animated tutorial, or read the full rules under *How to pl
 
 - **Two modes.** **Basic** is the game without cards, for learning. **Regolith** is the full game, with a deck
   of 34 Skills (kept, and always working) and 11 Tactics (played once), plus Reinforcements.
-- **39 maps for 2 to 5 players** on Mars, Phobos and Deimos: compact sectors, open ground, and prepared
+- **42 maps for 2 to 5 players** on Mars, Phobos and Deimos: compact sectors, open ground, and prepared
   ground with ice tunnels, wormholes and barriers already laid.
 - **AI opponents at five ranks**, Cadet to General, chosen per seat. They play only legal moves, never see the
   dice to come, and think in the background so the board never freezes.
@@ -91,7 +91,7 @@ Learn it in the app's animated tutorial, or read the full rules under *How to pl
 - **An animated tutorial** that teaches each rule once, on a real board, then drops you into a practice game.
 - **Phones, tablets and desktop.** Pinch zoom, a bottom sheet in portrait, tap anything to learn what it is.
   It installs to the home screen and plays offline.
-- **Sound and music.** Synthesised effects, and an ambient score for each world.
+- **Sound and music.** Synthesised effects, and a playlist of ambient scores.
 - **Ready for print.** Every tile, card, map sheet and the player aid is drawn once and exported at physical
   size, with bleed and crop marks, on A4 or US Letter. The printable rulebook is in the app too.
 
@@ -122,19 +122,19 @@ It also owes ideas to [Santorini](https://boardgamegeek.com/boardgame/194655/san
 
 ## For developers
 
-Needs Node 22.
+Needs Node 22 or later.
 
 ```bash
 npm install
 npm run dev        # http://localhost:5173
 npm run dev:https  # the same over HTTPS, to test on a phone on your network
 npm test           # every package's and the web app's tests, including full AI-vs-AI games
-npm run check      # typecheck everything (tests included), then test
+npm run check      # typecheck (tests included), lint, import cycles, dead code and formatting, then test
 npm run build      # typecheck + production build in apps/web/dist
 ```
 
-Cards and maps are edited in `data/*.yaml`; `npm run data` compiles them to JSON, and every script above runs
-it first. Pushing to `main` deploys to GitHub Pages ([workflow](.github/workflows/pages.yml)) once the build,
+Cards and maps are edited in `data/*.yaml`; `npm run data` compiles them to JSON (not committed), and
+`npm install` and every script above run it first. Pushing to `main` deploys to GitHub Pages ([workflow](.github/workflows/pages.yml)) once the build,
 the UI checks and the phone/tablet layout check pass.
 
 The app's pages: the game at `/`, the printable rulebook at `#rulebook`, and the Art Lab at `#lab` (tiles),

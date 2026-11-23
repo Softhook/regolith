@@ -1,7 +1,7 @@
 /**
  * Cards taken on someone else's turn (an off-turn Take Over pick), and a few card edge cases:
  * Ice Tunnel placement, Headhunter with an empty deck, Final Push tokens on discard, and
- * when CE Science Survey asks.
+ * when Science Survey asks.
  */
 import { describe, expect, it } from 'vitest';
 import { apply, createGame, legalActions, type GameState } from '../src';
@@ -110,7 +110,7 @@ describe('card edge cases', () => {
   });
 });
 
-describe('Science Survey (Science Survey): 2 Research at the start of your turn', () => {
+describe('Science Survey: 2 Research at the start of your turn', () => {
   it('is gained without asking', () => {
     let s = quickStart();
     const foe = 1 - s.turn.player;

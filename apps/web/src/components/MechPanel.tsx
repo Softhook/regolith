@@ -140,9 +140,9 @@ export function MechPanel({ game, ctl, dispatch }: { game: GameState; ctl: Contr
           className="btn"
           disabled={!legal.can('refit', mine)}
           onClick={() => dispatch({ type: 'refit', die: d.id })}
-          title={'Spend 1 action to re-roll this mech to a new number.'}
+          title="Spend 1 action to re-roll this mech to a new number."
         >
-          {'Refit'}
+          Refit
         </button>
         {advanceSkillId && legal.can('advanceSkill', (a) => mine(a) && !a.passenger) && (
           <button

@@ -16,7 +16,7 @@ import {
   type GameState,
   type PlayerId,
 } from '@regolith/engine';
-import { sfx } from '../sound';
+import { sfx } from '../audio/effects';
 import { highlightsFor, noHighlights } from './highlights';
 import { claimTap, legalFor, NO_LEGAL } from './legal';
 import type { Dispatch } from './useGame';
@@ -58,7 +58,7 @@ export function useController(game: GameState, dispatch: Dispatch, mine: (p: Pla
   useEffect(() => {
     if (sel.kind === 'none' || sel.kind === 'claim' || sel.kind === 'kineticShuntBarrier') return;
     const d = game.dice.find((x) => x.id === sel.die);
-    if (!d || d.loc.zone !== (sel.kind === 'salvage' ? 'salvageYard' : 'board')) setSel(NONE);
+    if (d?.loc.zone !== (sel.kind === 'salvage' ? 'salvageYard' : 'board')) setSel(NONE);
   }, [game, sel]);
 
   // Everything the human may do now. Highlights and buttons are derived from it, never from rules.

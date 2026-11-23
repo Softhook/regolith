@@ -107,7 +107,7 @@ export const inked = (svg: string, number: number) => {
     .split(/<!--(\/?[owkl])-->/)
     .map((part, i) => {
       if (i % 2) {
-        if (part[0] === '/') open.pop();
+        if (part.startsWith('/')) open.pop();
         else open.push(part);
         return '';
       }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { apply, attackChance, attackFactors, attackOdds, createGame, die, legalActions, type GameState } from '../src';
-import { arrange, players, quickStart } from './helpers';
+import { arrange, players, quickStart, resolveBattle } from './helpers';
 
 /**
  * Regolith's cards, each by the Community card it started as (its `effect`): the current player's Wisp (a 6) at
@@ -24,7 +24,7 @@ function cardGame(skills: { me?: string[]; foe?: string[] } = {}): GameState {
   return s;
 }
 
-describe('Prospectors (Prospectors; CE Option B)', () => {
+describe('Prospectors (CE Option B)', () => {
   it('offers a peaceful move or research when actions reach 0 and neither attack nor claim occurred', () => {
     let s = cardGame({ me: ['r-prospectors'] });
     const me = s.turn.player;
@@ -81,13 +81,7 @@ describe('Remodel', () => {
     const foe = 1 - me;
     // Force attacker win in combat to destroy foe's mech
     s = apply(s, { type: 'attack', die: `p${me}d0`, target: `p${foe}d0` });
-    // Set combat dice so attacker wins
-    const combat = s.pending.find((p) => p.kind === 'combat')!;
-    if (combat && combat.kind === 'combat') {
-      combat.attacker.dice = [1];
-      combat.defender.dice = [6];
-    }
-    s = apply(s, { type: 'resolveCombat' });
+    s = resolveBattle(s, 1, 6); // the attacker wins
     // Attacker advances
     if (s.pending[0]?.kind === 'advance') s = apply(s, { type: 'advance', move: false });
     // Remodel triggers an Engineering prompt for foe on the destroyed mech with source = 'r-remodel'
@@ -106,12 +100,7 @@ describe('Stolen Flag', () => {
     s.players[me].power = 3;
     // Win combat to gain power
     s = apply(s, { type: 'attack', die: `p${me}d0`, target: `p${1 - me}d0` });
-    const combat = s.pending.find((p) => p.kind === 'combat')!;
-    if (combat && combat.kind === 'combat') {
-      combat.attacker.dice = [1];
-      combat.defender.dice = [6];
-    }
-    s = apply(s, { type: 'resolveCombat' });
+    s = resolveBattle(s, 1, 6);
     if (s.pending[0]?.kind === 'advance') s = apply(s, { type: 'advance', move: false });
 
     // Power reached 4, which triggers Take Over
@@ -124,12 +113,7 @@ describe('Stolen Flag', () => {
     const me = s.turn.player;
     const foe = 1 - me;
     s = apply(s, { type: 'attack', die: `p${me}d0`, target: `p${foe}d0` });
-    const combat = s.pending.find((p) => p.kind === 'combat')!;
-    if (combat && combat.kind === 'combat') {
-      combat.attacker.dice = [1];
-      combat.defender.dice = [6];
-    }
-    s = apply(s, { type: 'resolveCombat' });
+    s = resolveBattle(s, 1, 6);
     if (s.pending[0]?.kind === 'advance') s = apply(s, { type: 'advance', move: false });
 
     // Winner gets Stolen Flag steal decision
@@ -171,7 +155,7 @@ describe('Stolen Flag', () => {
   it('does not trigger Take Over at the start of a turn without a lowered threshold', () => {
     let s = cardGame();
     const me = s.turn.player;
-    // Power 6 kept from an Take Over that had nowhere to go: no new Take Over until Power rises.
+    // Power 6 kept from a Take Over that had nowhere to go: no new Take Over until Power rises.
     s.players[me].power = 6;
     s = apply(s, { type: 'endTurn' });
     s = apply(s, { type: 'endTurn' });
@@ -335,12 +319,7 @@ describe('Signal Jammer', () => {
     const me = s.turn.player;
     const foe = 1 - me;
     s = apply(s, { type: 'attack', die: `p${me}d0`, target: `p${foe}d0` });
-    const combat = s.pending.find((p) => p.kind === 'combat')!;
-    if (combat && combat.kind === 'combat') {
-      combat.attacker.dice = [1];
-      combat.defender.dice = [6];
-    }
-    s = apply(s, { type: 'resolveCombat' });
+    s = resolveBattle(s, 1, 6);
     if (s.pending[0]?.kind === 'advance') s = apply(s, { type: 'advance', move: false });
 
     // Signal Jammer prompts to disable enemy's skill
@@ -370,12 +349,7 @@ describe('Signal Jammer', () => {
     const foe = 1 - me;
     s.players[me].bonusTurns = [2]; // Queued Forced March turn
     s = apply(s, { type: 'attack', die: `p${me}d0`, target: `p${foe}d0` });
-    const combat = s.pending.find((p) => p.kind === 'combat')!;
-    if (combat && combat.kind === 'combat') {
-      combat.attacker.dice = [1];
-      combat.defender.dice = [6];
-    }
-    s = apply(s, { type: 'resolveCombat' });
+    s = resolveBattle(s, 1, 6);
     if (s.pending[0]?.kind === 'advance') s = apply(s, { type: 'advance', move: false });
     s = apply(s, { type: 'signalJammer', skill: 'r-tune-up' });
 
@@ -396,12 +370,7 @@ describe('Stolen Flag edge cases', () => {
     s.players[me].power = 3; // Destroying foe mech will bring it to 4
 
     s = apply(s, { type: 'attack', die: `p${me}d0`, target: `p${foe}d0` });
-    const combat = s.pending.find((p) => p.kind === 'combat')!;
-    if (combat && combat.kind === 'combat') {
-      combat.attacker.dice = [1];
-      combat.defender.dice = [6];
-    }
-    s = apply(s, { type: 'resolveCombat' });
+    s = resolveBattle(s, 1, 6);
     if (s.pending[0]?.kind === 'advance') s = apply(s, { type: 'advance', move: false });
 
     // At this moment power is 4, but threshold without Stolen Flag was 6, so no Take Over yet

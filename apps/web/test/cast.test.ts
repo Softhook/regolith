@@ -31,7 +31,7 @@ describe('castOf', () => {
     expect(castOf(s, after)?.card).toBe('r-orbital-cannon');
   });
 
-  it('is nothing for a card taken, or for placing a CE Reinforcements mech after an earlier Tactic', () => {
+  it('is nothing for a card taken, or for placing a Reinforcements mech after an earlier Tactic', () => {
     const s = quickStart(2, 42);
     s.pending.unshift({ kind: 'takeCard', player: s.turn.player, count: 1 });
     s.market.skillRow[0] = 'r-tune-up';

@@ -3,7 +3,7 @@
  * (adjacent): any of a hex's 6 sides.
  */
 import { grid } from '../board';
-import { type MechAbility } from '../mechs';
+import type { MechAbility } from '../mechs';
 
 export const picket: MechAbility = {
   ability: {

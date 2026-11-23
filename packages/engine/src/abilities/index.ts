@@ -43,7 +43,7 @@ function useAbility(s: GameState, d: Die, ability: BuiltInAbility) {
 export function carryMech(s: GameState, carrier: Die, passenger: string, to: Cell, setDown: Cell, range?: number) {
   if (!carryPassengers(s, carrier.id).some((x) => x.id === passenger)) fail(`The carried mech must be next to the ${mechName(s, carrier)}`);
   const dest = carryOptions(s, carrier.id, passenger, range).get(key(to));
-  if (!dest || !dest.setDowns.some((p) => same(p, setDown))) fail('Invalid carry');
+  if (!dest?.setDowns.some((p) => same(p, setDown))) fail('Invalid carry');
   if (same(to, setDown)) fail(`Set the carried mech down next to the ${mechName(s, carrier)}`);
   return () => {
     carrier.loc = boardLoc(to);

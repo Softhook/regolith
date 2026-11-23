@@ -142,7 +142,7 @@ function Battle({
             <AtomicButton key={sh.id} game={game} combat={combat} role={role} shooter={sh} named={humans.length > 1} dispatch={dispatch} />
           ))}
         {revealed && !s.atomic && total.roll === 1 && shooters.some((sh) => sh.id === s.player) && (
-          <p className="atomic-note">{'Roll is already 1 — an atomic can’t help.'}</p>
+          <p className="atomic-note">Roll is already 1 — an atomic can’t help.</p>
         )}
       </BattleSide>
     );
@@ -245,7 +245,7 @@ function AtomicButton({
     <button className={`btn btn-atomic ${flips ? 'decisive' : ''}`} onClick={() => dispatch(action)}>
       <span>
         <AtomicIcon /> {named ? `${shooter.name}: ` : ''}
-        {'Fire atomic — your roll becomes 1'}
+        Fire atomic — your roll becomes 1
       </span>
       <small>{verdict}</small>
     </button>

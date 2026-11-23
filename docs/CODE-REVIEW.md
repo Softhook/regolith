@@ -18,7 +18,7 @@ One more trade-off was accepted for now and is described after them.
 ## 2. The poster's clock ranks rival moves (Low among friends)
 
 Rival chained posts (two posts that name the same `prev`) are ranked by `at`
-([`byRank`](../packages/online/src/timeline.ts#L72)), the poster's own clock, sealed inside the
+([`byRank`](../packages/online/src/timeline.ts#L86)), the poster's own clock, sealed inside the
 encrypted body and never checked. A post that names an old post as `prev` and claims an earlier time
 replaces the move that followed it, and everything after that move, for every browser.
 
@@ -52,9 +52,8 @@ The same duplication, availability written once for listing and once for applyin
 **Change:** give `SkillRule` an `activated: { options(s, player): Action[]; apply(s, action) }` entry,
 like `MechHooks.action` for the plugged-in abilities, and have `legal.ts` and the handlers read it. The
 `ability` action already shows the pattern: options computed once, and `apply` accepts only
-an offered option. Related: [queries.ts](../packages/engine/src/queries.ts) has grown to about 800
-lines of unrelated questions (movement, claim, combat, cards, skills), and splitting it by topic
-would make it easier to find one.
+an offered option. (The related split of queries.ts by topic is done:
+[queries/](../packages/engine/src/queries), 2026-11-23.)
 
 **Status: left as is.** The level-1 AI breaks ties by the order in which `legalActions` lists
 actions, so a registry must list them in exactly today's order. Otherwise the golden replays for
@@ -70,11 +69,12 @@ exactly what `legalActions` offers, decisions included.
 *Decided 2026-10-12: the app is still in transition, so a deploy may break online games in progress.*
 
 An online game is a log of moves that every browser replays with its own copy of the engine, and
-nothing records which rules the game was started with. Neither `PROTOCOL`
-([protocol.ts:8](../packages/online/src/protocol.ts#L8)) nor `GameState.version` has ever been bumped,
-and the `create` post carries no engine version. After a deploy that changes a rule, the new build
-replays old moves under the new rules. The game stops at the first move that is now refused, and
-anything after it disappears.
+nothing records which rules the game was started with. `PROTOCOL`
+([protocol.ts:8](../packages/online/src/protocol.ts#L8)) is bumped only when the posts change or replay
+differently (it is 3 since the cards' rename, 2026-11-11), not for a change of rule; `GameState.version`
+has never been bumped, and the `create` post carries no engine version. After a deploy that changes a
+rule, the new build replays old moves under the new rules. The game stops at the first move that is now
+refused, and anything after it disappears.
 
 What players will see when this happens: the game shows a "rejected" desync naming another player,
 which suggests that player did something wrong. If that confuses testers, a cheap step short of real

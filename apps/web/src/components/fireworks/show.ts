@@ -1,5 +1,5 @@
 import { NEBULA_HUES } from '@regolith/art';
-import { FANFARE_HITS, fireworkSound } from '../../gameOverSound';
+import { FANFARE_HITS, fireworkSound } from '../../audio/gameOver';
 import { pick, rand } from '../../random';
 import { RANDOM_SHAPES, SHAPES, programme, sphere, type Burst, type Fire, type Kit, type LaunchOptions, type SparkStyle } from './display';
 import { GOLD, WHITE, glowSprite, lift, nebulaSprite, rgba, tint, toRgb, type Rgb } from './sprites';

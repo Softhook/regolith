@@ -4,7 +4,7 @@ import type { Cell, CombatOutcome, CombatPending, GameState, LogEntry } from '@r
 import { arrange, quickStart } from '../../../packages/engine/test/helpers';
 import { REINFORCEMENT } from '../src/beats';
 
-vi.mock('../src/sound', () => ({ sfx: {} }));
+vi.mock('../src/audio/effects', () => ({ sfx: {} }));
 const { battleSounds, soundsFor } = await import('../src/game/sounds');
 
 const start = () => arrange(quickStart(2, 1, 'basic'), { p0d0: [0, 0, 6], p0d1: [4, 4, 2], p1d0: [0, 1, 3] });

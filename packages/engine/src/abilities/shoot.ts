@@ -7,8 +7,8 @@ import { startCombat } from '../combat';
 import { markMoved, spend } from '../core';
 import { cellOf, die, dieAt, isEmptySpace } from '../lookups';
 import { canMoveDie } from '../queries';
-import { type MechAbility } from '../mechs';
-import { type Die, type GameState } from '../types';
+import type { MechAbility } from '../mechs';
+import type { Die, GameState } from '../types';
 
 /** Enemy mechs in range from where it stands, whatever the cost. */
 export function shootTargets(s: GameState, d: Die): Die[] {

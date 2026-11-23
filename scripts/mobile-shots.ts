@@ -122,7 +122,7 @@ async function playToMyTurn(page: Page) {
     const step = await page.evaluate(() => {
       const modal = document.querySelector('.overlay .modal');
       if (modal) {
-        const keep = [...modal.querySelectorAll('button:not([disabled])')].find((b) => b.textContent!.includes('Keep'));
+        const keep = [...modal.querySelectorAll('button:not([disabled])')].find((b) => b.textContent.includes('Keep'));
         (
           (keep ?? modal.querySelector('.qcard, .card-pick') ?? modal.querySelector('.btn-primary:not([disabled])')) as HTMLElement | null
         )?.click();
@@ -399,14 +399,14 @@ async function main() {
               const label = (t: Element) =>
                 t.matches('.qcard')
                   ? `card ${t.querySelector('h3, .qcard-name')?.textContent ?? ''}`.trim()
-                  : (t.getAttribute('aria-label') ?? t.textContent!).trim();
+                  : (t.getAttribute('aria-label') ?? t.textContent).trim();
               return { wide: r.right > innerWidth + 1 || r.left < -1, hidden: hidden.map(label) };
             });
             await page.screenshot({ path: `${OUT}/${name}-popup${n}.png` });
             if (pop.wide) issues.push(`"${title}" wider than the screen`);
             if (pop.hidden.length) issues.push(`"${title}": ${pop.hidden.map((t) => `"${t}"`).join(', ')} off screen`);
             await modal.evaluate((el) => {
-              const keepBtn = [...el.querySelectorAll('button')].find((b) => b.textContent!.includes('Keep mechs'));
+              const keepBtn = [...el.querySelectorAll('button')].find((b) => b.textContent.includes('Keep mechs'));
               (keepBtn ?? (el.querySelector('.qcard, .card-pick') as HTMLElement | null))?.click();
             });
             await page.waitForTimeout(800);

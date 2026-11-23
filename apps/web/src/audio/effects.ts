@@ -1,9 +1,9 @@
 // Tiny synthesized sound kit (no audio files). All sounds are short and quiet.
 
-import { ARRIVE, BATTLE, boomAt, CUBE, DICE, MOST_BOOMS, MECH, SHOT } from './beats';
-import { effects, envelope, filter, gain, glide, jitter, kept, noiseSource, oscillator, out } from './audio';
-import { fanfare, lament } from './gameOverSound';
-import { pick } from './random';
+import { ARRIVE, BATTLE, boomAt, CUBE, DICE, MOST_BOOMS, MECH, SHOT } from '../beats';
+import { effects, envelope, filter, gain, glide, jitter, kept, noiseSource, oscillator, out } from './core';
+import { fanfare, lament } from './gameOver';
+import { pick } from '../random';
 
 /** A few short random click samples reused by every dice clatter. */
 const clickBuffers = kept((ac) => {
@@ -27,9 +27,9 @@ function click(ac: AudioContext, at: number, level: number, freq: number) {
 }
 
 /** A click `delay` seconds from now, as `tone` and `noise` take theirs. */
-function tick(gain: number, freq: number, delay = 0) {
+function tick(level: number, freq: number, delay = 0) {
   const ac = effects();
-  if (ac) click(ac, ac.currentTime + delay, gain, freq);
+  if (ac) click(ac, ac.currentTime + delay, level, freq);
 }
 
 /**
@@ -51,19 +51,19 @@ export function playRoll(count = 1) {
   }
 }
 
-function tone(freq: number, dur: number, type: OscillatorType, gain: number, delay = 0, slideTo?: number, rise = 0.01) {
+function tone(freq: number, dur: number, type: OscillatorType, level: number, delay = 0, slideTo?: number, rise = 0.01) {
   const ac = effects();
   if (!ac) return;
   const at = ac.currentTime + delay;
   const osc = oscillator(ac, type, freq, at, at + dur + 0.05);
   if (slideTo) osc.frequency.exponentialRampToValueAtTime(slideTo, at + dur);
-  osc.connect(envelope(ac, at, dur, gain, rise)).connect(out(ac));
+  osc.connect(envelope(ac, at, dur, level, rise)).connect(out(ac));
 }
 
 /** Filtered noise whose filter sweeps from `from` to `to` Hz: whooshes, hisses and booms. */
 function noise(
   dur: number,
-  gain: number,
+  level: number,
   {
     delay = 0,
     type = 'bandpass',
@@ -87,7 +87,7 @@ function noise(
   glide(f.frequency, at, from, [[dur, to]]);
   noiseSource(ac, at, at + dur + 0.05)
     .connect(f)
-    .connect(envelope(ac, at, dur, gain, rise))
+    .connect(envelope(ac, at, dur, level, rise))
     .connect(out(ac));
 }
 
@@ -124,10 +124,10 @@ export const sfx = {
   /** A mech flying across the board: a deep engine rumble that swells as it passes, for as long as it glides (beats.ts). */
   fly: () => {
     const f = jitter(1);
-    const glide = MECH.glide / 1000;
-    noise(glide, 0.3, { type: 'lowpass', from: 160 * f, to: 520 * f, q: 3, rise: 0.25 });
-    tone(48 * f, glide, 'sine', 0.16, 0, 72 * f, 0.2);
-    tone(96 * f, glide - 0.05, 'triangle', 0.05, 0.02, 140 * f, 0.2);
+    const dur = MECH.glide / 1000;
+    noise(dur, 0.3, { type: 'lowpass', from: 160 * f, to: 520 * f, q: 3, rise: 0.25 });
+    tone(48 * f, dur, 'sine', 0.16, 0, 72 * f, 0.2);
+    tone(96 * f, dur - 0.05, 'triangle', 0.05, 0.02, 140 * f, 0.2);
   },
   /**
    * A mech arriving on the board from the salvage yard or reserve, or brought by a card: a rising shimmer, and

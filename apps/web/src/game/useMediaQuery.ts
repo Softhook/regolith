@@ -1,6 +1,9 @@
 import { useSyncExternalStore } from 'react';
 
-type Store = { subscribe: (onChange: () => void) => () => void; get: () => boolean };
+interface Store {
+  subscribe: (onChange: () => void) => () => void;
+  get: () => boolean;
+}
 const stores = new Map<string, Store>();
 
 /** One MediaQueryList per query, so the subscription stays put across renders. */

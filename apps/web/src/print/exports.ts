@@ -24,7 +24,10 @@ import { GAME_NAME } from '../appId';
 export type Progress = (message: string) => void;
 
 /** A file in a ZIP. */
-type ZipFile = { name: string; blob: Blob };
+interface ZipFile {
+  name: string;
+  blob: Blob;
+}
 
 /** A text file for a ZIP: a README, an order list. */
 const textFile = (name: string, text: string, type = 'text/plain'): ZipFile => ({ name, blob: new Blob([text], { type }) });

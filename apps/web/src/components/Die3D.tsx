@@ -1,6 +1,6 @@
 import { memo, useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
 import { DICE, HOP_EASING, HOP_LANDS } from '../beats';
-import { playRoll } from '../sound';
+import { playRoll } from '../audio/effects';
 import { APPLE_TOUCH } from '../platform';
 import { useEffectEvent } from '../game/useEffectEvent';
 import { DIE_CORNER, PIP } from '../theme';

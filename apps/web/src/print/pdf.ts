@@ -82,7 +82,7 @@ export async function deflateChunks(
   const out: Uint8Array<ArrayBuffer>[] = [];
   // Read while writing, or the stream's queue fills and the writes never finish.
   const read = (async () => {
-    for (let r = await reader.read(); !r.done; r = await reader.read()) out.push(r.value as Uint8Array<ArrayBuffer>);
+    for (let r = await reader.read(); !r.done; r = await reader.read()) out.push(r.value);
   })();
   try {
     for await (const p of pieces) await writer.write(p);

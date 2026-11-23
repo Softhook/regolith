@@ -43,12 +43,13 @@ Done (23 October 2026). There were no users to keep, so the rename went all the 
 changing the label:
 
 - The mode's id is `'regolith'` (`GameMode` in [data.ts](../../packages/engine/src/data.ts), `RULESETS.regolith`
-  in [rulesets.ts](../../packages/engine/src/rulesets.ts)), its mechs in `ships.ts` and `powers/`, its tests `regolith.test.ts`. The old ids (`'prototyping'`,
-  and `'cubic'` before it) are gone, aliases included: saved and online games under them are dropped.
+  in [rulesets.ts](../../packages/engine/src/rulesets.ts)), its mechs in `mechs.ts` and `abilities/`, its tests
+  `regolith.test.ts`. The old ids (`'prototyping'`, and `'cubic'` before it) are gone, aliases included: saved
+  and online games under them are dropped.
 - PROTOTYPING.md stays the design log of the rules, retitled as Regolith's, and keeps the word "prototyping" for the work, not the mode.
 - **Kept apart, then split.** Regolith was kept apart from Cubic's modes until it left for this repository
-  (2026-10-27, [SPLIT.md](SPLIT.md)). The engine still asks the rule set (`contestedOrbit`, `grid`,
-  `experimental`, …) rather than naming a mode.
+  (2026-10-27, [SPLIT.md](SPLIT.md)). The engine still asks the rule set (`cards`, `mechs`,
+  `overClaim`, …) rather than naming a mode.
 - **Other versions online.** A browser that gets an invite for a game it can't start (made by a version with
   other modes, maps or protocol) says so and asks both players to reload, rather than "Game not found".
 
@@ -77,7 +78,7 @@ one card at a time and the Community Edition record lives in its `from` fields.
 
 ```
 data/
-  regolith.yaml       Regolith's decks: Skills, Tactics, and the Expansion card (Reinforcements)
+  regolith.yaml       Regolith's decks: Skills, Tactics, and the Reinforcements card
 packages/engine/src/data/
   cards.json          built by scripts/build-data.mjs from regolith.yaml
 ```
@@ -94,22 +95,23 @@ page (all but Sabotage were renamed), with the same category and count, its text
 its own deck. Ingenious ("conquer from the corners") is left out, as hex tiles have no corners.
 
 Each card is a `CardDef` with the fields cards already have (`id`, `name`, `subtitle`, `text`,
-`category`, `count`, `notes`, `effect`), plus `art` (the brief its screenprint card is drawn from) and:
+`category`, `count`, `notes`), plus `art` (the brief its screenprint card is drawn from) and:
 
 - **`from`**: the Community card it started as. It stays when the card changes, so the Art Lab can show
   the lineage (as `classic` does for Community cards) and it is clear how far each card has moved.
 - **`status`**: how far it has moved, replacing `ce_status` for this file:
-  `community` (as the copy), `renamed` (new name and words, same action), `reworked` (action changed:
-  a new `effect`), `new` (no Community ancestor, no `from`).
+  `community` (as the copy), `renamed` (new name and words, same action), `reworked` (action changed),
+  `new` (no Community ancestor, no `from`).
 
-Ids are prefixed (`r-`) so they never collide with Community's or Classic's (`o-`).
-[build-data.mjs](../../scripts/build-data.mjs) checks the ids, that `from` is a Community card, that
-`status` agrees with `from`, `name` and `effect`; `data.test.ts` checks every `effect` is one the engine has.
+Ids are prefixed (`r-`) and follow the card's name (since 2026-11-11); a card's effect, its rule in the engine
+(`effects.ts`), is its id without the `r-`, so it isn't a field. [build-data.mjs](../../scripts/build-data.mjs)
+checks that the ids are prefixed and unique, that every card has its fields, and that `status` agrees with
+`from`; `data.test.ts` checks every effect is one the engine has, or on its known-missing list.
 
-The mode's folder imports its `cards.json` (`REGOLITH_DECKS`); nothing else in the engine names it. The
-engine learns its cards from the rule set: `defineRuleSets` (rules.ts) adds each mode's own decks to the
-cards `card()` and `ALL_CARDS` know (`addCards`, data.ts), and `CardRules.expansion` names the mode's own
-Expansion card (`expansionCard(state)`, which the market and card flights ask).
+`rulesets.ts` imports `cards.json` (`REGOLITH_DECKS`); nothing else in the engine names it. The engine
+learns its cards from the rule set: `defineRuleSets` (rules.ts) adds each mode's own decks to the cards
+`card()` and `ALL_CARDS` know (`addCards`, data.ts), and `CardRules.reinforcement` names its Reinforcements
+card (`reinforcementCard(state)`, which the market and card flights ask).
 
 ## 4. Cards: rules
 
@@ -123,7 +125,7 @@ Expansion card (`expansionCard(state)`, which the market and card flights ask).
 - **Reworked and new cards** need new rules. Where an effect can be written as a hook, it goes in
   `packages/engine/src/cards/`, one file per effect, like
   [abilities/](../../packages/engine/src/abilities/), so a card's rules stay out of the core. That
-  needs a card-hook surface in the kit next to `ShipHooks` (PROTOTYPING.md §9 *Adding a New Hook*), built
+  needs a card-hook surface next to `MechHooks` (PROTOTYPING.md §9 *Adding a New Hook*), built
   when the first reworked card needs it. An effect too tangled for a hook goes into the engine's effects
   like any card, registered in `IMPLEMENTED_EFFECTS`, and only Regolith's deck deals it.
 - Each new effect needs an AI value in `cardValues.ts`, a rule test, and a ruling in

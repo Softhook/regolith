@@ -39,11 +39,11 @@ interface SavedLog {
   syncedAt?: number;
 }
 
-/** The saved log, and how many of its entries were damaged (left out). Older saves are a bare array of events. */
+/** The saved log, and how many of its entries were damaged (left out). */
 function loadLog(tag: string): SavedLog & { damaged: number } {
   const saved = storedJson<unknown>(eventsKey(tag));
   if (saved === null) return { events: [], damaged: 0 };
-  const log: Partial<SavedLog> = Array.isArray(saved) ? { events: saved } : (saved as Partial<SavedLog>);
+  const log = saved as Partial<SavedLog>;
   // Not a log at all: one damaged entry.
   if (!Array.isArray(log.events)) return { events: [], damaged: 1 };
   const events = log.events.filter((e): e is NostrEvent => typeof (e as NostrEvent | null)?.id === 'string');

@@ -156,11 +156,11 @@ describe('online games in storage', () => {
       expect(log.events.has(bad.id)).toBe(false);
     });
 
-    it('reads the older saves, a bare array of events, as never synced', () => {
+    it('reads a saved value that is not a log as damaged, never synced and empty', () => {
       store.setItem(appKey(`online.events.${tag}`), JSON.stringify([event]));
       const log = openGameLog(game);
       expect(log.load()).toBeUndefined();
-      expect(log.events.has(event.id)).toBe(true);
+      expect(log.events.size).toBe(0);
     });
   });
 });

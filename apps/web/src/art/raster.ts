@@ -15,10 +15,11 @@ import { idle } from './imageStore';
 import type { RasterJob, RasterRequest, RasterResponse } from './rasterWorker';
 
 /**
- * SVGs decoded at once (across tiles and cards), and jobs each lane has in flight: a tile's SVG takes ~0.6 s to rasterise (on the CPU, off the page), so a few at a time
- * fill a map in about the time one would take on the main thread. Two on a touch screen: a phone's cores are few
- * and slow, shared with the page, and each job in flight holds the filters' buffers in memory (in the lobby,
- * emulated, two took 2.5 s against four's 2.1 s, with fewer dropped frames).
+ * SVGs decoded at once (across tiles and cards), and jobs each lane has in flight: a tile's SVG takes ~0.6 s to
+ * rasterise (on the CPU, off the page), so a few at a time fill a map in about the time one would take on the main
+ * thread. Two on a touch screen: a phone's cores are few and slow, shared with the page, and each job in flight
+ * holds the filters' buffers in memory (in the lobby, emulated, two took 2.5 s against four's 2.1 s, with fewer
+ * dropped frames).
  */
 const COARSE_POINTER = typeof matchMedia === 'function' && matchMedia(COARSE).matches;
 const AT_ONCE = Math.max(1, Math.min(COARSE_POINTER ? 2 : 4, (navigator.hardwareConcurrency || 2) - 1));
@@ -90,7 +91,7 @@ async function decode<T>(lane: 'card' | 'tile', make: () => Promise<T>): Promise
  * A worker and the jobs queued for it. Tiles and cards have one each: a worker does one job at a time, and a card
  * opened as a game starts would otherwise wait behind every tile of its map.
  */
-function lane(name: 'card' | 'tile') {
+function rasterLane(name: 'card' | 'tile') {
   let worker: Worker | null | undefined;
   let nextJob = 0;
   const jobs = new Map<number, Job>();
@@ -137,9 +138,9 @@ function lane(name: 'card' | 'tile') {
       const w = start();
       if (!w) throw new Error('no raster worker');
       const job = await decode(name, make);
-      const bitmaps = job.kind === 'tile' ? [job.image, job.cutter] : [job.image];
+      const transfer = job.kind === 'tile' ? [job.image, job.cutter] : [job.image];
       if (worker !== w) {
-        bitmaps.forEach((b) => b.close());
+        transfer.forEach((b) => b.close());
         throw new Error('raster worker dropped');
       }
       return await new Promise<Blob[]>((resolve, reject) => {
@@ -148,7 +149,7 @@ function lane(name: 'card' | 'tile') {
           resolve: (blobs) => (clearTimeout(timer), resolve(blobs)),
           reject: (error) => (clearTimeout(timer), reject(error)),
         });
-        w.postMessage({ ...job, id } satisfies RasterRequest, bitmaps);
+        w.postMessage({ ...job, id } satisfies RasterRequest, transfer);
       });
     } catch (error) {
       jobs.delete(id);
@@ -182,8 +183,8 @@ function onMainThread<T>(draw: () => Promise<T>): Promise<T> {
   return drawn;
 }
 
-const tiles = lane('tile');
-const cards = lane('card');
+const tiles = rasterLane('tile');
+const cards = rasterLane('card');
 
 /**
  * A square tile image of `svg` at `size` px over an opaque `under` colour (JPEG), and the same cut out by `mask`

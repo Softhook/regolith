@@ -18,8 +18,8 @@ earlier Community benchmark (2026-10-09, in this repo's history).
 ## How it was measured
 
 Measured 2026-10-25 with the AI as it is now, at level 2: about 50,000 two-player games. Regolith's
-deck plays by the Community rules card for card (`effect` in
-[cards.json](../packages/engine/src/data/cards.json)), except Science and Sabotage (2 actions). What
+deck plays by the Community rules card for card (each card's `from` in
+[regolith.yaml](../data/regolith.yaml)), except Science and Sabotage (2 actions). What
 differs is the mode around them: hex maps, moves capped at 3, zones of control, contested orbits, the
 Sniper and the Wisp. To separate the mode from the AI, every skill was also measured in Community at
 the same level as a control.

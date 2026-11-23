@@ -108,7 +108,7 @@ function fuzz(mode: GameMode, seed: number) {
         for (const field of FIELDS[a.type]) {
           const v = (a as unknown as Record<string, unknown>)[field];
           if (typeof v !== 'object' || v === null) continue;
-          const tampered = { ...a, [field]: { ...v, zone: 'reserve', junk: 'x' } } as Action;
+          const tampered = { ...a, [field]: { ...v, zone: 'reserve', junk: 'x' } };
           expect.soft(tryApply(s, tampered), `extra keys in ${field} of ${JSON.stringify(a)}`).toEqual(tryApply(s, a));
         }
       }

@@ -212,7 +212,7 @@ export class Timeline {
   private owners(): Map<PlayerId, string> {
     const out = new Map<PlayerId, string>();
     const g = this.r?.genesis ?? [...this.creates].sort(byTime)[0];
-    if (!g || g.body.t !== 'create') return out;
+    if (g?.body.t !== 'create') return out;
     out.set(g.body.creator, g.author);
     const open = new Set(g.body.open);
     const claims = [...this.claims].sort(byTime);
@@ -260,7 +260,7 @@ export class Timeline {
     for (;;) {
       r.crash = null;
       const state = r.steps.at(-1)!.state;
-      const combat = state.pending[0]?.kind === 'combat' ? (state.pending[0] as CombatPending) : null;
+      const combat = state.pending[0]?.kind === 'combat' ? state.pending[0] : null;
       r.combat = combat ? this.combatWait(state, combat) : null;
       if (r.combat) this.stages.add(r.combat.stage);
       if (combat && r.combat!.waitingOn.every((s) => r.combat!.passed.includes(s))) {

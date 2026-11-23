@@ -1,8 +1,8 @@
 // The app's opening, as the lobby's title rises on first opening: a deep hit, a rush climbing with the title,
 // and as it lands a wide D minor chord blooming open with high chimes over it, all in a long reverb. It is the
-// drone's first chord (ambience.ts), so the one rings on into the other.
+// drone's first chord (music.ts), so the one rings on into the other.
 
-import { compressor, contour, filter, gain, glide, hz, noiseSource, oscillator, panner, reverb, spread } from './audio';
+import { compressor, contour, filter, gain, glide, hz, noiseSource, oscillator, panner, reverb, spread } from './core';
 
 /** Seconds from the start to the title landing: its rise (components/lobby/useIntro.ts) takes about one, settling gently. */
 const LAND = 0.8;
@@ -14,7 +14,7 @@ const CHORD = [26, 38, 45, 50, 53, 57, 60, 64, 69];
 const CHIMES = [74, 81, 88];
 
 /**
- * Seconds from now to the start. Building the reverb, if it isn't ready yet (audio.ts), can take tens of
+ * Seconds from now to the start. Building the reverb, if it isn't ready yet (core.ts), can take tens of
  * milliseconds on a phone, and its output buffers are long: starting sooner, the first notes would be scheduled
  * in the past and come in late, stuttering.
  */

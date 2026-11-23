@@ -18,7 +18,7 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { extname, join, relative, resolve } from 'node:path';
-import { type Page } from 'playwright';
+import type { Page } from 'playwright';
 import { MOTO_G55, launchChrome, succeeds } from './mobile-common';
 import { build } from 'vite';
 

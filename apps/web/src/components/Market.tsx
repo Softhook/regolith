@@ -240,7 +240,7 @@ export function Market({
           title={`${cardName('arms-deal')}: a card earned by a Claim action`}
           onClick={() => dispatch({ type: 'armsDeal' })}
         >
-          {'Take 1 atomic instead of a card'}
+          Take 1 atomic instead of a card
         </button>
       )}
     </>

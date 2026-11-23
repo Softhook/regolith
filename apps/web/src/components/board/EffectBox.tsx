@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { drawing, type Board } from '@regolith/engine';
 import type { MapEffect } from '../../game/cardEffects';
 
@@ -38,7 +38,7 @@ export function EffectBox({
     style['--angle'] = `${Math.atan2(dy, dx)}rad`;
   }
   return (
-    <div className={className} style={style as CSSProperties} aria-hidden>
+    <div className={className} style={style} aria-hidden>
       {children}
     </div>
   );

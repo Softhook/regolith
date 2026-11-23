@@ -189,7 +189,7 @@ function play(setup: string, g: number): Game {
     values = next;
   }
   if (s.phase === 'over') r.winnerSide = side(s.winner!);
-  r.battles = s.players.reduce((n, p) => n + p.stats!.battlesWon + p.stats!.battlesLost, 0) / 2;
+  r.battles = s.players.reduce((n, p) => n + p.stats.battlesWon + p.stats.battlesLost, 0) / 2;
   return r;
 }
 

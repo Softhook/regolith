@@ -106,11 +106,11 @@ function PlayerCard({
         </Tip>
       </div>
       <div className="player-tracks">
-        <Track label={'Power'} value={p.power} tone="power" spot="power" fx={effectAt(fx, 'power')} />
+        <Track label="Power" value={p.power} tone="power" spot="power" fx={effectAt(fx, 'power')} />
         {rules.cards && <Track label="Research" value={p.research} tone="res" spot="research" fx={effectAt(fx, 'research')} />}
       </div>
       <div className="player-row">
-        <Tip className="stat" data-fx="atomics" tip={'Atomics: in a battle you are losing, set your own combat roll to 1'}>
+        <Tip className="stat" data-fx="atomics" tip="Atomics: in a battle you are losing, set your own combat roll to 1">
           <AtomicIcon size={14} /> {p.atomics}
           <Flash e={effectAt(fx, 'atomics')} />
         </Tip>
@@ -155,7 +155,7 @@ function PlayerCard({
                 data-fx={`skill:${s.id}`}
                 className={`skill-chip ${s.active ? '' : 'pending'} ${dim ? 'disabled-chip' : ''}`}
                 style={categoryStyle(def.category, true)}
-                title={`${`${def.name}: ${def.text}`}${disabled ? `\n(Disabled by ${game.players[s.disabledUntil!].name} until their next turn)` : s.active ? '' : '\n(Takes effect from the next player’s turn)'}`}
+                title={`${def.name}: ${def.text}${disabled ? `\n(Disabled by ${game.players[s.disabledUntil!].name} until their next turn)` : s.active ? '' : '\n(Takes effect from the next player’s turn)'}`}
               >
                 <CategoryIcon category={def.category} size={11} />
                 {def.name}
@@ -174,7 +174,7 @@ function PlayerCard({
                 data-fx={`stored:${tId}`}
                 className={`skill-chip stored-tactic ${canPlay ? 'playable' : ''}`}
                 style={categoryStyle(def.category, false)}
-                title={`${`${def.name} (Stored Tactic): ${def.text}`}${canPlay ? '\n(Click to view / play)' : ''}`}
+                title={`${def.name} (Stored Tactic): ${def.text}${canPlay ? '\n(Click to view / play)' : ''}`}
               >
                 <CategoryIcon category={def.category} size={11} />
                 {def.name} [Tactic]

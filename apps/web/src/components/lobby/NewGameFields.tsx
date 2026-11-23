@@ -59,7 +59,7 @@ function MiniMap({ map }: { map: MapDef }) {
   const px = Math.min(26 / TILE_SPAN, 150 / w, 150 / h);
   const size = 2 * TILE_CORNER * px;
   return (
-    <div className="mini-map" style={{ width: w * px, height: h * px } as CSSProperties}>
+    <div className="mini-map" style={{ width: w * px, height: h * px }}>
       {tiles.map((t) => (
         <MiniTile
           key={t.key}

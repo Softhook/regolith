@@ -365,7 +365,7 @@ const ORACLES: ((c: Step) => void)[] = [
     }
   },
 
-  // Fanatics (CE): never gains research; Power only drops through an Take Over reset.
+  // Fanatics (CE): never gains research; Power only drops through a Take Over reset.
   (c) => {
     for (const p of c.after.players) {
       const r = held(c.before, p.id, 'fanatics');
@@ -527,7 +527,7 @@ const ORACLES: ((c: Step) => void)[] = [
   (c) => {
     const head = c.after.pending[0];
     const prev = c.before.pending.find((x) => x.kind === 'combat');
-    if (head?.kind === 'combat' && (!prev || prev.kind !== 'combat' || prev.id !== head.id)) {
+    if (head?.kind === 'combat' && (prev?.kind !== 'combat' || prev.id !== head.id)) {
       for (const side of [head.attacker, head.defender]) {
         const pairedCannons = held(c.before, side.player, 'paired-cannons');
         if (side.dice.length !== (pairedCannons ? 2 : 1)) c.fail(pairedCannons, `${side.dice.length} combat dice`);
@@ -557,7 +557,7 @@ const ORACLES: ((c: Step) => void)[] = [
       c.fail(engineering, 'no number choice after a Refit');
   },
 
-  // Take Over: Power reaching the threshold (6, or 4 with Stolen Flag) earns an Take Over decision.
+  // Take Over: Power reaching the threshold (6, or 4 with Stolen Flag) earns a Take Over decision.
   (c) => {
     for (const p of c.after.players) {
       const stolenFlag = held(c.after, p.id, 'stolen-flag');

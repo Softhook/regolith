@@ -94,7 +94,7 @@ describe('print sheets', () => {
 
   it("marks where each of a hex tile's cuts inside its square, carried on, leaves it, pointing on along it", () => {
     const { w, h, die } = PIECES.tile;
-    const exits = die!.exits!;
+    const exits = die.exits;
     const edges = exits.map((e) => (e.y < 1e-6 ? 'top' : e.y > h - 1e-6 ? 'bottom' : e.x < 1e-6 ? 'left' : 'right'));
     // 8 slanted lines, 4 exits on each edge; 2 level ones at 16 and 80 mm down, 2 more on each side.
     for (const [edge, count] of Object.entries({ top: 4, bottom: 4, left: 6, right: 6 }))
@@ -116,7 +116,7 @@ describe('print sheets', () => {
       const [ox, oy] = [e.x + e.dx, e.y + e.dy];
       expect(ox < 0 || ox > w || oy < 0 || oy > h).toBe(true);
       // On the line of a side of the cut, and going its way.
-      const along = die!.line.filter(([x1, y1, x2, y2]) => {
+      const along = die.line.filter(([x1, y1, x2, y2]) => {
         const len = Math.hypot(x2 - x1, y2 - y1);
         const cross = (a: number, b: number) => (x2 - x1) * (b - y1) - (y2 - y1) * (a - x1);
         return Math.abs(cross(e.x, e.y)) / len < 1e-6 && Math.abs(Math.abs(((x2 - x1) * e.dx + (y2 - y1) * e.dy) / len) - 1) < 1e-9;
@@ -223,7 +223,7 @@ describe('tiles', () => {
   const p = PIECES.tile;
 
   it('are die-cut along their flower: 18 sides joining into one loop inside the trim', () => {
-    const cut = p.die!.line;
+    const cut = p.die.line;
     expect(cut).toHaveLength(18);
     const key = (x: number, y: number) => `${x.toFixed(3)},${y.toFixed(3)}`;
     const ends = cut.flatMap(([x1, y1, x2, y2]) => [key(x1, y1), key(x2, y2)]);
@@ -237,7 +237,7 @@ describe('tiles', () => {
     expect(page.cuts).toHaveLength(2 * 18);
     const x0 = (A4.w - 2 * p.w) / 2;
     const [x1] = page.cuts![18];
-    expect(x1).toBeCloseTo(x0 + p.w + p.die!.line[0][0]);
+    expect(x1).toBeCloseTo(x0 + p.w + p.die.line[0][0]);
     expect(pressPages(PIECES.aid, [0])[0].cuts).toBeUndefined();
   });
 
@@ -275,8 +275,8 @@ describe('tiles', () => {
     // To the micron, and -0 as 0.
     const mm = (v: number) => Math.round(v * 1000) || 0;
     const key = ([x1, y1, x2, y2]: readonly number[]) => [`${mm(x1)},${mm(y1)}`, `${mm(x2)},${mm(y2)}`].sort().join(' ');
-    const cut = new Set(p.die!.line.map(key));
-    const mirrored = new Set(p.die!.line.map(([x1, y1, x2, y2]) => key([p.w - x1, y1, p.w - x2, y2])));
+    const cut = new Set(p.die.line.map(key));
+    const mirrored = new Set(p.die.line.map(([x1, y1, x2, y2]) => key([p.w - x1, y1, p.w - x2, y2])));
     expect(mirrored).toEqual(cut);
   });
 
@@ -311,7 +311,7 @@ describe('tiles', () => {
           if (h[i].y > y !== h[j].y > y && x < h[i].x + ((y - h[i].y) / (h[j].y - h[i].y)) * (h[j].x - h[i].x)) odd = !odd;
         return odd;
       });
-    const through = p.die!.line.filter(([x1, y1, x2, y2]) => {
+    const through = p.die.line.filter(([x1, y1, x2, y2]) => {
       const len = Math.hypot(x2 - x1, y2 - y1);
       for (let t = -2 * p.w; t <= 2 * p.w; t += 0.5) {
         const [x, y] = [x1 + (t * (x2 - x1)) / len, y1 + (t * (y2 - y1)) / len];

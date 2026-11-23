@@ -3,17 +3,17 @@ import * as greedy from './greedy';
 import { Search, type SearchParams } from './search';
 
 /**
- * AI players, in levels from 1 (weakest) to 5. All of them choose among
- * `legalActions(state)` and never see the game's real RNG or the order of the decks.
+ * AI players, in levels from 1 (weakest) to 5. All of them choose among `legalActions(state)` and never see the
+ * game's real RNG or the order of the decks.
  *
- *   1 Cadet      greedy, one action at a time, a few noisy samples (greedy.ts)
- *   2 Sergeant    one action at a time, but exact odds and an evaluation that knows
- *                whose turn is next and what the enemy can reach (evaluate.ts, chance.ts)
- *   3 Captain  plans the whole turn: searches combinations of actions (search.ts)
- *   4 Colonel    wider turn search, Behemoth carries, and its best plans checked
- *                against the opponent's actual reply
- *   5 General  deeper and wider turn search, and each checked plan played against
- *                several replies (different dice, the same for every plan), averaged
+ *   1 Cadet     greedy, one action at a time, a few noisy samples (greedy.ts)
+ *   2 Sergeant  one action at a time, but exact odds and an evaluation that knows whose turn is next and what
+ *               the enemy can reach (evaluate.ts, chance.ts)
+ *   3 Captain   plans the whole turn: searches combinations of actions (search.ts)
+ *   4 Colonel   wider turn search, Behemoth carries, and its best plans checked against the opponent's actual
+ *               reply
+ *   5 General   deeper and wider turn search, and each checked plan played against several replies (different
+ *               dice, the same for every plan), averaged
  */
 
 export type AiLevel = 1 | 2 | 3 | 4 | 5;

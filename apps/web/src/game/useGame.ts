@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { checkInvariants, RuleError, type Action, type GameState, type PlayerId } from '@regolith/engine';
-import { sfx } from '../sound';
+import { sfx } from '../audio/effects';
 import { begin, current, play, restore, saved, takeBack, type Past } from './past';
 import { useErrorToast, useToasts } from './toasts';
 import { loadSavedPast, saveGame } from './savedGame';
@@ -12,7 +12,11 @@ import type { GameView } from './view';
 export type Dispatch = (a: Action) => boolean;
 
 /** The dev-only `window.__game` hook the browser tests (scripts/) drive a local game through. */
-export type GameHook = { state(): GameState; load(s: GameState): void; dispatch: Dispatch };
+export interface GameHook {
+  state(): GameState;
+  load(s: GameState): void;
+  dispatch: Dispatch;
+}
 
 /** On this device, the screen plays for every human seat. */
 const human = (s: GameState) => (p: PlayerId) => !s.players[p].ai;

@@ -13,7 +13,7 @@ import {
 } from '@regolith/engine';
 import { ARENA } from '../beats';
 import { cardEffectsOf, type CardEffect } from './cardEffects';
-import { sfx } from '../sound';
+import { sfx } from '../audio/effects';
 import { destroyedOf, shotOf, strikeOf } from './strike';
 import { reducedMotion } from './useMediaQuery';
 import { stagingOf } from './staging';

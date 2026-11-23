@@ -33,6 +33,8 @@ export function checkInvariants(s: GameState): string[] {
     check(p.atomics >= 0, `${name}: ${p.atomics} atomics`);
     check(p.actionPenalty >= 0 && p.killZone >= 0, `${name}: negative penalty or Kill Zone`);
     check(p.finalPushTokens >= 0 && p.finalPushTokens < 3, `${name}: ${p.finalPushTokens} Final Push tokens`);
+    // A state from before they were kept (a stale save) lacks them.
+    check(p.stats !== undefined, `${name}: no game stats`);
     const placed = s.board.objectives.reduce((n, pl) => n + pl.cubes.filter((x) => x === p.id).length, 0);
     if (map) check(placed + p.cubesLeft === map.cubes, `${name}: ${placed} cubes placed + ${p.cubesLeft} left ≠ ${map.cubes}`);
   }

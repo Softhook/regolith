@@ -7,7 +7,7 @@ import { devStartGame } from './game/devStart';
 import { Lobby, type LobbyResult } from './components/lobby/Lobby';
 import { Game } from './components/GameScreen';
 import { onlineSecret } from './online/link';
-import { ambience } from './ambience';
+import { ambience } from './audio/music';
 
 // Loaded when first wanted, so the lobby and a game on this device start without them: the manual, and
 // online play (with its cryptography).

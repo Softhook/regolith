@@ -287,7 +287,7 @@ export const cardHandlers = {
   iceTunnel(s, a) {
     const head = headOf(s, 'iceTunnel', 'No Ice Tunnel to place');
     const cell = s.board.cells[a.cell.r]?.[a.cell.c];
-    if (!cell || cell.kind !== 'space') fail('Tunnels go on spaces, not objectives');
+    if (cell?.kind !== 'space') fail('Tunnels go on spaces, not objectives');
     if (barrierAt(s, a.cell)) fail('Tunnels don’t go on barriers');
     if (s.wormhole?.some((w) => same(w, a.cell))) fail('Tunnels don’t go on the wormhole');
     if (head.placed.some((p) => same(p, a.cell))) fail('Choose a different space');
@@ -301,7 +301,7 @@ export const cardHandlers = {
   barricade(s, a) {
     const head = headOf(s, 'barricade', 'No barrier to place');
     const cell = s.board.cells[a.cell.r]?.[a.cell.c];
-    if (!cell || cell.kind !== 'space') fail('Barriers go on spaces, not objectives');
+    if (cell?.kind !== 'space') fail('Barriers go on spaces, not objectives');
     if (!canHoldBarrier(s, a.cell)) fail('Barriers go on empty spaces');
     head.placed.push({ r: a.cell.r, c: a.cell.c });
     addBarrier(s, a.cell, head.player);

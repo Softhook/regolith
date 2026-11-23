@@ -183,7 +183,7 @@ function playerValue(ctx: Ctx, p: PlayerId): number {
     const at = discoveryAt(s, p);
     v += CARD * 0.7 * Math.min(1, (pl.research - 1) / Math.max(1, at - 1));
     if (s.turn.player === p && s.turn.phase === 'actions') v += s.turn.claims * CARD;
-    // Cards already earned but taken later: an Take Over cube on another player's turn, or picks
+    // Cards already earned but taken later: a Take Over cube on another player's turn, or picks
     // carried into a Forced March turn.
     if (s.turn.phase === 'actions') v += (s.turn.offTurnCubes ?? []).filter((x) => x === p).length * CARD;
     v += (pl.carriedPicks ?? 0) * CARD;

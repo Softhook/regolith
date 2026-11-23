@@ -269,8 +269,8 @@ along each space's hex edge (`HEX_EDGE`) the same as the seams, faded with them 
 darker.
 
 **Sizes.** A hex is one space (32 mm) from flat side to flat side, so neighbouring dice sit 32 mm apart, and a
-flower is 92.4 × 96 mm, inside the 96 mm trim. The well (`HEX_WELL` 0.8) is 25.6 mm across: a 19 mm die fits it
-snugly; labels keep clear of it. The spaces are marked by their hex edges alone, not a sunk well.
+flower is 92.4 × 96 mm, inside the 96 mm trim. A 19 mm die sits inside a space with room to spare. The spaces
+are marked by their hex edges alone, not a sunk well.
 
 ## Code
 

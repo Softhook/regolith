@@ -19,7 +19,7 @@
  * `window.__game` hook, so `--url` must be a dev server.
  */
 import { mkdirSync, writeFileSync } from 'node:fs';
-import { type Page } from 'playwright';
+import type { Page } from 'playwright';
 import { chooseAction } from '../packages/ai/src';
 import { salvageYard, type Action, type Cell, type GameState } from '../packages/engine/src';
 import { PHONES, arg, devServer, finish, launchChrome, playUrl } from './mobile-common';
@@ -67,7 +67,7 @@ type Want = { mech: Cell } | { space: Cell } | { objective: Cell } | { salvage: 
 function look(page: Page, tapsThisTurn: number, tried: string[], want: Want | null): Promise<Look> {
   return page.evaluate(
     ({ tapsThisTurn, tried, TAPS_PER_TURN, want }) => {
-      type S = {
+      interface S {
         phase: string;
         winner?: number;
         players: { name: string; ai: boolean }[];
@@ -75,7 +75,7 @@ function look(page: Page, tapsThisTurn: number, tried: string[], want: Want | nu
         turn: { player: number; number: number; actionsLeft: number; moved: Record<string, number> };
         dice: { id: string; loc: unknown; value: number }[];
         cubes?: unknown;
-      };
+      }
       const q = (window as unknown as { __game: { state(): S } }).__game;
       const s = q.state();
       const head = s.pending[0];
@@ -101,7 +101,7 @@ function look(page: Page, tapsThisTurn: number, tried: string[], want: Want | nu
         else if ('space' in want) el = at('.hl', want.space);
         else if ('objective' in want) el = at('.objective-hit', want.objective);
         else if ('salvage' in want) el = all('.turn-salvage .salvage-die')[want.salvage];
-        else el = all('.turn-panel button').find((b) => b.textContent!.includes(want.button));
+        else el = all('.turn-panel button').find((b) => b.textContent.includes(want.button));
         missed = !el;
       }
       const already = !!want && 'mech' in want && !!el?.classList.contains('selected');
@@ -113,18 +113,18 @@ function look(page: Page, tapsThisTurn: number, tried: string[], want: Want | nu
         // A popup: a card or choice if it offers one, else its main button, else any button.
         const choices = all('.overlay .qcard, .overlay .card-pick, .overlay .engineering-choice');
         const primary = all('.overlay .btn-primary');
-        const keep = primary.find((b) => b.textContent!.includes('Keep mechs'));
+        const keep = primary.find((b) => b.textContent.includes('Keep mechs'));
         el = keep ?? (choices.length ? pick(choices) : (primary[0] ?? all('.overlay button')[0]));
       } else {
         const takeable = all('.market.picking .takeable, .sheet.open .market .takeable');
         const decision = all('.turn-panel .turn-actions .btn').filter(
-          (b) => !b.closest('.mech-panel') && !/End turn|Undo/.test(b.textContent!),
+          (b) => !b.closest('.mech-panel') && !/End turn|Undo/.test(b.textContent),
         );
         const objectives = all('.objective-hit.objective-claim, .objective-hit.objective-start, .objective-hit.objective-takeOver');
         const attacks = all('.mech.mech-attack, .mech.mech-target, .mech.mech-swap, .mech.mech-passenger');
         const cells = all('.hl');
         const salvage = all('.turn-salvage .salvage-die.clickable');
-        const endTurn = all('.turn-panel .turn-actions .btn-primary').find((b) => b.textContent!.includes('End turn'));
+        const endTurn = all('.turn-panel .turn-actions .btn-primary').find((b) => b.textContent.includes('End turn'));
         const actionPhase = s.phase === 'play' && !head && !s.players[s.turn.player].ai;
         if (takeable.length) el = pick(takeable);
         else if (objectives.length) el = pick(objectives);
@@ -277,7 +277,7 @@ async function playGame(page: Page, name: string, players: number): Promise<{ is
         const btns = [...document.querySelectorAll('.overlay .modal button')];
         return btns.flatMap((b) => {
           const r = b.getBoundingClientRect();
-          return r.bottom > innerHeight + 1 || r.right > innerWidth + 1 || r.top < -1 ? [b.textContent!.trim()] : [];
+          return r.bottom > innerHeight + 1 || r.right > innerWidth + 1 || r.top < -1 ? [b.textContent.trim()] : [];
         });
       });
       for (const b of over) await report(`over:${b}`, `game over: "${b}" off screen`);
@@ -328,11 +328,11 @@ async function playGame(page: Page, name: string, players: number): Promise<{ is
       await page.evaluate(() => (document.querySelector('[data-play]') as HTMLElement | null)?.click());
     } else await page.touchscreen.tap(t.x, t.y);
     if (plan.length && !l.missed) plan.shift();
-    const what = l.kind !== 'turn' ? l.kind : /'s /.test(t.label) ? 'mech' : t.label === 'End turn' ? 'end turn' : t.label;
+    const what = l.kind !== 'turn' ? l.kind : t.label.includes("'s ") ? 'mech' : t.label === 'End turn' ? 'end turn' : t.label;
     taps.set(what, (taps.get(what) ?? 0) + 1);
     if (l.kind === 'turn') {
       tapsThisTurn++;
-      if (/'s /.test(t.label)) tried.push(t.label);
+      if (t.label.includes("'s ")) tried.push(t.label);
     }
     // A tap that leaves the state as it was (selecting a mech) is fine; repeated ones are caught as stuck.
     await page.waitForTimeout(350);

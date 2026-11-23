@@ -50,7 +50,6 @@
   --mark: #3EE6FF;
   --bad: #C8423B;
   --gold: #F2B233;
-  --violet: #9C86C9;
   /* Player tracks: Power oxide orange, Research ice blue. */
   --power-1: #E0703A;
   --power-2: #E0703A;
@@ -1701,7 +1700,7 @@ svg.zones polygon {
   animation: victory-shine 4s 1s linear 10 forwards;
 }
 @keyframes victory-shine { from { background-position: 100% 0; } to { background-position: -50% 0; } }
-/* Defeat: the board drains of colour and darkens, and the popup sinks in slowly as the lament (gameOverSound.ts) falls. */
+/* Defeat: the board drains of colour and darkens, and the popup sinks in slowly as the lament (audio/gameOver.ts) falls. */
 .overlay.mourn { background: rgb(var(--shade) / .8); backdrop-filter: blur(5px) grayscale(1); animation: mourn-drain 2.4s ease-out both; }
 @keyframes mourn-drain { from { background: rgb(var(--shade) / .3); backdrop-filter: blur(0) grayscale(0); } }
 .mourn .gameover { animation: defeat-sink 1.6s .9s ease-out both; }

@@ -23,8 +23,7 @@ function check(what: string, ok: boolean, seen?: unknown) {
 
 const installed = () => {
   const real = window.matchMedia.bind(window);
-  window.matchMedia = (q: string) =>
-    q.includes('display-mode: standalone') ? ({ ...real(q), matches: true, media: q } as MediaQueryList) : real(q);
+  window.matchMedia = (q: string) => (q.includes('display-mode: standalone') ? { ...real(q), matches: true, media: q } : real(q));
 };
 const fullscreen = (page: Page) => page.evaluate(() => !!document.fullscreenElement);
 const phase = (page: Page) => page.evaluate(() => document.querySelector('.lobby')!.className.replace('lobby', '').trim());

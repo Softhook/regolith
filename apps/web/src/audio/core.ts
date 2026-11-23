@@ -1,12 +1,12 @@
-// The Web Audio plumbing every synthesized sound shares (sound.ts, gameOverSound.ts, ambience.ts,
-// openingSound.ts): the context, the output bus, white noise, a reverb and a few node builders, and the
-// player's sound and music switches.
+// The Web Audio plumbing every synthesized sound shares (effects.ts, gameOver.ts, music.ts, opening.ts): the
+// context, the output bus, white noise, a reverb and a few node builders, and the player's sound and music
+// switches.
 
-import { APPLE_TOUCH } from './platform';
-import { remember, stored } from './storage';
-import { appKey } from './appId';
+import { APPLE_TOUCH } from '../platform';
+import { remember, stored } from '../storage';
+import { appKey } from '../appId';
 
-/** The two switches in the game's top bar: sound effects, and the music (ambience.ts). */
+/** The two switches in the game's top bar: sound effects, and the music (music.ts). */
 type Switch = 'sound' | 'music';
 
 let ctx: AudioContext | null = null;
@@ -272,8 +272,17 @@ export function gain(ac: AudioContext, level: number): GainNode {
 /** A MIDI note's frequency: 69 is the A above middle C. */
 export const hz = (note: number) => 440 * 2 ** ((note - 69) / 12);
 
+const PITCH_CLASSES: Record<string, number> = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
+
+/** A note's name as a MIDI note number: "C4" is middle C (60); "F#4", "Bb3". */
+export function noteNumber(name: string): number {
+  const m = /^([A-G])(#|b)?(-?\d)$/.exec(name);
+  if (!m) throw new Error(`Not a note: ${name}`);
+  return 12 * (Number(m[3]) + 1) + PITCH_CLASSES[m[1]] + (m[2] === '#' ? 1 : m[2] === 'b' ? -1 : 0);
+}
+
 /**
- * Where the music (ambience.ts) and its opening (openingSound.ts) send their sound to ring out: a long, dark stereo
+ * Where the music (music.ts) and its opening (opening.ts) send their sound to ring out: a long, dark stereo
  * reverb with a six-second tail, played out on its own. There is one, kept: building it takes a phone tens of
  * milliseconds, and the opening rings on into the drone, so two would work at once. It only works while something
  * is sent into it.

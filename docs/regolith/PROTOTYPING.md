@@ -67,7 +67,7 @@ so a new mode needs no network changes as long as it stays deterministic.
 ```
   Web UI ──┐
   AI ──────┼── legalActions() / apply() ──▶  action handlers ──▶ rule questions ◀── RULESETS
-  Online ──┘                                 (actions, combat,   (queries.ts:        (rulesets.ts:
+  Online ──┘                                 (actions, combat,   (queries/:          (rulesets.ts:
                                               cards, turn)        movementRange,      Basic, Regolith)
                                                                   conquerCheck…)      
 ```
@@ -89,7 +89,7 @@ longer switches: Regolith's rules are the engine's rules.
 Two patterns make changes cheap:
 
 - **Single choke points.** Each rule question has one function in
-  [queries.ts](../../packages/engine/src/queries.ts): `movementRange`, `deployTargets`, `conquerCheck`,
+  [queries/](../../packages/engine/src/queries): `movementRange`, `deployTargets`, `conquerCheck`,
   `combatOutcome`, `breakthroughAt`, `infamyAt`. Change the function and every caller follows.
 - **Closed registries.** Actions, decisions, and skill effects are closed TypeScript unions. Add one
   without a handler and the build fails, pointing at the gap.
@@ -103,14 +103,14 @@ Prototype ship powers use the same pattern: `ShipHooks` (§9).
 ## 2. Worked example: ships move at most 3
 
 *This is how the cap was first planned. It is now built: `MAX_MOVEMENT` in
-[queries.ts](../../packages/engine/src/queries.ts), read by `movementRange`. Since 2026-11-12 the 2 moves 3 as
+[queries/movement.ts](../../packages/engine/src/queries/movement.ts), read by `movementRange`. Since 2026-11-12 the 2 moves 3 as
 well (`baseMovement`: the 1 moves 1, every other mech 3), so the rule reads simply. §9 details where
 the mode's code lives today.*
 
 A ship's movement is calculated in one place:
 
 ```ts
-// packages/engine/src/queries.ts
+// packages/engine/src/queries/movement.ts
 export function movementRange(state: GameState, d: Die): number {
   return d.value + skillRules(state, d.owner).reduce((n, r) => n + (r.movement ?? 0), 0);
 }
@@ -419,7 +419,7 @@ or trusted hosts for online games.
 ### 6.8 Contested orbit (orbital blockade): no conquering under enemy ships
 
 **Status: current since 2026-10-21** (`RuleSet.contestedOrbit`, `orbitBlockers` in
-[queries.ts](../../packages/engine/src/queries.ts)), with over-conquest switched off. Rulings as proposed below:
+[queries/claim.ts](../../packages/engine/src/queries/claim.ts)), with over-conquest switched off. Rulings as proposed below:
 Take Over ignores the blockade, and only opponents' ships in the orbital
 positions do. The AI counts each blocker as an attack before the conquest, by a ship of its own (`clearing`
 in [evaluate.ts](../../packages/ai/src/evaluate.ts)). The board marks a planet whose orbit makes the sum but is
@@ -433,7 +433,7 @@ blocked, and its info and the turn hint say why. With the Sergeant AI in every s
 | Gamma Sector | 9.9 → 13.2 | 7.5 → 4.7 | 2.4 → 3.6 | 29.4 → 39.7 | 0 |
 
 Most of it is the blockade: with over-conquest off and no blockade, games run as before except on Gamma
-(+0.8 rounds). About 40% of Alpha games and 70% of Beta and Gamma ones end on an Take Over cube, against
+(+0.8 rounds). About 40% of Alpha games and 70% of Beta and Gamma ones end on a Take Over cube, against
 17–47% without the blockade. The AI barely parks ships in orbit on purpose, so with people, who will,
 games may well run longer.
 
@@ -509,7 +509,7 @@ for 1 action, the same price as the attack that destroyed it, so a planet can be
 deploying (Deploy, Expansion, Unveil the Fleet, Stealthy, Beacon), and a space two orbits share is
 closed if either orbit is contested. Contested orbit now reads both ways: an enemy ship in orbit stops
 you conquering the planet *and* deploying to it. Built as `RuleSet.contestedDeploy`, read in
-`deployTargets` ([queries.ts](../../packages/engine/src/queries.ts)); the deploy hint and planet info say why.
+`deployTargets` ([queries/placement.ts](../../packages/engine/src/queries/placement.ts)); the deploy hint and planet info say why.
 
 **Self-play** (Sergeant AI in every seat, 200 games per map and setting, the same seeds, 2026-10-21).
 *Re-blocks* are deploys into a contested orbit of one's own planet; a *lockout* is a turn starting with
@@ -541,7 +541,7 @@ takes it to another planet with their cube (the first in map order), or none if 
 Neither card is in Regolith today (Relocation is Classic's; over-conquest is off), so this only
 matters if they come in. `RuleSet.homeShipyard`; the home is `PlayerState.home`, set when the starting
 planet is chosen, moved by `cubeLeft` ([core.ts](../../packages/engine/src/core.ts)) and read through
-`homePlanet` ([queries.ts](../../packages/engine/src/queries.ts)).
+`homePlanet` ([queries/claim.ts](../../packages/engine/src/queries/claim.ts)).
 
 Same games, with the home shipyard (*off* = no contested deploy; re-blocks at home in brackets):
 
@@ -565,7 +565,7 @@ Same games, with the home shipyard (*off* = no contested deploy; re-blocks at ho
 3. **Late arrival instead of a ban:** deploying is allowed, but a ship deployed into a contested orbit
    doesn't block until its owner's next turn. No lockout is possible; it needs a marker per ship.
 
-**Build (done).** `orbitBlockers` in [queries.ts](../../packages/engine/src/queries.ts), read by
+**Build (done).** `orbitBlockers` in [queries/claim.ts](../../packages/engine/src/queries/claim.ts), read by
 `conquerCheck` behind `RuleSet.contestedOrbit`, so only Regolith sees it. Take Over goes through a
 separate path and is unaffected. The AI has a term for attacking blockers (`clearing`) but not yet one
 for garrisoning its own planets, so self-play still understates the rule.
@@ -812,9 +812,9 @@ packages/engine/src/
 | To Change | File to Edit |
 |---|---|
 | Mode summary, actions per turn, cards, maps | `REGOLITH` in [rulesets.ts](../../packages/engine/src/rulesets.ts) |
-| Movement cap | `MAX_MOVEMENT` in [queries.ts](../../packages/engine/src/queries.ts) |
+| Movement cap | `MAX_MOVEMENT` in [queries/movement.ts](../../packages/engine/src/queries/movement.ts) |
 | Over-claim on/off | `REGOLITH_OVER_CLAIM` in [rulesets.ts](../../packages/engine/src/rulesets.ts) |
-| Contested perimeter | `perimeterBlockers` in [queries.ts](../../packages/engine/src/queries.ts) |
+| Contested perimeter | `perimeterBlockers` in [queries/claim.ts](../../packages/engine/src/queries/claim.ts) |
 | Which mech has which ability, mech names | `BASE_MECHS` in [mechs.ts](../../packages/engine/src/mechs.ts) |
 | An ability's rules text, range, or hooks | Its file in [abilities/](../../packages/engine/src/abilities/) |
 | Add an ability using existing hooks | New file in `abilities/`, referenced in `BASE_MECHS` |

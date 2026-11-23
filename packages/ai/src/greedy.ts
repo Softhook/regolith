@@ -97,12 +97,12 @@ export function chooseAtomic(real: GameState, player: PlayerId): Action | null {
   return pick;
 }
 
-function best(state: GameState, me: PlayerId, candidates: Action[], opts: GreedyOptions): Action {
+function best(state: GameState, me: PlayerId, options: Action[], opts: GreedyOptions): Action {
   const rand = opts.random ?? Math.random;
   const samples = opts.samples ?? 3;
   let top = -Infinity;
-  let pick = candidates[0];
-  for (const a of candidates) {
+  let pick = options[0];
+  for (const a of options) {
     const n = RANDOM_ACTIONS.has(a.type) ? samples : 1;
     let total = 0;
     for (let i = 0; i < n; i++) {
@@ -175,10 +175,10 @@ function quickPolicy(s: GameState, me: PlayerId): Action | null {
   if (head.kind === 'peek') return { type: 'peekChoice', takeTop: false };
   const options = legalActions(s);
   const prefer = PREFERRED[head.kind];
-  const best = (prefer && options.find((a) => prefer(a, s, me))) ?? options[0] ?? null;
+  const choice = (prefer && options.find((a) => prefer(a, s, me))) ?? options[0] ?? null;
   // Kinetic Shunt with only barriers to push: the least harmful, not the first.
-  if (head.kind !== 'kineticShunt' || best?.type !== 'kineticShuntBarrier') return best;
-  return options.reduce((x, y) => (barrierShuntRank(s, y, me) > barrierShuntRank(s, x, me) ? y : x), best);
+  if (head.kind !== 'kineticShunt' || choice?.type !== 'kineticShuntBarrier') return choice;
+  return options.reduce((x, y) => (barrierShuntRank(s, y, me) > barrierShuntRank(s, x, me) ? y : x), choice);
 }
 
 // ---------------------------------------------------------------------------
@@ -221,7 +221,7 @@ function claimPotential(s: GameState, p: PlayerId): number {
     const full = objectiveFreeSlots(objective) <= 0;
     if (full ? !rulesOf(s).overClaim || !objective.cubes.some((x) => x !== p) : objective.cubes.includes(p)) continue;
     const slots = perimeterSpaces(s.board, objective);
-    const onPerimeter = slots.map((c) => dieAt(s, c)).filter((d) => d && d.owner === p);
+    const onPerimeter = slots.map((c) => dieAt(s, c)).filter((d) => d?.owner === p);
     const sum = onPerimeter.reduce((a, d) => a + d!.value, 0);
     const empty = slots.filter((c) => isEmptySpace(s, c)).length;
     const target = full ? 12 : objective.number;

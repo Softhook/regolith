@@ -1,9 +1,9 @@
 // The game's ending, all played in a hall: for a winner, a brass fanfare and the fireworks (components/fireworks/);
 // for a player who lost, a lament.
 
-import { contour, effects, envelope, filter, gain, glide, hz, jitter, kept, noiseSource, oscillator, out } from './audio';
-import { hushForEnding } from './ambience';
-import { pick } from './random';
+import { contour, effects, envelope, filter, gain, glide, hz, jitter, kept, noiseSource, noteNumber, oscillator, out } from './core';
+import { hushForEnding } from './music';
+import { pick } from '../random';
 
 /** A big hall: a synthesized reverb tail the fanfare and fireworks send into, so they ring out. */
 const hall = kept((ac): AudioNode => {
@@ -172,13 +172,8 @@ function swell(ac: AudioContext, dest: AudioNode, at: number, dur: number, level
     .connect(dest);
 }
 
-const STEPS: Record<string, number> = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
-
 /** A note's pitch from its name: 'C4' (middle C), 'Eb3', 'F#5'. */
-function note(name: string): number {
-  const [, letter, accidental, octave] = /^([A-G])(b|#)?(\d)$/.exec(name)!;
-  return hz(12 * (Number(octave) + 1) + STEPS[letter] + (accidental === 'b' ? -1 : accidental === '#' ? 1 : 0));
-}
+const note = (name: string) => hz(noteNumber(name));
 
 /** How each brass part plays: players per note, how bright its breath is, its attack and its usual level. */
 const PARTS = {

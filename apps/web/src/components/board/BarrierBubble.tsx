@@ -1,5 +1,4 @@
-import type { World } from '@regolith/art';
-import { REGOLITH_SHADOW } from '@regolith/art';
+import { REGOLITH_SHADOW, type World } from '@regolith/art';
 import { pieceShadowLength, pieceShadowOpacity, pieceShadowTint } from './shadows';
 
 /**

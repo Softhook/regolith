@@ -39,7 +39,7 @@ export function IntroCards({ leaving, onCards }: { leaving: boolean; onCards: (u
     const stop = warmCardImages(ids);
     let live = true;
     void (async () => {
-      let next = ready(ids[0]!);
+      let next = ready(ids[0]);
       await wait(FIRST_MS);
       for (let i = 0; live && i < ids.length; i++) {
         // The last card has just faded: if the next isn't ready, the title stands in until it is.
@@ -51,9 +51,9 @@ export function IntroCards({ leaving, onCards }: { leaving: boolean; onCards: (u
         // Clicked while it waited: nothing more to draw, as the title rises.
         if (!live) return;
         const due = wait(SHOWN_MS);
-        if (i + 1 < ids.length) next = ready(ids[i + 1]!);
+        if (i + 1 < ids.length) next = ready(ids[i + 1]);
         if (src) {
-          setShown({ id: ids[i]!, src });
+          setShown({ id: ids[i], src });
           onCards(true);
         }
         await due;

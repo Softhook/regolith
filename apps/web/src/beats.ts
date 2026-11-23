@@ -1,7 +1,7 @@
 // The timings of the board's effects that a sound or the staging keeps time with, in ms, set here alone. Each
 // effect is a group. An animation in styles.css reads its group as custom properties (`CUBE.fall` as
 // `--cube-fall`, set on the document: `setBeatVars`; only the groups in `CSS_BEATS`, and all of them read
-// there); one played from code (Die3D) reads it here, as do its sound (sound.ts) and the staging
+// there); one played from code (Die3D) reads it here, as do its sound (audio/effects.ts) and the staging
 // (game/staging, game/strike). An animation with a moment in it to meet (a landing, a hit) is split there, so the moment is where
 // one part ends. Change a beat and the animation, its sound and whatever waits on it move together. Timings
 // only the eye sees (a trail's fade, a second ring) stay in styles.css, as offsets from these where they follow one.

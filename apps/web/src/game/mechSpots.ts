@@ -20,9 +20,9 @@ export function mechSpots(game: GameState): MechSpots {
     if (!at) continue;
     let { r, c } = at;
     if (combat && !combat.ranged && combat.attacker.die === d.id) {
-      const d = delta(combat.from, combat.at);
-      r += d.r * 0.42;
-      c += d.c * 0.42;
+      const step = delta(combat.from, combat.at);
+      r += step.r * 0.42;
+      c += step.c * 0.42;
     }
     spots.set(d.id, drawn({ r, c }));
   }

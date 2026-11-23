@@ -28,6 +28,15 @@ export function arrange(s: GameState, placements: Record<string, [number, number
   return t;
 }
 
+/** Resolves the battle waiting in `s`, with the attacker's die rolling `attacker` and the defender's `defender`. */
+export function resolveBattle(s: GameState, attacker: number, defender: number): GameState {
+  const combat = s.pending.find((p) => p.kind === 'combat');
+  if (combat?.kind !== 'combat') throw new Error('No battle to resolve');
+  combat.attacker.dice = [attacker];
+  combat.defender.dice = [defender];
+  return apply(s, { type: 'resolveCombat' });
+}
+
 /** A seeded random number generator in [0, 1), independent of the game's own RNG. */
 export function seededRandom(seed: number): () => number {
   let x = seed;

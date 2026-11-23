@@ -63,7 +63,7 @@ export function useCardCasts(game: GameState, mine: (p: PlayerId) => boolean, sh
     }
     if (lastLogId(game) <= lastLogId(before) || reducedMotion()) return;
     const e = castOf(before, game);
-    if (!e || e.player === undefined || e.gains || mine(e.player)) return;
+    if (e?.player === undefined || e.gains || mine(e.player)) return;
     if (current.current?.id === e.id) cast(e, game, mapHits(before, game));
     else if (e.id > lastLogId(before)) waiting.current = { id: e.id, hits: mapHits(before, game), game, at: performance.now() };
   }, [game, mine, jumps]);

@@ -7,7 +7,7 @@ import { cellAt, objectiveAround, spaces, type Board, type Cell } from '@regolit
 export type BoardLayer = Exclude<TileLayerName, RasterLayer>;
 
 /**
- * How the map stacks a look's tile layers (art `tileLayerNames`), bottom first: each run of raster layers
+ * How the map stacks a look's tile layers (art `TILE_LAYERS`), bottom first: each run of raster layers
  * together, as one clipped group of images per tile (a group per layer would cost a composited clip each, on
  * every pan and zoom), and between them the layers drawn from the board.
  */

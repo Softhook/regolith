@@ -1,4 +1,4 @@
-import { type GameState, type LogEntry } from '@regolith/engine';
+import type { GameState, LogEntry } from '@regolith/engine';
 import { objectiveNames } from '../art/boardTiles';
 
 /** A log entry's text, with each `objective N` it names shown by that objective's name: "Thalassa Prime (9)". */

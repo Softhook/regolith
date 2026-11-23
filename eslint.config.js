@@ -15,6 +15,22 @@ export default tseslint.config(
         'error',
         { argsIgnorePattern: '^_', varsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_', destructuredArrayIgnorePattern: '^_' },
       ],
+      // The house style, kept by the linter: strict equality (`== null` excepted), no dead syntax, one import per
+      // module with types marked as such, and interfaces for object types.
+      eqeqeq: ['error', 'always', { null: 'ignore' }],
+      'object-shorthand': 'error',
+      'no-duplicate-imports': 'error',
+      'no-else-return': ['error', { allowElseIf: true }],
+      'no-lonely-if': 'error',
+      'no-unneeded-ternary': 'error',
+      'no-useless-concat': 'error',
+      'no-useless-rename': 'error',
+      'no-useless-return': 'error',
+      '@typescript-eslint/array-type': 'error',
+      '@typescript-eslint/consistent-type-definitions': 'error',
+      '@typescript-eslint/consistent-type-imports': ['error', { disallowTypeAnnotations: false, fixStyle: 'inline-type-imports' }],
+      '@typescript-eslint/no-import-type-side-effects': 'error',
+      '@typescript-eslint/no-inferrable-types': 'error',
     },
   },
   {

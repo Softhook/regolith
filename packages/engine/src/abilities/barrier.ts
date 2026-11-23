@@ -7,8 +7,8 @@ import { straightLines } from '../board';
 import { addBarrier, logTo, markAbility, name, mechName } from '../core';
 import { cellOf, isEmptySpace } from '../lookups';
 import { canHoldBarrier, canUseAbility } from '../queries';
-import { type MechAbility } from '../mechs';
-import { type Cell, type Die, type GameState } from '../types';
+import type { MechAbility } from '../mechs';
+import type { Cell, Die, GameState } from '../types';
 
 /** The spaces a barrier can land on from where the mech stands. */
 export function barrierTargets(s: GameState, d: Die): Cell[] {

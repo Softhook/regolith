@@ -10,9 +10,9 @@ const sum = (all: (PlayerStats | undefined)[], k: keyof PlayerStats) => all.redu
 function gained(before: GameState, after: GameState) {
   return after.players.map((p, i) =>
     Object.fromEntries(
-      Object.entries(p.stats!)
-        .filter(([k, v]) => v !== before.players[i].stats![k as keyof PlayerStats])
-        .map(([k, v]) => [k, v - before.players[i].stats![k as keyof PlayerStats]]),
+      Object.entries(p.stats)
+        .filter(([k, v]) => v !== before.players[i].stats[k as keyof PlayerStats])
+        .map(([k, v]) => [k, v - before.players[i].stats[k as keyof PlayerStats]]),
     ),
   );
 }
@@ -77,7 +77,7 @@ describe('game stats', () => {
 
   it('count a claim and an objective seized through Take Over, but not a starting objective', () => {
     const base = quickStart(2, 1, 'basic');
-    expect(base.players.map((p) => p.stats!.objectivesTaken)).toEqual([0, 0]);
+    expect(base.players.map((p) => p.stats.objectivesTaken)).toEqual([0, 0]);
     // Objective 4 (an 8) between a 6 and a 2 (basic.test.ts's scenario).
     const before = arrange(base, { p0d0: [5, 4, 6], p0d1: [7, 4, 2] });
     for (const p of before.board.objectives) p.cubes = p.cubes.filter((o) => o !== 0 || p.id === 2);
@@ -94,7 +94,7 @@ describe('game stats', () => {
   it('count every card gained: taken, stored with Strategic Plan, a Reinforcements card, or drawn by Headhunter', () => {
     let s = quickStart(2, 611);
     const p = s.turn.player;
-    const taken = () => s.players[p].stats!.cardsTaken;
+    const taken = () => s.players[p].stats.cardsTaken;
     s.players[p].skills = [{ id: 'r-strategic-plan', active: true }];
     toRow(s, 'tactic', 'r-power-grab');
     s.pending.unshift({ kind: 'takeCard', player: p, count: 1 });
@@ -123,7 +123,7 @@ describe('game stats', () => {
       // Every battle has one winner and one loser; every enemy mech destroyed was someone's loss.
       expect(sum(stats, 'battlesWon')).toBe(sum(stats, 'battlesLost'));
       expect(sum(stats, 'mechsDestroyed')).toBe(sum(stats, 'mechsLost'));
-      expect(state.players[state.winner!].stats!.objectivesTaken).toBeGreaterThan(0);
+      expect(state.players[state.winner!].stats.objectivesTaken).toBeGreaterThan(0);
       if (mode !== 'basic') expect(sum(stats, 'cardsTaken')).toBeGreaterThan(0);
     }, 60_000);
 });

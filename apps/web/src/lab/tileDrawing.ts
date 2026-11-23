@@ -25,7 +25,10 @@ export function printedTileSvgNow(t: TileSpec, o: Omit<TileOptions, 'ground'>): 
  */
 const grounds = new Map<string, Ground>();
 /** A ground being drawn, and once it is, the drawing. */
-type Ground = { url: Promise<string>; drawn?: string };
+interface Ground {
+  url: Promise<string>;
+  drawn?: string;
+}
 const KEEP_GROUNDS = 32;
 
 /** Whether a tile's ground is drawn, so `printedTileSvgNow` has it. */

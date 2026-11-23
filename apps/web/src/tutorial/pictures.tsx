@@ -659,7 +659,7 @@ const PICTURES = {
 export type PictureName = keyof typeof PICTURES;
 
 /** The scene a picture shares with its neighbours, if any. */
-export const pictureScene = (name: PictureName): string | undefined => (PICTURES[name] as Picture).scene;
+export const pictureScene = (name: PictureName): string | undefined => PICTURES[name].scene;
 
 /** A picture, played once through from its first step while `playing`, then `onEnd`. */
 export function PictureView({ name, playing, onEnd }: { name: PictureName; playing: boolean; onEnd: () => void }) {

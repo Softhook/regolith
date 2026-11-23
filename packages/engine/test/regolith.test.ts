@@ -98,7 +98,7 @@ describe('Regolith mode', () => {
     expect(own.tactics).toBe(REGOLITH_DECKS.tactics);
     expect(own.reinforcement).toBe(REGOLITH_DECKS.reinforcements[0]);
     expect(own.tactics.filter((c) => !c.from).map((c) => c.id)).toEqual(['r-barricade', 'r-kinetic-shunt']);
-    for (const c of [...own.skills, ...own.tactics, own.reinforcement!]) {
+    for (const c of [...own.skills, ...own.tactics, own.reinforcement]) {
       if (c.status === 'new') {
         expect(['r-barricade', 'r-kinetic-shunt']).toContain(c.id);
         expect(c.from).toBeUndefined();
@@ -304,7 +304,7 @@ function referenceReach(s: GameState, id: string) {
     if (steps.get(cur)! >= range) continue;
     for (const nb of g.ortho[cur]) {
       if (at[nb]) {
-        if (at[nb]!.owner !== me.owner) attacks.add(at[nb]!.id);
+        if (at[nb].owner !== me.owner) attacks.add(at[nb].id);
       } else if (g.space[nb] && !steps.has(nb) && !(cur !== from && zone.has(cur))) {
         steps.set(nb, steps.get(cur)! + 1);
         queue.push(nb);

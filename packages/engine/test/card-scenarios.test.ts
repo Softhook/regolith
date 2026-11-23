@@ -157,7 +157,7 @@ describe('tactics and reinforcements', () => {
     }),
   );
 
-  cardCase([DECKS.reinforcement!.id], 'Reinforcements', () => {
+  cardCase([DECKS.reinforcement.id], 'Reinforcements', () => {
     let s = quickStart(2, 199);
     const p = s.turn.player;
     s.market.reinforcements = 1;
@@ -232,7 +232,7 @@ describe('activated skills', () => {
     expect(legalActions(s)).toEqual([{ type: 'endTurn' }]);
   });
 
-  cardCase(['r-prospectors'], 'Prospectors (CE)', () => {
+  cardCase(['r-prospectors'], 'Prospectors', () => {
     let s = quickStart(2, 713);
     const p = s.turn.player;
     s.players[p].skills = [{ id: 'r-prospectors', active: true }];

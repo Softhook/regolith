@@ -1,4 +1,4 @@
-import { sfx } from '../sound';
+import { sfx } from '../audio/effects';
 import { remember, storedJson } from '../storage';
 import { appKey } from '../appId';
 

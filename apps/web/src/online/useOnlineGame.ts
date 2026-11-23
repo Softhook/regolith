@@ -248,7 +248,7 @@ function usePlayback(replay: Replay | null, me: string, resume: string | null) {
   // Once it is the player's turn, battles from earlier turns no longer wait for them: they move on
   // like anyone else's, so the player can get on with their turn.
   const head = replay?.steps.at(-1)!.state;
-  const myTurn = !!head && head.phase !== 'over' && !replay!.combat && human(actor(head));
+  const myTurn = !!head && head.phase !== 'over' && !replay.combat && human(actor(head));
   const earlier = !!shown && !!head && shown.state.turn.number < head.turn.number;
   // Whether one of this browser's (human) seats attacks or defends in the battle on screen, and it waits for them.
   const ownBattle = !!shown && inBattle(shown.state, human) && !(myTurn && earlier);

@@ -97,7 +97,7 @@ export function DecisionOverlay({ game, dispatch, human }: { game: GameState; di
               Fight
             </button>
             <button className="btn btn-primary" onClick={() => dispatch({ type: 'unstableReactor', destroy: true })}>
-              {'Destroy both mechs'}
+              Destroy both mechs
             </button>
           </div>
         </Modal>
@@ -121,7 +121,7 @@ export function DecisionOverlay({ game, dispatch, human }: { game: GameState; di
               </button>
             ))}
           </div>
-          {d.loc.zone === 'salvageYard' && <p className="modal-sub">{'The mech goes to your salvage yard.'}</p>}
+          {d.loc.zone === 'salvageYard' && <p className="modal-sub">The mech goes to your salvage yard.</p>}
         </Modal>
       );
     }
@@ -380,30 +380,22 @@ export function GameOver({
   );
 }
 
-/**
- * Each player's game in numbers, winner first, then by cubes placed. A game saved before stats were kept
- * shows the cubes alone.
- */
+/** Each player's game in numbers, winner first, then by cubes placed. */
 function GameStats({ game }: { game: GameState }) {
   const cubes = game.players.map((p) => game.board.objectives.reduce((n, pl) => n + cubeCount(pl.cubes, p.id), 0));
   const players = [...game.players].sort(
     (a, b) => Number(b.id === game.winner) - Number(a.id === game.winner) || cubes[b.id] - cubes[a.id],
   );
-  const kept = game.players.every((p) => p.stats);
-  const cards = kept && !!rulesOf(game).cards;
+  const cards = !!rulesOf(game).cards;
   return (
     <table className="gameover-stats">
       <thead>
         <tr>
           <th />
-          <th title={'Cubes on objectives'}>Cubes</th>
-          {kept && (
-            <>
-              <th title={'Objectives claimed'}>{'Objectives'}</th>
-              <th title="Battles won – lost">Battles</th>
-              <th title={'Enemy mechs destroyed – own mechs lost'}>{'Mechs'}</th>
-            </>
-          )}
+          <th title="Cubes on objectives">Cubes</th>
+          <th title="Objectives claimed">Objectives</th>
+          <th title="Battles won – lost">Battles</th>
+          <th title="Enemy mechs destroyed – own mechs lost">Mechs</th>
           {cards && <th title="Cards gained">Cards</th>}
         </tr>
       </thead>
@@ -418,18 +410,14 @@ function GameStats({ game }: { game: GameState }) {
                 {p.ai && <AiTag p={p} />}
               </th>
               <td>{cubes[id]}</td>
-              {kept && (
-                <>
-                  <td>{st!.objectivesTaken}</td>
-                  <td>
-                    {st!.battlesWon}–{st!.battlesLost}
-                  </td>
-                  <td>
-                    {st!.mechsDestroyed}–{st!.mechsLost}
-                  </td>
-                </>
-              )}
-              {cards && <td>{st!.cardsTaken}</td>}
+              <td>{st.objectivesTaken}</td>
+              <td>
+                {st.battlesWon}–{st.battlesLost}
+              </td>
+              <td>
+                {st.mechsDestroyed}–{st.mechsLost}
+              </td>
+              {cards && <td>{st.cardsTaken}</td>}
             </tr>
           );
         })}

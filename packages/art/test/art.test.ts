@@ -16,13 +16,12 @@ import {
   mechFighterSvg,
   tileSvg,
 } from '../src';
-import { CUBE_PAD } from '../src/tokens';
+import { CARD_CATEGORIES, CUBE_PAD } from '../src/tokens';
 import { boxGap } from '../src/tile/geometry';
 import maps from '../../engine/src/data/maps.json';
 import { parseToken } from '../../engine/src/board';
 import { cardBackSvg, cardSvg, type CardDeck } from '../src/card';
 import { ICONS } from '../src/icons';
-import { CARD_CATEGORIES } from '../src/tokens';
 import { rng } from '../src/rng';
 import { MIN_TEXT, playerAidSvg } from '../src/aid';
 import { mechDie } from '../src/screenprint/die';

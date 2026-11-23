@@ -17,7 +17,7 @@ here is in [PROTOTYPING.md](regolith/PROTOTYPING.md).
 | **AI** | Five ranks, Cadet to General, each beating the one below in Basic and Regolith ([AI.md](AI.md)). Card values from Regolith's own benchmark and the earlier Community one ([card-benchmark.md](card-benchmark.md)). |
 | **Online** | Serverless, live or asynchronous, over public Nostr relays ([MULTIPLAYER.md](MULTIPLAYER.md)). |
 | **Learning** | An animated tutorial in the lobby, ending in a practice game; *How to play* in the game; the printable rulebook at `#rulebook`. |
-| **Look and sound** | Each world's ground on the tiles; a base for each objective; screenprint cards; synthesised effects and an ambient score for each world. |
+| **Look and sound** | Each world's ground on the tiles; a base for each objective; screenprint cards; synthesised effects and a playlist of ambient scores. |
 | **Devices** | Desktop, phone and tablet, checked in emulation on every deploy; installs as an app and plays offline ([MOBILE.md](MOBILE.md)). |
 | **Print** | Tiles, cards, map setup sheets and the player aid export at physical size with bleed and crop marks ([GRAPHICS.md](GRAPHICS.md)). Not yet proofed on paper. |
 | **Quality** | Engine tests, golden replays, a legal-move cross-check, a card audit and invariant checks on every step; lint, format, circular-import and dead-code checks; browser checks before every deploy ([ARCHITECTURE.md](ARCHITECTURE.md#tests)). |

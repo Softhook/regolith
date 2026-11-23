@@ -1,5 +1,5 @@
 import { useSyncExternalStore, type ReactNode } from 'react';
-import { isOn, onSwitch, turn } from '../audio';
+import { isOn, onSwitch, turn } from '../audio/core';
 
 /** The top bar's switch for sound effects. */
 export function SoundButton() {
@@ -10,7 +10,7 @@ export function SoundButton() {
   );
 }
 
-/** The top bar's switch for the music (ambience.ts). */
+/** The top bar's switch for the music (audio/music.ts). */
 export function MusicButton() {
   return (
     <AudioSwitch which="music" name="music">

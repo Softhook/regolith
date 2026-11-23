@@ -234,7 +234,7 @@ function play({ variant, players, game }: Task): GameResult {
       lastCubeTurn = s.turn.number;
       if (action.type === 'takeOver') r.takeOver++;
       else r.claims++;
-      if (shutout && shutout.end === 'unfinished') shutout.end = action.type === 'takeOver' ? 'takeOver' : 'claim';
+      if (shutout?.end === 'unfinished') shutout.end = action.type === 'takeOver' ? 'takeOver' : 'claim';
     }
     const added = (s.barriers?.length ?? 0) - before.barriers;
     if (added > 0) {
@@ -248,7 +248,7 @@ function play({ variant, players, game }: Task): GameResult {
     }
     if (JSON.stringify(s.tunnels) !== before.tunnels && s.tunnels.length === 2) {
       r.tunnels++;
-      if (shutout && shutout.end === 'unfinished') shutout.end = 'tunnel';
+      if (shutout?.end === 'unfinished') shutout.end = 'tunnel';
     }
   }
   r.finished = s.phase === 'over';

@@ -7,7 +7,7 @@
     "apps/*"
   ],
   "scripts": {
-    "prepare": "git config core.hooksPath .githooks",
+    "prepare": "git config core.hooksPath .githooks && npm run data",
     "data": "node scripts/build-data.mjs",
     "dev": "npm run data && npm run dev -w @regolith/web",
     "dev:https": "npm run data && npm run dev:https -w @regolith/web",

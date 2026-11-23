@@ -127,7 +127,7 @@ export function TurnPanel({ game, ctl, dispatch, undo }: { game: GameState; ctl:
       {head?.kind === 'reinforcements' && ctl.human && (
         <div className="turn-actions">
           <button className="btn" onClick={() => dispatch({ type: 'reinforcements', to: null })}>
-            {'Send to salvage yard'}
+            Send to salvage yard
           </button>
         </div>
       )}

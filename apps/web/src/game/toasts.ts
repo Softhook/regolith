@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { GameState, LogEvent, PlayerId } from '@regolith/engine';
-import { sfx } from '../sound';
+import { sfx } from '../audio/effects';
 import { logText } from './logText';
 import { playSounds } from './sounds';
 import { logSince } from './steps';
